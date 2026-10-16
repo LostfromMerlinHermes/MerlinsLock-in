@@ -1,0 +1,17 @@
+{
+  "name": "MerlinsLockIN",
+  "short_name": "LockIN",
+  "description": "Plan your day, pick your mood and lock in with a focus timer, sounds, a calendar and quests.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#07060d",
+  "theme_color": "#07060d",
+  "lang": "fr",
+  "icons": [
+    { "src": "icons/icon192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

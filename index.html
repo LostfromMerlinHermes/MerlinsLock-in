@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MerlinsLockIN</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#07060d">
+<link rel="manifest" href="site.webmanifest" data-web-only>
+<link rel="icon" href="icons/icon32.png" data-web-only>
+<link rel="apple-touch-icon" href="icons/icon192.png" data-web-only>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Press+Start+2P&family=VT323&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
+        <defs>
+          <linearGradient id="hatg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="hat-top"/><stop offset="1" class="hat-bottom"/></linearGradient>
+        </defs>
+        <path class="lg-hat" d="M14 24 C17 16 19.5 9 28.5 3 C26.5 9.5 29 16 34 24 Z"/>
+        <path class="lg-band" d="M16.4 20.4 C21 21.6 27 21.6 31.9 20.4"/>
+        <ellipse class="lg-brim" cx="24" cy="24.6" rx="15.5" ry="3.1"/>
+        <path class="lg-chain" d="M23.6 33.4 C20.5 36.5 19 41 12.5 44.5"/>
+        <circle class="lg-lens" cx="29" cy="33" r="5.3"/>
+        <path class="lg-glint" d="M26.1 31.4 A3.5 3.5 0 0 1 29.6 29.6"/>
+      </svg>
+      <div class="brand-text">
+        <h1>Merlins<span>LockIN</span></h1>
+        <button type="button" class="seq" id="seq-badge">
+          <span id="seq-label">Sequence 9 · Seer</span>
+          <i class="seq-bar"><b id="seq-fill"></b></i>
+        </button>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button type="button" class="gold" id="gold-chip" data-i18n-title="shop"></button>
+      <span class="buff" id="buff-chip"></span>
+      <span class="streak" id="streak-pill"></span>
+      <button type="button" class="ghost icon-only" id="install-btn" data-i18n-title="install_app" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+      </button>
+      <button type="button" class="ghost icon-only" id="float-btn" data-i18n-title="float_timer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1"/></svg>
+      </button>
+      <button type="button" class="ghost icon-only" id="settings-btn" data-i18n-title="settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="moodbar" aria-label="Mood">
+    <div class="mood-chips" id="mood-chips" role="group"></div>
+    <p class="mood-line" id="mood-line"></p>
+  </section>
+
+  <div class="layout">
+    <section class="sigil-card" id="sigil-card">
+      <div class="card-head">
+        <div class="seg-toggle" role="group">
+          <button type="button" id="m-focus" aria-pressed="true" data-i18n="focus">Focus</button>
+          <button type="button" id="m-break" aria-pressed="false" data-i18n="break">Pause</button>
+        </div>
+        <button type="button" class="ghost icon-only" id="deep-btn" data-i18n-title="deep_focus">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        </button>
+        <button type="button" class="ghost icon-only" id="compact-btn" data-i18n-title="compact_toggle">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16M4 15h16"/></svg>
+        </button>
+      </div>
+
+      <div class="cbar" id="cbar">
+        <div class="cbar-main">
+          <span class="state" id="c-state"></span>
+          <span class="cbar-clock" id="c-clock">40:00</span>
+          <span class="cbar-task" id="c-task"></span>
+        </div>
+        <div class="cbar-prog"><b id="c-prog"></b></div>
+        <div class="cbar-btns">
+          <button type="button" class="primary small" id="c-start"></button>
+          <button type="button" class="small" id="c-skip" data-i18n="finish">Terminer</button>
+        </div>
+      </div>
+
+      <div class="full-only">
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 240 240" aria-hidden="true">
+            <g class="runes" id="runes"></g>
+            <g class="segs-dim" id="segs-dim"></g>
+            <g class="segs-lit" id="segs-lit"></g>
+            <circle class="arc-track" cx="120" cy="120" r="76"/>
+            <circle class="arc" id="arc" cx="120" cy="120" r="76"/>
+            <polygon class="hex" id="hex"/>
+          </svg>
+          <div class="ring-center">
+            <div class="state" id="state"></div>
+            <div class="clock" id="clock" role="timer" aria-live="off">40:00</div>
+            <div class="focus-on" id="focus-on"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rate" id="rate" hidden>
+        <p data-i18n="rate_q">À quel point étais-tu concentré ?</p>
+        <div class="rate-btns" id="rate-btns" role="group"></div>
+        <button type="button" class="link" id="rate-skip" data-i18n="skip">Passer</button>
+      </div>
+
+      <div class="full-only">
+        <div class="presets" id="presets" role="group"></div>
+        <div class="custom">
+          <label for="custom-mins" data-i18n="custom">Perso</label>
+          <input type="number" id="custom-mins" min="1" max="600" placeholder="min" inputmode="numeric">
+          <button type="button" id="custom-set" data-i18n="set">OK</button>
+        </div>
+        <div class="controls">
+          <button type="button" id="reset" data-i18n="reset">Reset</button>
+          <button type="button" class="primary" id="start"></button>
+          <button type="button" id="skip" data-i18n="finish">Terminer</button>
+        </div>
+      </div>
+
+      <form class="park" id="park-form" autocomplete="off">
+        <input type="text" id="park-input" maxlength="140" data-i18n-ph="park_ph">
+        <button type="submit" data-i18n="park">Parquer</button>
+        <button type="button" class="distract-btn" id="distract-btn" data-i18n-title="distracted">⚡ <span id="distract-n"></span></button>
+      </form>
+
+      <div class="perch" id="perch"></div>
+
+      <div class="deck" id="sound-deck"></div>
+    </section>
+
+    <section class="panel">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="t-plan" aria-controls="tab-plan" data-i18n="tab_plan">Plan</button>
+        <button type="button" role="tab" id="t-day" aria-controls="tab-day" data-i18n="tab_day">Journée</button>
+        <button type="button" role="tab" id="t-cal" aria-controls="tab-cal" data-i18n="tab_cal">Agenda</button>
+        <button type="button" role="tab" id="t-park" aria-controls="tab-park"><span data-i18n="tab_park">Parqués</span> <span class="count" id="park-count"></span></button>
+        <button type="button" role="tab" id="t-grim" aria-controls="tab-grim" data-i18n="tab_grim">Grimoire</button>
+      </div>
+
+      <div class="tabpanel" id="tab-plan" role="tabpanel">
+        <div id="quest-strip"></div>
+        <form class="add" id="add-form" autocomplete="off">
+          <input type="text" id="new-title" maxlength="120" required data-i18n-ph="new_task_ph">
+          <select id="new-mins" aria-label="Duration">
+            <option value="15">15 min</option><option value="25">25 min</option><option value="30">30 min</option>
+            <option value="35">35 min</option><option value="40">40 min</option><option value="45">45 min</option>
+            <option value="60" selected>1h</option><option value="90">1h30</option><option value="120">2h</option><option value="180">3h</option>
+          </select>
+          <select id="new-pri" aria-label="Priority">
+            <option value="high" data-i18n="pri_high">Haute</option><option value="med" selected data-i18n="pri_med">Moyenne</option><option value="low" data-i18n="pri_low">Basse</option>
+          </select>
+          <button type="submit" class="primary add-btn" data-i18n="add_task">Ajouter au plan</button>
+        </form>
+        <p class="sort-note" id="sort-note"></p>
+        <ul class="tasks" id="tasks"></ul>
+        <div class="plan-foot">
+          <span id="foot-note"></span>
+          <span class="foot-btns">
+            <button type="button" class="ghost small" id="clear-done" data-i18n="clear_done">Retirer les terminées</button>
+            <button type="button" class="ghost small" id="clear-all" data-i18n="clear_all">Tout effacer</button>
+          </span>
+        </div>
+        <div class="log">
+          <h2 data-i18n="today_sessions">Sessions du jour</h2>
+          <ol id="log"></ol>
+        </div>
+      </div>
+
+      <div class="tabpanel" id="tab-day" role="tabpanel" hidden><div id="planner"></div></div>
+      <div class="tabpanel" id="tab-cal" role="tabpanel" hidden><div id="calendar"></div></div>
+
+      <div class="tabpanel" id="tab-park" role="tabpanel" hidden>
+        <p class="hint" data-i18n="park_hint"></p>
+        <ul class="parked" id="parked"></ul>
+        <div class="plan-foot"><span></span><button type="button" class="ghost small" id="clear-parked" data-i18n="clear_all">Tout effacer</button></div>
+      </div>
+
+      <div class="tabpanel" id="tab-grim" role="tabpanel" hidden>
+        <div class="grim" id="grim"></div>
+        <div class="grim" id="g-game"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="overlay" id="checkin" hidden>
+  <div class="sheet center" role="dialog" aria-modal="true" aria-labelledby="ci-h">
+    <h2 id="ci-h" data-i18n="checkin_h"></h2>
+    <p data-i18n="checkin_p"></p>
+    <div class="ci-grid" id="ci-grid"></div>
+    <button type="button" class="link" id="ci-skip" data-i18n="skip_today"></button>
+  </div>
+</div>
+
+<div class="overlay" id="settings" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="set-h">
+    <div class="sheet-head">
+      <h2 id="set-h" data-i18n="settings"></h2>
+      <button type="button" class="ghost icon-only" data-close="settings" data-i18n-title="close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div id="settings-body"></div>
+  </div>
+</div>
+
+<div class="overlay" id="help" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="help-h">
+    <div class="sheet-head">
+      <h2 id="help-h" data-i18n="shortcuts"></h2>
+      <button type="button" class="ghost icon-only" data-close="help" data-i18n-title="close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <dl class="keys" id="help-keys"></dl>
+  </div>
+</div>
+
+<div class="levelup" id="levelup" hidden>
+  <div class="lu-inner">
+    <div class="lu-sigil" aria-hidden="true"></div>
+    <div class="lu-kicker" id="lu-kicker"></div>
+    <div class="lu-title" id="lu-title"></div>
+    <div class="lu-sub" id="lu-sub"></div>
+  </div>
+</div>
+
+<div class="theme-fx" id="theme-fx" aria-hidden="true"></div>
+<div class="tod" id="tod" aria-hidden="true"></div>
+<canvas class="burst" id="burst" aria-hidden="true"></canvas>
+<div class="floaters" id="floaters" aria-hidden="true"></div>
+
+<div class="overlay deep" id="deep" hidden>
+  <div class="deep-inner" id="deep-inner"></div>
+</div>
+
+<div class="overlay" id="shop" hidden>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="shop-h">
+    <div class="sheet-head">
+      <h2 id="shop-h" data-i18n="shop"></h2>
+      <button type="button" class="ghost icon-only" data-close="shop" data-i18n-title="close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div id="shop-body"></div>
+  </div>
+</div>
+
+<div class="overlay" id="review" hidden>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="review-h">
+    <div class="sheet-head">
+      <h2 id="review-h" data-i18n="weekly_review"></h2>
+      <button type="button" class="ghost icon-only" data-close="review" data-i18n-title="close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div id="review-body"></div>
+  </div>
+</div>
+
+<div class="title-screen" id="title-screen" hidden>
+  <div class="ts-inner" id="ts-inner"></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="mini-view.js"></script>
+<script src="core.js"></script>
+<script src="strings.js"></script>
+<script src="audio.js"></script>
+<script src="app.js"></script>
+<script src="calendar.js"></script>
+<script src="planner.js"></script>
+<script src="game.js"></script>
+<script src="juice.js"></script>
+<script src="focusplus.js"></script>
+<script src="economy.js"></script>
+<script src="companion.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
