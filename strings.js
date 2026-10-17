@@ -1,7 +1,7 @@
 // UI text for core.js, app.js and index.html. Other modules register their own strings.
 ML.addStrings({
   fr: {
-    sequence: 'Séquence', tap_again: 'Appuie encore pour confirmer', close: 'Fermer', install_app: "Installer l'app", float_timer: 'Minuteur flottant', settings: 'Réglages',
+    update_ready: 'Nouvelle version prête.', update_reload: 'Mettre à jour', sequence: 'Séquence', tap_again: 'Appuie encore pour confirmer', close: 'Fermer', install_app: "Installer l'app", float_timer: 'Minuteur flottant', settings: 'Réglages',
     focus: 'Focus', break: 'Pause', break_lc: 'pause', compact_toggle: 'Réduire / agrandir le minuteur', finish: 'Terminer', reset: 'Reset',
     rate_q: 'Ta concentration sur cette session ?', skip: 'Passer', custom: 'Perso', set: 'OK',
     park_ph: 'Une pensée parasite ? Parque-la ici', park: 'Parquer',
@@ -68,7 +68,7 @@ ML.addStrings({
     installed: 'MerlinsLockIN est installé. Tu le trouveras dans le menu Démarrer.',
   },
   en: {
-    sequence: 'Sequence', tap_again: 'Tap again to confirm', close: 'Close', install_app: 'Install the app', float_timer: 'Floating timer', settings: 'Settings',
+    update_ready: 'A new version is ready.', update_reload: 'Update', sequence: 'Sequence', tap_again: 'Tap again to confirm', close: 'Close', install_app: 'Install the app', float_timer: 'Floating timer', settings: 'Settings',
     focus: 'Focus', break: 'Break', break_lc: 'break', compact_toggle: 'Shrink / expand the timer', finish: 'Finish', reset: 'Reset',
     rate_q: 'How focused were you?', skip: 'Skip', custom: 'Custom', set: 'Set',
     park_ph: 'Stray thought? Park it here', park: 'Park',
