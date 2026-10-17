@@ -9,7 +9,7 @@
       fam_owl: 'Hibou', fam_owl_d: 'Sage et patient. Il veille la nuit.', fam_cat: 'Chat noir', fam_cat_d: 'Mystérieux, un peu moqueur.',
       fam_raven: 'Corbeau', fam_raven_d: 'Messager du brouillard gris.', fam_fox: 'Renard', fam_fox_d: 'Vif et malin, toujours prêt.',
       companion: 'Familier', rename: 'Nom du familier', stage_0: 'Bébé', stage_1: 'Jeune', stage_2: 'Adulte', stage_3: 'Ancien',
-      tower: 'Ta tour de mage', floors_n: '{n} étages', floors_today: '+{n} aujourd’hui', tower_fell: 'Session abandonnée : un étage de ta tour s’est écroulé.',
+      tower: 'Ta tour de mage', floors_n_one: '{n} étage', floors_n: '{n} étages', floors_today: '+{n} aujourd’hui', tower_fell: 'Session abandonnée : un étage de ta tour s’est écroulé.',
       tower_rules: 'Chaque session d’au moins 15 min ajoute un étage (un par demi-heure). Abandonner avant la moitié fait tomber un étage.',
       tower_best: 'Record : {n} étages en un jour', tower_fallen: 'Écroulés cette semaine : {n}',
       l_idle: ['Prêt quand tu l’es.', 'On attaque quelle quête ?', 'Je garde un œil sur ta tour.', 'Un étage de plus aujourd’hui ?'],
@@ -25,7 +25,7 @@
       fam_owl: 'Owl', fam_owl_d: 'Wise and patient. Watches over the night.', fam_cat: 'Black cat', fam_cat_d: 'Mysterious, a little cheeky.',
       fam_raven: 'Raven', fam_raven_d: 'Messenger of the gray fog.', fam_fox: 'Fox', fam_fox_d: 'Quick and clever, always ready.',
       companion: 'Familiar', rename: 'Familiar name', stage_0: 'Baby', stage_1: 'Young', stage_2: 'Adult', stage_3: 'Elder',
-      tower: 'Your mage tower', floors_n: '{n} floors', floors_today: '+{n} today', tower_fell: 'Session abandoned: a floor of your tower crumbled.',
+      tower: 'Your mage tower', floors_n_one: '{n} floor', floors_n: '{n} floors', floors_today: '+{n} today', tower_fell: 'Session abandoned: a floor of your tower crumbled.',
       tower_rules: 'Every session of at least 15 min adds a floor (one per half hour). Quitting before halfway knocks one down.',
       tower_best: 'Record: {n} floors in a day', tower_fallen: 'Crumbled this week: {n}',
       l_idle: ['Ready when you are.', 'Which quest are we taking on?', 'I’m watching your tower.', 'One more floor today?'],
@@ -111,7 +111,7 @@
       <button type="button" class="fam-btn" id="fam-btn" title="${esc(famName())} · ${esc(t('fam_' + species()))} · ${esc(t('stage_' + stage()))}">${familiarSvg(species(), st, stage())}</button>
       <div class="bubble"><b>${esc(famName())}</b><span>${esc(line || '')}</span></div>
       <button type="button" class="mini-tower" id="mini-tower" title="${esc(t('tower'))}">${towerSvg(Math.min(8, Math.max(1, T.day === today() ? T.built : 0)), T.day === today() ? T.built : 0, true)}
-        <span><b>${esc(t('floors_n', { n: T.floors }))}</b><small>${esc(t('floors_today', { n: T.day === today() ? T.built : 0 }))}</small></span></button>`;
+        <span><b>${esc(ML.tn('floors_n', T.floors))}</b><small>${esc(t('floors_today', { n: T.day === today() ? T.built : 0 }))}</small></span></button>`;
     $('fam-btn').onclick = () => { react('happy', 3500); line = pick(lines('l_pet')); renderPerch(); ML.sfx && ML.sfx('task'); lastActive = Date.now(); };
     $('mini-tower').onclick = () => { ML.setTab('grim'); setTimeout(() => { const c = $('tower-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60); };
   }
@@ -173,7 +173,7 @@
       <div class="tower-row">
         <div class="tower-big">${shown ? towerSvg(shown, Math.min(shown, T.built), false) : towerSvg(1, 0, false)}${T.floors > 24 ? `<span class="tw-more">+${T.floors - 24}</span>` : ''}</div>
         <div class="tower-info">
-          <strong>${esc(t('floors_n', { n: T.floors }))}</strong>
+          <strong>${esc(ML.tn('floors_n', T.floors))}</strong>
           <span>${esc(t('floors_today', { n: T.built }))}</span>
           <span>${esc(t('tower_best', { n: T.best }))}</span>
           <span>${esc(t('tower_fallen', { n: T.fallLog.filter(x => x > weekAgo).length }))}</span>

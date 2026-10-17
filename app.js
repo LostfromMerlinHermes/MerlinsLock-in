@@ -908,6 +908,8 @@
     ML.replaceState(data);
     clearInterval(tick); tick = null;
     if (running()) loop();
+    // The incoming state can carry another language or mood: re-translate the static text too
+    ML.applyI18n(); if (ML.applyTheme) ML.applyTheme();
     renderAll(); emit('timer');
   };
   addEventListener('storage', e => {
