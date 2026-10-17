@@ -17,6 +17,7 @@
       err_email: 'Entre une adresse e-mail valide.', err_generic: 'Erreur : {msg}',
       set_account: 'Compte', acc_signed: 'Connecté : {email}', acc_guest: 'Tu utilises l’app sans compte : tes données restent sur cet appareil.',
       acc_sync_now: 'Synchroniser maintenant', acc_logout: 'Se déconnecter', acc_login: 'Se connecter / créer un compte', acc_last: 'Dernière synchro : {when}', acc_never: 'jamais',
+      acc_delete: 'Supprimer mon compte', acc_deleted: 'Compte supprimé. Toutes tes données en ligne ont été effacées.', del_missing: 'La suppression de compte n’est pas encore activée sur le serveur. Contacte l’éditeur.',
       acc_synced: 'Synchronisé', acc_sync_err: 'Synchro impossible pour l’instant. On réessaie bientôt.', acc_wipe: 'Effacer mes données du cloud', acc_wiped: 'Données du cloud effacées.',
       import_h: 'Importer la progression de cet appareil ?', import_p: 'Cet appareil a déjà des tâches, de l’XP et des sessions sans compte. Tu peux les mettre dans ton compte.',
       import_yes: 'Importer dans mon compte', import_no: 'Commencer à zéro',
@@ -32,6 +33,7 @@
       err_email: 'Enter a valid email address.', err_generic: 'Error: {msg}',
       set_account: 'Account', acc_signed: 'Signed in: {email}', acc_guest: "You're using the app without an account: your data stays on this device.",
       acc_sync_now: 'Sync now', acc_logout: 'Sign out', acc_login: 'Sign in / create account', acc_last: 'Last sync: {when}', acc_never: 'never',
+      acc_delete: 'Delete my account', acc_deleted: 'Account deleted. All your online data was erased.', del_missing: 'Account deletion is not enabled on the server yet. Contact the publisher.',
       acc_synced: 'Synced', acc_sync_err: "Can't sync right now. Retrying soon.", acc_wipe: 'Delete my cloud data', acc_wiped: 'Cloud data deleted.',
       import_h: "Import this device's progress?", import_p: 'This device already has tasks, XP and sessions without an account. You can move them into your account.',
       import_yes: 'Import into my account', import_no: 'Start fresh',
@@ -183,6 +185,7 @@
             <label><span class="label">${esc(t('auth_email'))}</span><input type="email" name="email" autocomplete="email" required></label>
             <label><span class="label">${esc(t('auth_pw'))}</span><span class="pw-row"><input type="password" name="pw" autocomplete="${mode === 'login' ? 'current-password' : 'new-password'}" minlength="6" required><button type="button" class="small ghost" id="auth-show">${esc(t('auth_show'))}</button></span></label>
             <label class="opt"><input type="checkbox" name="remember" checked> ${esc(t('auth_remember'))}</label>
+            ${mode === 'signup' ? `<label class="opt consent"><input type="checkbox" name="terms"> <span>${t('consent', { terms: `<button type="button" class="link" data-legal="terms">${esc(t('consent_terms'))}</button>`, privacy: `<button type="button" class="link" data-legal="privacy">${esc(t('consent_privacy'))}</button>` })}</span></label>` : ''}
             <p class="auth-msg ${isErr ? 'err' : ''}" role="alert">${msg ? esc(msg) : ''}</p>
             <button type="submit" class="primary">${esc(mode === 'login' ? t('auth_login') : t('auth_signup'))}</button>
             ${mode === 'login' ? `<button type="button" class="link" id="auth-forgot">${esc(t('auth_forgot'))}</button>` : ''}
@@ -190,6 +193,7 @@
           <div class="auth-or"></div>
           <button type="button" class="ghost" id="auth-guest">${esc(t('auth_guest'))}</button>
           <small class="hint">${esc(t('auth_guest_d'))}</small>
+          <p class="legal-links">${ML.legalLinks ? ML.legalLinks() : ''}</p>
         </div>`;
         const f = $('auth-form');
         setTimeout(() => f.email.focus(), 30);
@@ -207,11 +211,12 @@
           const email = f.email.value.trim(), pw = f.pw.value, rem = f.remember.checked;
           if (!/^\S+@\S+\.\S+$/.test(email)) { draw(t('err_email'), true); return; }
           if (pw.length < 6) { draw(t('err_pw'), true); $('auth-form').email.value = email; return; }
+          if (mode === 'signup' && !f.terms.checked) { draw(t('err_consent'), true); $('auth-form').email.value = email; return; }
           const btn = f.querySelector('[type=submit]'); btn.disabled = true; btn.textContent = t('auth_wait');
           try {
             const d = mode === 'login'
               ? await api('/auth/v1/token?grant_type=password', { method: 'POST', body: { email, password: pw } })
-              : await api('/auth/v1/signup', { method: 'POST', body: { email, password: pw } });
+              : await api('/auth/v1/signup', { method: 'POST', body: { email, password: pw, data: { terms_version: ML.LEGAL_VERSION, terms_accepted_at: new Date().toISOString() } } });
             if (!d || !d.access_token) { mode = 'login'; draw(t('auth_confirm')); $('auth-form').email.value = email; return; }
             useSession(norm(d), rem);
             el.hidden = true; resolve('user');
@@ -293,7 +298,8 @@
       ? `<p class="hint">${esc(t('acc_signed', { email: user.email }))}</p><p class="hint" id="acc-status"></p>
          <div class="backup-btns"><button type="button" class="small" id="acc-sync">${esc(t('acc_sync_now'))}</button>
          <button type="button" class="small ghost" id="acc-logout">${esc(t('acc_logout'))}</button>
-         <button type="button" class="small ghost danger" id="acc-wipe">${esc(t('acc_wipe'))}</button></div>`
+         <button type="button" class="small ghost danger" id="acc-wipe">${esc(t('acc_wipe'))}</button>
+         <button type="button" class="small ghost danger" id="acc-delete">${esc(t('acc_delete'))}</button></div>`
       : `<p class="hint">${esc(t('acc_guest'))}</p><button type="button" class="small primary" id="acc-login">${esc(t('acc_login'))}</button>`}`,
     bind: r => {
       renderStatus();
@@ -301,6 +307,15 @@
       if (r.querySelector('#acc-logout')) r.querySelector('#acc-logout').onclick = logout;
       if (r.querySelector('#acc-wipe')) ML.armedButton(r.querySelector('#acc-wipe'), 'acc_wipe', async () => {
         try { await api('/rest/v1/lockin_data?user_id=eq.' + user.id, { method: 'DELETE', token: await token() }); toast(t('acc_wiped')); } catch (e) { toast(errText(e)); }
+      });
+      if (r.querySelector('#acc-delete')) ML.armedButton(r.querySelector('#acc-delete'), 'acc_delete', async () => {
+        try {
+          clearTimeout(pushT); pushT = null;
+          await api('/rest/v1/rpc/delete_my_account', { method: 'POST', body: {}, token: await token() });
+          try { localStorage.removeItem(ML.storageKey()); } catch (e) {}
+          writeSession(null); user = null; sess = null; ML.setStorageKey(null);
+          toast(t('acc_deleted')); setTimeout(() => location.reload(), 1800);
+        } catch (e) { toast(e.status === 404 ? t('del_missing') : errText(e)); }
       });
       if (r.querySelector('#acc-login')) r.querySelector('#acc-login').onclick = () => { try { localStorage.removeItem(GUEST_FLAG); } catch (e) {} location.reload(); };
     },

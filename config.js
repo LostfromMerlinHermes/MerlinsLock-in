@@ -4,4 +4,8 @@
 window.MLI_CONFIG = {
   supabaseUrl: 'https://jwftgajswyjasmnsjigd.supabase.co',
   supabaseKey: 'sb_publishable_ah5OWrKxgIKqDulBK66DbA_NPjfBDye',
+  // Shown in the privacy policy, terms and legal notice (legal.js)
+  contactEmail: 'merlinslockin@gmail.com',
+  // Supabase project region: eu-central-1
+  dataRegion: { fr: 'l’Union européenne (Francfort, Allemagne)', en: 'the European Union (Frankfurt, Germany)' },
 };

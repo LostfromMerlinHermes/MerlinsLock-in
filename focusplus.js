@@ -100,6 +100,48 @@
     if (e.key.toLowerCase() === 'd' && $('settings').hidden) { deepOn ? closeDeep() : openDeep(); }
   });
 
+  /* ---------- Leave detection (Forest-style soft blocker) ---------- */
+  // A web app can't block other apps on a phone. Instead, leaving MerlinsLockIN during a focus session
+  // for more than 10 s counts as a distraction; in strict mode it also knocks a floor off the tower.
+  ML.addStrings({
+    fr: {
+      set_leave: 'Rester dans l’app', opt_leave: 'Détecter quand je quitte l’app pendant le focus', opt_strict: 'Mode strict : quitter plus de 10 s fait tomber un étage de la tour',
+      leave_hint: 'Une app web ne peut pas bloquer les autres apps du téléphone. Combine avec le mode Concentration de ton téléphone : iPhone → Réglages → Concentration (et une automatisation Raccourcis « quand MerlinsLockIN s’ouvre »), Android → Bien-être numérique → Mode Concentration.',
+      left_for: 'Tu as quitté l’app pendant {d}. C’est compté comme un décrochage.',
+    },
+    en: {
+      set_leave: 'Stay in the app', opt_leave: 'Notice when I leave the app during focus', opt_strict: 'Strict mode: leaving for more than 10 s knocks a floor off the tower',
+      leave_hint: "A web app can't block other apps on a phone. Pair it with your phone's focus mode: iPhone → Settings → Focus (plus a Shortcuts automation \"when MerlinsLockIN opens\"), Android → Digital Wellbeing → Focus mode.",
+      left_for: 'You left the app for {d}. That counts as a distraction.',
+    },
+  });
+  const TOUCH = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  ML.defaults(() => ({ leaveDetect: TOUCH, strict: false }));
+  let hiddenAt = null;
+  document.addEventListener('visibilitychange', () => {
+    if (!S.leaveDetect) return;
+    if (document.visibilityState === 'hidden') { if (ML.running() && S.mode === 'focus') hiddenAt = Date.now(); return; }
+    if (!hiddenAt) return;
+    const away = (Date.now() - hiddenAt) / 1000; hiddenAt = null;
+    if (away < 10) return;
+    S.curDistr = (S.curDistr || 0) + 1;
+    S.distr.push({ at: Date.now(), mood: S.mood, away: Math.round(away), left: true });
+    save(); renderDistract();
+    toast(t('left_for', { d: away >= 60 ? fmtMins(away / 60) : Math.round(away) + ' s' }), { ms: 5000 });
+    emit('left', { secs: away, strict: !!S.strict });
+  });
+  ML.settingsSection({
+    order: 22,
+    render: () => `<h3>${esc(t('set_leave'))}</h3>
+      ${ML.ui.chk('set-leave', t('opt_leave'), S.leaveDetect)}
+      ${ML.ui.chk('set-strict', t('opt_strict'), S.strict)}
+      <p class="hint">${esc(t('leave_hint'))}</p>`,
+    bind: r => {
+      r.querySelector('#set-leave').onchange = e => { S.leaveDetect = e.target.checked; save(); };
+      r.querySelector('#set-strict').onchange = e => { S.strict = e.target.checked; save(); };
+    },
+  });
+
   /* ---------- Best hour (for smart auto-plan) ---------- */
   ML.bestHour = () => {
     const rated = S.sessions.filter(s => s.rating);

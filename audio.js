@@ -81,11 +81,35 @@
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
+  // Phones (iOS above all): Web Audio is muted by the silent switch and only starts from a tap.
+  // On a phone, the first taps (1) play a looping silent <audio> track, which switches iOS to
+  // "media playback" so Web Audio is heard even on silent, (2) set navigator.audioSession to
+  // 'playback' (iOS 17+), and (3) resume the AudioContext and play a 1-sample buffer inside the tap.
+  const MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let out = null, silentEl = null, unlocked = false, silentErr = null;
+  function silentWav() { // half a second of 8-bit silence, mono 8 kHz
+    const n = 4000, buf = new ArrayBuffer(44 + n), v = new DataView(buf);
+    const w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, 'data'); v.setUint32(40, n, true);
+    for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+    return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  }
+  function wakeMedia() {
+    if (!MOBILE) return;
+    if (!silentEl) { silentEl = document.createElement('audio'); silentEl.src = silentWav(); silentEl.loop = true; silentEl.setAttribute('playsinline', ''); silentEl.setAttribute('x-webkit-airplay', 'deny'); }
+    if (silentEl.paused) silentEl.play().then(() => { silentErr = null; }).catch(e => { silentErr = e && e.name; });
+  }
+  function sleepMedia() { if (silentEl && !silentEl.paused && !playing && !ML.running()) silentEl.pause(); }
+  // Any tap on a phone re-arms audio (also after a call or Siri "interrupted" the context)
+  ['touchend', 'click'].forEach(ev => document.addEventListener(ev, () => { if (MOBILE && (!ctx || ctx.state !== 'running')) ensure(); }, { capture: true, passive: true }));
   function ensure() {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
     try {
       if (!ctx) {
         ctx = new (window.AudioContext || window.webkitAudioContext)();
-        master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+        out = ctx.destination;
+        master = ctx.createGain(); master.gain.value = 0; master.connect(out);
         amGain = ctx.createGain(); amGain.connect(master);
         amLfo = ctx.createOscillator(); amDepth = ctx.createGain(); amDepth.gain.value = 0;
         amLfo.connect(amDepth).connect(amGain.gain); amLfo.start();
@@ -96,7 +120,9 @@
         natureBus = ctx.createGain(); natureBus.connect(master);
         const ns = ctx.createGain(); ns.gain.value = 0.12; natureBus.connect(ns); ns.connect(revIn);
       }
-      if (ctx.state === 'suspended') ctx.resume();
+      if (ctx.state !== 'running') { const p = ctx.resume(); if (p && p.catch) p.catch(() => {}); }
+      if (!unlocked) { const s = ctx.createBufferSource(); s.buffer = ctx.createBuffer(1, 1, 22050); s.connect(ctx.destination); s.start(0); unlocked = true; }
+      wakeMedia();
     } catch (e) { ctx = null; }
     return ctx;
   }
@@ -579,22 +605,35 @@
     playing = true;
     const cur = current(), key = cur.genre + '|' + cur.mode + '|' + cur.sub;
     if (!run || key !== lastKey) { lastKey = key; musicStart(cur.genre, cur); }
-    syncNature(); applyLevels(); renderDeck();
+    syncNature(); applyLevels(); renderDeck(); mediaSession();
     if (S.audio.mode === 'meditate' || S.audio.sub === 'guidedsleep') startBreath(false);
   }
   function stopAll() {
     playing = false; lastKey = '';
     if (ctx) { applyLevels(); setTimeout(() => { if (!playing) { musicStop(); syncNature(); } }, 900); }
     stopBreath(); renderDeck();
+    setTimeout(sleepMedia, 1200);
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   }
   function refresh() { if (playing) play(); else renderDeck(); }
+  function mediaSession() {
+    if (!('mediaSession' in navigator)) return;
+    try {
+      const sm = summary();
+      navigator.mediaSession.metadata = new MediaMetadata({ title: sm.main, artist: 'MerlinsLockIN', album: sm.nat, artwork: [{ src: 'icon512.png', sizes: '512x512', type: 'image/png' }] });
+      navigator.mediaSession.playbackState = 'playing';
+      navigator.mediaSession.setActionHandler('play', () => { userStopped = false; play(); });
+      navigator.mediaSession.setActionHandler('pause', () => { userStopped = true; stopAll(); });
+    } catch (e) {}
+  }
+  on('timer', () => { if (!ML.running()) setTimeout(sleepMedia, 1500); });
   ML.Audio = { play, stop: stopAll, get playing() { return playing; } };
 
   on('gesture', () => ensure());
   on('sound:toggle', () => { if (playing) { userStopped = true; stopAll(); } else { userStopped = false; override = null; play(); } });
   on('chime', () => {
     if (!ensure()) return;
-    [523.25, 783.99, 1046.5, 1567.98].forEach((f, i) => blip(ctx.destination, { type: i % 2 ? 'triangle' : 'sine', f, t0: ctx.currentTime + i * 0.16, dur: 1.8, peak: 0.18, attack: 0.015 }));
+    [523.25, 783.99, 1046.5, 1567.98].forEach((f, i) => blip(out, { type: i % 2 ? 'triangle' : 'sine', f, t0: ctx.currentTime + i * 0.16, dur: 1.8, peak: 0.18, attack: 0.015 }));
   });
   on('timer', () => {
     if (!S.audio.auto) return;
@@ -634,7 +673,7 @@
   function wakeChimes() {
     if (!ensure()) return;
     const scale = [72, 74, 76, 79, 81, 84];
-    for (let i = 0; i < 24; i++) blip(ctx.destination, { f: mtof(pick(scale) + (i > 12 ? 12 : 0)), t0: ctx.currentTime + i * 1.8, dur: 3, peak: 0.02 + i * 0.006, attack: 0.01 });
+    for (let i = 0; i < 24; i++) blip(out, { f: mtof(pick(scale) + (i > 12 ? 12 : 0)), t0: ctx.currentTime + i * 1.8, dur: 3, peak: 0.02 + i * 0.006, attack: 0.01 });
     toast(t('wake_up'), { ms: 8000 });
     ML.notify && ML.notify('MerlinsLockIN', t('wake_up'));
   }
@@ -778,6 +817,37 @@
     A.presets.push({ id: ML.uid(), name, mode: A.mode, sub: A.sub, genre: A.genre, music: A.music, nature: Object.assign({}, A.nature), neural: A.neural });
     save(); renderDeck(); toast(t('preset_saved', { name }));
   });
+
+  /* ---------- Settings: sound test + diagnostic (helps debug phones) ---------- */
+  ML.addStrings({
+    fr: { set_sound: 'Son', snd_test: 'Tester le son', snd_hint: 'Si tu n’entends rien sur iPhone : monte le volume avec les boutons latéraux pendant que le son joue, et vérifie que le téléphone n’est pas en mode Bluetooth vers un autre appareil.', snd_diag: 'Diagnostic' },
+    en: { set_sound: 'Sound', snd_test: 'Test the sound', snd_hint: 'If you hear nothing on iPhone: raise the volume with the side buttons while the sound plays, and check the phone isn’t sending audio to a Bluetooth device.', snd_diag: 'Diagnostic' },
+  });
+  function diag() {
+    return [
+      'AudioContext: ' + (ctx ? ctx.state : '—') + (ctx ? ' · ' + ctx.sampleRate + ' Hz' : ''),
+      'Mobile: ' + (MOBILE ? 'yes' : 'no'),
+      'audioSession: ' + (navigator.audioSession ? navigator.audioSession.type : 'n/a'),
+      'Silent loop: ' + (!MOBILE ? 'n/a' : silentEl ? (silentEl.paused ? 'paused' : 'playing') : 'not started') + (silentErr ? ' (' + silentErr + ')' : ''),
+      'Music playing: ' + (playing ? 'yes' : 'no'),
+    ].join('\n');
+  }
+  // app.js (which owns the settings sheet) loads after this file, so register once everything is loaded
+  on('loaded', () => ML.settingsSection({
+    order: 23,
+    render: () => `<h3>${esc(t('set_sound'))}</h3>
+      <button type="button" class="small primary" id="snd-test">♪ ${esc(t('snd_test'))}</button>
+      <p class="hint">${esc(t('snd_hint'))}</p>
+      <details><summary class="label">${esc(t('snd_diag'))}</summary><pre class="diag" id="snd-diag"></pre></details>`,
+    bind: r => {
+      const show = () => { const el = r.querySelector('#snd-diag'); if (el) el.textContent = diag(); };
+      show();
+      r.querySelector('#snd-test').onclick = () => {
+        ensure(); emit('chime');
+        setTimeout(show, 400); setTimeout(show, 1500);
+      };
+    },
+  }));
 
   loadTracks();
 })();

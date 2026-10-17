@@ -9,7 +9,7 @@
       fam_owl: 'Hibou', fam_owl_d: 'Sage et patient. Il veille la nuit.', fam_cat: 'Chat noir', fam_cat_d: 'Mystérieux, un peu moqueur.',
       fam_raven: 'Corbeau', fam_raven_d: 'Messager du brouillard gris.', fam_fox: 'Renard', fam_fox_d: 'Vif et malin, toujours prêt.',
       companion: 'Familier', rename: 'Nom du familier', stage_0: 'Bébé', stage_1: 'Jeune', stage_2: 'Adulte', stage_3: 'Ancien',
-      tower: 'Ta tour de mage', floors_n_one: '{n} étage', floors_n: '{n} étages', floors_today: '+{n} aujourd’hui', tower_fell: 'Session abandonnée : un étage de ta tour s’est écroulé.',
+      tower: 'Ta tour de mage', floors_n_one: '{n} étage', floors_n: '{n} étages', floors_today: '+{n} aujourd’hui', tower_fell: 'Session abandonnée : un étage de ta tour s’est écroulé.', tower_fell_left: 'Mode strict : tu as quitté l’app, un étage s’est écroulé.',
       tower_rules: 'Chaque session d’au moins 15 min ajoute un étage (un par demi-heure). Abandonner avant la moitié fait tomber un étage.',
       tower_best: 'Record : {n} étages en un jour', tower_fallen: 'Écroulés cette semaine : {n}',
       l_idle: ['Prêt quand tu l’es.', 'On attaque quelle quête ?', 'Je garde un œil sur ta tour.', 'Un étage de plus aujourd’hui ?'],
@@ -25,7 +25,7 @@
       fam_owl: 'Owl', fam_owl_d: 'Wise and patient. Watches over the night.', fam_cat: 'Black cat', fam_cat_d: 'Mysterious, a little cheeky.',
       fam_raven: 'Raven', fam_raven_d: 'Messenger of the gray fog.', fam_fox: 'Fox', fam_fox_d: 'Quick and clever, always ready.',
       companion: 'Familiar', rename: 'Familiar name', stage_0: 'Baby', stage_1: 'Young', stage_2: 'Adult', stage_3: 'Elder',
-      tower: 'Your mage tower', floors_n_one: '{n} floor', floors_n: '{n} floors', floors_today: '+{n} today', tower_fell: 'Session abandoned: a floor of your tower crumbled.',
+      tower: 'Your mage tower', floors_n_one: '{n} floor', floors_n: '{n} floors', floors_today: '+{n} today', tower_fell: 'Session abandoned: a floor of your tower crumbled.', tower_fell_left: 'Strict mode: you left the app, a floor crumbled.',
       tower_rules: 'Every session of at least 15 min adds a floor (one per half hour). Quitting before halfway knocks one down.',
       tower_best: 'Record: {n} floors in a day', tower_fallen: 'Crumbled this week: {n}',
       l_idle: ['Ready when you are.', 'Which quest are we taking on?', 'I’m watching your tower.', 'One more floor today?'],
@@ -154,6 +154,14 @@
     const T = towerDay();
     if (T.floors > 0) { T.floors--; T.fallen++; T.built = Math.max(0, T.built - 1); T.fallLog.push(Date.now()); if (T.fallLog.length > 200) T.fallLog = T.fallLog.slice(-200); }
     save(); toast(t('tower_fell')); react('sad', 8000);
+    const mt = document.querySelector('.mini-tower'); if (mt) { mt.classList.remove('crumble'); void mt.offsetWidth; mt.classList.add('crumble'); }
+  });
+  on('left', ({ strict }) => {
+    if (!strict) { react('sad', 6000); return; }
+    initTower();
+    const T = towerDay();
+    if (T.floors > 0) { T.floors--; T.fallen++; T.built = Math.max(0, T.built - 1); T.fallLog.push(Date.now()); }
+    save(); toast(t('tower_fell_left')); react('sad', 8000);
     const mt = document.querySelector('.mini-tower'); if (mt) { mt.classList.remove('crumble'); void mt.offsetWidth; mt.classList.add('crumble'); }
   });
   on('timer', () => { lastActive = Date.now(); renderPerch(); });
