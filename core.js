@@ -6,7 +6,11 @@ window.ML = (() => {
   const IS_EXT = typeof chrome !== 'undefined' && !!(chrome.runtime && chrome.runtime.id);
   // The Claude artifact build has no manifest link and its viewer blocks file downloads
   const CAN_DOWNLOAD = IS_EXT || !!document.querySelector('link[rel=manifest]');
-  const KEY = 'merlins-lockin-v2', OLD_KEY = 'merlins-lockin-v1';
+  const GUEST_KEY = 'merlins-lockin-v2', OLD_KEY = 'merlins-lockin-v1';
+  // Signed-in users get their own key ('merlins-lockin-v2:u:<id>'), so people sharing a browser never mix data.
+  // The current key is mirrored in localStorage for the extension's mini popup.
+  let KEY = GUEST_KEY;
+  function setStorageKey(k) { KEY = k || GUEST_KEY; try { localStorage.setItem('mli-current-key', KEY); } catch (e) {} }
 
   /* ---------- Helpers ---------- */
   const pad2 = n => String(n).padStart(2, '0');
@@ -26,7 +30,9 @@ window.ML = (() => {
   const STR = { fr: {}, en: {} };
   function addStrings(dict) { for (const l in dict) Object.assign(STR[l] || (STR[l] = {}), dict[l]); }
   function t(key, vars) {
-    let s = (STR[S.lang] && STR[S.lang][key]);
+    // Before the state loads (login screen) fall back to the browser language
+    const lang = S.lang || ((navigator.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en');
+    let s = (STR[lang] && STR[lang][key]);
     if (s == null) s = STR.en[key];
     if (s == null) s = key;
     if (vars) s = s.replace(/\{(\w+)\}/g, (_, k) => (vars[k] == null ? '' : vars[k]));
@@ -51,6 +57,7 @@ window.ML = (() => {
     let data = null;
     try {
       const raw = localStorage.getItem(KEY);
+      if (!raw && KEY !== GUEST_KEY) { replaceState({}); return; } // a new account starts fresh
       if (raw) data = JSON.parse(raw);
       else {
         const old = localStorage.getItem(OLD_KEY);
@@ -82,7 +89,9 @@ window.ML = (() => {
   function saveNow() {
     clearTimeout(saveT);
     if (S.sessions && S.sessions.length > 4000) S.sessions = S.sessions.slice(-4000);
+    S._savedAt = Date.now();
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+    emit('saved');
   }
   addEventListener('pagehide', saveNow);
 
@@ -136,7 +145,7 @@ window.ML = (() => {
   }
 
   return {
-    $, IS_EXT, CAN_DOWNLOAD, KEY, S, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon,
+    $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon,
     addStrings, t, tn, locale, applyI18n,
     defaults: fn => defaultFns.push(fn), load, replaceState, save, saveNow,
     on, emit, toast, armedButton, bgSend,

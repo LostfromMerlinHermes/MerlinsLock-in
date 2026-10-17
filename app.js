@@ -903,12 +903,16 @@
   addEventListener('appinstalled', () => { $('install-btn').hidden = true; toast(t('installed')); });
 
   // Another window (the mini popup, another tab) changed the saved state
-  addEventListener('storage', e => {
-    if (e.key !== ML.KEY || !e.newValue) return;
-    try { ML.replaceState(JSON.parse(e.newValue)); } catch (err) { return; }
+  // Replace the whole state with data from elsewhere (another window, or the cloud via sync.js)
+  ML.applyRemote = data => {
+    ML.replaceState(data);
     clearInterval(tick); tick = null;
     if (running()) loop();
     renderAll(); emit('timer');
+  };
+  addEventListener('storage', e => {
+    if (e.key !== ML.storageKey() || !e.newValue) return;
+    try { ML.applyRemote(JSON.parse(e.newValue)); } catch (err) {}
   });
 
   /* ---------- Render + day change ---------- */
