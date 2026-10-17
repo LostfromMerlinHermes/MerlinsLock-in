@@ -52,6 +52,12 @@
     </div>
   </header>
 
+  <div class="section-switch" role="group" aria-label="Section">
+    <button type="button" id="sec-work" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v14H4zM13 5h7v14h-7zM6.5 9h2M15.5 9h2"/></svg><span data-i18n="sec_work">Travail</span></button>
+    <button type="button" id="sec-sport" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4M6 8v8M18 8v8M21 10v4M6 12h12"/></svg><span data-i18n="sec_sport">Sport</span></button>
+  </div>
+
+  <div class="work-only" id="work-root">
   <section class="moodbar" aria-label="Mood">
     <div class="mood-chips" id="mood-chips" role="group"></div>
     <p class="mood-line" id="mood-line"></p>
@@ -139,6 +145,7 @@
         <button type="button" role="tab" id="t-plan" aria-controls="tab-plan" data-i18n="tab_plan">Plan</button>
         <button type="button" role="tab" id="t-day" aria-controls="tab-day" data-i18n="tab_day">Journée</button>
         <button type="button" role="tab" id="t-cal" aria-controls="tab-cal" data-i18n="tab_cal">Agenda</button>
+        <button type="button" role="tab" id="t-notes" aria-controls="tab-notes" data-i18n="tab_notes">Carnet</button>
         <button type="button" role="tab" id="t-park" aria-controls="tab-park"><span data-i18n="tab_park">Parqués</span> <span class="count" id="park-count"></span></button>
         <button type="button" role="tab" id="t-grim" aria-controls="tab-grim" data-i18n="tab_grim">Grimoire</button>
       </div>
@@ -174,6 +181,7 @@
 
       <div class="tabpanel" id="tab-day" role="tabpanel" hidden><div id="planner"></div></div>
       <div class="tabpanel" id="tab-cal" role="tabpanel" hidden><div id="calendar"></div></div>
+      <div class="tabpanel" id="tab-notes" role="tabpanel" hidden><div id="notes"></div></div>
 
       <div class="tabpanel" id="tab-park" role="tabpanel" hidden>
         <p class="hint" data-i18n="park_hint"></p>
@@ -187,6 +195,9 @@
       </div>
     </section>
   </div>
+  </div>
+
+  <div class="sport-root" id="sport-root" hidden></div>
 </div>
 
 <div class="overlay" id="checkin" hidden>
@@ -268,6 +279,8 @@
 <script src="calendar.js"></script>
 <script src="planner.js"></script>
 <script src="game.js"></script>
+<script src="notes.js"></script>
+<script src="sport.js"></script>
 <script src="juice.js"></script>
 <script src="focusplus.js"></script>
 <script src="economy.js"></script>

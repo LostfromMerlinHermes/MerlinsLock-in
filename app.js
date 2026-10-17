@@ -368,7 +368,7 @@
   armedButton($('clear-parked'), 'clear_all', () => { S.parked = []; save(); renderAll(); });
 
   /* ---------- Tabs ---------- */
-  const TABS = { plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], park: ['t-park', 'tab-park'], grim: ['t-grim', 'tab-grim'] };
+  const TABS = { plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], park: ['t-park', 'tab-park'], grim: ['t-grim', 'tab-grim'] };
   function setTab(name) {
     if (!TABS[name]) name = 'plan';
     S.tab = name; save();
@@ -869,7 +869,7 @@
   });
 
   /* ---------- Keyboard shortcuts ---------- */
-  const KEYS = [['Espace / Space', 'key_space'], ['N', 'key_n'], ['P', 'key_p'], ['S', 'key_s'], ['C', 'key_c'], ['F', 'key_f'], ['1–5', 'key_tabs'], ['?', 'key_help'], ['Échap / Esc', 'key_esc']];
+  const KEYS = [['Espace / Space', 'key_space'], ['N', 'key_n'], ['P', 'key_p'], ['S', 'key_s'], ['C', 'key_c'], ['F', 'key_f'], ['1–6', 'key_tabs'], ['?', 'key_help'], ['Échap / Esc', 'key_esc']];
   function showHelp() {
     $('help-keys').innerHTML = KEYS.map(([k, d]) => `<dt><kbd>${esc(k)}</kbd></dt><dd>${esc(t(d))}</dd>`).join('');
     openOverlay('help');
@@ -887,7 +887,7 @@
     else if (k === 's') { emit('gesture'); emit('sound:toggle'); }
     else if (k === 'c') $('compact-btn').click();
     else if (k === 'f') openFloat();
-    else if ('12345'.includes(k)) setTab(['plan', 'day', 'cal', 'park', 'grim'][+k - 1]);
+    else if ('123456'.includes(k)) setTab(['plan', 'day', 'cal', 'notes', 'park', 'grim'][+k - 1]);
     else if (e.key === '?') showHelp();
   });
 

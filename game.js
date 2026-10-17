@@ -308,6 +308,7 @@
   }
 
   function effectiveTheme() {
+    if (S.section === 'sport') return 'arena'; // the Sport section has its own look
     if (S.theme !== 'auto') return S.theme;
     const h = new Date().getHours();
     if (S.nightFog && (h >= 21 || h < 6)) return 'fog';
@@ -319,7 +320,7 @@
     if (root.dataset.theme === th) return;
     root.dataset.theme = th;
     const meta = document.querySelector('meta[name=theme-color]');
-    if (meta) meta.content = { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#120c24' }[th];
+    if (meta) meta.content = { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#120c24', arena: '#0c0706' }[th];
     if (themed) playTransition(th);
     themed = true;
     setTimeout(FX.reset, 30);

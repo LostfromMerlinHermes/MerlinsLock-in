@@ -24,6 +24,8 @@
       breath: 'Respiration guidée', breath_start: 'Commencer', breath_stop: 'Arrêter', voice: 'Voix', inhale: 'Inspire', hold: 'Bloque', exhale: 'Expire',
       breath_478: '4-7-8 (apaiser)', breath_box: 'Carré 4-4-4-4 (recentrer)', breath_calm: '4-6 (calme)',
       sound_tap: 'Le son démarrera avec le minuteur. Appuie sur ▶ pour l’écouter maintenant.',
+      tone_on: 'Fréquence continue', tone_pure: 'Ton pur', tone_binaural: 'Binaural (casque)', tone_iso: 'Isochrone (haut-parleur)', tone_vol: 'Volume fréquence',
+      tone_hint: '40–42 Hz sont trop graves pour un haut-parleur de téléphone : utilise un casque, ou le mode Isochrone. Effets non prouvés scientifiquement ; baisse le volume si c’est inconfortable.',
     },
     en: {
       ambience: 'Ambience', mixer: 'Mixer', play: 'Play', stop: 'Stop', silent: 'Silent',
@@ -44,6 +46,8 @@
       breath: 'Guided breathing', breath_start: 'Start', breath_stop: 'Stop', voice: 'Voice', inhale: 'Breathe in', hold: 'Hold', exhale: 'Breathe out',
       breath_478: '4-7-8 (soothe)', breath_box: 'Box 4-4-4-4 (refocus)', breath_calm: '4-6 (calm)',
       sound_tap: 'Sound will start with the timer. Press ▶ to listen now.',
+      tone_on: 'Continuous frequency', tone_pure: 'Pure tone', tone_binaural: 'Binaural (headphones)', tone_iso: 'Isochronic (speaker)', tone_vol: 'Frequency volume',
+      tone_hint: '40–42 Hz are too low for a phone speaker: use headphones, or Isochronic mode. Effects are not scientifically proven; lower the volume if it feels uncomfortable.',
     },
   });
 
@@ -69,6 +73,7 @@
     audio: {
       mode: 'focus', sub: 'deep', genre: 'drone', music: true, musicVol: 0.6, master: 0.7, nature: { forest: 0.45 },
       neural: 'light', auto: true, breakRelax: true, open: false, presets: [], napMins: 20, sleepMins: 30, breath: '478', voice: false,
+      tone: { on: false, hz: 40, kind: 'pure', vol: 0.4 }, // continuous frequency, off until the user ticks it
     },
   }));
   // Migrate the single ambient sound of v2
@@ -605,17 +610,49 @@
     playing = true;
     const cur = current(), key = cur.genre + '|' + cur.mode + '|' + cur.sub;
     if (!run || key !== lastKey) { lastKey = key; musicStart(cur.genre, cur); }
-    syncNature(); applyLevels(); renderDeck(); mediaSession();
+    syncNature(); syncTone(); applyLevels(); renderDeck(); mediaSession();
     if (S.audio.mode === 'meditate' || S.audio.sub === 'guidedsleep') startBreath(false);
   }
   function stopAll() {
     playing = false; lastKey = '';
-    if (ctx) { applyLevels(); setTimeout(() => { if (!playing) { musicStop(); syncNature(); } }, 900); }
+    if (ctx) { applyLevels(); setTimeout(() => { if (!playing) { musicStop(); syncNature(); syncTone(); } }, 900); }
     stopBreath(); renderDeck();
     setTimeout(sleepMedia, 1200);
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   }
   function refresh() { if (playing) play(); else renderDeck(); }
+
+  /* ---------- Continuous frequency (opt-in): pure tone, binaural beat or isochronic pulses ---------- */
+  let tone = null;
+  function toneStop() {
+    if (!tone) return;
+    const old = tone; tone = null;
+    try { old.out.gain.setTargetAtTime(0, ctx.currentTime, 0.3); } catch (e) {}
+    setTimeout(() => old.nodes.forEach(n => { try { if (n.stop) n.stop(); } catch (e) {} try { n.disconnect(); } catch (e) {} }), 1500);
+  }
+  function syncTone() {
+    const T = S.audio.tone;
+    if (!ctx || !playing || !T || !T.on) { toneStop(); return; }
+    const hz = clamp(+T.hz || 40, 1, 2000), key = hz + '|' + T.kind, level = T.vol * T.vol * 0.5;
+    if (tone && tone.key === key) { tone.out.gain.setTargetAtTime(level, ctx.currentTime, 0.2); return; }
+    toneStop();
+    const nodes = [], g = ctx.createGain(); g.gain.value = 0; g.connect(master); nodes.push(g);
+    const osc = f => { const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f; o.start(); nodes.push(o); return o; };
+    if (T.kind === 'binaural' && hz < 100) {
+      // Left ear 200 Hz, right ear 200 + hz: the brain hears the difference (headphones needed)
+      const merge = ctx.createChannelMerger(2); nodes.push(merge);
+      osc(200).connect(merge, 0, 0); osc(200 + hz).connect(merge, 0, 1); merge.connect(g);
+    } else if (T.kind === 'iso') {
+      // An audible carrier switched on and off at the chosen rate, so it works on phone speakers
+      const carrier = hz < 100 ? 220 : hz, rate = hz < 100 ? hz : 10;
+      const am = ctx.createGain(); am.gain.value = 0.5; nodes.push(am);
+      const lg = ctx.createGain(); lg.gain.value = 0.5; nodes.push(lg);
+      osc(rate).connect(lg).connect(am.gain);
+      osc(carrier).connect(am).connect(g);
+    } else osc(hz).connect(g);
+    g.gain.setTargetAtTime(level, ctx.currentTime, 0.4);
+    tone = { nodes, out: g, key };
+  }
   function mediaSession() {
     if (!('mediaSession' in navigator)) return;
     try {
@@ -627,7 +664,11 @@
     } catch (e) {}
   }
   on('timer', () => { if (!ML.running()) setTimeout(sleepMedia, 1500); });
-  ML.Audio = { play, stop: stopAll, get playing() { return playing; } };
+  ML.Audio = {
+    play, stop: stopAll, get playing() { return playing; },
+    // Sport section: upbeat electronic mix while a workout timer runs
+    workout(onOff) { if (onOff) { override = { mode: 'focus', sub: 'motivation' }; userStopped = false; if (ensure()) play(); } else { override = null; stopAll(); } },
+  };
 
   on('gesture', () => ensure());
   on('sound:toggle', () => { if (playing) { userStopped = true; stopAll(); } else { userStopped = false; override = null; play(); } });
@@ -738,6 +779,11 @@
           ${Object.keys(A.nature).length ? `<div class="nat-vols">${Object.entries(A.nature).map(([k, v]) => `<label class="d-slider"><span>${esc(t('n_' + k))}</span><input type="range" data-dnatv="${k}" min="0.05" max="1" step="0.05" value="${v}"></label>`).join('')}</div>` : ''}
         </div>
         <div class="d-row"><span class="label" title="${esc(t('neural_hint'))}">${esc(t('neural'))} ⓘ</span><div class="chips">${chipRow(Object.keys(DEPTH), A.neural, 'dneural', v => t('neural_' + v))}</div></div>
+        <div class="d-row d-tone"><label class="opt"><input type="checkbox" id="d-tone" ${A.tone.on ? 'checked' : ''}> ${esc(t('tone_on'))}</label>
+          ${A.tone.on ? `<div class="chips">${[40, 42, 432, 528].map(h => `<button type="button" class="chip-btn" data-dtone="${h}" aria-pressed="${+A.tone.hz === h}">${h} Hz</button>`).join('')}<label class="tone-hz"><input type="number" id="d-tone-hz" min="1" max="2000" value="${A.tone.hz}"> Hz</label></div>
+            <div class="chips">${chipRow(['pure', 'binaural', 'iso'], A.tone.kind, 'dtonek', v => t('tone_' + v))}</div>
+            <label class="d-slider"><span>${esc(t('tone_vol'))}</span><input type="range" id="d-tone-vol" min="0.05" max="1" step="0.05" value="${A.tone.vol}"></label>
+            <p class="hint">${esc(t('tone_hint'))}</p>` : ''}</div>
         ${isSleep ? `<div class="d-row d-sleep"><span class="label">${esc(t('sleep_timer'))}</span><div class="chips">
             ${(A.mode === 'nap' ? [15, 20, 25, 30] : [15, 30, 45, 60, 90]).map(m => `<button type="button" class="chip-btn" data-dsleep="${m}" aria-pressed="${m === (A.mode === 'nap' ? A.napMins : A.sleepMins)}">${m} min</button>`).join('')}
             <button type="button" class="small primary" id="d-sleep-go">${esc(sleepEnd ? t('stop_sleep') : t('start_sleep'))}</button></div>
@@ -773,6 +819,8 @@
     else if (b.dataset.dgenre) { const g = b.dataset.dgenre; if (g === 'none') A.music = false; else { A.music = true; A.genre = g; } if (g === 'mine') loadTracks().then(renderDeck); }
     else if (b.dataset.dnat) { const k = b.dataset.dnat; if (k in A.nature) delete A.nature[k]; else A.nature[k] = 0.5; }
     else if (b.dataset.dneural) A.neural = b.dataset.dneural;
+    else if (b.dataset.dtone) A.tone.hz = +b.dataset.dtone;
+    else if (b.dataset.dtonek) A.tone.kind = b.dataset.dtonek;
     else if (b.dataset.dsleep) { if (A.mode === 'nap') A.napMins = +b.dataset.dsleep; else A.sleepMins = +b.dataset.dsleep; }
     else if (b.id === 'd-sleep-go') { sleepEnd ? (stopSleep(), stopAll()) : startSleep(); save(); return; }
     else if (b.dataset.dbreath) { A.breath = b.dataset.dbreath; if (breathOn) { stopBreath(); save(); startBreath(true); return; } }
@@ -794,12 +842,15 @@
     const A = S.audio, el = e.target;
     if (el.id === 'd-mvol') A.musicVol = +el.value;
     else if (el.id === 'd-master') A.master = +el.value;
+    else if (el.id === 'd-tone-vol') A.tone.vol = +el.value;
     else if (el.dataset.dnatv) A.nature[el.dataset.dnatv] = +el.value;
     else return;
-    save(); applyLevels(); if (el.dataset.dnatv) syncNature();
+    save(); applyLevels(); syncTone(); if (el.dataset.dnatv) syncNature();
   });
   deck.addEventListener('change', e => {
     const A = S.audio, el = e.target;
+    if (el.id === 'd-tone') { A.tone.on = el.checked; save(); if (A.tone.on && !playing) toast(t('sound_tap')); refresh(); return; }
+    if (el.id === 'd-tone-hz') { A.tone.hz = clamp(Math.round(+el.value) || 40, 1, 2000); save(); refresh(); return; }
     if (el.id === 'd-auto') A.auto = el.checked;
     else if (el.id === 'd-brk') A.breakRelax = el.checked;
     else if (el.id === 'd-voice') A.voice = el.checked;
