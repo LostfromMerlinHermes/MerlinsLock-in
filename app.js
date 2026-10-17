@@ -618,7 +618,7 @@
   // Web/PWA notification while the page is open but hidden (the extension uses its background alarms instead)
   ML.notify = (title, body) => {
     if (IS_EXT || !('Notification' in window) || Notification.permission !== 'granted' || document.visibilityState === 'visible') return;
-    try { new Notification(title, { body, icon: 'icons/icon192.png' }); } catch (e) {}
+    try { new Notification(title, { body, icon: 'icon192.png' }); } catch (e) {}
   };
   on('session', () => ML.notify(t('notif_session'), t('notif_session_body')));
 

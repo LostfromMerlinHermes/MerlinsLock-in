@@ -1,9 +1,9 @@
 // Service worker for the installed web app: app files load from cache first (works offline),
 // fonts are cached the first time they load. Bump VERSION whenever app files change.
-const VERSION = 'mli-v3.2.0';
+const VERSION = 'mli-v3.2.1';
 const FILES = ['./', 'index.html', 'app.css', 'mini-view.js', 'core.js', 'strings.js', 'audio.js', 'app.js', 'calendar.js', 'planner.js', 'game.js',
   'juice.js', 'focusplus.js', 'economy.js', 'companion.js', 'main.js',
-  'site.webmanifest', 'icons/icon32.png', 'icons/icon192.png', 'icons/icon512.png'];
+  'site.webmanifest', 'icon32.png', 'icon192.png', 'icon512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
