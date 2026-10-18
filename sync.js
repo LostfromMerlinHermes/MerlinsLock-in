@@ -57,7 +57,8 @@
   function writeSession(s, remember) {
     try { localStorage.removeItem(SESS); sessionStorage.removeItem(SESS); if (s) (remember ? localStorage : sessionStorage).setItem(SESS, JSON.stringify(s)); } catch (e) {}
   }
-  const norm = d => ({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600), user: { id: d.user.id, email: d.user.email } });
+  // premium comes from app_metadata, which only the server (SQL, or a payment webhook later) can set
+  const norm = d => ({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600), user: { id: d.user.id, email: d.user.email, premium: !!(d.user.app_metadata && d.user.app_metadata.premium) } });
 
   /* ---------- API ---------- */
   async function api(path, { method = 'GET', body, token, prefer, keepalive } = {}) {
@@ -86,11 +87,13 @@
     return t('err_generic', { msg: e.message });
   }
   let sess = null, remember = true;
-  async function token() {
+  async function token(force) {
     if (!sess) throw new Error('signed out');
-    if (sess.expires_at - 60 < Date.now() / 1000) {
+    if (force || sess.expires_at - 60 < Date.now() / 1000) {
       const d = await api('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: sess.refresh_token } });
-      sess = norm(d); writeSession(sess, remember);
+      const was = sess.user && sess.user.premium;
+      sess = norm(d); user = sess.user; writeSession(sess, remember);
+      if (was !== user.premium) emit('premium', user.premium);
     }
     return sess.access_token;
   }
@@ -103,31 +106,112 @@
     ML.setStorageKey(key);
   }
 
+  /* ---------- Three-way merge ----------
+     Each device keeps a "base": the last state it agreed on with the cloud. When both sides changed since
+     then, they are merged field by field: lists of items (tasks, notes, events, blocks, sessions…) are merged
+     item by item, so an edit or deletion on one device never wipes what the other one added. */
+  const LOCAL_ONLY = ['tab', 'section', 'compact', 'showAll', 'audio.open', 'notes.current', 'cal.month', 'cal.sel', 'planner.date', 'sport.tab'];
+  const COUNTERS = ['xp', 'econ.gold'];
+  const same = (a, b) => a === b || JSON.stringify(a) === JSON.stringify(b);
+  const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+  const keyOf = v => (isObj(v) ? (v.id != null ? 'id:' + v.id : v.at != null ? 'at:' + v.at : null) : null);
+  const getPath = (o, p) => p.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
+  function setPath(o, p, v) { const ks = p.split('.'), last = ks.pop(); const tgt = ks.reduce((a, k) => (isObj(a[k]) ? a[k] : (a[k] = {})), o); if (v === undefined) delete tgt[last]; else tgt[last] = v; }
+  // localWins: tie-break for plain values changed on both sides; noBase: first merge on this device (prefer the cloud)
+  function merge3(base, L, R, localWins, path) {
+    if (same(L, R)) return L;
+    if (base !== undefined && same(base, L)) return R;
+    if (base !== undefined && same(base, R)) return L;
+    if (COUNTERS.includes(path) && typeof L === 'number' && typeof R === 'number') return typeof base === 'number' ? base + (L - base) + (R - base) : Math.max(L, R);
+    if (isObj(L) && isObj(R)) {
+      const out = {}, b = isObj(base) ? base : {};
+      new Set([...Object.keys(L), ...Object.keys(R)]).forEach(k => {
+        if (k === '_savedAt') return;
+        const v = !(k in L) ? (k in b && same(b[k], R[k]) ? undefined : R[k]) : !(k in R) ? (k in b && same(b[k], L[k]) ? undefined : L[k]) : merge3(b[k], L[k], R[k], localWins, path ? path + '.' + k : k);
+        if (v !== undefined) out[k] = v;
+      });
+      return out;
+    }
+    if (Array.isArray(L) && Array.isArray(R)) {
+      const B = Array.isArray(base) ? base : [];
+      const all = [...B, ...L, ...R];
+      if (all.length && all.every(x => keyOf(x))) {
+        const map = a => new Map(a.map(x => [keyOf(x), x]));
+        const mb = map(B), ml = map(L), mr = map(R), out = [];
+        const keys = [...new Set([...L.map(keyOf), ...R.map(keyOf)])];
+        keys.forEach(k => {
+          const inL = ml.has(k), inR = mr.has(k), inB = mb.has(k);
+          if (inL && inR) out.push(merge3(mb.get(k), ml.get(k), mr.get(k), localWins, path));
+          else if (inL) { if (!inB || !same(mb.get(k), ml.get(k))) out.push(ml.get(k)); } // deleted on R: drop unless edited on L
+          else if (!inB || !same(mb.get(k), mr.get(k))) out.push(mr.get(k));
+        });
+        if (all.every(x => x.id == null && typeof x.at === 'number')) out.sort((a, b) => a.at - b.at);
+        return out;
+      }
+      if (all.every(x => x === null || typeof x !== 'object')) {
+        const has = (a, x) => a.includes(x);
+        return [...new Set([...L, ...R])].filter(x => (has(L, x) && has(R, x)) || !has(B, x));
+      }
+    }
+    return localWins ? L : R;
+  }
+  const baseKey = () => 'mli-sync-base:' + user.id;
+  const getBase = () => { try { return JSON.parse(localStorage.getItem(baseKey())); } catch (e) { return null; } };
+  const setBase = d => { try { localStorage.setItem(baseKey(), JSON.stringify(d)); } catch (e) {} };
+
   /* ---------- Cloud data ---------- */
+  let remoteAt = null, syncing = null; // remoteAt: _savedAt of the cloud row as last seen (null: no row yet)
   async function pull() {
     const rows = await api('/rest/v1/lockin_data?select=data,updated_at&user_id=eq.' + user.id, { token: await token() });
     return rows && rows[0] ? rows[0] : null;
   }
-  async function push(keepalive) {
+  // Only overwrites the cloud row if nobody else changed it since we last saw it; otherwise merge first.
+  async function push(keepalive, fromSync) {
     if (!user) return;
     clearTimeout(pushT); pushT = null;
-    const body = { user_id: user.id, data: Object.assign({}, S), updated_at: new Date().toISOString() };
-    await api('/rest/v1/lockin_data?on_conflict=user_id', { method: 'POST', body, token: await token(), prefer: 'resolution=merge-duplicates,return=minimal', keepalive: keepalive && JSON.stringify(body).length < 60000 });
+    const data = JSON.parse(JSON.stringify(S));
+    const body = { data, updated_at: new Date().toISOString() };
+    const ka = keepalive && JSON.stringify(body).length < 60000;
+    if (remoteAt == null) {
+      await api('/rest/v1/lockin_data?on_conflict=user_id', { method: 'POST', body: Object.assign({ user_id: user.id }, body), token: await token(), prefer: 'resolution=merge-duplicates,return=minimal', keepalive: ka });
+    } else {
+      const rows = await api('/rest/v1/lockin_data?user_id=eq.' + user.id + '&data->>_savedAt=eq.' + remoteAt + '&select=user_id', { method: 'PATCH', body, token: await token(), prefer: 'return=representation', keepalive: ka });
+      if (keepalive) return; // the page is closing: the next sync settles it
+      if (!rows || !rows.length) { if (!fromSync) await syncNow(false); return; } // the cloud moved on: merge, then push
+    }
+    if (keepalive) return;
+    remoteAt = data._savedAt; setBase(data);
     lastSync = Date.now(); renderStatus();
   }
-  // Last write wins, by the _savedAt stamp core.js puts on every save
-  async function syncNow(initial) {
-    if (!user) return;
+  function syncNow(initial) {
+    if (!user) return Promise.resolve(false);
+    if (syncing) return syncing;
+    syncing = doSync(initial).finally(() => { syncing = null; });
+    return syncing;
+  }
+  async function doSync(initial) {
     try {
       const remote = await pull();
       if (!remote) {
+        remoteAt = null;
         if (initial && freshLocal && hasGuestData()) { const choice = await askImport(); if (choice) applyData(guestData()); }
-        await push();
+        await push(false, true);
       } else {
-        const rAt = (remote.data && remote.data._savedAt) || 0, lAt = S._savedAt || 0;
-        // On a device that never had this account's data, the cloud always wins (the local copy is just the empty start)
-        if ((initial && freshLocal) || rAt > lAt) applyData(remote.data);
-        else if (lAt > rAt) await push();
+        const rd = remote.data || {}, rAt = rd._savedAt || 0;
+        remoteAt = rd._savedAt == null ? null : rAt;
+        const base = getBase();
+        if ((initial && freshLocal) || rAt === S._savedAt) { if (rAt !== S._savedAt) applyData(rd); setBase(rd); } // a device new to this account takes the cloud copy
+        else {
+          const localChanged = !base || S._savedAt !== base._savedAt, remoteChanged = !base || rAt !== base._savedAt;
+          if (!remoteChanged) { if (localChanged) await push(false, true); }
+          else if (!localChanged) { applyData(rd); setBase(rd); }
+          else {
+            const merged = merge3(base || undefined, JSON.parse(JSON.stringify(S)), rd, !!base && (S._savedAt || 0) > rAt, '');
+            merged._savedAt = Date.now();
+            applyData(merged);
+            await push(false, true);
+          }
+        }
         lastSync = Date.now();
       }
       freshLocal = false;
@@ -140,6 +224,8 @@
   }
   function applyData(data) {
     applying++;
+    data = Object.assign({}, data);
+    LOCAL_ONLY.forEach(p => { const v = getPath(S, p); if (v !== undefined) { if (p.includes('.')) { const top = p.split('.')[0]; data[top] = Object.assign({}, data[top]); } setPath(data, p, v); } }); // keep what this screen shows
     ML.applyRemote(data);
     try { localStorage.setItem(ML.storageKey(), JSON.stringify(S)); } catch (e) {}
     setTimeout(() => { applying--; }, 3000); // saves triggered by re-rendering right after don't bounce back
@@ -273,7 +359,7 @@
     const found = readSession();
     if (found) {
       sess = found.s; remember = found.remember; user = sess.user;
-      try { await token(); }
+      try { await token(true); } // refreshing at launch also picks up a new Premium status
       catch (e) { if (!e.net) { writeSession(null); sess = null; user = null; } } // offline: keep the cached session
       if (user) { useSession(sess, remember); return 'user'; }
     }
@@ -288,7 +374,7 @@
     ML.setStorageKey(null);
     location.reload();
   }
-  ML.auth = { boot, afterLoad, get user() { return user; }, enabled: ENABLED, syncNow };
+  ML.auth = { boot, afterLoad, get user() { return user; }, enabled: ENABLED, syncNow, merge3 };
 
   /* ---------- Settings: account section ---------- */
   function renderStatus() { const el = $('acc-status'); if (el) el.textContent = t('acc_last', { when: lastSync ? new Date(lastSync).toLocaleTimeString(ML.locale(), { hour: '2-digit', minute: '2-digit' }) : t('acc_never') }); }

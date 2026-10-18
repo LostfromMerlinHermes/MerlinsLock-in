@@ -4,8 +4,13 @@
   const { $, S, t, tn, esc, fmtMins, uid, dayKey, today, save, emit, on, toast, armedButton, bgSend, IS_EXT } = ML;
   const fmtClock = MiniView.fmtClock;
 
-  const FOCUS_PRESETS = [15, 20, 25, 30, 35, 40, 45, 60, 90, 120];
-  const BREAK_PRESETS = [5, 10, 15, 20, 30];
+  // Each mood has its own rhythm: gentle sprints, classic blocks, deep work or micro-sprints
+  const MOOD_PRESETS = {
+    drained:   { focus: [10, 15, 20, 25, 30, 45], brk: [5, 10, 15, 20] },
+    steady:    { focus: [25, 30, 40, 45, 50, 60], brk: [5, 10, 15] },
+    fired:     { focus: [45, 60, 75, 90, 120, 150], brk: [10, 15, 20, 30] },
+    scattered: { focus: [5, 10, 15, 20, 25], brk: [3, 5, 10] },
+  };
   const PRI = { high: 0, med: 1, low: 2 };
   const MOODS = {
     drained:   { focus: 25, brk: 10, sort: 'short', color: '#5cc8e6', icon: '<path d="M15 4a8 8 0 1 0 5 13A7 7 0 0 1 15 4z"/>' },
@@ -28,7 +33,7 @@
       { id: uid(), title: 'Example 2', sampleN: 2, mins: 15, pri: 'low', done: false, sample: true },
       { id: uid(), title: 'Example 3', sampleN: 3, mins: 120, pri: 'med', done: false, sample: true },
     ],
-    parked: [], sessions: [], xp: 0,
+    parked: [], sessions: [], xp: 0, moodTimers: {},
     mood: 'steady', moodDay: null,
     mode: 'focus', focusMins: 40, breakMins: 10, activeId: null, freeTitle: null, endAt: null, remaining: 2400, total: 2400,
     chime: true, autoBreak: false, autoCompact: true, compact: false,
@@ -89,9 +94,10 @@
     S.mood = m; S.moodDay = today(); S.showAll = false;
     let msg = t('mood_set', { mood: t('mood_' + m) });
     if (!running() && S.remaining === S.total && !S.pendingRating) {
-      S.focusMins = M.focus; S.breakMins = M.brk;
-      S.total = S.remaining = (S.mode === 'focus' ? M.focus : M.brk) * 60;
-      msg += ' ' + t('mood_timer', { f: fmtMins(M.focus), b: fmtMins(M.brk) });
+      const mine = (S.moodTimers || {})[m] || {}, f = mine.focus || M.focus, b = mine.brk || M.brk; // the last timer used in this mood
+      S.focusMins = f; S.breakMins = b;
+      S.total = S.remaining = (S.mode === 'focus' ? f : b) * 60;
+      msg += ' ' + t('mood_timer', { f: fmtMins(f), b: fmtMins(b) });
     }
     save(); emit('mood', m); renderAll(); toast(msg);
   }
@@ -161,7 +167,8 @@
     const active = task.id === S.activeId;
     const subs = task.subs || [];
     const subDone = subs.filter(s => s.done).length;
-    const open = expanded.has(task.id);
+    const open = expanded.has(task.id) || (active && subs.length && !task.done);
+    const stepXp = Math.max(2, Math.round(ML.taskXp(task) / 10));
     const extra = ML.taskBadges ? ML.taskBadges(task) : '';
     return `<li class="task ${task.done ? 'done' : ''} ${active ? 'active' : ''} ${isNext && !active ? 'next' : ''} ${extra.cls || ''}" data-id="${task.id}">
       <button type="button" class="check" data-act="toggle" aria-label="${esc(task.done ? t('mark_undone') : t('mark_done'))}">
@@ -176,11 +183,13 @@
           <span class="chip p-${task.pri}">${esc(t('pri_' + task.pri))}</span>
           ${dueChip(task)}
           ${task.repeat ? `<span class="chip" title="${esc(t('repeat_' + task.repeat))}">↻ ${esc(t('repeat_' + task.repeat))}</span>` : ''}
-          ${subs.length ? `<button type="button" class="chip subs-chip" data-act="subs" aria-expanded="${open}">☰ ${subDone}/${subs.length}</button>` : ''}
+          ${subs.length ? `<button type="button" class="chip subs-chip" data-act="subs" aria-expanded="${open}">☰ ${subDone}/${subs.length}</button>` : task.done ? '' : `<button type="button" class="chip subs-chip ghosty" data-act="subs" aria-expanded="${open}">+ ${esc(t('step'))}</button>`}
           ${task.notes ? `<span class="chip" title="${esc(task.notes)}">✎</span>` : ''}
           ${task.sample ? `<span class="chip sample">${esc(t('example'))}</span>` : ''}
         </div>
-        ${subs.length && open ? `<ul class="subs">${subs.map(s => `<li><label><input type="checkbox" data-sub="${s.id}" ${s.done ? 'checked' : ''}> <span>${esc(s.text)}</span></label></li>`).join('')}</ul>` : ''}
+        ${subs.length ? `<div class="sub-prog" title="${subDone}/${subs.length}"><b style="width:${(subDone / subs.length * 100).toFixed(1)}%"></b></div>` : ''}
+        ${open ? `<ul class="subs">${subs.map(s => `<li class="${s.done ? 'done' : ''}"><label><input type="checkbox" data-sub="${s.id}" ${s.done ? 'checked' : ''}><i class="sub-box" aria-hidden="true"></i><span>${esc(s.text)}</span>${!s.done && !s.xpGiven && !task.done && !task.sample ? `<small class="sub-xp">+${stepXp}</small>` : ''}</label></li>`).join('')}</ul>
+          ${task.done ? '' : `<form class="sub-add" autocomplete="off"><input type="text" maxlength="100" placeholder="${esc(t('add_subtask_ph'))}" aria-label="${esc(t('add_subtask_ph'))}"><button type="submit" class="small">+</button></form>`}` : ''}
       </div>
       <div class="t-actions">
         ${task.done ? '' : `<button type="button" class="${active ? 'is-active' : ''}" data-act="focus">${esc(active ? t('focusing') : t('lock_in'))}</button>`}
@@ -233,8 +242,24 @@
     const ed = ul.querySelector('.t-edit input[name=title]');
     if (ed && document.activeElement === document.body) ed.focus();
   }
+  // Ticking a step earns a little XP once (a tenth of the task's XP, at least 2); the last step finishes the task.
+  // Unticking a step of a finished task reopens it (its XP is not given twice).
+  function setSubDone(task, sub, done) {
+    if (!task || !sub || !!sub.done === done) return;
+    sub.done = done;
+    if (done) {
+      sub.doneAt = Date.now();
+      if (!sub.xpGiven && !task.sample && !task.done) { sub.xpGiven = true; addXp(Math.max(2, Math.round(ML.taskXp(task) / 10))); }
+      if (ML.sfx) ML.sfx('sub');
+      emit('sub:done', { task, sub });
+      if (!task.done && task.subs.every(s => s.done)) { completeTask(task); toast(t('subs_all_done')); }
+    } else if (task.done) task.done = false;
+    save();
+  }
+  ML.setSubDone = setSubDone;
   function completeTask(task) {
     task.done = true; task.doneAt = Date.now();
+    (task.subs || []).forEach(s => { s.done = true; });
     if (!task.xpGiven && !task.sample) {
       task.xpGiven = true;
       const xp = ML.taskXp(task);
@@ -266,8 +291,21 @@
     const cb = e.target.closest('[data-sub]'); if (!cb) return;
     const task = S.tasks.find(x => x.id === cb.closest('.task').dataset.id);
     const sub = task && (task.subs || []).find(s => s.id === cb.dataset.sub);
-    if (sub) { sub.done = cb.checked; save(); renderTasks(); emit('render'); }
+    if (!sub) return;
+    if (cb.checked) { const li = cb.closest('li'); li.classList.add('pop'); } // let the tick animation play before re-rendering
+    setTimeout(() => { setSubDone(task, sub, cb.checked); renderAll(); }, cb.checked ? 380 : 0);
   });
+  // Add a step straight from the task card
+  $('tasks').addEventListener('submit', e => {
+    const f = e.target.closest('.sub-add'); if (!f) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    const task = S.tasks.find(x => x.id === f.closest('.task').dataset.id), inp = f.querySelector('input');
+    const text = inp.value.trim(); if (!task || !text) return;
+    (task.subs || (task.subs = [])).push({ id: uid(), text, done: false });
+    if (task.done) task.done = false;
+    expanded.add(task.id); save(); renderTasks();
+    const again = $('tasks').querySelector(`.task[data-id="${task.id}"] .sub-add input`); if (again) again.focus();
+  }, true);
   function readEditForm(form, task) {
     (task.subs || []).forEach(s => {
       const inp = form.querySelector(`[data-esub="${s.id}"]`); if (inp) s.text = inp.value.trim() || s.text;
@@ -368,7 +406,7 @@
   armedButton($('clear-parked'), 'clear_all', () => { S.parked = []; save(); renderAll(); });
 
   /* ---------- Tabs ---------- */
-  const TABS = { plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], park: ['t-park', 'tab-park'], grim: ['t-grim', 'tab-grim'] };
+  const TABS = { plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], park: ['t-park', 'tab-park'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'] };
   function setTab(name) {
     if (!TABS[name]) name = 'plan';
     S.tab = name; save();
@@ -414,10 +452,12 @@
 
   const presetLabel = m => m >= 60 ? Math.floor(m / 60) + 'h' + (m % 60 || '') : m + 'm';
   function renderPresets() {
-    const list = S.mode === 'focus' ? FOCUS_PRESETS : BREAK_PRESETS;
+    const P = MOOD_PRESETS[S.mood] || MOOD_PRESETS.steady;
+    const list = S.mode === 'focus' ? P.focus.slice() : P.brk.slice();
     const cur = S.mode === 'focus' ? S.focusMins : S.breakMins;
     const sug = S.mode === 'focus' ? MOODS[S.mood].focus : MOODS[S.mood].brk;
-    $('presets').innerHTML = list.map(m => `<button type="button" data-m="${m}" aria-pressed="${m === cur}" class="${m === sug ? 'suggested' : ''}"
+    if (!list.includes(cur)) { list.push(cur); list.sort((a, b) => a - b); } // a custom time shows as its own chip
+    $('presets').innerHTML = `<span class="preset-rhythm">${esc(t('rhythm_' + S.mood))}</span>` + list.map(m => `<button type="button" data-m="${m}" aria-pressed="${m === cur}" class="${m === sug ? 'suggested' : ''}"
       title="${m === sug ? esc(t('suggested')) : ''}">${presetLabel(m)}</button>`).join('');
   }
   $('presets').addEventListener('click', e => {
@@ -435,6 +475,8 @@
 
   function setDuration(m) {
     if (S.mode === 'focus') S.focusMins = m; else S.breakMins = m;
+    S.moodTimers = S.moodTimers || {};
+    S.moodTimers[S.mood] = { focus: S.focusMins, brk: S.breakMins };
     S.total = S.remaining = m * 60; S.endAt = null;
     save(); renderPresets(); renderTimer();
   }
@@ -869,7 +911,7 @@
   });
 
   /* ---------- Keyboard shortcuts ---------- */
-  const KEYS = [['Espace / Space', 'key_space'], ['N', 'key_n'], ['P', 'key_p'], ['S', 'key_s'], ['C', 'key_c'], ['F', 'key_f'], ['1–6', 'key_tabs'], ['?', 'key_help'], ['Échap / Esc', 'key_esc']];
+  const KEYS = [['Espace / Space', 'key_space'], ['N', 'key_n'], ['P', 'key_p'], ['S', 'key_s'], ['C', 'key_c'], ['F', 'key_f'], ['1–7', 'key_tabs'], ['?', 'key_help'], ['Échap / Esc', 'key_esc']];
   function showHelp() {
     $('help-keys').innerHTML = KEYS.map(([k, d]) => `<dt><kbd>${esc(k)}</kbd></dt><dd>${esc(t(d))}</dd>`).join('');
     openOverlay('help');
@@ -878,7 +920,7 @@
     if (e.key === 'Escape') { ['help', 'settings'].forEach(id => { if (!$(id).hidden) closeOverlay(id); }); if (!$('checkin').hidden) $('ci-skip').click(); return; }
     const tg = e.target;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (tg && (tg.closest('input, textarea, select, [contenteditable]') || (tg.tagName === 'BUTTON' && e.key === ' '))) return;
+    if (ML.isTyping(e) || (tg && tg.tagName === 'BUTTON' && e.key === ' ')) return;
     if (!$('checkin').hidden || !$('settings').hidden) return;
     const k = e.key.toLowerCase();
     if (e.key === ' ') { e.preventDefault(); toggleTimer(); }
@@ -887,7 +929,7 @@
     else if (k === 's') { emit('gesture'); emit('sound:toggle'); }
     else if (k === 'c') $('compact-btn').click();
     else if (k === 'f') openFloat();
-    else if ('123456'.includes(k)) setTab(['plan', 'day', 'cal', 'notes', 'park', 'grim'][+k - 1]);
+    else if ('1234567'.includes(k)) setTab(['plan', 'day', 'cal', 'notes', 'park', 'grim', 'study'][+k - 1]);
     else if (e.key === '?') showHelp();
   });
 

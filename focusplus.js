@@ -43,34 +43,52 @@
 
   /* ---------- Deep focus ---------- */
   let deepOn = false;
+  // Controls fade out after a few seconds without moving, so only the clock is left on screen
+  let idleT = null;
+  function wake() {
+    const el = $('deep'); if (!deepOn) return;
+    el.classList.remove('idle'); clearTimeout(idleT);
+    idleT = setTimeout(() => { const a = document.activeElement; if (deepOn && ML.running() && !(a && a.id === 'dp-park-in')) el.classList.add('idle'); }, 3500);
+  }
+  ['pointermove', 'pointerdown', 'keydown'].forEach(ev => $('deep').addEventListener(ev, wake));
   function openDeep() {
-    deepOn = true; $('deep').hidden = false; renderDeep(true);
+    deepOn = true; $('deep').hidden = false; renderDeep(true); wake();
+    document.documentElement.classList.add('deep-on');
     const el = $('deep');
-    try { if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen().catch(() => {}); } catch (e) {}
+    try { if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {}); } catch (e) {}
   }
   function closeDeep() {
-    deepOn = false; $('deep').hidden = true;
+    deepOn = false; $('deep').hidden = true; clearTimeout(idleT);
+    document.documentElement.classList.remove('deep-on');
     try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
   }
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && deepOn && $('deep').hidden) deepOn = false; });
+  const RING = 2 * Math.PI * 140;
   function renderDeep(full) {
     if (!deepOn) return;
     const task = S.tasks.find(x => x.id === S.activeId);
     const rem = ML.remainingNow(), frac = Math.max(0, rem) / S.total;
     if (full || !$('dp-clock')) {
       $('deep-inner').innerHTML = `
-        <div class="deep-top"><span class="state" id="dp-state"></span><button type="button" class="ghost icon-only" id="dp-close" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-        <div class="deep-clock" id="dp-clock"></div>
-        <div class="deep-task" id="dp-task"></div>
-        <div class="deep-bar"><b id="dp-bar"></b></div>
-        ${task && task.subs && task.subs.length ? `<ul class="deep-subs">${task.subs.map(s => `<li><label><input type="checkbox" data-dsub="${s.id}" ${s.done ? 'checked' : ''}> <span>${esc(s.text)}</span></label></li>`).join('')}</ul>` : ''}
-        <div class="deep-btns">
-          <button type="button" class="primary" id="dp-toggle"></button>
-          <button type="button" id="dp-distract">⚡ ${esc(t('distracted'))} <span id="dp-dn"></span></button>
-          <button type="button" id="dp-finish">${esc(t('finish'))}</button>
+        <div class="deep-aura" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="deep-top deep-ui"><span class="state" id="dp-state"></span><button type="button" class="ghost icon-only" id="dp-close" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="deep-center">
+          <div class="deep-dial">
+            <svg viewBox="0 0 320 320" aria-hidden="true"><circle class="dd-track" cx="160" cy="160" r="140"/><circle class="dd-arc" id="dp-arc" cx="160" cy="160" r="140" stroke-dasharray="${RING}"/></svg>
+            <div class="deep-clock" id="dp-clock" role="timer"></div>
+          </div>
+          <div class="deep-task" id="dp-task"></div>
+          ${task && task.subs && task.subs.length ? `<ul class="deep-subs">${task.subs.map(s => `<li><label><input type="checkbox" data-dsub="${s.id}" ${s.done ? 'checked' : ''}> <span>${esc(s.text)}</span></label></li>`).join('')}</ul>` : ''}
         </div>
-        <form class="park" id="dp-park" autocomplete="off"><input type="text" maxlength="140" placeholder="${esc(t('park_ph'))}" id="dp-park-in"><button type="submit">${esc(t('park'))}</button></form>
-        <p class="hint">${esc(t('deep_exit'))}</p>`;
+        <div class="deep-dock deep-ui">
+          <div class="deep-btns">
+            <button type="button" class="primary" id="dp-toggle"></button>
+            <button type="button" id="dp-distract">⚡ ${esc(t('distracted'))} <span id="dp-dn"></span></button>
+            <button type="button" id="dp-finish">${esc(t('finish'))}</button>
+          </div>
+          <form class="park" id="dp-park" autocomplete="off"><input type="text" maxlength="140" placeholder="${esc(t('park_ph'))}" id="dp-park-in"><button type="submit">${esc(t('park'))}</button></form>
+          <p class="hint">${esc(t('deep_exit'))}</p>
+        </div>`;
       $('dp-close').onclick = closeDeep;
       $('dp-toggle').onclick = () => ML.toggleTimer();
       $('dp-distract').onclick = distracted;
@@ -78,13 +96,15 @@
       $('dp-park').onsubmit = e => { e.preventDefault(); const v = $('dp-park-in').value.trim(); if (!v) return; $('park-input').value = v; $('park-form').requestSubmit(); $('dp-park-in').value = ''; };
       $('deep-inner').onchange = e => {
         const cb = e.target.closest('[data-dsub]'); if (!cb || !task) return;
-        const sub = task.subs.find(s => s.id === cb.dataset.dsub); if (sub) { sub.done = cb.checked; save(); ML.renderAll(); }
+        const sub = task.subs.find(s => s.id === cb.dataset.dsub); if (sub) { ML.setSubDone(task, sub, cb.checked); ML.renderAll(); renderDeep(true); }
       };
     }
     $('dp-clock').textContent = MiniView.fmtClock(rem);
     $('dp-state').textContent = $('state').textContent;
     $('dp-task').textContent = S.mode === 'break' ? $('c-task').textContent : (ML.activeTitle() || t('free_focus'));
-    $('dp-bar').style.width = ((1 - frac) * 100).toFixed(2) + '%';
+    $('dp-arc').style.strokeDashoffset = (RING * (1 - frac)).toFixed(1);
+    $('deep').classList.toggle('paused', !ML.running());
+    if (!ML.running()) $('deep').classList.remove('idle');
     $('dp-toggle').textContent = $('start').textContent;
     $('dp-dn').textContent = S.curDistr ? '(' + S.curDistr + ')' : '';
   }
@@ -96,7 +116,7 @@
   // Shortcut D for Deep focus; Esc closes Deep focus, the shop and the review
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { if (deepOn) closeDeep(); ['shop', 'review'].forEach(id => { if (!$(id).hidden) $(id).hidden = true; }); return; }
-    if (e.ctrlKey || e.metaKey || e.altKey || (e.target && e.target.closest('input, textarea, select'))) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || ML.isTyping(e)) return;
     if (e.key.toLowerCase() === 'd' && $('settings').hidden) { deepOn ? closeDeep() : openDeep(); }
   });
 
@@ -108,15 +128,24 @@
       set_leave: 'Rester dans l’app', opt_leave: 'Détecter quand je quitte l’app pendant le focus', opt_strict: 'Mode strict : quitter plus de 10 s fait tomber un étage de la tour',
       leave_hint: 'Une app web ne peut pas bloquer les autres apps du téléphone. Combine avec le mode Concentration de ton téléphone : iPhone → Réglages → Concentration (et une automatisation Raccourcis « quand MerlinsLockIN s’ouvre »), Android → Bien-être numérique → Mode Concentration.',
       left_for: 'Tu as quitté l’app pendant {d}. C’est compté comme un décrochage.',
+      outside_work: 'Mon travail se fait aussi hors de l’app (Word, PDF…)', outside_back: 'Bon retour. Tu étais parti {d} (travail hors de l’app, pas compté).',
     },
     en: {
       set_leave: 'Stay in the app', opt_leave: 'Notice when I leave the app during focus', opt_strict: 'Strict mode: leaving for more than 10 s knocks a floor off the tower',
       leave_hint: "A web app can't block other apps on a phone. Pair it with your phone's focus mode: iPhone → Settings → Focus (plus a Shortcuts automation \"when MerlinsLockIN opens\"), Android → Digital Wellbeing → Focus mode.",
       left_for: 'You left the app for {d}. That counts as a distraction.',
+      outside_work: 'My work also happens outside the app (Word, PDF…)', outside_back: 'Welcome back. You were away {d} (work outside the app, not counted).',
     },
   });
   const TOUCH = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  ML.defaults(() => ({ leaveDetect: TOUCH, strict: false }));
+  ML.defaults(() => ({ leaveDetect: TOUCH, strict: false, outsideWork: false }));
+  // "My work also happens outside the app": leaving no longer counts (stays ticked until unticked)
+  function renderOutside() {
+    $('outside-row').hidden = !S.leaveDetect;
+    $('outside-chk').checked = !!S.outsideWork;
+  }
+  $('outside-chk').onchange = e => { S.outsideWork = e.target.checked; save(); };
+  on('render', renderOutside);
   let hiddenAt = null;
   document.addEventListener('visibilitychange', () => {
     if (!S.leaveDetect) return;
@@ -124,10 +153,12 @@
     if (!hiddenAt) return;
     const away = (Date.now() - hiddenAt) / 1000; hiddenAt = null;
     if (away < 10) return;
+    const d = away >= 60 ? fmtMins(away / 60) : Math.round(away) + ' s';
+    if (S.outsideWork) { toast(t('outside_back', { d }), { ms: 3500 }); return; }
     S.curDistr = (S.curDistr || 0) + 1;
     S.distr.push({ at: Date.now(), mood: S.mood, away: Math.round(away), left: true });
     save(); renderDistract();
-    toast(t('left_for', { d: away >= 60 ? fmtMins(away / 60) : Math.round(away) + ' s' }), { ms: 5000 });
+    toast(t('left_for', { d }), { ms: 5000 });
     emit('left', { secs: away, strict: !!S.strict });
   });
   ML.settingsSection({
@@ -137,7 +168,7 @@
       ${ML.ui.chk('set-strict', t('opt_strict'), S.strict)}
       <p class="hint">${esc(t('leave_hint'))}</p>`,
     bind: r => {
-      r.querySelector('#set-leave').onchange = e => { S.leaveDetect = e.target.checked; save(); };
+      r.querySelector('#set-leave').onchange = e => { S.leaveDetect = e.target.checked; save(); renderOutside(); };
       r.querySelector('#set-strict').onchange = e => { S.strict = e.target.checked; save(); };
     },
   });

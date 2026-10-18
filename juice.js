@@ -126,7 +126,7 @@
     arcade: { type: 'square', base: 72, dec: 0.1, gap: 0.055, vol: 0.035 },
     fog: { type: 'sine', base: 64, dec: 0.9, gap: 0.12, bell: true },
   };
-  const NOTES = { task: [0, 7], quest: [0, 4, 7], ach: [0, 4, 7, 12], level: [0, 4, 7, 12, 16, 19], session: [0, 7, 12], click: [12], buy: [7, 12, 19], abandon: [7, 3, 0] };
+  const NOTES = { sub: [4, 9], task: [0, 7], quest: [0, 4, 7], ach: [0, 4, 7, 12], level: [0, 4, 7, 12, 16, 19], session: [0, 7, 12], click: [12], buy: [7, 12, 19], abandon: [7, 3, 0] };
   ML.sfxTheme = kind => {
     if (kind === 'click' && !S.juice.clicks) return;
     try { sctx = sctx || new (window.AudioContext || window.webkitAudioContext)(); if (sctx.state === 'suspended') sctx.resume(); } catch (e) { return; }

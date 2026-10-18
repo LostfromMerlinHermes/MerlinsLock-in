@@ -7,7 +7,8 @@
     fr: {
       new_event: 'Événement', today_btn: 'Aujourd’hui', upcoming: 'À venir', nothing_upcoming: 'Rien de prévu dans les 14 prochains jours.',
       ev_title_ph: 'Titre (cours, rendez-vous, examen…)', ev_date: 'Date', ev_time: 'Heure', ev_allday: 'Toute la journée', ev_cat: 'Catégorie', ev_remind: 'Rappel', ev_notes_ph: 'Lieu, notes…',
-      cat_class: 'Cours', cat_work: 'Travail', cat_perso: 'Perso', cat_sport: 'Sport', cat_social: 'Social', cat_deadline: 'Échéance',
+      cat_class: 'Cours', cat_study: 'Étude', cat_work: 'Travail', cat_perso: 'Perso', cat_meal: 'Repas', cat_sport: 'Sport', cat_social: 'Social', cat_deadline: 'Échéance',
+      ev_color: 'Couleur', ev_color_auto: 'Auto',
       rem_0: 'Aucun', rem_5: '5 min avant', rem_15: '15 min avant', rem_30: '30 min avant', rem_60: '1 h avant', rem_1440: 'La veille',
       rep_none: 'Une fois', rep_daily: 'Chaque jour', rep_weekdays: 'En semaine', rep_weekly: 'Chaque semaine', rep_monthly: 'Chaque mois',
       ev_saved: 'Événement enregistré', ev_deleted: 'Événement supprimé', day_empty: 'Rien ce jour-là.',
@@ -19,7 +20,8 @@
     en: {
       new_event: 'Event', today_btn: 'Today', upcoming: 'Upcoming', nothing_upcoming: 'Nothing planned in the next 14 days.',
       ev_title_ph: 'Title (class, appointment, exam…)', ev_date: 'Date', ev_time: 'Time', ev_allday: 'All day', ev_cat: 'Category', ev_remind: 'Reminder', ev_notes_ph: 'Place, notes…',
-      cat_class: 'Class', cat_work: 'Work', cat_perso: 'Personal', cat_sport: 'Sport', cat_social: 'Social', cat_deadline: 'Deadline',
+      cat_class: 'Class', cat_study: 'Study', cat_work: 'Work', cat_perso: 'Personal', cat_meal: 'Meal', cat_sport: 'Sport', cat_social: 'Social', cat_deadline: 'Deadline',
+      ev_color: 'Color', ev_color_auto: 'Auto',
       rem_0: 'None', rem_5: '5 min before', rem_15: '15 min before', rem_30: '30 min before', rem_60: '1 h before', rem_1440: 'The day before',
       rep_none: 'Once', rep_daily: 'Daily', rep_weekdays: 'Weekdays', rep_weekly: 'Weekly', rep_monthly: 'Monthly',
       ev_saved: 'Event saved', ev_deleted: 'Event deleted', day_empty: 'Nothing that day.',
@@ -30,8 +32,13 @@
     },
   });
 
-  const CATS = { class: '#5cc8e6', work: '#a678ff', perso: '#5ef0a8', sport: '#ffb547', social: '#ff7ac6', deadline: '#ff6b8b' };
+  // Colors are 8 slots whose exact shade comes from the theme (vivid neon when fired up, softer otherwise), see --ev-N in app.css.
+  // Each category has a default slot; an event can pick its own.
+  const CAT_SLOT = { class: 2, study: 8, work: 1, perso: 3, meal: 7, sport: 4, social: 5, deadline: 6 };
+  const slotVar = n => `var(--ev-${n})`;
+  const CATS = Object.fromEntries(Object.entries(CAT_SLOT).map(([k, n]) => [k, slotVar(n)]));
   ML.CATS = CATS;
+  ML.evColor = ev => slotVar(ev.color || CAT_SLOT[ev.cat] || CAT_SLOT.perso);
   ML.defaults(() => ({ events: [], notified: {}, cal: { month: null, sel: null } }));
 
   /* ---------- Occurrences ---------- */
@@ -73,7 +80,7 @@
     for (let i = 0; i < 42; i++) {
       const d = new Date(gridStart); d.setDate(gridStart.getDate() + i);
       const k = dayKey(d), evs = eventsOn(k), dues = dueOn(k), blocks = (S.blocks || []).filter(b => b.date === k);
-      const dots = evs.slice(0, 3).map(o => `<i style="background:${CATS[o.ev.cat] || CATS.perso}"></i>`).join('')
+      const dots = evs.slice(0, 3).map(o => `<i style="background:${ML.evColor(o.ev)}"></i>`).join('')
         + (dues.length ? `<i class="due-dot"></i>` : '') + (blocks.length ? `<i class="blk-dot"></i>` : '');
       cells += `<button type="button" class="cal-cell ${monthOf(k) !== C.month ? 'out' : ''} ${k === td ? 'today' : ''} ${k === C.sel ? 'sel' : ''}" data-day="${k}">
         <span>${d.getDate()}</span><span class="dots">${dots}</span></button>`;
@@ -113,7 +120,7 @@
   }
   function evRow(o) {
     const ev = o.ev;
-    return `<li style="--c:${CATS[ev.cat] || CATS.perso}">
+    return `<li style="--c:${ML.evColor(ev)}">
       <span class="ev-time">${o.start == null ? esc(t('ev_allday')) : hm(o.start) + '–' + hm(o.end)}</span>
       <button type="button" class="ev-title" data-ev="${ev.id}">${esc(ev.title)}${ev.repeat && ev.repeat !== 'none' ? ' ↻' : ''}${ev.remind ? ' ⏰' : ''}</button>
       ${ev.notes ? `<span class="ev-notes">${esc(ev.notes)}</span>` : ''}
@@ -151,6 +158,10 @@
         <label><span>${esc(t('repeat'))}</span><select name="repeat">${opt(['none', 'daily', 'weekdays', 'weekly', 'monthly'], ev.repeat || 'none', 'rep_')}</select></label>
         <label><span>${esc(t('ev_remind'))}</span><select name="remind">${opt([0, 5, 15, 30, 60, 1440], ev.remind || 0, 'rem_')}</select></label>
       </div>
+      <fieldset class="ev-colors"><legend>${esc(t('ev_color'))}</legend>
+        <label class="sw auto" title="${esc(t('ev_color_auto'))}"><input type="radio" name="color" value="" ${ev.color ? '' : 'checked'}><i style="--c:${slotVar(CAT_SLOT[ev.cat] || 3)}"></i><span>${esc(t('ev_color_auto'))}</span></label>
+        ${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<label class="sw" title="${n}"><input type="radio" name="color" value="${n}" ${ev.color === n ? 'checked' : ''}><i style="--c:${slotVar(n)}"></i></label>`).join('')}
+      </fieldset>
       <textarea name="notes" rows="2" placeholder="${esc(t('ev_notes_ph'))}">${esc(ev.notes || '')}</textarea>
       <div class="t-edit-btns">
         ${editing !== 'new' ? `<button type="button" class="small ghost danger" id="ev-del">${esc(t('delete_event'))}</button>` : ''}
@@ -188,6 +199,7 @@
     const data = {
       title: String(fd.get('title')).trim(), date: fd.get('date'), start: fd.get('allday') ? '' : (fd.get('start') || ''),
       mins: +fd.get('mins'), cat: fd.get('cat'), repeat: fd.get('repeat'), remind: +fd.get('remind'), notes: String(fd.get('notes') || '').trim(),
+      color: +fd.get('color') || null,
     };
     if (!data.title || !data.date) return;
     if (editing === 'new') S.events.push(Object.assign({ id: uid() }, data));
@@ -201,6 +213,7 @@
       const f = e.target.files[0]; if (!f) return;
       const rd = new FileReader(); rd.onload = () => importIcs(String(rd.result)); rd.readAsText(f);
     }
+    if (e.target.name === 'cat') { const a = root.querySelector('.ev-colors .auto i'); if (a) a.style.setProperty('--c', slotVar(CAT_SLOT[e.target.value] || 3)); }
     if (e.target.name === 'allday') { const st = root.querySelector('.ev-form [name=start]'); if (st) st.disabled = e.target.checked; }
   });
 

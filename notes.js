@@ -69,6 +69,15 @@
     setTimeout(() => { const ti = $('nb-title'); if (ti) ti.focus(); }, 30);
   }
   ML.openDailyNote = () => { ML.setTab('notes'); openDaily(); };
+  // Other modules (Study search, translator) can drop a snippet at the end of today's page
+  ML.notesAppend = html => {
+    flush();
+    const k = today();
+    let p = N().pages.find(x => x.date === k);
+    if (!p) { p = { id: uid(), date: k, title: dailyLabel(k), html: '', created: Date.now(), updated: Date.now(), pinned: false, mood: S.mood }; N().pages.unshift(p); }
+    p.html = sanitize((p.html || '') + html); p.updated = Date.now(); save();
+    if (S.tab === 'notes') render();
+  };
 
   /* ---------- Rendering ---------- */
   let query = '', saveT = null;
@@ -120,9 +129,11 @@
     bind(p);
   }
   function setState(saving) { const el = $('nb-state'); if (el) el.textContent = saving ? t('nb_saving') : t('nb_saved'); }
-  function persist(p) {
+  function persist(p0) {
     clearTimeout(saveT); setState(true);
     saveT = setTimeout(() => {
+      saveT = null;
+      const p = page(p0.id) || p0; // a sync may have replaced the state since this page was opened
       const body = $('nb-body'), ti = $('nb-title');
       if (body) p.html = sanitize(body.innerHTML);
       if (ti) p.title = ti.value.trim();
@@ -169,7 +180,7 @@
       } else document.execCommand(cmd);
       persist(p);
     };
-    $('nb-pin').onclick = () => { p.pinned = !p.pinned; save(); render(); };
+    $('nb-pin').onclick = () => { const cur = page(p.id) || p; cur.pinned = !cur.pinned; save(); render(); };
     $('nb-sum').onclick = () => { body.focus(); document.execCommand('insertHTML', false, summaryHtml()); persist(p); };
     if ($('nb-export')) $('nb-export').onclick = () => {
       try {

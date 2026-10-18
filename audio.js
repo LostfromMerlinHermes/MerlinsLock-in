@@ -12,6 +12,8 @@
       sub_unwind: 'Décompresser', sub_destress: 'Déstresser', sub_recharge: 'Recharger', sub_chill: 'Chill',
       sub_guided: 'Guidée', sub_unguided: 'Libre', sub_wind: 'Endormissement', sub_deepsleep: 'Sommeil profond', sub_sleepwake: 'Dormir et se réveiller', sub_guidedsleep: 'Sommeil guidé', sub_power: 'Power nap',
       g_drone: 'Drone', g_atmospheric: 'Atmosphérique', g_piano: 'Piano', g_lofi: 'Lofi', g_electronic: 'Électro', g_grooves: 'Grooves', g_cinematic: 'Cinématique', g_acoustic: 'Acoustique', g_mine: 'Ta musique', g_none: 'Sans musique',
+      g_jazz: 'Jazz chill', g_jazzhop: 'Jazz-hop zen',
+      n_plane: 'Cabine d’avion', n_train: 'Train', n_cafe: 'Café', n_white: 'Bruit blanc', n_pink: 'Bruit rose',
       n_rain: 'Pluie', n_thunder: 'Orage', n_wind: 'Vent', n_river: 'Rivière', n_beach: 'Plage', n_forest: 'Forêt', n_rainforest: 'Forêt tropicale', n_night: 'Nuit', n_underwater: 'Sous l’eau', n_bowls: 'Bols et carillons', n_fire: 'Feu de camp', n_brown: 'Bruit brun',
       activity: 'Activité', genre: 'Genre', nature: 'Nature', music_vol: 'Musique', master_vol: 'Volume général',
       neural: 'Modulation neurale', neural_hint: 'De légères pulsations dans la musique, plus rapides pour se concentrer, plus lentes pour dormir. Effet variable selon les personnes.',
@@ -34,6 +36,8 @@
       sub_unwind: 'Unwind', sub_destress: 'Destress', sub_recharge: 'Recharge', sub_chill: 'Chill',
       sub_guided: 'Guided', sub_unguided: 'Unguided', sub_wind: 'Wind Down', sub_deepsleep: 'Deep Sleep', sub_sleepwake: 'Sleep and Wake', sub_guidedsleep: 'Guided Sleep', sub_power: 'Power Nap',
       g_drone: 'Drone', g_atmospheric: 'Atmospheric', g_piano: 'Piano', g_lofi: 'Lofi', g_electronic: 'Electronic', g_grooves: 'Grooves', g_cinematic: 'Cinematic', g_acoustic: 'Acoustic', g_mine: 'Your music', g_none: 'No music',
+      g_jazz: 'Chill jazz', g_jazzhop: 'Zen jazz-hop',
+      n_plane: 'Airplane cabin', n_train: 'Train', n_cafe: 'Café', n_white: 'White noise', n_pink: 'Pink noise',
       n_rain: 'Rain', n_thunder: 'Thunder', n_wind: 'Wind', n_river: 'River', n_beach: 'Beach', n_forest: 'Forest', n_rainforest: 'Rainforest', n_night: 'Night', n_underwater: 'Underwater', n_bowls: 'Chimes and bowls', n_fire: 'Campfire', n_brown: 'Brown noise',
       activity: 'Activity', genre: 'Genre', nature: 'Nature', music_vol: 'Music', master_vol: 'Master volume',
       neural: 'Neural modulation', neural_hint: 'Gentle pulses in the music, faster for focus, slower for sleep. Effects vary from person to person.',
@@ -53,13 +57,13 @@
 
   const MODES = {
     focus: { rate: 14, subs: { deep: ['drone', 0.45], creative: ['piano', 0.6], learning: ['lofi', 0.45], light: ['grooves', 0.55], motivation: ['electronic', 0.85] } },
-    relax: { rate: 10, subs: { unwind: ['piano', 0.3], destress: ['atmospheric', 0.3], recharge: ['acoustic', 0.45], chill: ['lofi', 0.3] } },
+    relax: { rate: 10, subs: { unwind: ['piano', 0.3], destress: ['atmospheric', 0.3], recharge: ['acoustic', 0.45], chill: ['jazzhop', 0.3] } },
     meditate: { rate: 6, subs: { guided: ['drone', 0.2], unguided: ['atmospheric', 0.2] } },
     sleep: { rate: 3, subs: { wind: ['piano', 0.2], deepsleep: ['drone', 0.12], sleepwake: ['drone', 0.15], guidedsleep: ['drone', 0.15] } },
     nap: { rate: 4, subs: { power: ['drone', 0.2] } },
   };
-  const GENRES = ['drone', 'atmospheric', 'piano', 'lofi', 'electronic', 'grooves', 'cinematic', 'acoustic', 'mine', 'none'];
-  const NATURE = ['rain', 'thunder', 'wind', 'river', 'beach', 'forest', 'rainforest', 'night', 'underwater', 'bowls', 'fire', 'brown'];
+  const GENRES = ['drone', 'atmospheric', 'piano', 'lofi', 'jazzhop', 'jazz', 'electronic', 'grooves', 'cinematic', 'acoustic', 'mine', 'none'];
+  const NATURE = ['rain', 'thunder', 'wind', 'river', 'beach', 'forest', 'rainforest', 'night', 'underwater', 'bowls', 'fire', 'plane', 'train', 'cafe', 'white', 'pink', 'brown'];
   const DEPTH = { off: 0, light: 0.12, medium: 0.25, strong: 0.4 };
   const MOOD_MIX = {
     drained: { mode: 'focus', sub: 'light', genre: 'lofi', nature: { rain: 0.5 } },
@@ -290,6 +294,29 @@
       L.loop(() => { const n = 1 + Math.floor(Math.random() * 3); for (let i = 0; i < n; i++) burst(L.out, { t0: ctx.currentTime + Math.random() * 0.15, attack: 0.003, decay: rnd(0.03, 0.1), peak: rnd(0.15, 0.6), filter: 'bandpass', freq: rnd(1200, 4700), q: 1.4, pan: rnd(-0.5, 0.5) }); }, 70, 590);
     },
     brown(L) { L.src('brown').connect(L.g(0.85)).connect(L.out); },
+    white(L) { L.src('white').connect(L.f('lowpass', 9000)).connect(L.g(0.2)).connect(L.out); },
+    pink(L) { L.src('pink').connect(L.g(0.6)).connect(L.out); },
+    plane(L) { // cabin roar, airflow, vent hiss, engine hum and a rare seatbelt chime
+      const lp = L.f('lowpass', 520); L.src('brown').connect(lp).connect(L.g(0.9)).connect(L.out); L.lfo(0.03, 60, lp.frequency);
+      L.src('pink').connect(L.f('bandpass', 260, 0.8)).connect(L.g(0.35)).connect(L.out);
+      L.src('white').connect(L.f('highpass', 2500)).connect(L.f('lowpass', 5000)).connect(L.g(0.015)).connect(L.out);
+      const hg = L.g(0.012); L.osc('sawtooth', 96).connect(L.f('lowpass', 240)).connect(hg).connect(L.out); L.lfo(0.11, 0.004, hg.gain);
+      L.loop(() => { const t0 = ctx.currentTime; blip(L.out, { f: 1046.5, t0, dur: 1.6, peak: 0.025 }); blip(L.out, { f: 784, t0: t0 + 0.55, dur: 1.8, peak: 0.02 }); }, 90000, 200000);
+    },
+    train(L) { // rumble plus the clack-clack of rail joints
+      L.src('brown').connect(L.f('lowpass', 380)).connect(L.g(0.8)).connect(L.out);
+      L.src('pink').connect(L.f('bandpass', 700, 0.7)).connect(L.g(0.08)).connect(L.out);
+      const clack = t0 => [0, 0.12].forEach((d, k) => {
+        burst(L.out, { type: 'brown', t0: t0 + d, attack: 0.002, decay: 0.14, peak: 0.55 - k * 0.15, filter: 'lowpass', freq: 600 });
+        burst(L.out, { t0: t0 + d, attack: 0.001, decay: 0.03, peak: 0.05, filter: 'bandpass', freq: 2400, q: 2 });
+      });
+      L.every(() => { const t0 = ctx.currentTime + 0.02; clack(t0); clack(t0 + 0.45); }, 1450);
+    },
+    cafe(L) { // murmuring voices and the odd cup or spoon
+      for (let k = 0; k < 4; k++) { const bp = L.f('bandpass', rnd(350, 1100), 1.2), g = L.g(0.05); L.src('pink').connect(bp).connect(g).connect(L.out); L.lfo(rnd(2.5, 5.5), 0.04, g.gain); L.lfo(rnd(0.05, 0.2), 150, bp.frequency); }
+      L.src('brown').connect(L.f('lowpass', 250)).connect(L.g(0.2)).connect(L.out);
+      L.loop(() => { const t0 = ctx.currentTime, f = rnd(2600, 4200), pan = rnd(-0.7, 0.7); blip(L.out, { f, t0, dur: rnd(0.15, 0.35), peak: rnd(0.015, 0.035), attack: 0.001, pan }); blip(L.out, { f: f * 2.4, t0, dur: 0.1, peak: 0.01, attack: 0.001, pan }); }, 700, 3500);
+    },
   };
   const natureLayers = {};
   function syncNature() {
@@ -365,6 +392,26 @@
       s.connect(g); g.connect(o.dry);
       const w = ctx.createGain(); w.gain.value = 0.25; g.connect(w).connect(o.wet);
       s.start(t0);
+    },
+    ride(o, t0, vel = 0.4) {
+      burst(o.dry, { t0, attack: 0.001, decay: 0.45, peak: 0.06 * vel, filter: 'bandpass', freq: 6200, q: 1.5 });
+      [3020, 4580, 5310].forEach(f => voice(o, t0, { f, type: 'square', peak: 0.005 * vel, attack: 0.001, decay: 0.6, cut: 9000, wet: 0.15 }));
+    },
+    brush(o, t0, vel = 0.4, len = 0.18) { burst(o.dry, { type: 'pink', t0, attack: 0.02, decay: len, peak: 0.12 * vel, filter: 'bandpass', freq: 3000, q: 0.6 }); },
+    ubass(o, t0, m, len = 0.5, vel = 0.6) { // upright bass: round, plucked
+      const f = mtof(m);
+      voice(o, t0, { f, type: 'triangle', peak: 0.22 * vel, attack: 0.004, decay: len, cut: 650, wet: 0.05 });
+      voice(o, t0, { f: f * 2, peak: 0.03 * vel, attack: 0.002, decay: 0.08, wet: 0 });
+    },
+    flute(o, t0, m, len, vel = 0.5) { // breathy bamboo-flute lead: scoop up, delayed vibrato
+      const f = mtof(m), osc = ctx.createOscillator(), g = ctx.createGain(), vib = ctx.createOscillator(), vg = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(f * 0.97, t0); osc.frequency.linearRampToValueAtTime(f, t0 + 0.08);
+      vib.frequency.value = 5.2; vg.gain.setValueAtTime(0, t0); vg.gain.linearRampToValueAtTime(f * 0.012, t0 + len * 0.6);
+      vib.connect(vg).connect(osc.frequency);
+      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.055 * vel, t0 + 0.06); g.gain.setValueAtTime(0.055 * vel, t0 + len); g.gain.linearRampToValueAtTime(0, t0 + len + 0.25);
+      osc.connect(g); g.connect(o.dry); const w = ctx.createGain(); w.gain.value = 0.45; g.connect(w).connect(o.wet);
+      osc.start(t0); vib.start(t0); osc.stop(t0 + len + 0.35); vib.stop(t0 + len + 0.35);
+      burst(o.dry, { t0, attack: 0.03, decay: len * 0.5, peak: 0.01 * vel, filter: 'bandpass', freq: f * 2, q: 3 });
     },
     timpani(o, t0, m, vel = 0.6) {
       const osc = ctx.createOscillator(), g = ctx.createGain(), f = mtof(m);
@@ -457,6 +504,68 @@
           if (s === 0 || s === 10) I.bass(o(), t0, deg(root - 24, SCALES.major, c), spb * 5, 0.6);
           if (s % 2 === 0 && Math.random() < 0.08 + p.int * 0.08) I.epiano(o(), t0, deg(root + 12, SCALES.pentaMaj, Math.floor(rnd(0, 6))), 0.3, spb * 3);
           if (Math.random() < 0.08) burst(o().dry, { t0, attack: 0.001, decay: 0.015, peak: 0.05, filter: 'highpass', freq: 2000 });
+        },
+      };
+    },
+    // Chill jazz trio: ride "spang-a-lang", walking upright bass, rootless piano comping over ii-V-I.
+    // Each step is a swung eighth note (8 steps per bar), so bpm here is twice the quarter-note tempo.
+    jazz(p) {
+      const root = pick([48, 50, 53, 55]), sc = SCALES.major, prog = pick([[1, 4, 0, 0], [1, 4, 0, 5], [2, 5, 1, 4], [5, 1, 4, 0]]);
+      let mel = 4;
+      return {
+        bpm: (104 + p.int * 30) * 2, swing: 0.3, tone: 7000,
+        step(i, t0, spb) {
+          const s = i % 8, bar = Math.floor(i / 8), c = prog[bar % prog.length], next = prog[(bar + 1) % prog.length];
+          if (s % 2 === 0 || s === 3 || s === 7) I.ride(o(), t0, s % 4 === 2 ? 0.5 : 0.32);
+          if (s === 2 || s === 6) I.hat(o(), t0, 0.18);
+          if (s % 2 === 0 && Math.random() < 0.3) I.brush(o(), t0, 0.35);
+          if (s % 2 === 0) { // walking bass, one note per beat, last beat leads into the next chord
+            const beat = s / 2, ch = chord(root - 24, sc, c, 4), tgt = deg(root - 24, sc, next);
+            const m = beat === 0 ? ch[0] : beat === 3 ? tgt + pick([-1, 1, 2]) : pick([ch[1], ch[2], ch[3], deg(root - 24, sc, c + 1)]);
+            I.ubass(o(), t0, m, spb * 3.4, 0.75);
+          }
+          const comp = (s === 0 && Math.random() < 0.45) || (s === 3 && Math.random() < 0.55) || (s === 5 && Math.random() < 0.35);
+          if (comp) chord(root, sc, c + 2, 4).forEach((m, k) => I.piano(o(), t0 + k * 0.01, m, 0.26, spb * rnd(2, 4)));
+          if (Math.random() < 0.12 + p.int * 0.2) { // short piano licks
+            mel = clamp(mel + pick([-2, -1, 1, 1, 2]), 0, 10);
+            I.piano(o(), t0, deg(root + 12, sc, mel), rnd(0.25, 0.42), spb * 2);
+          }
+        },
+      };
+    },
+    // Zen jazz-hop (in the spirit of Nujabes): swung boom-bap, minor-9 piano chords, upright bass,
+    // and a bamboo flute or koto-like pluck playing a Japanese pentatonic scale over vinyl crackle.
+    jazzhop(p) {
+      const root = pick([45, 47, 50, 52]), sc = SCALES.dorian, prog = pick([[0, 3, 5, 4], [0, 5, 3, 6], [3, 2, 0, 0], [0, 4, 3, 1]]);
+      const asian = pick([[0, 2, 3, 7, 8], [0, 1, 5, 7, 10], [0, 3, 5, 7, 10]]); // hirajoshi, in-sen, minor pentatonic
+      const lead = Math.random() < 0.55 ? 'flute' : 'koto';
+      let hiss = null, li = 2;
+      return {
+        bpm: 86 + p.int * 8, swing: 0.22, tone: 3400,
+        start(oo, t0) {
+          hiss = ctx.createBufferSource(); hiss.buffer = noise('white'); hiss.loop = true;
+          const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 3000; f.Q.value = 0.6; const g = ctx.createGain(); g.gain.value = 0.014;
+          hiss.connect(f).connect(g).connect(oo.dry); hiss.start(t0);
+        },
+        stop() { try { hiss.stop(); } catch (e) {} },
+        step(i, t0, spb) {
+          const s = i % 16, bar = Math.floor(i / 16), c = prog[bar % prog.length];
+          if (s === 0 || s === 10 || (s === 3 && Math.random() < 0.4) || (s === 8 && bar % 2 === 1)) I.kick(o(), t0, s === 0 ? 0.85 : 0.6);
+          if (s === 4 || s === 12) { I.snare(o(), t0, 0.5); if (Math.random() < 0.4) I.brush(o(), t0, 0.5, 0.25); }
+          if (s % 2 === 0) I.hat(o(), t0, s % 4 === 0 ? 0.32 : 0.2); else if (Math.random() < 0.18) I.hat(o(), t0, 0.1);
+          if (s === 0) {
+            I.piano(o(), t0, deg(root - 12, sc, c), 0.36, spb * 14);
+            chord(root, sc, c + 2, 4).forEach((m, k) => I.piano(o(), t0 + 0.02 + k * 0.022, m, 0.27, spb * 12));
+          }
+          if (s === 10 && Math.random() < 0.45) chord(root, sc, c + 2, 4).forEach((m, k) => I.epiano(o(), t0 + k * 0.015, m, 0.22, spb * 4));
+          if (s === 0 || s === 7 || (s === 10 && Math.random() < 0.6)) I.ubass(o(), t0, deg(root - 24, sc, c) + (s === 7 ? 12 : 0), spb * 3, 0.7);
+          const phrase = bar % 4 >= 2; // the lead answers every other pair of bars
+          if (phrase && s % 2 === 0 && Math.random() < 0.22 + p.int * 0.18) {
+            li = clamp(li + pick([-2, -1, 1, 1, 2]), 0, 9);
+            const m = root + 12 + asian[li % 5] + 12 * Math.floor(li / 5);
+            if (lead === 'flute') I.flute(o(), t0, m, spb * pick([2, 3, 4, 6]), 0.6); else I.pluck(o(), t0, m + 12, 0.5);
+          }
+          if (Math.random() < 0.1) burst(o().dry, { t0, attack: 0.001, decay: 0.012, peak: 0.05, filter: 'highpass', freq: 2200 });
         },
       };
     },

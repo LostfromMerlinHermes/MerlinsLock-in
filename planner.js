@@ -81,7 +81,7 @@
     const itemHtml = it => {
       const top = px(it.start), h = Math.max(18, px(it.end) - top), w = 100 / it.ncol, left = it.col * w;
       const style = `top:${top}px;height:${h}px;left:calc(46px + (100% - 50px) * ${left / 100});width:calc((100% - 50px) * ${w / 100} - 3px)`;
-      if (it.kind === 'ev') return `<div class="pl-ev" style="${style};--c:${ML.CATS[it.ev.cat] || ML.CATS.perso}"><b>${esc(it.ev.title)}</b><span>${hm(it.start)}–${hm(it.end)}</span></div>`;
+      if (it.kind === 'ev') return `<div class="pl-ev" style="${style};--c:${ML.evColor(it.ev)}"><b>${esc(it.ev.title)}</b><span>${hm(it.start)}–${hm(it.end)}</span></div>`;
       const b = it.b, task = b.taskId && S.tasks.find(x => x.id === b.taskId);
       const isActive = S.activeBlock === b.id && ML.running();
       return `<div class="pl-blk ${h < 34 ? 'short' : ''} ${b.done || (task && task.done) ? 'done' : ''} ${isActive ? 'active' : ''} ${task ? 'p-' + task.pri : ''}" style="${style}" data-blk="${b.id}" tabindex="0">
@@ -112,7 +112,7 @@
         ${tray.length ? `<p class="hint">${esc(t('tray_hint'))}</p><div class="chips">${tray.map(x => `<button type="button" class="tray-chip p-${x.pri}" draggable="true" data-tray="${x.id}">${esc(ML.titleOf(x))} <small>${fmtMins(x.mins)}</small></button>`).join('')}</div>`
         : `<p class="hint">${esc(t('tray_empty'))}</p>`}
       </div>
-      ${allDay.length ? `<div class="pl-allday">${allDay.map(o => `<span class="chip" style="border-color:${ML.CATS[o.ev.cat]};color:${ML.CATS[o.ev.cat]}">${esc(o.ev.title)}</span>`).join('')}</div>` : ''}
+      ${allDay.length ? `<div class="pl-allday">${allDay.map(o => `<span class="chip" style="border-color:${ML.evColor(o.ev)};color:${ML.evColor(o.ev)}">${esc(o.ev.title)}</span>`).join('')}</div>` : ''}
       ${popover ? popoverHtml() : ''}
       <div class="pl-scroll" id="pl-scroll">
         <div class="pl-grid" id="pl-grid" style="height:${H}px">${past}${hours}${items.map(itemHtml).join('')}${nowLine}</div>

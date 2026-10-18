@@ -25,6 +25,12 @@ window.ML = (() => {
   const fmtMins = m => { m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + 'h' + (m % 60 ? pad2(m % 60) : '') : m + 'min'; };
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const svgIcon = inner => `<svg viewBox="0 0 24 24" aria-hidden="true">${inner}</svg>`;
+  // True when a key event belongs to text entry, so single-letter shortcuts must ignore it
+  const isTyping = e => {
+    if (e.isComposing || e.keyCode === 229) return true;
+    const el = e.target, act = document.activeElement;
+    return [el, act].some(n => n && n.nodeType === 1 && (n.isContentEditable || !!n.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')));
+  };
 
   /* ---------- Translations ---------- */
   const STR = { fr: {}, en: {} };
@@ -145,7 +151,7 @@ window.ML = (() => {
   }
 
   return {
-    $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon,
+    $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon, isTyping,
     addStrings, t, tn, locale, applyI18n,
     defaults: fn => defaultFns.push(fn), load, replaceState, save, saveNow,
     on, emit, toast, armedButton, bgSend,
