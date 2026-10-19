@@ -18,6 +18,7 @@
       set_account: 'Compte', acc_signed: 'Connecté : {email}', acc_guest: 'Tu utilises l’app sans compte : tes données restent sur cet appareil.',
       acc_sync_now: 'Synchroniser maintenant', acc_logout: 'Se déconnecter', acc_login: 'Se connecter / créer un compte', acc_last: 'Dernière synchro : {when}', acc_never: 'jamais',
       acc_delete: 'Supprimer mon compte', acc_deleted: 'Compte supprimé. Toutes tes données en ligne ont été effacées.', del_missing: 'La suppression de compte n’est pas encore activée sur le serveur. Contacte l’éditeur.',
+      acc_guard: 'Synchro : une des deux copies avait perdu presque tout son contenu. Les deux ont été fusionnées pour ne rien perdre.',
       acc_synced: 'Synchronisé', acc_sync_err: 'Synchro impossible pour l’instant. On réessaie bientôt.', acc_wipe: 'Effacer mes données du cloud', acc_wiped: 'Données du cloud effacées.',
       import_h: 'Importer la progression de cet appareil ?', import_p: 'Cet appareil a déjà des tâches, de l’XP et des sessions sans compte. Tu peux les mettre dans ton compte.',
       import_yes: 'Importer dans mon compte', import_no: 'Commencer à zéro',
@@ -34,6 +35,7 @@
       set_account: 'Account', acc_signed: 'Signed in: {email}', acc_guest: "You're using the app without an account: your data stays on this device.",
       acc_sync_now: 'Sync now', acc_logout: 'Sign out', acc_login: 'Sign in / create account', acc_last: 'Last sync: {when}', acc_never: 'never',
       acc_delete: 'Delete my account', acc_deleted: 'Account deleted. All your online data was erased.', del_missing: 'Account deletion is not enabled on the server yet. Contact the publisher.',
+      acc_guard: 'Sync: one of the two copies had lost almost everything. Both were merged so nothing is lost.',
       acc_synced: 'Synced', acc_sync_err: "Can't sync right now. Retrying soon.", acc_wipe: 'Delete my cloud data', acc_wiped: 'Cloud data deleted.',
       import_h: "Import this device's progress?", import_p: 'This device already has tasks, XP and sessions without an account. You can move them into your account.',
       import_yes: 'Import into my account', import_no: 'Start fresh',
@@ -160,7 +162,15 @@
   const setBase = d => { try { localStorage.setItem(baseKey(), JSON.stringify(d)); } catch (e) {} };
 
   /* ---------- Cloud data ---------- */
-  let remoteAt = null, syncing = null; // remoteAt: _savedAt of the cloud row as last seen (null: no row yet)
+  // remoteAt: _savedAt of the cloud row as last seen (null: no row yet).
+  // ready: a pull succeeded this session. Until then NOTHING is pushed: a device that starts offline, slowly,
+  // or with wiped storage must never send its (possibly empty) copy over the cloud one.
+  // noRow: the last pull proved the account has no cloud row yet (only then may we create it).
+  let remoteAt = null, syncing = null, ready = false, noRow = false;
+  // Rough size of a state, to spot a copy that lost most of its content
+  const weight = d => !d ? 0 : ['tasks', 'sessions', 'parked', 'events', 'blocks'].reduce((a, k) => a + ((d[k] && d[k].length) || 0), 0)
+    + ((d.notes && d.notes.pages && d.notes.pages.length) || 0) * 3 + ((d.sport && d.sport.workouts && d.sport.workouts.length) || 0) + Math.floor((+d.xp || 0) / 100);
+  const looksWiped = (small, big) => weight(big) >= 8 && weight(small) < weight(big) * 0.4;
   async function pull() {
     const rows = await api('/rest/v1/lockin_data?select=data,updated_at&user_id=eq.' + user.id, { token: await token() });
     return rows && rows[0] ? rows[0] : null;
@@ -169,10 +179,12 @@
   async function push(keepalive, fromSync) {
     if (!user) return;
     clearTimeout(pushT); pushT = null;
+    if (!ready && !fromSync) { if (!keepalive) await syncNow(false); return; } // never push blind: sync (pull + merge) first
     const data = JSON.parse(JSON.stringify(S));
     const body = { data, updated_at: new Date().toISOString() };
     const ka = keepalive && JSON.stringify(body).length < 60000;
     if (remoteAt == null) {
+      if (!noRow) return; // a row may exist that we haven't read: don't overwrite it
       await api('/rest/v1/lockin_data?on_conflict=user_id', { method: 'POST', body: Object.assign({ user_id: user.id }, body), token: await token(), prefer: 'resolution=merge-duplicates,return=minimal', keepalive: ka });
     } else {
       const rows = await api('/rest/v1/lockin_data?user_id=eq.' + user.id + '&data->>_savedAt=eq.' + remoteAt + '&select=user_id', { method: 'PATCH', body, token: await token(), prefer: 'return=representation', keepalive: ka });
@@ -192,15 +204,26 @@
   async function doSync(initial) {
     try {
       const remote = await pull();
+      ready = true;
       if (!remote) {
-        remoteAt = null;
+        remoteAt = null; noRow = true;
         if (initial && freshLocal && hasGuestData()) { const choice = await askImport(); if (choice) applyData(guestData()); }
         await push(false, true);
+        noRow = false;
       } else {
+        noRow = false;
         const rd = remote.data || {}, rAt = rd._savedAt || 0;
         remoteAt = rd._savedAt == null ? null : rAt;
         const base = getBase();
-        if ((initial && freshLocal) || rAt === S._savedAt) { if (rAt !== S._savedAt) applyData(rd); setBase(rd); } // a device new to this account takes the cloud copy
+        // Safety net: a cloud copy that lost most of what this device holds is never taken as "everything was deleted"
+        const remoteWiped = !freshLocal && looksWiped(rd, S), localWiped = !freshLocal && looksWiped(S, rd);
+        if (remoteWiped || localWiped) {
+          ML.snapshot && ML.snapshot('before-merge');
+          const merged = merge3(undefined, JSON.parse(JSON.stringify(S)), rd, remoteWiped, ''); // union of both, nothing treated as deleted
+          merged._savedAt = Date.now();
+          applyData(merged); await push(false, true);
+          toast(t('acc_guard'), { ms: 7000 });
+        } else if ((initial && freshLocal) || rAt === S._savedAt) { if (rAt !== S._savedAt) applyData(rd); setBase(rd); } // a device new to this account takes the cloud copy
         else {
           const localChanged = !base || S._savedAt !== base._savedAt, remoteChanged = !base || rAt !== base._savedAt;
           if (!remoteChanged) { if (localChanged) await push(false, true); }
@@ -238,10 +261,10 @@
     clearTimeout(pushT);
     pushT = setTimeout(() => push().catch(() => {}), 4000);
   });
-  addEventListener('pagehide', () => { if (user && pushT) push(true).catch(() => {}); });
+  addEventListener('pagehide', () => { if (user && pushT && ready) push(true).catch(() => {}); });
   document.addEventListener('visibilitychange', () => {
     if (!user) return;
-    if (document.visibilityState === 'hidden' && pushT) push(true).catch(() => {});
+    if (document.visibilityState === 'hidden' && pushT && ready) push(true).catch(() => {});
     if (document.visibilityState === 'visible') syncNow(false);
   });
   setInterval(() => { if (user && document.visibilityState === 'visible' && !pushT) syncNow(false); }, 90000);
@@ -376,7 +399,17 @@
   }
   // Signed-in REST call for other modules (study rooms): ML.auth.rest('/rest/v1/…', { method, body, prefer })
   const rest = async (path, opts = {}) => api(path, Object.assign({}, opts, { token: await token() }));
-  ML.auth = { boot, afterLoad, get user() { return user; }, enabled: ENABLED, syncNow, merge3, rest };
+  // After a manual recovery: read the cloud row's version, then write this device's state over it
+  async function forcePush() {
+    if (!user) return false;
+    const remote = await pull();
+    remoteAt = remote && remote.data && remote.data._savedAt != null ? remote.data._savedAt : null;
+    noRow = !remote; ready = true;
+    await push(false, true); noRow = false;
+    return true;
+  }
+  const cloudCopy = async () => { if (!user) return null; const r = await pull(); return r ? r.data : null; };
+  ML.auth = { boot, afterLoad, get user() { return user; }, enabled: ENABLED, syncNow, merge3, rest, forcePush, cloudCopy };
 
   /* ---------- Settings: account section ---------- */
   function renderStatus() { const el = $('acc-status'); if (el) el.textContent = t('acc_last', { when: lastSync ? new Date(lastSync).toLocaleTimeString(ML.locale(), { hour: '2-digit', minute: '2-digit' }) : t('acc_never') }); }
