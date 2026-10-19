@@ -903,8 +903,12 @@
         let data;
         try { data = JSON.parse(root.querySelector('#bk-text').value); } catch (e) { toast(t('backup_bad')); return; }
         if (!data || !Array.isArray(data.tasks) || !Array.isArray(data.sessions)) { toast(t('backup_missing')); return; }
-        stop(); ML.replaceState(Object.assign(data, { endAt: null }));
+        // Merged with what's here now (nothing is lost), then sent to the cloud so every device gets it
+        stop(); if (ML.snapshot) ML.snapshot('before-restore');
+        const merged = ML.auth && ML.auth.merge3 ? ML.auth.merge3(undefined, JSON.parse(JSON.stringify(S)), data, false, '') : data;
+        ML.replaceState(Object.assign(merged, { endAt: null }));
         ML.saveNow(); ML.applyI18n(); renderAll(); closeOverlay('settings');
+        if (ML.auth && ML.auth.user && ML.auth.forcePush) ML.auth.forcePush().catch(() => {});
         toast(t('backup_restored'));
       });
     },
