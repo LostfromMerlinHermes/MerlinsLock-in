@@ -20,7 +20,7 @@
       l_sleep: ['Zzz… réveille-moi pour une session.', 'Zzz…'],
       l_pet: ['Hé, ça chatouille !', '♥', 'Merci, ça fait du bien.', 'On s’y remet ?'],
       l_morning: 'Bonjour ! Une session pour bien commencer ?',
-      fam_hippo: 'Hippopotame royal', fam_hippo_d: 'Le plus lourd des familiers, et le plus fidèle. Exemplaire unique.',
+      fam_hippo: 'Hippopotame royal', fam_hippo_d: 'Le plus lourd des familiers, et le plus fidèle. Le trésor ultime de la boutique.',
       // Each familiar has its own voice (mixed with the shared lines above)
       l_idle_owl: ['Hou hou. La sagesse commence par une petite tâche.', 'J’ai relu tout le grimoire cette nuit.', 'Je vois tout, même tes onglets ouverts.'],
       l_focus_owl: ['Je veille, comme chaque nuit.', 'Pas un bruit. Hou.'], l_happy_owl: ['Hou ! Je m’envole de fierté !', 'Un vol de victoire !'], l_pet_owl: ['Hou… doucement les plumes.', 'Tu sens l’encre et le café.'],
@@ -48,7 +48,7 @@
       l_sleep: ['Zzz… wake me for a session.', 'Zzz…'],
       l_pet: ['Hey, that tickles!', '♥', 'Thanks, I needed that.', 'Back to it?'],
       l_morning: 'Good morning! A session to start strong?',
-      fam_hippo: 'Royal hippo', fam_hippo_d: 'The heaviest familiar, and the most loyal. One of a kind.',
+      fam_hippo: 'Royal hippo', fam_hippo_d: 'The heaviest familiar, and the most loyal. The shop’s ultimate treasure.',
       l_idle_owl: ['Hoo hoo. Wisdom starts with one small task.', 'I reread the whole grimoire last night.', 'I see everything, even your open tabs.'],
       l_focus_owl: ['On watch, like every night.', 'Not a sound. Hoo.'], l_happy_owl: ['Hoo! I’m flying with pride!', 'A victory lap!'], l_pet_owl: ['Hoo… careful with the feathers.', 'You smell of ink and coffee.'],
       l_idle_cat: ['Are you working or can I go back to sleep?', 'I’m pretending not to look at you.', 'That keyboard looks comfy…'],

@@ -172,6 +172,16 @@
     S.blocks.push(b); save(); emit('blocks');
     return b;
   }
+  // For other modules (exam planner): put a free block on a day, at the best hour if known, else from 9:00
+  ML.planBlock = (k, mins, title, opts = {}) => {
+    const best = ML.bestHour ? ML.bestHour() : null;
+    const from = Math.max(S.planner.startH * 60, best != null ? best * 60 : 9 * 60, k === today() ? nowMins() : 0);
+    let s = nextFree(k, from, mins); if (s == null) s = nextFree(k, Math.max(S.planner.startH * 60, k === today() ? nowMins() : 0), mins);
+    if (s == null) return null;
+    const b = addBlock(k, s, mins, null, title);
+    Object.assign(b, opts); save();
+    return b;
+  };
   function placeTask(taskId, at) {
     const task = S.tasks.find(x => x.id === taskId); if (!task) return;
     const k = viewDate();

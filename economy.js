@@ -26,6 +26,10 @@
       pot_seal: 'Sceau de série', pot_seal_d: 'Protège ta série un jour où tu ne travailles pas. Utilisé tout seul.',
       pot_elixir: 'Élixir de concentration', pot_elixir_d: '+50 % d’XP sur ta prochaine session.',
       pot_scroll: 'Parchemin de quête', pot_scroll_d: 'Change une quête du jour (bouton ↻ sur la quête).',
+      cat_skins: 'Skins du personnage (Sport)', premium_only: 'Réservé Premium',
+      skin_classic: 'Classique', skin_classic_d: 'Les couleurs du thème.', skin_runic: 'Cercle runique', skin_runic_d: 'Un anneau de runes tourne autour de ton hexagone.',
+      skin_parchment: 'Parchemin', skin_parchment_d: 'Ton personnage à l’encre, sur un vieux grimoire.', skin_gold: 'Or royal', skin_gold_d: 'Chaque muscle brille comme un trophée.',
+      skin_ember: 'Braises', skin_ember_d: 'Rouge feu, pour les jours Beast mode.', skin_holo: 'Holographique', skin_holo_d: 'Des couleurs qui tournent sans fin.', skin_astral: 'Astral', skin_astral_d: 'Ton corps dessiné dans un ciel étoilé.',
       hat_witch: 'Chapeau de sorcière', hat_witch_d: 'Pointe tordue, mystère garanti.',
       ring_emerald: 'Sceau d’émeraude', ring_emerald_d: 'Le vert profond des forêts anciennes.',
       burst_sakura: 'Pétales de sakura', burst_sakura_d: 'Une pluie de fleurs de cerisier, très zen.',
@@ -53,6 +57,10 @@
       pot_seal: 'Streak seal', pot_seal_d: "Protects your streak on a day you don't work. Used automatically.",
       pot_elixir: 'Focus elixir', pot_elixir_d: '+50% XP on your next session.',
       pot_scroll: 'Quest scroll', pot_scroll_d: 'Swap a daily quest (↻ button on the quest).',
+      cat_skins: 'Character skins (Sport)', premium_only: 'Premium only',
+      skin_classic: 'Classic', skin_classic_d: 'The theme colors.', skin_runic: 'Rune circle', skin_runic_d: 'A ring of runes turns around your hexagon.',
+      skin_parchment: 'Parchment', skin_parchment_d: 'Your character in ink, on an old grimoire.', skin_gold: 'Royal gold', skin_gold_d: 'Every muscle shines like a trophy.',
+      skin_ember: 'Embers', skin_ember_d: 'Fire red, for Beast mode days.', skin_holo: 'Holographic', skin_holo_d: 'Colors that never stop turning.', skin_astral: 'Astral', skin_astral_d: 'Your body drawn in a starry sky.',
       hat_witch: "Witch's hat", hat_witch_d: 'Crooked tip, mystery guaranteed.',
       ring_emerald: 'Emerald seal', ring_emerald_d: 'The deep green of ancient forests.',
       burst_sakura: 'Sakura petals', burst_sakura_d: 'A shower of cherry blossoms, very zen.',
@@ -64,8 +72,8 @@
   ML.defaults(() => ({
     econ: {
       gold: 0,
-      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'] },
-      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl' },
+      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'] },
+      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic' },
       potions: { seal: 0, elixir: 0, scroll: 0 }, elixir: false, frozen: [], lastCheck: null,
     },
   }));
@@ -76,9 +84,20 @@
     burst: { theme: 0, coins: 200, confetti: 200, stars: 250, sakura: 280 },
     familiar: { owl: 0, cat: 300, raven: 300, fox: 400, hippo: 10000 },
     potion: { seal: 150, elixir: 80, scroll: 40, midas: 120 },
+    skin: { classic: 0, runic: 350, parchment: 300, gold: 450, ember: 300, holo: 600, astral: 800 },
   };
-  const OWNER_ONLY = { familiar: ['hippo'] }; // shown and sold only to the app's author (ML.isOwner)
-  const hidden = (cat, k) => (OWNER_ONLY[cat] || []).includes(k) && !(ML.isOwner && ML.isOwner());
+  const PREMIUM_ONLY = { skin: ['holo', 'astral'] }; // need a Premium account to buy
+  // The app's author (ML.isOwner) gets these for free; everyone else buys them at the catalog price
+  const OWNER_GIFTS = { familiar: ['hippo'] };
+  const premOnly = (cat, k) => (PREMIUM_ONLY[cat] || []).includes(k);
+  // Categories added after launch: older saves lack them (nested defaults only merge one level deep)
+  function migrate() { const E = S.econ; if (!E) return; if (!E.owned.skin) E.owned.skin = ['classic']; if (!E.equip.skin) E.equip.skin = 'classic'; }
+  function ownerGifts() {
+    if (!S.econ || !(ML.isOwner && ML.isOwner())) return;
+    let changed = false;
+    for (const [cat, ks] of Object.entries(OWNER_GIFTS)) ks.forEach(k => { if (!S.econ.owned[cat].includes(k)) { S.econ.owned[cat].push(k); changed = true; } });
+    if (changed) save();
+  }
 
   /* ---------- Gold ---------- */
   on('xp', n => {
@@ -88,7 +107,7 @@
     setTimeout(() => ML.floater && ML.floater('+' + g + ' ◈', 'gold'), 250);
   });
   function renderGold() { const el = $('gold-chip'); if (el) { el.innerHTML = `<span>◈</span><b>${S.econ.gold.toLocaleString(ML.locale())}</b>`; el.title = t('gold_n', { n: S.econ.gold }); } }
-  $('gold-chip').onclick = () => { renderShop(); ML.openOverlay('shop'); };
+  $('gold-chip').onclick = () => { migrate(); ownerGifts(); renderShop(); ML.openOverlay('shop'); };
   ML.openShop = () => $('gold-chip').click();
 
   /* ---------- Cosmetics: hats (header logo), seal rings (timer), bursts (juice.js reads equip.burst) ---------- */
@@ -150,36 +169,38 @@
     if (cat === 'ring') return `<span class="ring-swatch rs-${k}"></span>`;
     if (cat === 'burst') return `<span class="burst-swatch">${{ theme: '✦', coins: '◈', confetti: '▚', stars: '★', sakura: '❀' }[k]}</span>`;
     if (cat === 'familiar') return ML.familiarSvg ? ML.familiarSvg(k, 'idle') : '';
+    if (cat === 'skin') return ML.sportSkinPreview ? ML.sportSkinPreview(k) : '';
     return `<span class="burst-swatch">${{ seal: '⛨', elixir: '⚗', scroll: '📜', midas: '♛' }[k]}</span>`;
   };
   const label = (cat, k) => cat === 'familiar' ? t('fam_' + k) : t((cat === 'potion' ? 'pot' : cat) + '_' + k);
   const desc = (cat, k) => cat === 'familiar' ? t('fam_' + k + '_d') : t((cat === 'potion' ? 'pot' : cat) + '_' + k + '_d');
   function renderShop() {
     const E = S.econ;
-    const section = (cat, title) => `<h3>${esc(t(title))}</h3><div class="shop-grid">${Object.entries(CATALOG[cat]).filter(([k]) => !hidden(cat, k)).map(([k, price]) => {
+    const section = (cat, title) => `<h3>${esc(t(title))}</h3><div class="shop-grid">${Object.entries(CATALOG[cat]).map(([k, price]) => {
       const own = cat !== 'potion' && E.owned[cat].includes(k), eq = cat !== 'potion' && E.equip[cat] === k;
       let btn;
       if (cat === 'potion') btn = `<button type="button" class="small primary" data-buy="${cat}:${k}">${esc(t('buy'))} · ${price} ◈</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" class="small" data-use="elixir">${esc(t('use'))}</button>` : '')
         + (k === 'midas' && E.potions.midas > 0 && !(E.midas > 0) ? `<button type="button" class="small" data-use="midas">${esc(t('use'))}</button>` : '');
       else if (eq) btn = `<button type="button" class="small" disabled>${esc(t('equipped'))}</button>`;
       else if (own) btn = `<button type="button" class="small" data-equip="${cat}:${k}">${esc(t('equip'))}</button>`;
+      else if (premOnly(cat, k) && !(ML.isPremium && ML.isPremium())) btn = `<button type="button" class="small" disabled>${esc(t('premium_only'))}</button>`;
       else btn = `<button type="button" class="small primary" data-buy="${cat}:${k}">${esc(t('buy'))} · ${price} ◈</button>`;
       return `<div class="shop-item ${eq ? 'is-eq' : ''} ${!own && cat !== 'potion' && E.gold < price ? 'poor' : ''}">
         <div class="shop-prev">${preview(cat, k)}</div>
-        <b>${esc(label(cat, k))}</b><small>${esc(desc(cat, k))}</small>
+        <b>${esc(label(cat, k))}${premOnly(cat, k) ? `<span class="prem-badge">Premium</span>` : ''}</b><small>${esc(desc(cat, k))}</small>
         ${cat === 'potion' ? `<small class="stock">${esc(t('in_stock', { n: E.potions[k] || 0 }))}${k === 'elixir' && E.elixir ? ' · ' + esc(t('elixir_on')) : ''}${k === 'midas' && E.midas > 0 ? ' · ' + esc(t('midas_on', { n: E.midas })) : ''}</small>` : ''}
         <div class="shop-btns">${btn}</div></div>`;
     }).join('')}</div>`;
     $('shop-body').innerHTML = `
       <div class="shop-gold"><span>◈</span><b>${E.gold.toLocaleString(ML.locale())}</b></div>
       <p class="hint">${esc(t('shop_hint'))}</p>
-      ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('burst', 'cat_bursts')}`;
+      ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('burst', 'cat_bursts')}${section('skin', 'cat_skins')}`;
   }
   $('shop-body').addEventListener('click', e => {
     const E = S.econ, b = e.target.closest('button'); if (!b) return;
     if (b.dataset.buy) {
       const [cat, k] = b.dataset.buy.split(':'), price = CATALOG[cat][k];
-      if (hidden(cat, k)) return;
+      if (premOnly(cat, k) && !(ML.isPremium && ML.isPremium())) return;
       if (E.gold < price) { toast(t('not_enough', { n: price - E.gold })); return; }
       E.gold -= price;
       if (cat === 'potion') E.potions[k] = (E.potions[k] || 0) + 1;
@@ -200,8 +221,9 @@
   on('started', () => {
     // People who earned XP before the shop existed get the matching gold once
     if (!S.econ.init) { S.econ.gold += Math.floor(S.xp / 4); S.econ.init = true; save(); }
-    checkSeal(); applyCosmetics(); renderGold();
+    migrate(); ownerGifts(); checkSeal(); applyCosmetics(); renderGold();
   });
+  on('premium', ownerGifts);
   on('newday', checkSeal);
   ML.applyHat = applyHat;
 })();

@@ -374,7 +374,9 @@
     ML.setStorageKey(null);
     location.reload();
   }
-  ML.auth = { boot, afterLoad, get user() { return user; }, enabled: ENABLED, syncNow, merge3 };
+  // Signed-in REST call for other modules (study rooms): ML.auth.rest('/rest/v1/…', { method, body, prefer })
+  const rest = async (path, opts = {}) => api(path, Object.assign({}, opts, { token: await token() }));
+  ML.auth = { boot, afterLoad, get user() { return user; }, enabled: ENABLED, syncNow, merge3, rest };
 
   /* ---------- Settings: account section ---------- */
   function renderStatus() { const el = $('acc-status'); if (el) el.textContent = t('acc_last', { when: lastSync ? new Date(lastSync).toLocaleTimeString(ML.locale(), { hour: '2-digit', minute: '2-digit' }) : t('acc_never') }); }

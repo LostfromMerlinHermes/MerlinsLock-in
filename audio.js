@@ -12,7 +12,9 @@
       sub_unwind: 'Décompresser', sub_destress: 'Déstresser', sub_recharge: 'Recharger', sub_chill: 'Chill',
       sub_guided: 'Guidée', sub_unguided: 'Libre', sub_wind: 'Endormissement', sub_deepsleep: 'Sommeil profond', sub_sleepwake: 'Dormir et se réveiller', sub_guidedsleep: 'Sommeil guidé', sub_power: 'Power nap',
       g_drone: 'Drone', g_atmospheric: 'Atmosphérique', g_piano: 'Piano', g_lofi: 'Lofi', g_electronic: 'Électro', g_grooves: 'Grooves', g_cinematic: 'Cinématique', g_acoustic: 'Acoustique', g_mine: 'Ta musique', g_none: 'Sans musique',
-      g_jazz: 'Jazz chill', g_jazzhop: 'Jazz-hop zen',
+      g_jazz: 'Jazz chill', g_jazzhop: 'Jazz-hop zen', g_zen: 'Zen japonais', g_tavern: 'Taverne médiévale', g_synthwave: 'Synthwave', g_chiptune: 'Chiptune 8-bit',
+      gf_calm: 'Calme', gf_keys: 'Piano & cordes', gf_chill: 'Chill', gf_energy: 'Énergie', gf_epic: 'Épique', gf_mine: 'Ta musique', gf_none: 'Sans musique',
+      nf_nature: 'Nature', nf_places: 'Lieux', nf_noise: 'Bruits', ambiences: 'Ambiances',
       n_plane: 'Cabine d’avion', n_train: 'Train', n_cafe: 'Café', n_white: 'Bruit blanc', n_pink: 'Bruit rose',
       n_rain: 'Pluie', n_thunder: 'Orage', n_wind: 'Vent', n_river: 'Rivière', n_beach: 'Plage', n_forest: 'Forêt', n_rainforest: 'Forêt tropicale', n_night: 'Nuit', n_underwater: 'Sous l’eau', n_bowls: 'Bols et carillons', n_fire: 'Feu de camp', n_brown: 'Bruit brun',
       activity: 'Activité', genre: 'Genre', nature: 'Nature', music_vol: 'Musique', master_vol: 'Volume général',
@@ -36,7 +38,9 @@
       sub_unwind: 'Unwind', sub_destress: 'Destress', sub_recharge: 'Recharge', sub_chill: 'Chill',
       sub_guided: 'Guided', sub_unguided: 'Unguided', sub_wind: 'Wind Down', sub_deepsleep: 'Deep Sleep', sub_sleepwake: 'Sleep and Wake', sub_guidedsleep: 'Guided Sleep', sub_power: 'Power Nap',
       g_drone: 'Drone', g_atmospheric: 'Atmospheric', g_piano: 'Piano', g_lofi: 'Lofi', g_electronic: 'Electronic', g_grooves: 'Grooves', g_cinematic: 'Cinematic', g_acoustic: 'Acoustic', g_mine: 'Your music', g_none: 'No music',
-      g_jazz: 'Chill jazz', g_jazzhop: 'Zen jazz-hop',
+      g_jazz: 'Chill jazz', g_jazzhop: 'Zen jazz-hop', g_zen: 'Japanese zen', g_tavern: 'Medieval tavern', g_synthwave: 'Synthwave', g_chiptune: '8-bit chiptune',
+      gf_calm: 'Calm', gf_keys: 'Piano & strings', gf_chill: 'Chill', gf_energy: 'Energy', gf_epic: 'Epic', gf_mine: 'Your music', gf_none: 'No music',
+      nf_nature: 'Nature', nf_places: 'Places', nf_noise: 'Noise', ambiences: 'Ambiences',
       n_plane: 'Airplane cabin', n_train: 'Train', n_cafe: 'Café', n_white: 'White noise', n_pink: 'Pink noise',
       n_rain: 'Rain', n_thunder: 'Thunder', n_wind: 'Wind', n_river: 'River', n_beach: 'Beach', n_forest: 'Forest', n_rainforest: 'Rainforest', n_night: 'Night', n_underwater: 'Underwater', n_bowls: 'Chimes and bowls', n_fire: 'Campfire', n_brown: 'Brown noise',
       activity: 'Activity', genre: 'Genre', nature: 'Nature', music_vol: 'Music', master_vol: 'Master volume',
@@ -62,14 +66,21 @@
     sleep: { rate: 3, subs: { wind: ['piano', 0.2], deepsleep: ['drone', 0.12], sleepwake: ['drone', 0.15], guidedsleep: ['drone', 0.15] } },
     nap: { rate: 4, subs: { power: ['drone', 0.2] } },
   };
-  const GENRES = ['drone', 'atmospheric', 'piano', 'lofi', 'jazzhop', 'jazz', 'electronic', 'grooves', 'cinematic', 'acoustic', 'mine', 'none'];
-  const NATURE = ['rain', 'thunder', 'wind', 'river', 'beach', 'forest', 'rainforest', 'night', 'underwater', 'bowls', 'fire', 'plane', 'train', 'cafe', 'white', 'pink', 'brown'];
+  // Genres and ambiences are grouped in families: the mixer shows the families, a tap opens one
+  const GENRE_FAM = {
+    calm: ['drone', 'atmospheric', 'zen'], keys: ['piano', 'acoustic', 'tavern'], chill: ['lofi', 'jazzhop', 'jazz'],
+    energy: ['electronic', 'grooves', 'synthwave', 'chiptune'], epic: ['cinematic'], mine: ['mine'], none: ['none'],
+  };
+  const GENRES = Object.values(GENRE_FAM).flat();
+  const NATURE_FAM = { nature: ['rain', 'thunder', 'wind', 'river', 'beach', 'forest', 'rainforest', 'night', 'underwater'], places: ['fire', 'cafe', 'train', 'plane', 'bowls'], noise: ['white', 'pink', 'brown'] };
+  const NATURE = Object.values(NATURE_FAM).flat();
+  const famOf = (fams, k) => Object.keys(fams).find(f => fams[f].includes(k));
   const DEPTH = { off: 0, light: 0.12, medium: 0.25, strong: 0.4 };
   const MOOD_MIX = {
-    drained: { mode: 'focus', sub: 'light', genre: 'lofi', nature: { rain: 0.5 } },
-    steady: { mode: 'focus', sub: 'deep', genre: 'drone', nature: { forest: 0.45 } },
-    fired: { mode: 'focus', sub: 'motivation', genre: 'electronic', nature: {} },
-    scattered: { mode: 'focus', sub: 'learning', genre: 'piano', nature: { brown: 0.5 } },
+    drained: { mode: 'focus', sub: 'light', genre: 'zen', nature: { rain: 0.5 } },
+    steady: { mode: 'focus', sub: 'deep', genre: 'tavern', nature: { fire: 0.35 } },
+    fired: { mode: 'focus', sub: 'motivation', genre: 'synthwave', nature: {} },
+    scattered: { mode: 'focus', sub: 'learning', genre: 'chiptune', nature: { brown: 0.4 } },
   };
   const BREATHS = { '478': [4, 7, 8, 0], box: [4, 4, 4, 4], calm: [4, 0, 6, 0] };
 
@@ -576,6 +587,87 @@
         },
       };
     },
+    // Japanese zen, no beat: a soft drone, sparse koto plucks and long shakuhachi phrases on a pentatonic scale
+    zen(p) {
+      const root = pick([50, 52, 55]), sc = pick([[0, 2, 3, 7, 8], [0, 1, 5, 7, 10]]);
+      let li = 3, rest = 0, sub = null;
+      const note = (k, oct = 0) => root + sc[((k % 5) + 5) % 5] + 12 * (Math.floor(k / 5) + oct);
+      return {
+        bpm: 60, tone: 5000,
+        start(o, t0) { sub = ctx.createOscillator(); sub.frequency.value = mtof(root - 12); const g = ctx.createGain(); g.gain.value = 0.03; sub.connect(g).connect(o.dry); sub.start(t0); },
+        stop() { try { sub.stop(); } catch (e) {} },
+        step(i, t0, spb) {
+          if (i % 64 === 0) I.pad(o(), t0, [root - 12, root - 5, root + sc[2]], spb * 64 + 2, 0.018, 600, 4);
+          if (i % 4 === 0 && Math.random() < 0.18 + p.int * 0.1) { // koto: a pluck, sometimes a quick grace note first
+            const m = note(Math.floor(rnd(0, 10)), 1);
+            if (Math.random() < 0.3) I.pluck(o(), t0, m + 2, 0.25, 3000);
+            I.pluck(o(), t0 + (Math.random() < 0.3 ? 0.07 : 0), m, 0.45, 3000);
+          }
+          if (rest > 0) { rest--; return; }
+          if (i % 8 === 0 && Math.random() < 0.35) { // shakuhachi phrase note
+            li = clamp(li + pick([-2, -1, 1, 2]), 0, 9);
+            I.flute(o(), t0, note(li), spb * pick([6, 8, 12]), 0.55);
+            if (Math.random() < 0.4) rest = 16;
+          }
+        },
+      };
+    },
+    // Medieval tavern in 6/8 (12 steps per bar): lute arpeggios, a harp run now and then, a wooden flute, frame drum and tambourine
+    tavern(p) {
+      const root = pick([50, 52, 55]), sc = pick([SCALES.dorian, [0, 2, 4, 5, 7, 9, 10]]), prog = pick([[0, 6, 0, 4], [0, 3, 6, 0], [0, 4, 6, 0]]);
+      let li = 4;
+      return {
+        bpm: 150 + p.int * 20, swing: 0, tone: 6500,
+        step(i, t0, spb) {
+          const s = i % 12, bar = Math.floor(i / 12), c = prog[bar % prog.length], ch = chord(root, sc, c, 3);
+          if (s === 0 || s === 6) I.timpani(o(), t0, deg(root - 24, sc, c), s === 0 ? 0.35 : 0.22);
+          if (s === 3 || s === 9 || (s === 11 && Math.random() < 0.4)) burst(o().dry, { t0, attack: 0.002, decay: 0.12, peak: 0.05, filter: 'bandpass', freq: 7000, q: 1.5 }); // tambourine
+          const arp = [0, 1, 2, 1, 2, 1][s % 6], m = ch[arp] + (s >= 6 && arp === 0 ? 12 : 0);
+          if (s % 2 === 0) I.pluck(o(), t0, m, s % 6 === 0 ? 0.5 : 0.35, 2400);
+          if (s === 0) I.pluck(o(), t0, deg(root - 12, sc, c), 0.55, 1400);
+          if (s === 0 && bar % 4 === 3) [0, 1, 2, 3, 4, 5].forEach(k => I.pluck(o(), t0 + k * spb * 0.5, deg(root + 12, sc, c + k), 0.3, 4000)); // harp run
+          if (bar % 2 === 1 && (s === 0 || s === 3 || s === 6 || s === 9) && Math.random() < 0.55 + p.int * 0.2) {
+            li = clamp(li + pick([-2, -1, 1, 1, 2]), 0, 11);
+            I.flute(o(), t0, deg(root + 12, sc, li), spb * pick([2, 3, 3, 5]), 0.5);
+          }
+        },
+      };
+    },
+    // Synthwave: four-on-the-floor, gated snare, pulsing octave bass, wide detuned pads, a soft lead
+    synthwave(p) {
+      const root = pick([45, 47, 48, 50]), sc = SCALES.minor, prog = pick([[0, 5, 2, 6], [0, 5, 3, 4], [0, 3, 5, 6]]);
+      let li = 4;
+      return {
+        bpm: 92 + p.int * 14, tone: 6000,
+        step(i, t0, spb) {
+          const s = i % 16, bar = Math.floor(i / 16), c = prog[bar % prog.length];
+          if (s % 4 === 0) I.kick(o(), t0, 0.85);
+          if (s === 4 || s === 12) { I.snare(o(), t0, 0.6); const w = { dry: o().wet, wet: o().wet }; I.snare(w, t0, 0.4); }
+          if (s % 2 === 1) I.hat(o(), t0, 0.22);
+          if (s % 2 === 0) I.synth(o(), t0, deg(root - 12, sc, c) + (s % 4 === 2 ? 12 : 0), spb * 1.6, 0.9, 900); // octave bass
+          if (s === 0) I.pad(o(), t0, chord(root, sc, c, 4).map(m => m + 12), spb * 16, 0.022, 1800, 0.8);
+          if (bar % 2 === 1 && s % 4 === 2 && Math.random() < 0.45 + p.int * 0.2) { li = clamp(li + pick([-2, -1, 1, 2]), 0, 10); I.synth(o(), t0, deg(root + 12, sc, li), spb * 3, 0.55, 2600); }
+        },
+      };
+    },
+    // 8-bit chiptune: square-wave arpeggios, triangle bass, noise drums, a bouncy square lead
+    chiptune(p) {
+      const root = pick([57, 60, 62]), sc = SCALES.major, prog = pick([[0, 4, 5, 3], [0, 5, 3, 4], [5, 3, 0, 4]]);
+      let li = 4;
+      const sq = (o, t0, m, len, vol, type = 'square') => voice(o, t0, { f: mtof(m), type, peak: vol, attack: 0.002, decay: 0.05, sustain: 0.7, hold: len, release: 0.03, cut: 5000, wet: 0.05 });
+      return {
+        bpm: 128 + p.int * 20, tone: 7000,
+        step(i, t0, spb) {
+          const s = i % 16, bar = Math.floor(i / 16), c = prog[bar % prog.length], ch = chord(root, sc, c, 3);
+          if (s === 0 || s === 8 || s === 10) burst(o().dry, { type: 'white', t0, attack: 0.001, decay: 0.06, peak: 0.12, filter: 'lowpass', freq: 400 });
+          if (s === 4 || s === 12) burst(o().dry, { t0, attack: 0.001, decay: 0.1, peak: 0.1, filter: 'bandpass', freq: 2500, q: 0.8 });
+          if (s % 2 === 0) burst(o().dry, { t0, attack: 0.001, decay: 0.02, peak: 0.04, filter: 'highpass', freq: 8000 });
+          sq(o(), t0, ch[s % 3] + 12, spb * 0.6, 0.018); // fast arpeggio
+          if (s % 4 === 0) sq(o(), t0, deg(root - 24, sc, c) + (s % 8 === 4 ? 7 : 0), spb * 3, 0.07, 'triangle');
+          if (s % 2 === 0 && Math.random() < 0.35 + p.int * 0.2) { li = clamp(li + pick([-2, -1, 1, 2]), 0, 9); sq(o(), t0, deg(root + 12, SCALES.pentaMaj, li), spb * pick([1, 2, 3]), 0.03); }
+        },
+      };
+    },
     electronic(p) {
       const root = pick([45, 47, 48, 50]), sc = SCALES.minor, prog = pick([[0, 5, 2, 6], [0, 3, 5, 4]]);
       return {
@@ -866,6 +958,7 @@
   function stopBreath() { breathOn = false; clearTimeout(breathT); }
 
   /* ---------- Deck UI ---------- */
+  let openGenreFam = null, openNatFam = null; // which family is unfolded in the mixer (null: the current one)
   const chipRow = (items, curVal, attr, labelFn, extra = () => '') => items.map(v => `<button type="button" class="chip-btn ${extra(v)}" data-${attr}="${v}" aria-pressed="${v === curVal}">${esc(labelFn(v))}</button>`).join('');
   function summary() {
     const cur = current(), A = S.audio;
@@ -880,6 +973,8 @@
     const isSleep = A.mode === 'sleep' || A.mode === 'nap';
     const showBreath = A.mode === 'meditate' || A.sub === 'guidedsleep';
     const focused = document.activeElement && el.contains(document.activeElement) ? document.activeElement.id : null;
+    const curFam = openGenreFam || famOf(GENRE_FAM, A.music ? A.genre : 'none') || 'calm';
+    const curNatFam = openNatFam || famOf(NATURE_FAM, Object.keys(A.nature)[0]) || 'nature';
     el.innerHTML = `
       <div class="deck-head">
         <button type="button" class="deck-play ${playing ? 'on' : ''}" id="d-play" aria-label="${esc(playing ? t('stop') : t('play'))}">
@@ -891,13 +986,16 @@
       ${A.open ? `<div class="deck-body">
         <div class="seg-toggle five" role="group">${Object.keys(MODES).map(k => `<button type="button" data-dmode="${k}" aria-pressed="${k === A.mode}">${esc(t('mode_' + k))}</button>`).join('')}</div>
         <div class="d-row"><span class="label">${esc(t('activity'))}</span><div class="chips">${chipRow(Object.keys(M.subs), A.sub, 'dsub', v => t('sub_' + v))}</div></div>
-        <div class="d-row"><span class="label">${esc(t('genre'))}</span><div class="chips">${chipRow(GENRES, A.music ? A.genre : 'none', 'dgenre', v => t('g_' + v), v => v === M.subs[A.sub][0] ? 'suggested' : '')}</div></div>
+        <div class="d-row"><span class="label">${esc(t('genre'))}</span>
+          <div class="chips fam-row">${Object.keys(GENRE_FAM).map(f => `<button type="button" class="chip-btn fam-chip ${f === curFam ? 'open' : ''} ${f === famOf(GENRE_FAM, A.music ? A.genre : 'none') ? 'has' : ''}" data-dgfam="${f}" aria-expanded="${f === curFam}">${esc(t('gf_' + f))}${GENRE_FAM[f].length > 1 ? ' ▾' : ''}</button>`).join('')}</div>
+          ${GENRE_FAM[curFam].length > 1 ? `<div class="chips fam-items">${chipRow(GENRE_FAM[curFam], A.music ? A.genre : 'none', 'dgenre', v => t('g_' + v), v => v === M.subs[A.sub][0] ? 'suggested' : '')}</div>` : ''}</div>
         ${A.genre === 'mine' ? `<div class="d-mine"><p class="hint">${esc(t('mine_hint'))}</p>
           <ul>${tracks.length ? tracks.map(tr => `<li><span>${esc(tr.name)}</span><button type="button" class="icon-btn" data-dtrack="${tr.id}" aria-label="${esc(t('delete'))}">✕</button></li>`).join('') : `<li class="none">${esc(t('mine_empty'))}</li>`}</ul>
           <label class="file-btn small">${esc(t('mine_add'))}<input type="file" id="d-files" accept="audio/*" multiple></label></div>` : ''}
         <label class="d-slider"><span>${esc(t('music_vol'))}</span><input type="range" id="d-mvol" min="0" max="1" step="0.05" value="${A.musicVol}"></label>
-        <div class="d-row"><span class="label">${esc(t('nature'))}</span>
-          <div class="nat-grid">${NATURE.map(k => `<button type="button" class="nat ${k in A.nature ? 'on' : ''}" data-dnat="${k}" aria-pressed="${k in A.nature}">${esc(t('n_' + k))}</button>`).join('')}</div>
+        <div class="d-row"><span class="label">${esc(t('ambiences'))}</span>
+          <div class="chips fam-row">${Object.keys(NATURE_FAM).map(f => { const n = NATURE_FAM[f].filter(k => k in A.nature).length; return `<button type="button" class="chip-btn fam-chip ${f === curNatFam ? 'open' : ''} ${n ? 'has' : ''}" data-dnfam="${f}" aria-expanded="${f === curNatFam}">${esc(t('nf_' + f))}${n ? ' · ' + n : ''} ▾</button>`; }).join('')}</div>
+          <div class="nat-grid">${NATURE_FAM[curNatFam].map(k => `<button type="button" class="nat ${k in A.nature ? 'on' : ''}" data-dnat="${k}" aria-pressed="${k in A.nature}">${esc(t('n_' + k))}</button>`).join('')}</div>
           ${Object.keys(A.nature).length ? `<div class="nat-vols">${Object.entries(A.nature).map(([k, v]) => `<label class="d-slider"><span>${esc(t('n_' + k))}</span><input type="range" data-dnatv="${k}" min="0.05" max="1" step="0.05" value="${v}"></label>`).join('')}</div>` : ''}
         </div>
         <div class="d-row"><span class="label" title="${esc(t('neural_hint'))}">${esc(t('neural'))} ⓘ</span><div class="chips">${chipRow(Object.keys(DEPTH), A.neural, 'dneural', v => t('neural_' + v))}</div></div>
@@ -936,6 +1034,12 @@
     ensure();
     if (b.id === 'd-play') { if (playing) { userStopped = true; stopAll(); } else { userStopped = false; override = null; play(); } return; }
     if (b.id === 'd-open') { A.open = !A.open; save(); renderDeck(); return; }
+    if (b.dataset.dgfam) {
+      const f = b.dataset.dgfam;
+      if (GENRE_FAM[f].length === 1) { const g = GENRE_FAM[f][0]; openGenreFam = f; if (g === 'none') A.music = false; else { A.music = true; A.genre = g; } if (g === 'mine') loadTracks().then(renderDeck); save(); refresh(); return; }
+      openGenreFam = f; renderDeck(); return;
+    }
+    if (b.dataset.dnfam) { openNatFam = b.dataset.dnfam; renderDeck(); return; }
     if (b.dataset.dmode) { A.mode = b.dataset.dmode; A.sub = Object.keys(MODES[A.mode].subs)[0]; A.genre = MODES[A.mode].subs[A.sub][0]; A.music = true; stopBreath(); }
     else if (b.dataset.dsub) { A.sub = b.dataset.dsub; A.genre = MODES[A.mode].subs[A.sub][0]; A.music = true; }
     else if (b.dataset.dgenre) { const g = b.dataset.dgenre; if (g === 'none') A.music = false; else { A.music = true; A.genre = g; } if (g === 'mine') loadTracks().then(renderDeck); }

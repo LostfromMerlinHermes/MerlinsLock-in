@@ -494,8 +494,14 @@
     [0.25, 0.5, 0.75, 1].forEach(f => { g += `<polygon class="rd-grid" points="${D.ATTRS.map((_, i) => pt(i, f).join(',')).join(' ')}"/>`; });
     D.ATTRS.forEach((a, i) => { const [x, y] = pt(i, 1), [lx, ly] = pt(i, 1.22); g += `<line class="rd-axis" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}"/><text class="rd-label" x="${lx}" y="${ly + 4}" text-anchor="middle">${esc(t('ab_' + a))} ${lv[i]}</text>`; });
     g += `<polygon class="rd-val" points="${lv.map((v, i) => pt(i, Math.max(0.06, v / max)).join(',')).join(' ')}"/>`;
-    return `<svg class="radar" viewBox="0 0 220 215" role="img" aria-label="${esc(t('st_character'))}">${g}</svg>`;
+    // Skin decorations (hidden unless the equipped skin shows them): a turning rune ring, a starfield
+    const RUNES = 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ';
+    const runes = `<g class="rd-deco runes"><circle cx="${cx}" cy="${cy}" r="${R + 6}"/><circle cx="${cx}" cy="${cy}" r="${R + 16}"/>${[...RUNES].map((r, i) => { const a = i / RUNES.length * 2 * Math.PI; return `<text x="${(cx + Math.cos(a) * (R + 11)).toFixed(1)}" y="${(cy + Math.sin(a) * (R + 11) + 3).toFixed(1)}" text-anchor="middle">${r}</text>`; }).join('')}</g>`;
+    const stars = `<g class="rd-deco stars">${Array.from({ length: 26 }, (_, i) => { const a = i * 2.39996, d = 20 + (i * 37 % 85); return `<circle cx="${(cx + Math.cos(a) * d).toFixed(1)}" cy="${(cy + Math.sin(a) * d).toFixed(1)}" r="${(0.5 + (i % 3) * 0.4).toFixed(1)}"/>`; }).join('')}</g>`;
+    return `<svg class="radar" viewBox="-10 -12 240 240" role="img" aria-label="${esc(t('st_character'))}">${stars}${runes}${g}</svg>`;
   }
+  const skinCls = () => 'skin-' + ((S.econ && S.econ.equip && S.econ.equip.skin) || 'classic');
+  ML.sportSkinPreview = k => `<div class="skin-prev skin-${k}">${radarSvg({ STR: 900, END: 400, AGI: 250, MOB: 160, SKL: 600 })}</div>`;
   // Schematic front/back figure; each muscle shape is shaded by level (or this week's sets)
   function bodySvg(values) {
     const max = Math.max(1, ...Object.values(values));
@@ -674,7 +680,7 @@
     let heat = `<svg class="heat" viewBox="0 0 ${weeks * 13} ${7 * 13}" aria-hidden="true">`;
     for (let w = 0; w < weeks; w++) for (let d = 0; d < 7; d++) { const dt = new Date(startD); dt.setDate(startD.getDate() + w * 7 + d); if (dt > end) continue; const m = byDay[dayKey(dt)] || 0; heat += `<rect x="${w * 13}" y="${d * 13}" width="11" height="11" rx="2" class="h${m === 0 ? 0 : m < 30 ? 2 : m < 60 ? 3 : 4}"/>`; }
     heat += '</svg>';
-    return `<div class="sp-card st-char">
+    return `<div class="sp-card st-char ${skinCls()}">
         <div class="st-char-head"><div><span class="label">${esc(t('st_character'))}</span><h3>${esc(t('cl_' + C.cls))}</h3><small>${esc(t('st_level', { n: C.level }))}</small></div>
           <div class="seg-toggle st-mode"><button type="button" data-stmode="level" aria-pressed="${mode === 'level'}">${esc(t('st_levels'))}</button><button type="button" data-stmode="week" aria-pressed="${mode === 'week'}">${esc(t('st_week'))}</button></div></div>
         <div class="st-char-body">${radarSvg(C.attr)}${bodySvg(vals)}</div>
