@@ -51,7 +51,8 @@
   });
   ML.defaults(() => ({ study: { tool: 'cards', decks: [], cards: [], tr: { from: 'fr', to: 'en' }, day: null, reviewed: 0 } }));
 
-  ML.isPremium = () => !!(ML.auth && ML.auth.user && ML.auth.user.premium);
+  ML.isPremium = () => !!(ML.auth && ML.auth.user && (ML.auth.user.premium || ML.auth.user.owner));
+  ML.isOwner = () => !!(ML.auth && ML.auth.user && ML.auth.user.owner); // the app's author: owner-only shop items
   const ST = () => S.study;
   const icon = d => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
   const ICONS = {

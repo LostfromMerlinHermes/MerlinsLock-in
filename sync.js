@@ -58,7 +58,7 @@
     try { localStorage.removeItem(SESS); sessionStorage.removeItem(SESS); if (s) (remember ? localStorage : sessionStorage).setItem(SESS, JSON.stringify(s)); } catch (e) {}
   }
   // premium comes from app_metadata, which only the server (SQL, or a payment webhook later) can set
-  const norm = d => ({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600), user: { id: d.user.id, email: d.user.email, premium: !!(d.user.app_metadata && d.user.app_metadata.premium) } });
+  const norm = d => ({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600), user: { id: d.user.id, email: d.user.email, premium: !!(d.user.app_metadata && d.user.app_metadata.premium), owner: !!(d.user.app_metadata && d.user.app_metadata.owner) } });
 
   /* ---------- API ---------- */
   async function api(path, { method = 'GET', body, token, prefer, keepalive } = {}) {

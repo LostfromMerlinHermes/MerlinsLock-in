@@ -20,6 +20,18 @@
       l_sleep: ['Zzz… réveille-moi pour une session.', 'Zzz…'],
       l_pet: ['Hé, ça chatouille !', '♥', 'Merci, ça fait du bien.', 'On s’y remet ?'],
       l_morning: 'Bonjour ! Une session pour bien commencer ?',
+      fam_hippo: 'Hippopotame royal', fam_hippo_d: 'Le plus lourd des familiers, et le plus fidèle. Exemplaire unique.',
+      // Each familiar has its own voice (mixed with the shared lines above)
+      l_idle_owl: ['Hou hou. La sagesse commence par une petite tâche.', 'J’ai relu tout le grimoire cette nuit.', 'Je vois tout, même tes onglets ouverts.'],
+      l_focus_owl: ['Je veille, comme chaque nuit.', 'Pas un bruit. Hou.'], l_happy_owl: ['Hou ! Je m’envole de fierté !', 'Un vol de victoire !'], l_pet_owl: ['Hou… doucement les plumes.', 'Tu sens l’encre et le café.'],
+      l_idle_cat: ['Tu travailles ou je retourne dormir ?', 'Je fais semblant de ne pas te regarder.', 'Ce clavier a l’air confortable…'],
+      l_focus_cat: ['Je surveille. Avec un œil.', 'Je ne m’assois pas sur ton clavier. Pour l’instant.'], l_happy_cat: ['Pas mal. Pour un humain.', '*bondit* Proie attrapée.'], l_pet_cat: ['Ronron… n’arrête pas.', 'Trois caresses. Pas une de plus.'], l_sad_cat: ['Je n’ai rien vu. Recommence.'],
+      l_idle_raven: ['Croâ. Le brouillard murmure ton nom.', 'Une pièce brillante ? Pour moi ?', 'J’ai vu ton futur. Il travaille.'],
+      l_focus_raven: ['Je garde tes secrets, et tes minutes.', 'Les ombres se taisent.'], l_happy_raven: ['Croâ ! Encore une pièce pour mon trésor.', 'Le présage était bon.'], l_pet_raven: ['Les plumes noires portent chance.', 'Croâ… merci.'],
+      l_idle_fox: ['Allez allez, on lance une session ?', 'J’ai flairé une quête facile !', 'Je tiens pas en place !'],
+      l_focus_fox: ['Je cours en rond dans ta tête. Concentre-toi !', 'Chasse silencieuse…'], l_happy_fox: ['Yip ! Trop fort !', '*tourne sur lui-même* Encore !'], l_pet_fox: ['Yip yip !', 'Hé, ma queue !'],
+      l_idle_hippo: ['Doucement mais sûrement, comme la rivière.', 'Un hippopotame ne se presse jamais. Il arrive.', 'Je suis rare. Comme toi.'],
+      l_focus_hippo: ['Je fais une bulle de calme autour de toi.', 'Rien ne me fait bouger. Toi non plus.'], l_happy_hippo: ['SPLASH ! Ça mérite un bain de boue.', 'Le sol tremble de fierté !'], l_pet_hippo: ['Mmmh, la vie est douce.', 'Encore, sur le museau.'],
     },
     en: {
       fam_owl: 'Owl', fam_owl_d: 'Wise and patient. Watches over the night.', fam_cat: 'Black cat', fam_cat_d: 'Mysterious, a little cheeky.',
@@ -36,11 +48,22 @@
       l_sleep: ['Zzz… wake me for a session.', 'Zzz…'],
       l_pet: ['Hey, that tickles!', '♥', 'Thanks, I needed that.', 'Back to it?'],
       l_morning: 'Good morning! A session to start strong?',
+      fam_hippo: 'Royal hippo', fam_hippo_d: 'The heaviest familiar, and the most loyal. One of a kind.',
+      l_idle_owl: ['Hoo hoo. Wisdom starts with one small task.', 'I reread the whole grimoire last night.', 'I see everything, even your open tabs.'],
+      l_focus_owl: ['On watch, like every night.', 'Not a sound. Hoo.'], l_happy_owl: ['Hoo! I’m flying with pride!', 'A victory lap!'], l_pet_owl: ['Hoo… careful with the feathers.', 'You smell of ink and coffee.'],
+      l_idle_cat: ['Are you working or can I go back to sleep?', 'I’m pretending not to look at you.', 'That keyboard looks comfy…'],
+      l_focus_cat: ['I’m watching. With one eye.', 'I’m not sitting on your keyboard. Yet.'], l_happy_cat: ['Not bad. For a human.', '*pounces* Prey caught.'], l_pet_cat: ['Purr… don’t stop.', 'Three pets. Not one more.'], l_sad_cat: ['I saw nothing. Try again.'],
+      l_idle_raven: ['Caw. The fog whispers your name.', 'A shiny coin? For me?', 'I’ve seen your future. It’s working.'],
+      l_focus_raven: ['I keep your secrets, and your minutes.', 'The shadows go quiet.'], l_happy_raven: ['Caw! Another coin for my hoard.', 'The omen was good.'], l_pet_raven: ['Black feathers bring luck.', 'Caw… thanks.'],
+      l_idle_fox: ['Come on, come on, a session?', 'I sniffed out an easy quest!', 'I can’t sit still!'],
+      l_focus_fox: ['I’m running laps in your head. Focus!', 'Silent hunt…'], l_happy_fox: ['Yip! So good!', '*spins around* Again!'], l_pet_fox: ['Yip yip!', 'Hey, my tail!'],
+      l_idle_hippo: ['Slow and steady, like the river.', 'A hippo never hurries. It arrives.', 'I’m rare. Like you.'],
+      l_focus_hippo: ['I’m keeping a bubble of calm around you.', 'Nothing moves me. Nothing moves you.'], l_happy_hippo: ['SPLASH! That deserves a mud bath.', 'The ground shakes with pride!'], l_pet_hippo: ['Mmmh, life is sweet.', 'More, on the snout.'],
     },
   });
   ML.defaults(() => ({ companion: { name: null }, tower: { floors: 0, init: false, day: null, built: 0, fallen: 0, best: 0, log: {}, fallLog: [] } }));
 
-  const NAMES = { owl: 'Nox', cat: 'Salem', raven: 'Corvus', fox: 'Kitsu' };
+  const NAMES = { owl: 'Nox', cat: 'Salem', raven: 'Corvus', fox: 'Kitsu', hippo: 'Hippolyte' };
   const species = () => (S.econ && S.econ.equip.familiar) || 'owl';
   const famName = () => S.companion.name || NAMES[species()];
   const stage = () => { const i = ML.seqInfo().i; return i >= 7 ? 3 : i >= 4 ? 2 : i >= 2 ? 1 : 0; };
@@ -51,6 +74,7 @@
     cat: '<ellipse class="f-eye" cx="27" cy="27" rx="3.6" ry="4.2"/><ellipse class="f-eye" cx="37" cy="27" rx="3.6" ry="4.2"/><ellipse class="f-pupil" cx="27" cy="27" rx="1.3" ry="3.4"/><ellipse class="f-pupil" cx="37" cy="27" rx="1.3" ry="3.4"/>',
     raven: '<circle class="f-eye" cx="40" cy="22" r="3.2"/><circle class="f-pupil" cx="40.6" cy="22" r="1.6"/>',
     fox: '<ellipse class="f-eye" cx="26" cy="25" rx="3" ry="3.4"/><ellipse class="f-eye" cx="38" cy="25" rx="3" ry="3.4"/><circle class="f-pupil" cx="26" cy="25.4" r="1.6"/><circle class="f-pupil" cx="38" cy="25.4" r="1.6"/>',
+    hippo: '<ellipse class="f-eye white" cx="25.5" cy="20.5" rx="3.2" ry="3.4"/><ellipse class="f-eye white" cx="38.5" cy="20.5" rx="3.2" ry="3.4"/><circle class="f-pupil" cx="26" cy="21.2" r="1.6"/><circle class="f-pupil" cx="38" cy="21.2" r="1.6"/>',
   };
   const BODY = {
     owl: `<path class="f-wing" d="M14 34 C9 40 11 48 16 51 Z M50 34 C55 40 53 48 48 51 Z"/>
@@ -69,10 +93,20 @@
       <path class="f-body" d="M16 22 L21 8 L28 18 L36 18 L43 8 L48 22 C48 32 40 38 32 38 C24 38 16 32 16 22 Z"/>
       <path class="f-inner" d="M20 18 L21.5 12 L25 17 Z M44 18 L42.5 12 L39 17 Z"/>
       <path class="f-belly" d="M18 26 C22 34 28 37 32 37 C36 37 42 34 46 26 C40 30 36 30 32 33 C28 30 24 30 18 26 Z"/><circle class="f-beak" cx="32" cy="32.5" r="1.8"/>`,
+    hippo: `<path class="f-tail" d="M51 44 C56 44 57 40 55 37"/>
+      <rect class="f-body" x="15" y="47" width="8" height="9" rx="2.5"/><rect class="f-body" x="41" y="47" width="8" height="9" rx="2.5"/>
+      <ellipse class="f-body" cx="32" cy="43" rx="20" ry="12.5"/><ellipse class="f-belly" cx="32" cy="47" rx="12" ry="6.5" opacity=".55"/>
+      <ellipse class="f-body" cx="20.5" cy="12.5" rx="3.6" ry="3.2"/><ellipse class="f-inner" cx="20.5" cy="12.8" rx="1.8" ry="1.5"/>
+      <ellipse class="f-body" cx="43.5" cy="12.5" rx="3.6" ry="3.2"/><ellipse class="f-inner" cx="43.5" cy="12.8" rx="1.8" ry="1.5"/>
+      <ellipse class="f-body" cx="32" cy="23" rx="14" ry="10.5"/>
+      <ellipse class="f-belly" cx="32" cy="31" rx="13" ry="7.5"/>
+      <ellipse class="f-beak" cx="27.5" cy="29" rx="1.4" ry="1.1"/><ellipse class="f-beak" cx="36.5" cy="29" rx="1.4" ry="1.1"/>
+      <rect class="f-tooth" x="26.5" y="35" width="2.6" height="3" rx=".6"/><rect class="f-tooth" x="34.9" y="35" width="2.6" height="3" rx=".6"/>`,
   };
-  const HAT_POS = { owl: 'translate(20 -2)', cat: 'translate(20 -4)', raven: 'translate(26 -4)', fox: 'translate(20 -6)' };
-  function familiarSvg(kind = species(), state = 'idle', st = 2) {
-    return `<svg class="fam fam-${kind} ${state} st-${st}" viewBox="-4 -14 72 78" aria-hidden="true">
+  const HAT_POS = { owl: 'translate(20 -2)', cat: 'translate(20 -4)', raven: 'translate(26 -4)', fox: 'translate(20 -6)', hippo: 'translate(24 -2)' };
+  function familiarSvg(kind = species(), state = 'idle', st = 2, extra = '') {
+    if (!BODY[kind]) kind = 'owl';
+    return `<svg class="fam fam-${kind} ${state} st-${st} ${extra}" viewBox="-4 -14 72 78" aria-hidden="true">
       <ellipse class="f-shadow" cx="32" cy="58" rx="16" ry="3"/>
       <g class="f-all">${BODY[kind]}<g class="f-eyes">${EYES[kind]}</g>
       ${st >= 3 ? `<g transform="${HAT_POS[kind]}"><path class="f-hat" d="M0 12 C3 8 5 4 10 0 C9 4 11 8 16 12 Z"/><path class="f-hatband" d="M1 11 H15"/></g>` : ''}</g>
@@ -85,7 +119,20 @@
   /* ---------- Behaviour ---------- */
   let flash = null, flashT = null, line = null, lastActive = Date.now();
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-  const lines = key => { const v = t(key); return Array.isArray(v) ? v : [v]; };
+  // Shared lines plus the familiar's own (weighted double, so each animal sounds like itself)
+  const lines = key => {
+    const v = t(key), base = Array.isArray(v) ? v : [v];
+    const own = t(key + '_' + species());
+    return Array.isArray(own) ? [...own, ...own, ...base] : base;
+  };
+  // Celebration: each familiar has its own move (owl flies a loop, cat pounces, raven hops, fox spins, hippo splashes).
+  // The perch re-renders often, so the animation keeps its clock through a negative delay.
+  let cele = null, celeT = null;
+  function celebrate(big) {
+    cele = { big, at: Date.now() };
+    clearTimeout(celeT); celeT = setTimeout(() => { cele = null; renderPerch(); }, big ? 3600 : 2400);
+    renderPerch();
+  }
   function currentState() {
     if (flash) return flash;
     if (ML.running()) return S.mode === 'focus' ? 'focus' : 'break';
@@ -108,7 +155,7 @@
     }
     const T = S.tower;
     el.innerHTML = `
-      <button type="button" class="fam-btn" id="fam-btn" title="${esc(famName())} · ${esc(t('fam_' + species()))} · ${esc(t('stage_' + stage()))}">${familiarSvg(species(), st, stage())}</button>
+      <button type="button" class="fam-btn ${cele ? 'flying' : ''}" id="fam-btn" title="${esc(famName())} · ${esc(t('fam_' + species()))} · ${esc(t('stage_' + stage()))}" ${cele ? `style="--ce:-${Date.now() - cele.at}ms"` : ''}>${familiarSvg(species(), st, stage(), cele ? 'cele' + (cele.big ? ' big' : '') : '')}</button>
       <div class="bubble"><b>${esc(famName())}</b><span>${esc(line || '')}</span></div>
       <button type="button" class="mini-tower" id="mini-tower" title="${esc(t('tower'))}">${towerSvg(Math.min(8, Math.max(1, T.day === today() ? T.built : 0)), T.day === today() ? T.built : 0, true)}
         <span><b>${esc(ML.tn('floors_n', T.floors))}</b><small>${esc(t('floors_today', { n: T.day === today() ? T.built : 0 }))}</small></span></button>`;
@@ -165,7 +212,11 @@
     const mt = document.querySelector('.mini-tower'); if (mt) { mt.classList.remove('crumble'); void mt.offsetWidth; mt.classList.add('crumble'); }
   });
   on('timer', () => { lastActive = Date.now(); renderPerch(); });
-  on('xp', () => { const f = document.querySelector('.fam'); if (f) { f.classList.remove('hop'); void f.getBoundingClientRect(); f.classList.add('hop'); } });
+  on('xp', () => { if (cele) return; const f = document.querySelector('.perch .fam'); if (f) { f.classList.remove('hop'); void f.getBoundingClientRect(); f.classList.add('hop'); } });
+  on('task:done', () => { lastActive = Date.now(); react('happy', 4000); celebrate(false); });
+  on('session', () => celebrate(false));
+  on('levelup', () => celebrate(true));
+  ML.celebrateFamiliar = celebrate;
   on('render', renderPerch);
   on('minute', renderPerch);
   on('cosmetics', () => { lastState = null; renderPerch(); });

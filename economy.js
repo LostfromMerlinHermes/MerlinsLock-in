@@ -26,6 +26,10 @@
       pot_seal: 'Sceau de série', pot_seal_d: 'Protège ta série un jour où tu ne travailles pas. Utilisé tout seul.',
       pot_elixir: 'Élixir de concentration', pot_elixir_d: '+50 % d’XP sur ta prochaine session.',
       pot_scroll: 'Parchemin de quête', pot_scroll_d: 'Change une quête du jour (bouton ↻ sur la quête).',
+      hat_witch: 'Chapeau de sorcière', hat_witch_d: 'Pointe tordue, mystère garanti.',
+      ring_emerald: 'Sceau d’émeraude', ring_emerald_d: 'Le vert profond des forêts anciennes.',
+      burst_sakura: 'Pétales de sakura', burst_sakura_d: 'Une pluie de fleurs de cerisier, très zen.',
+      pot_midas: 'Potion de Midas', pot_midas_d: 'Double l’or gagné sur tes 100 prochains XP.', midas_on: 'Midas actif : encore {n} XP en or double',
       elixir_on: 'Élixir actif : +50 % sur la prochaine session', elixir_used: 'Élixir', seal_used: 'Un Sceau de série a protégé ta série d’hier.', in_stock: 'En stock : {n}',
     },
     en: {
@@ -49,6 +53,10 @@
       pot_seal: 'Streak seal', pot_seal_d: "Protects your streak on a day you don't work. Used automatically.",
       pot_elixir: 'Focus elixir', pot_elixir_d: '+50% XP on your next session.',
       pot_scroll: 'Quest scroll', pot_scroll_d: 'Swap a daily quest (↻ button on the quest).',
+      hat_witch: "Witch's hat", hat_witch_d: 'Crooked tip, mystery guaranteed.',
+      ring_emerald: 'Emerald seal', ring_emerald_d: 'The deep green of ancient forests.',
+      burst_sakura: 'Sakura petals', burst_sakura_d: 'A shower of cherry blossoms, very zen.',
+      pot_midas: 'Midas potion', pot_midas_d: 'Doubles the gold earned on your next 100 XP.', midas_on: 'Midas active: {n} more XP at double gold',
       elixir_on: 'Elixir active: +50% on the next session', elixir_used: 'Elixir', seal_used: 'A Streak seal protected yesterday’s streak.', in_stock: 'In stock: {n}',
     },
   });
@@ -63,16 +71,19 @@
   }));
 
   const CATALOG = {
-    hat: { wizard: 0, tophat: 300, hood: 250, neon: 400, crown: 600 },
-    ring: { default: 0, gold: 200, blood: 200, spectre: 250, aurora: 450 },
-    burst: { theme: 0, coins: 200, confetti: 200, stars: 250 },
-    familiar: { owl: 0, cat: 300, raven: 300, fox: 400 },
-    potion: { seal: 150, elixir: 80, scroll: 40 },
+    hat: { wizard: 0, tophat: 300, hood: 250, witch: 350, neon: 400, crown: 600 },
+    ring: { default: 0, gold: 200, blood: 200, spectre: 250, emerald: 250, aurora: 450 },
+    burst: { theme: 0, coins: 200, confetti: 200, stars: 250, sakura: 280 },
+    familiar: { owl: 0, cat: 300, raven: 300, fox: 400, hippo: 10000 },
+    potion: { seal: 150, elixir: 80, scroll: 40, midas: 120 },
   };
+  const OWNER_ONLY = { familiar: ['hippo'] }; // shown and sold only to the app's author (ML.isOwner)
+  const hidden = (cat, k) => (OWNER_ONLY[cat] || []).includes(k) && !(ML.isOwner && ML.isOwner());
 
   /* ---------- Gold ---------- */
   on('xp', n => {
-    const g = Math.max(1, Math.ceil(n / 4));
+    let g = Math.max(1, Math.ceil(n / 4));
+    if (S.econ.midas > 0) { const part = Math.min(n, S.econ.midas); S.econ.midas -= part; g += Math.ceil(part / 4); } // Midas potion: double gold on the next 100 XP
     S.econ.gold += g; save(); renderGold();
     setTimeout(() => ML.floater && ML.floater('+' + g + ' ◈', 'gold'), 250);
   });
@@ -87,6 +98,7 @@
     hood: { hat: 'M9 31 C9 14 15.5 3.5 24 3.5 C32.5 3.5 39 14 39 31 C35 27 30.5 25.6 24 25.6 C17.5 25.6 13 27 9 31 Z', band: '', brim: false },
     neon: { hat: 'M14 24 C17 16 19.5 9 28.5 3 C26.5 9.5 29 16 34 24 Z', band: 'M15.8 21 C21 22.4 27 22.4 32.4 21', brim: true },
     crown: { hat: 'M13.5 24 L15 10.5 L19.6 17 L24 7.5 L28.4 17 L33 10.5 L34.5 24 Z', band: 'M14.6 20.6 H33.4', brim: true },
+    witch: { hat: 'M15 24 C18 18 19 12 21 8 C22.5 5 26 2.5 31 2 C27.5 4.5 26.5 7 27 10 C27.6 15 30 20 33 24 Z', band: 'M16.6 20.8 C21 22 27 22 31.6 20.8', brim: true },
   };
   function applyHat(root = document) {
     const h = HATS[S.econ.equip.hat] || HATS.wizard;
@@ -136,25 +148,26 @@
   const preview = (cat, k) => {
     if (cat === 'hat') return hatSvg(k);
     if (cat === 'ring') return `<span class="ring-swatch rs-${k}"></span>`;
-    if (cat === 'burst') return `<span class="burst-swatch">${{ theme: '✦', coins: '◈', confetti: '▚', stars: '★' }[k]}</span>`;
+    if (cat === 'burst') return `<span class="burst-swatch">${{ theme: '✦', coins: '◈', confetti: '▚', stars: '★', sakura: '❀' }[k]}</span>`;
     if (cat === 'familiar') return ML.familiarSvg ? ML.familiarSvg(k, 'idle') : '';
-    return `<span class="burst-swatch">${{ seal: '⛨', elixir: '⚗', scroll: '📜' }[k]}</span>`;
+    return `<span class="burst-swatch">${{ seal: '⛨', elixir: '⚗', scroll: '📜', midas: '♛' }[k]}</span>`;
   };
   const label = (cat, k) => cat === 'familiar' ? t('fam_' + k) : t((cat === 'potion' ? 'pot' : cat) + '_' + k);
   const desc = (cat, k) => cat === 'familiar' ? t('fam_' + k + '_d') : t((cat === 'potion' ? 'pot' : cat) + '_' + k + '_d');
   function renderShop() {
     const E = S.econ;
-    const section = (cat, title) => `<h3>${esc(t(title))}</h3><div class="shop-grid">${Object.entries(CATALOG[cat]).map(([k, price]) => {
+    const section = (cat, title) => `<h3>${esc(t(title))}</h3><div class="shop-grid">${Object.entries(CATALOG[cat]).filter(([k]) => !hidden(cat, k)).map(([k, price]) => {
       const own = cat !== 'potion' && E.owned[cat].includes(k), eq = cat !== 'potion' && E.equip[cat] === k;
       let btn;
-      if (cat === 'potion') btn = `<button type="button" class="small primary" data-buy="${cat}:${k}">${esc(t('buy'))} · ${price} ◈</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" class="small" data-use="elixir">${esc(t('use'))}</button>` : '');
+      if (cat === 'potion') btn = `<button type="button" class="small primary" data-buy="${cat}:${k}">${esc(t('buy'))} · ${price} ◈</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" class="small" data-use="elixir">${esc(t('use'))}</button>` : '')
+        + (k === 'midas' && E.potions.midas > 0 && !(E.midas > 0) ? `<button type="button" class="small" data-use="midas">${esc(t('use'))}</button>` : '');
       else if (eq) btn = `<button type="button" class="small" disabled>${esc(t('equipped'))}</button>`;
       else if (own) btn = `<button type="button" class="small" data-equip="${cat}:${k}">${esc(t('equip'))}</button>`;
       else btn = `<button type="button" class="small primary" data-buy="${cat}:${k}">${esc(t('buy'))} · ${price} ◈</button>`;
       return `<div class="shop-item ${eq ? 'is-eq' : ''} ${!own && cat !== 'potion' && E.gold < price ? 'poor' : ''}">
         <div class="shop-prev">${preview(cat, k)}</div>
         <b>${esc(label(cat, k))}</b><small>${esc(desc(cat, k))}</small>
-        ${cat === 'potion' ? `<small class="stock">${esc(t('in_stock', { n: E.potions[k] }))}${k === 'elixir' && E.elixir ? ' · ' + esc(t('elixir_on')) : ''}</small>` : ''}
+        ${cat === 'potion' ? `<small class="stock">${esc(t('in_stock', { n: E.potions[k] || 0 }))}${k === 'elixir' && E.elixir ? ' · ' + esc(t('elixir_on')) : ''}${k === 'midas' && E.midas > 0 ? ' · ' + esc(t('midas_on', { n: E.midas })) : ''}</small>` : ''}
         <div class="shop-btns">${btn}</div></div>`;
     }).join('')}</div>`;
     $('shop-body').innerHTML = `
@@ -166,9 +179,10 @@
     const E = S.econ, b = e.target.closest('button'); if (!b) return;
     if (b.dataset.buy) {
       const [cat, k] = b.dataset.buy.split(':'), price = CATALOG[cat][k];
+      if (hidden(cat, k)) return;
       if (E.gold < price) { toast(t('not_enough', { n: price - E.gold })); return; }
       E.gold -= price;
-      if (cat === 'potion') E.potions[k]++;
+      if (cat === 'potion') E.potions[k] = (E.potions[k] || 0) + 1;
       else { E.owned[cat].push(k); E.equip[cat] = k; applyCosmetics(); }
       ML.sfx && ML.sfx('buy'); toast(t('bought', { name: label(cat, k) }));
     } else if (b.dataset.equip) {
@@ -176,6 +190,8 @@
       if (cat === 'burst' && ML.burst) ML.burst(k === 'theme' ? document.documentElement.dataset.theme : k);
     } else if (b.dataset.use === 'elixir') {
       if (E.potions.elixir < 1) return; E.potions.elixir--; E.elixir = true; toast(t('elixir_on'));
+    } else if (b.dataset.use === 'midas') {
+      if (!(E.potions.midas > 0)) return; E.potions.midas--; E.midas = 100; toast(t('midas_on', { n: 100 }));
     } else return;
     save(); renderShop(); renderGold(); ML.renderAll();
   });

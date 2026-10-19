@@ -84,7 +84,7 @@
       if (it.kind === 'ev') return `<div class="pl-ev" style="${style};--c:${ML.evColor(it.ev)}"><b>${esc(it.ev.title)}</b><span>${hm(it.start)}–${hm(it.end)}</span></div>`;
       const b = it.b, task = b.taskId && S.tasks.find(x => x.id === b.taskId);
       const isActive = S.activeBlock === b.id && ML.running();
-      return `<div class="pl-blk ${h < 34 ? 'short' : ''} ${b.done || (task && task.done) ? 'done' : ''} ${isActive ? 'active' : ''} ${task ? 'p-' + task.pri : ''}" style="${style}" data-blk="${b.id}" tabindex="0">
+      return `<div class="pl-blk ${h < 34 ? 'short' : ''} ${b.done || (task && task.done) ? 'done' : ''} ${isActive ? 'active' : ''} ${task ? 'p-' + task.pri : ''} ${b.color ? 'has-c' : ''}" style="${style}${b.color ? `;--c:var(--ev-${b.color})` : ''}" data-blk="${b.id}" tabindex="0">
         <b>${esc(blockTitle(b))}</b><span>${hm(b.start)}–${hm(b.start + b.mins)} · ${fmtMins(b.mins)}</span><i class="pl-resize" data-resize="${b.id}"></i></div>`;
     };
     const nm = nowMins();
@@ -159,6 +159,10 @@
         <button type="button" class="small ghost danger" data-pla="del">${esc(t('delete'))}</button>
         <button type="button" class="small ghost" data-pl="close">${esc(t('close'))}</button>
       </div>
+      <div class="ev-colors"><span class="label">${esc(t('ev_color'))}</span>
+        <button type="button" class="sw auto ${b.color ? '' : 'on'}" data-plc="0" title="${esc(t('ev_color_auto'))}"><i style="--c:var(--accent)"></i><span>${esc(t('ev_color_auto'))}</span></button>
+        ${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<button type="button" class="sw ${b.color === n ? 'on' : ''}" data-plc="${n}" aria-label="${esc(t('ev_color'))} ${n}"><i style="--c:var(--ev-${n})"></i></button>`).join('')}
+      </div>
     </div>`;
   }
 
@@ -218,6 +222,10 @@
       save(); render(); return;
     }
     if (b && b.dataset.tray) { placeTask(b.dataset.tray); return; }
+    if (b && b.dataset.plc != null && popover) {
+      const blk = S.blocks.find(x => x.id === popover.id); if (!blk) return;
+      blk.color = +b.dataset.plc || null; save(); render(); return;
+    }
     if (b && b.dataset.pla) {
       const blk = S.blocks.find(x => x.id === popover.id); if (!blk) return;
       const a = b.dataset.pla;

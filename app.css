@@ -417,7 +417,9 @@ button.chip { cursor: pointer; }
 .cal-day-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ev-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .ev-list li { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 2px 8px; padding: 5px 8px; border-left: 3px solid var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 8%, transparent); border-radius: 0 var(--radius) var(--radius) 0; font-size: 13px; }
-.ev-time { font-family: var(--f-mono); font-size: 11.5px; color: var(--mist); padding-top: 1px; }
+.ev-time { font-family: var(--f-mono); font-size: 11.5px; color: var(--mist); padding-top: 1px; display: flex; gap: 6px; align-items: center; }
+.ev-dot { width: 13px; height: 13px; min-height: 0; padding: 0; border-radius: 50%; background: var(--c); border: 0; box-shadow: 0 0 0 1px var(--line-2), 0 0 8px color-mix(in srgb, var(--c) 50%, transparent); flex: none; cursor: pointer; transition: transform .15s; }
+.ev-dot:hover { transform: scale(1.25); }
 .ev-title { text-align: left; padding: 0; border: 0; background: none; font-weight: 600; overflow-wrap: anywhere; }
 button.ev-title:hover { color: var(--accent); }
 .ev-notes { grid-column: 2; font-size: 11.5px; color: var(--mist); }
@@ -447,6 +449,9 @@ button.ev-title:hover { color: var(--accent); }
 .pl-blk.p-high { border-left: 3px solid var(--warn); } .pl-blk.p-low { border-left: 3px solid var(--mist); }
 .pl-blk.short { display: flex; gap: 6px; align-items: baseline; padding-top: 1px; padding-bottom: 1px; }
 .pl-blk.done { opacity: .5; } .pl-blk.done b { text-decoration: line-through; }
+.pl-blk.has-c { background: color-mix(in srgb, var(--c) 24%, var(--panel-2)); border-color: var(--c); border-left: 3px solid var(--c); }
+.ev-colors button.sw { background: none; border: 0; padding: 2px; min-height: 0; }
+.ev-colors .sw.on i { border-color: var(--void); box-shadow: 0 0 0 2px var(--text), 0 0 12px var(--c); transform: scale(1.08); }
 .pl-blk.active { box-shadow: 0 0 16px -2px var(--glow); border-color: var(--accent-2); }
 .pl-resize { position: absolute; left: 0; right: 0; bottom: 0; height: 7px; cursor: ns-resize; }
 .pl-resize::after { content: ""; position: absolute; left: 50%; bottom: 2px; width: 18px; height: 2px; margin-left: -9px; background: var(--mist); border-radius: 1px; opacity: .6; }
@@ -849,6 +854,8 @@ html.deep-on body { overflow: hidden; }
 .ring-blood .segs-lit line { stroke: #ff3b5c; } .ring-blood .segs-lit { filter: drop-shadow(0 0 4px rgba(255, 59, 92, .7)); }
 .ring-spectre .segs-lit line { stroke: #eaf4ff; } .ring-spectre .segs-lit { filter: drop-shadow(0 0 6px #eaf4ff); }
 .ring-aurora .segs-lit { animation: hue 6s linear infinite; }
+.rs-emerald { border-color: #2fd98a; box-shadow: 0 0 10px rgba(47, 217, 138, .5); }
+.ring-emerald .segs-lit line { stroke: #2fd98a; } .ring-emerald .segs-lit { filter: drop-shadow(0 0 5px rgba(47, 217, 138, .7)); }
 .logo[data-hat="neon"] .lg-band { stroke-width: 2.6; animation: hue 3s linear infinite; filter: drop-shadow(0 0 3px var(--accent-2)); }
 .logo[data-hat="crown"] .lg-hat { fill: color-mix(in srgb, #ffc247 35%, #1a1206); stroke: #ffc247; }
 .logo[data-hat="hood"] .lg-hat { fill: #0b0916; }
@@ -867,6 +874,41 @@ html.deep-on body { overflow: hidden; }
 .fam-cat { --fb: #24202f; --fbe: #3b3550; --fbk: #e98aa8; }
 .fam-raven { --fb: #1d1a2b; --fw: #2f2a47; --fbe: #2f2a47; --fbk: #6e6889; }
 .fam-fox { --fb: #e0763c; --fbe: #fff1e0; --fbk: #2a1a10; }
+.fam-hippo { --fb: #8e84b0; --fbe: #e9b6c9; --fbk: #3a2f4f; } .fam-hippo .f-inner { fill: #e9b6c9; } .fam .f-tooth { fill: #fff8ec; }
+.fam-hippo .f-tail { stroke-width: 3; }
+
+/* Familiar personalities: idle quirks (individual transform properties, so they don't fight the stage scale) */
+.fam-owl.idle .f-all { animation: owl-tilt 7s ease-in-out infinite; }
+@keyframes owl-tilt { 0%, 70%, 100% { rotate: 0deg; } 76% { rotate: -9deg; } 84% { rotate: 7deg; } 90% { rotate: 0deg; } }
+.fam-cat.idle .f-tail, .fam-cat.focus .f-tail { animation: cat-swish 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: 0 100%; }
+@keyframes cat-swish { 50% { rotate: 14deg; } }
+.fam-raven.idle .f-all { animation: raven-bob 4.5s steps(1, end) infinite; }
+@keyframes raven-bob { 0%, 100% { rotate: 0deg; } 30% { rotate: 6deg; } 55% { rotate: -3deg; } 75% { rotate: 0deg; translate: 0 -1px; } }
+.fam-fox.idle .f-all { animation: fox-wiggle 2.6s ease-in-out infinite; }
+@keyframes fox-wiggle { 0%, 60%, 100% { translate: 0 0; } 70% { translate: 0 -3px; } 80% { translate: 0 0; } 88% { translate: 0 -2px; } }
+.fam-hippo.idle .f-all { animation: hippo-breathe 5s ease-in-out infinite; }
+@keyframes hippo-breathe { 50% { scale: 1.035 .97; } }
+
+/* Celebrations (task done, session, level up). --ce is a negative delay so a re-render doesn't restart them. */
+.fam-btn.flying { position: relative; z-index: 6; }
+.fam.cele { animation: var(--fly) 2.4s ease-in-out both; animation-delay: var(--ce, 0ms); }
+.fam.cele.big { animation-duration: 3.6s; }
+.fam.cele .f-spark { display: block; }
+.fam-owl.cele { --fly: owl-fly; } .fam-owl.cele.big { --fly: owl-fly-big; }
+.fam-owl.cele .f-wing { animation: owl-flap .16s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 0; }
+@keyframes owl-flap { to { scale: 1 -0.6; } }
+@keyframes owl-fly { 0% { translate: 0 0; rotate: 0deg; } 12% { translate: -4px -22px; rotate: -10deg; } 38% { translate: 34px -48px; rotate: 12deg; } 62% { translate: -26px -40px; rotate: -12deg; } 84% { translate: 2px -12px; rotate: 4deg; } 100% { translate: 0 0; rotate: 0deg; } }
+@keyframes owl-fly-big { 0% { translate: 0 0; } 10% { translate: -6px -30px; rotate: -12deg; } 30% { translate: 90px -70px; rotate: 14deg; } 50% { translate: 170px -40px; rotate: 20deg; } 68% { translate: 60px -90px; rotate: -16deg; } 86% { translate: -10px -30px; rotate: -6deg; } 100% { translate: 0 0; rotate: 0deg; } }
+.fam-cat.cele { --fly: cat-pounce; }
+@keyframes cat-pounce { 0%, 100% { translate: 0 0; scale: 1; rotate: 0deg; } 18% { translate: -2px 4px; scale: 1.12 .82; } 42% { translate: 18px -26px; scale: .95 1.08; rotate: 14deg; } 62% { translate: 24px 0; scale: 1.1 .88; rotate: 0deg; } 78% { translate: 10px -8px; scale: 1; } }
+.fam-raven.cele { --fly: raven-hop; }
+.fam-raven.cele .f-wing { animation: owl-flap .2s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 30% 20%; }
+@keyframes raven-hop { 0%, 100% { translate: 0 0; } 15% { translate: 4px -14px; rotate: 8deg; } 30% { translate: 8px 0; } 45% { translate: 12px -16px; rotate: -6deg; } 60% { translate: 14px 0; } 75% { translate: 6px -10px; rotate: 6deg; } 90% { translate: 0 0; } }
+.fam-fox.cele { --fly: fox-spin; }
+@keyframes fox-spin { 0%, 100% { translate: 0 0; rotate: 0deg; } 25% { translate: 0 -24px; rotate: 0deg; } 60% { translate: 0 -24px; rotate: 360deg; } 80% { translate: 0 0; rotate: 360deg; scale: 1.1 .9; } }
+.fam-hippo.cele { --fly: hippo-splash; }
+@keyframes hippo-splash { 0%, 100% { translate: 0 0; scale: 1; } 18% { scale: 1.14 .84; } 40% { translate: 0 -16px; scale: .94 1.1; } 58% { translate: 0 0; scale: 1.2 .78; } 72% { scale: .97 1.04; } 86% { scale: 1.04 .97; } }
+.fam-hippo.cele .f-spark path { fill: #7fd6ff; }
 .fam .f-all { transform-origin: 32px 56px; transform-box: view-box; }
 .fam.st-0 .f-all { transform: scale(.72); } .fam.st-1 .f-all { transform: scale(.86); }
 .fam .f-eyes { transform-origin: center; transform-box: fill-box; }

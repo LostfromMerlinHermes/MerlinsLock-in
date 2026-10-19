@@ -24,6 +24,7 @@
       // muscles & attributes
       m_chest: 'Pectoraux', m_back: 'Dos', m_shoulders: 'Épaules', m_biceps: 'Biceps', m_triceps: 'Triceps', m_forearms: 'Avant-bras', m_core: 'Abdos', m_lowback: 'Lombaires', m_glutes: 'Fessiers', m_quads: 'Quadriceps', m_hamstrings: 'Ischios', m_calves: 'Mollets',
       a_STR: 'Force', a_END: 'Endurance', a_AGI: 'Explosivité', a_MOB: 'Mobilité', a_SKL: 'Technique',
+      ab_STR: 'FOR', ab_END: 'END', ab_AGI: 'EXP', ab_MOB: 'MOB', ab_SKL: 'TEC',
       cl_STR: 'Colosse', cl_END: 'Marathonien', cl_AGI: 'Duelliste', cl_MOB: 'Moine', cl_SKL: 'Acrobate', cl_none: 'Recrue',
       // today
       td_session: 'Séance {n} du plan · semaine {w}', td_deload: 'Semaine de décharge : volume réduit', td_guided: 'Séance guidée', td_log: 'Mode carnet', td_recovery: 'Mobilité du jour',
@@ -68,6 +69,7 @@
       pf_save: 'Build my plan', pf_edit: 'Edit my profile', pf_saved: 'Plan updated',
       m_chest: 'Chest', m_back: 'Back', m_shoulders: 'Shoulders', m_biceps: 'Biceps', m_triceps: 'Triceps', m_forearms: 'Forearms', m_core: 'Abs', m_lowback: 'Lower back', m_glutes: 'Glutes', m_quads: 'Quads', m_hamstrings: 'Hamstrings', m_calves: 'Calves',
       a_STR: 'Strength', a_END: 'Endurance', a_AGI: 'Power', a_MOB: 'Mobility', a_SKL: 'Skill',
+      ab_STR: 'STR', ab_END: 'END', ab_AGI: 'PWR', ab_MOB: 'MOB', ab_SKL: 'SKL',
       cl_STR: 'Juggernaut', cl_END: 'Pathfinder', cl_AGI: 'Striker', cl_MOB: 'Monk', cl_SKL: 'Acrobat', cl_none: 'Recruit',
       td_session: 'Plan session {n} · week {w}', td_deload: 'Deload week: lighter volume', td_guided: 'Guided session', td_log: 'Log mode', td_recovery: "Today's mobility",
       td_quick: 'Quick home workout', td_quick_hint: 'No equipment, circuit style (40 s work, 20 s rest).', td_mins: '{n} min', td_cardio: 'Cardio or sport activity', td_free: 'Free workout', td_change_plan: 'My plan', td_week_plan: 'Your plan this week',
@@ -179,7 +181,7 @@
       const u = unitOf(e), b = B[id] || (B[id] = { reps: 0, sec: 0, kg: 0, e1rm: 0 });
       e.sets.filter(s => s.done).forEach(s => {
         if (u === 'sec') b.sec = Math.max(b.sec, val(s, 'sec'));
-        else { b.reps = Math.max(b.reps, +s.reps || 0); b.e1rm = Math.max(b.e1rm, e1rm(+s.kg, +s.reps)); }
+        else { if (!(+s.kg > 0)) b.reps = Math.max(b.reps, +s.reps || 0); b.e1rm = Math.max(b.e1rm, e1rm(+s.kg, +s.reps)); } // max reps = bodyweight reps only
         if (+s.kg && (+s.reps || val(s, 'sec'))) b.kg = Math.max(b.kg, +s.kg);
       });
     }));
@@ -337,11 +339,16 @@
     (w.exercises || []).forEach(e => {
       const id = idOf(e), u = unitOf(e), b = B0[id] || { reps: 0, sec: 0, e1rm: 0, kg: 0 };
       const done = e.sets.filter(s => s.done); if (!done.length || !id) return;
-      const best = u === 'sec' ? Math.max(...done.map(s => val(s, 'sec'))) : Math.max(...done.map(s => e1rm(+s.kg, +s.reps) || +s.reps));
-      const old = u === 'sec' ? b.sec : (b.e1rm || b.reps);
-      if (old > 0 && best > old) { const s = done.reduce((a, c) => ((u === 'sec' ? val(c, 'sec') : e1rm(+c.kg, +c.reps) || +c.reps) > (u === 'sec' ? val(a, 'sec') : e1rm(+a.kg, +a.reps) || +a.reps) ? c : a)); prs.push({ ex: exName(id), set: setLabel(s, u) }); }
+      // Compare like with like: loaded sets by estimated 1RM (kg), bodyweight sets by reps, holds by seconds
+      const loaded = u !== 'sec' && done.some(s => +s.kg > 0);
+      const pool = loaded ? done.filter(s => +s.kg > 0) : done;
+      const score = s => u === 'sec' ? val(s, 'sec') : loaded ? e1rm(+s.kg, +s.reps) : +s.reps || 0;
+      const top = pool.reduce((a, c) => (score(c) > score(a) ? c : a));
+      const old = u === 'sec' ? b.sec : loaded ? b.e1rm : b.reps;
+      if (old > 0 && score(top) > old) prs.push({ ex: exName(id), set: setLabel(top, u) });
     });
-    const xp = Math.round(w.mins + setsDone(w.exercises) * 3 + prs.length * 20 + (w.rpe ? w.rpe * 2 : 0));
+    // Time counts up to 2 h, so a workout left open doesn't keep earning XP
+    const xp = Math.round(Math.min(w.mins, 120) + setsDone(w.exercises) * 3 + prs.length * 20 + (w.rpe ? w.rpe * 2 : 0));
     w.xp = xp; w.prs = prs;
     SP().workouts.push(w);
     if (SP().workouts.length > 2000) SP().workouts = SP().workouts.slice(-2000);
@@ -485,7 +492,7 @@
     const pt = (i, f) => { const ang = -Math.PI / 2 + i * 2 * Math.PI / 5; return [cx + Math.cos(ang) * R * f, cy + Math.sin(ang) * R * f]; };
     let g = '';
     [0.25, 0.5, 0.75, 1].forEach(f => { g += `<polygon class="rd-grid" points="${D.ATTRS.map((_, i) => pt(i, f).join(',')).join(' ')}"/>`; });
-    D.ATTRS.forEach((a, i) => { const [x, y] = pt(i, 1), [lx, ly] = pt(i, 1.22); g += `<line class="rd-axis" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}"/><text class="rd-label" x="${lx}" y="${ly + 4}" text-anchor="middle">${a} ${lv[i]}</text>`; });
+    D.ATTRS.forEach((a, i) => { const [x, y] = pt(i, 1), [lx, ly] = pt(i, 1.22); g += `<line class="rd-axis" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}"/><text class="rd-label" x="${lx}" y="${ly + 4}" text-anchor="middle">${esc(t('ab_' + a))} ${lv[i]}</text>`; });
     g += `<polygon class="rd-val" points="${lv.map((v, i) => pt(i, Math.max(0.06, v / max)).join(',')).join(' ')}"/>`;
     return `<svg class="radar" viewBox="0 0 220 215" role="img" aria-label="${esc(t('st_character'))}">${g}</svg>`;
   }

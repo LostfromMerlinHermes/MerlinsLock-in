@@ -60,6 +60,9 @@
       case 'confetti':
         add(70, () => Object.assign(radial([3, 9]), { kind: 'conf', size: rnd(4, 7), color: ['#ff5d73', '#ffc247', '#5ad1ff', '#7ef0a0', '#b57bff'][Math.floor(Math.random() * 5)], max: rnd(70, 110), drag: 0.96, g: 0.12, vr: rnd(-0.3, 0.3) }));
         break;
+      case 'sakura': // petals drift down and sway
+        add(46, () => ({ kind: 'petal', x: x + rnd(-160, 160), y: y + rnd(-140, -40), vx: rnd(-0.6, 0.6), vy: rnd(0.4, 1.4), size: rnd(4, 7), color: ['#ffc4dc', '#ff9ec7', '#ffe3ee'][Math.floor(Math.random() * 3)], max: rnd(120, 180), drag: 1, g: 0.004, vr: rnd(-0.06, 0.06), sway: rnd(0, 6.28) }));
+        break;
       case 'stars':
         add(36, () => Object.assign(radial([2, 7]), { kind: 'star', size: rnd(3, 6), color: Math.random() < 0.5 ? '#fff4da' : a, max: rnd(60, 90), drag: 0.95, g: 0.03, vr: rnd(-0.1, 0.1) }));
         break;
@@ -84,6 +87,11 @@
       if (p.kind === 'px') { cx.fillRect(Math.round(p.x / 4) * 4, Math.round(p.y / 4) * 4, 4, 4); continue; }
       if (p.kind === 'sq') { cx.fillRect(p.x, p.y, p.size, p.size); continue; }
       if (p.kind === 'star') { star(p.x, p.y, p.size); continue; }
+      if (p.kind === 'petal') {
+        p.x += Math.sin(p.life / 14 + p.sway) * 0.9;
+        cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot + Math.sin(p.life / 10 + p.sway) * 0.6);
+        cx.beginPath(); cx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, 6.29); cx.fill(); cx.restore(); continue;
+      }
       if (p.kind === 'card' || p.kind === 'conf' || p.kind === 'coin') {
         cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot);
         if (p.kind === 'coin') { cx.scale(Math.abs(Math.cos(p.life / 5)), 1); cx.beginPath(); cx.arc(0, 0, p.size, 0, 6.29); cx.fill(); cx.fillStyle = '#fff3c0'; cx.fillRect(-1, -p.size / 2, 2, p.size); }

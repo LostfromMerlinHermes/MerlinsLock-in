@@ -386,16 +386,20 @@
     },
     hat(o, t0, vel = 0.4, open = false) { burst(o.dry, { t0, attack: 0.001, decay: open ? 0.22 : 0.04, peak: 0.12 * vel, filter: 'highpass', freq: 7200 }); },
     clap(o, t0, vel = 0.6) { [0, 0.012, 0.024].forEach(d => burst(o.dry, { t0: t0 + d, attack: 0.001, decay: d === 0.024 ? 0.15 : 0.012, peak: 0.18 * vel, filter: 'bandpass', freq: 1400, q: 1.2 })); },
-    pluck(o, t0, m, vel = 0.5) {
+    pluck(o, t0, m, vel = 0.5, cut = 3200) {
       const s = ctx.createBufferSource(); s.buffer = ksBuffer(m);
+      // The string loop length is a whole number of samples (plus half a sample from the averaging filter), so retune it
+      const N = Math.max(2, Math.round(ctx.sampleRate / mtof(m)));
+      s.playbackRate.value = mtof(m) * (N + 0.5) / ctx.sampleRate;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cut; lp.Q.value = 0.5;
       const g = ctx.createGain(); g.gain.value = 0.35 * vel;
-      s.connect(g); g.connect(o.dry);
+      s.connect(lp).connect(g); g.connect(o.dry);
       const w = ctx.createGain(); w.gain.value = 0.25; g.connect(w).connect(o.wet);
       s.start(t0);
     },
-    ride(o, t0, vel = 0.4) {
-      burst(o.dry, { t0, attack: 0.001, decay: 0.45, peak: 0.06 * vel, filter: 'bandpass', freq: 6200, q: 1.5 });
-      [3020, 4580, 5310].forEach(f => voice(o, t0, { f, type: 'square', peak: 0.005 * vel, attack: 0.001, decay: 0.6, cut: 9000, wet: 0.15 }));
+    ride(o, t0, vel = 0.4) { // soft, airy cymbal: two filtered noise layers, no tonal partials
+      burst(o.dry, { t0, attack: 0.002, decay: 0.6, peak: 0.035 * vel, filter: 'bandpass', freq: 7400, q: 0.9 });
+      burst(o.dry, { t0, attack: 0.001, decay: 0.08, peak: 0.03 * vel, filter: 'highpass', freq: 9000 });
     },
     brush(o, t0, vel = 0.4, len = 0.18) { burst(o.dry, { type: 'pink', t0, attack: 0.02, decay: len, peak: 0.12 * vel, filter: 'bandpass', freq: 3000, q: 0.6 }); },
     ubass(o, t0, m, len = 0.5, vel = 0.6) { // upright bass: round, plucked
@@ -507,28 +511,31 @@
         },
       };
     },
-    // Chill jazz trio: ride "spang-a-lang", walking upright bass, rootless piano comping over ii-V-I.
-    // Each step is a swung eighth note (8 steps per bar), so bpm here is twice the quarter-note tempo.
+    // Chill jazz ballad (late-night café): soft brushes, upright bass in "two" (root and fifth),
+    // warm Rhodes chords held for the bar with rootless 9th voicings, and a sparse, stepwise melody.
     jazz(p) {
-      const root = pick([48, 50, 53, 55]), sc = SCALES.major, prog = pick([[1, 4, 0, 0], [1, 4, 0, 5], [2, 5, 1, 4], [5, 1, 4, 0]]);
-      let mel = 4;
+      const root = pick([50, 51, 53, 55]), sc = SCALES.major;
+      const prog = pick([[0, 5, 1, 4], [1, 4, 0, 0], [0, 3, 1, 4], [2, 5, 1, 4]]); // Imaj7 vi7 ii7 V7 and friends
+      let mel = 5, rest = 0;
       return {
-        bpm: (104 + p.int * 30) * 2, swing: 0.3, tone: 7000,
+        bpm: 66 + p.int * 12, swing: 0.28, tone: 4200,
         step(i, t0, spb) {
-          const s = i % 8, bar = Math.floor(i / 8), c = prog[bar % prog.length], next = prog[(bar + 1) % prog.length];
-          if (s % 2 === 0 || s === 3 || s === 7) I.ride(o(), t0, s % 4 === 2 ? 0.5 : 0.32);
-          if (s === 2 || s === 6) I.hat(o(), t0, 0.18);
-          if (s % 2 === 0 && Math.random() < 0.3) I.brush(o(), t0, 0.35);
-          if (s % 2 === 0) { // walking bass, one note per beat, last beat leads into the next chord
-            const beat = s / 2, ch = chord(root - 24, sc, c, 4), tgt = deg(root - 24, sc, next);
-            const m = beat === 0 ? ch[0] : beat === 3 ? tgt + pick([-1, 1, 2]) : pick([ch[1], ch[2], ch[3], deg(root - 24, sc, c + 1)]);
-            I.ubass(o(), t0, m, spb * 3.4, 0.75);
-          }
-          const comp = (s === 0 && Math.random() < 0.45) || (s === 3 && Math.random() < 0.55) || (s === 5 && Math.random() < 0.35);
-          if (comp) chord(root, sc, c + 2, 4).forEach((m, k) => I.piano(o(), t0 + k * 0.01, m, 0.26, spb * rnd(2, 4)));
-          if (Math.random() < 0.12 + p.int * 0.2) { // short piano licks
-            mel = clamp(mel + pick([-2, -1, 1, 1, 2]), 0, 10);
-            I.piano(o(), t0, deg(root + 12, sc, mel), rnd(0.25, 0.42), spb * 2);
+          const s = i % 16, bar = Math.floor(i / 16), c = prog[bar % prog.length];
+          if (s === 0) I.brush(o(), t0, 0.3, spb * 7);
+          if (s === 8) I.brush(o(), t0, 0.25, spb * 7);
+          if (s === 4 || s === 12) I.brush(o(), t0, 0.55, 0.12);
+          if (s % 4 === 0 || s === 14) I.ride(o(), t0, s % 8 === 4 ? 0.35 : 0.22);
+          const rb = deg(root - 12, sc, c), f5 = deg(root - 12, sc, c + 4);
+          if (s === 0) I.ubass(o(), t0, rb, spb * 7, 0.8);
+          if (s === 8) I.ubass(o(), t0, f5 - rb > 7 ? f5 - 12 : f5, spb * 6, 0.65);
+          if (s === 0) chord(root, sc, c, 5).slice(1).forEach((m, k) => I.epiano(o(), t0 + k * 0.03, m, 0.32, spb * 13));
+          if (s === 10 && Math.random() < 0.35) chord(root, sc, c, 5).slice(2).forEach((m, k) => I.epiano(o(), t0 + k * 0.02, m, 0.18, spb * 4));
+          if (rest > 0) { rest--; return; }
+          if (s % 2 === 0 && Math.random() < 0.14 + p.int * 0.12) { // melody moves by step, then breathes
+            mel = clamp(mel + pick([-1, -1, 1, 1, 2, -2]), 2, 11);
+            const near = [c, c + 2, c + 4, c + 6].reduce((a, b) => Math.abs(b - mel) < Math.abs(a - mel) ? b : a);
+            I.epiano(o(), t0, deg(root + 12, sc, s % 8 === 0 ? near : mel), rnd(0.22, 0.34), spb * pick([2, 3, 4]));
+            if (Math.random() < 0.3) rest = 6;
           }
         },
       };
@@ -616,16 +623,22 @@
         },
       };
     },
+    // Fingerpicked guitar: alternating thumb on root and fifth, fingers rolling the triad on the off-beats,
+    // a soft pad underneath and an occasional melody note. Plucks are low-passed so they stay warm.
     acoustic(p) {
-      const root = pick([48, 50, 52, 55]), sc = SCALES.major, prog = pick([[0, 3, 4, 0], [0, 5, 3, 4], [0, 4, 5, 3]]);
+      const root = pick([50, 52, 55, 57]), sc = SCALES.major, prog = pick([[0, 5, 3, 4], [0, 3, 0, 4], [5, 3, 0, 4], [0, 4, 5, 3]]);
+      const roll = [1, 2, 3, 2];
       return {
-        bpm: 82 + p.int * 10, swing: 0.05, tone: 9000,
+        bpm: 74 + p.int * 10, swing: 0.06, tone: 6500,
         step(i, t0, spb) {
           const s = i % 16, bar = Math.floor(i / 16), c = prog[bar % prog.length];
-          if (s === 0 || s === 8) I.pluck(o(), t0, deg(root - 12, sc, c), 0.6);
-          if (s === 4 || s === 12) I.pluck(o(), t0, deg(root - 12, sc, c + 4), 0.5);
-          if (s % 4 === 2) { const ch = chord(root, sc, c, 4); I.pluck(o(), t0, ch[1 + ((s / 4) | 0) % 3] + (s === 10 ? 12 : 0), 0.4); }
-          if (s % 2 === 1 && Math.random() < 0.06 + p.int * 0.08) I.pluck(o(), t0, deg(root + 12, SCALES.pentaMaj, Math.floor(rnd(0, 6))), 0.3);
+          const tri = chord(root, sc, c, 3), bass = deg(root - 12, sc, c), fifth = deg(root - 12, sc, c + 4) - (deg(root - 12, sc, c + 4) - bass > 7 ? 12 : 0);
+          if (s === 0 || s === 8) I.pluck(o(), t0, bass, s === 0 ? 0.6 : 0.5, 1600);
+          if (s === 4 || s === 12) I.pluck(o(), t0, fifth, 0.42, 1600);
+          if (s % 4 === 2) { const k = roll[(s >> 2) % 4], m = k === 3 ? tri[0] + 12 : tri[k]; I.pluck(o(), t0 + rnd(0, 0.012), m, 0.32, 2600); }
+          if (s === 0) I.pad(o(), t0, tri, spb * 15, 0.01, 700, 1.2);
+          if ((s === 6 || s === 14) && bar % 2 === 1 && Math.random() < 0.25 + p.int * 0.2) I.pluck(o(), t0, deg(root + 12, SCALES.pentaMaj, Math.floor(rnd(0, 5))), 0.3, 3200);
+          if (s % 2 === 0) burst(o().dry, { t0, attack: 0.004, decay: 0.05, peak: s % 4 === 2 ? 0.018 : 0.01, filter: 'bandpass', freq: 5200, q: 1.2 }); // shaker
         },
       };
     },

@@ -121,7 +121,7 @@
   function evRow(o) {
     const ev = o.ev;
     return `<li style="--c:${ML.evColor(ev)}">
-      <span class="ev-time">${o.start == null ? esc(t('ev_allday')) : hm(o.start) + '–' + hm(o.end)}</span>
+      <span class="ev-time"><button type="button" class="ev-dot" data-evc="${ev.id}" title="${esc(t('ev_color'))}" aria-label="${esc(t('ev_color'))}"></button>${o.start == null ? esc(t('ev_allday')) : hm(o.start) + '–' + hm(o.end)}</span>
       <button type="button" class="ev-title" data-ev="${ev.id}">${esc(ev.title)}${ev.repeat && ev.repeat !== 'none' ? ' ↻' : ''}${ev.remind ? ' ⏰' : ''}</button>
       ${ev.notes ? `<span class="ev-notes">${esc(ev.notes)}</span>` : ''}
     </li>`;
@@ -177,6 +177,11 @@
   root.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     const C = S.cal;
+    if (b.dataset.evc) { // the color dot cycles through the 8 colors
+      const ev = S.events.find(x => x.id === b.dataset.evc); if (!ev) return;
+      const cur = ev.color || CAT_SLOT[ev.cat] || 3; ev.color = (cur % 8) + 1;
+      save(); render(); emit('events'); return;
+    }
     if (b.dataset.day) { C.sel = b.dataset.day; if (monthOf(C.sel) !== C.month) C.month = monthOf(C.sel); }
     else if (b.dataset.cal === 'prev' || b.dataset.cal === 'next') {
       const [y, m] = C.month.split('-').map(Number), d = new Date(y, m - 1 + (b.dataset.cal === 'next' ? 1 : -1), 1);
