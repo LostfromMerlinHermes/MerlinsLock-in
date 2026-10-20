@@ -54,6 +54,17 @@
       case 'fog':
         add(26, () => Object.assign(radial([1, 4]), { kind: 'card', size: rnd(5, 8), color: Math.random() < 0.5 ? a : b, max: rnd(70, 100), drag: 0.97, g: 0.05, vr: rnd(-0.2, 0.2) }));
         break;
+      case 'abyss': // bubbles drift up from the clock
+        add(40, () => ({ kind: 'bubble', x: x + rnd(-70, 70), y: y + rnd(-10, 40), vx: rnd(-0.4, 0.4), vy: rnd(-2.6, -0.8), size: rnd(2, 6), color: Math.random() < 0.7 ? a : b, max: rnd(90, 140), drag: 0.995, g: -0.01, sway: rnd(0, 6.28) }));
+        break;
+      case 'neoncity': // neon shards plus two expanding rings, pink then orange
+        add(50, () => Object.assign(radial([2, 8]), { kind: 'sq', size: rnd(2, 5), color: Math.random() < 0.5 ? a : b, max: rnd(40, 70), drag: 0.92, g: 0.05 }));
+        rings.push({ x, y, r: 8, life: 0, max: 36, color: a }, { x, y, r: 1, life: 0, max: 46, color: b });
+        break;
+      case 'observatory': // golden stars around a slow brass ring
+        add(34, () => Object.assign(radial([1.5, 5.5]), { kind: 'star', size: rnd(2.5, 5), color: Math.random() < 0.6 ? a : '#fff4da', max: rnd(70, 100), drag: 0.95, g: 0.015, vr: rnd(-0.1, 0.1) }));
+        rings.push({ x, y, r: 14, life: 0, max: 50, color: b });
+        break;
       case 'coins':
         add(40, () => ({ kind: 'coin', vx: rnd(-3.5, 3.5), vy: rnd(-10, -4), size: rnd(4, 6), color: '#ffc247', max: rnd(60, 90), drag: 1, g: 0.35, vr: rnd(0.1, 0.3) }));
         break;
@@ -87,6 +98,7 @@
       if (p.kind === 'px') { cx.fillRect(Math.round(p.x / 4) * 4, Math.round(p.y / 4) * 4, 4, 4); continue; }
       if (p.kind === 'sq') { cx.fillRect(p.x, p.y, p.size, p.size); continue; }
       if (p.kind === 'star') { star(p.x, p.y, p.size); continue; }
+      if (p.kind === 'bubble') { p.x += Math.sin(p.life / 12 + p.sway) * 0.6; cx.strokeStyle = p.color; cx.lineWidth = 1.2; cx.beginPath(); cx.arc(p.x, p.y, p.size, 0, 6.29); cx.stroke(); cx.fillRect(p.x - p.size * 0.4, p.y - p.size * 0.5, 1.5, 1.5); continue; }
       if (p.kind === 'petal') {
         p.x += Math.sin(p.life / 14 + p.sway) * 0.9;
         cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot + Math.sin(p.life / 10 + p.sway) * 0.6);
@@ -133,6 +145,9 @@
     sanctuary: { type: 'sine', base: 72, dec: 1.4, gap: 0.12, bell: true },
     arcade: { type: 'square', base: 72, dec: 0.1, gap: 0.055, vol: 0.035 },
     fog: { type: 'sine', base: 64, dec: 0.9, gap: 0.12, bell: true },
+    observatory: { type: 'triangle', base: 79, dec: 1, gap: 0.1, bell: true },
+    abyss: { type: 'sine', base: 60, dec: 1.8, gap: 0.16, bell: true },
+    neoncity: { type: 'sawtooth', base: 64, dec: 0.35, gap: 0.07, lp: 1800, det: 14 },
   };
   const NOTES = { sub: [4, 9], task: [0, 7], quest: [0, 4, 7], ach: [0, 4, 7, 12], level: [0, 4, 7, 12, 16, 19], session: [0, 7, 12], click: [12], buy: [7, 12, 19], abandon: [7, 3, 0] };
   ML.sfxTheme = kind => {

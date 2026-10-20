@@ -16,7 +16,7 @@
       gf_calm: 'Calme', gf_keys: 'Piano & cordes', gf_chill: 'Chill', gf_energy: 'Énergie', gf_epic: 'Épique', gf_mine: 'Ta musique', gf_none: 'Sans musique',
       nf_nature: 'Nature', nf_places: 'Lieux', nf_noise: 'Bruits', ambiences: 'Ambiances',
       n_plane: 'Cabine d’avion', n_train: 'Train', n_cafe: 'Café', n_white: 'Bruit blanc', n_pink: 'Bruit rose',
-      n_rain: 'Pluie', n_thunder: 'Orage', n_wind: 'Vent', n_river: 'Rivière', n_beach: 'Plage', n_forest: 'Forêt', n_rainforest: 'Forêt tropicale', n_night: 'Nuit', n_underwater: 'Sous l’eau', n_bowls: 'Bols et carillons', n_fire: 'Feu de camp', n_brown: 'Bruit brun',
+      n_rain: 'Pluie', n_thunder: 'Orage', n_wind: 'Vent', n_river: 'Rivière', n_royalriver: '♛ Rivière royale', n_beach: 'Plage', n_forest: 'Forêt', n_rainforest: 'Forêt tropicale', n_night: 'Nuit', n_underwater: 'Sous l’eau', n_bowls: 'Bols et carillons', n_fire: 'Feu de camp', n_brown: 'Bruit brun',
       activity: 'Activité', genre: 'Genre', nature: 'Nature', music_vol: 'Musique', master_vol: 'Volume général',
       neural: 'Modulation neurale', neural_hint: 'De légères pulsations dans la musique, plus rapides pour se concentrer, plus lentes pour dormir. Effet variable selon les personnes.',
       neural_off: 'Off', neural_light: 'Légère', neural_medium: 'Moyenne', neural_strong: 'Forte',
@@ -42,7 +42,7 @@
       gf_calm: 'Calm', gf_keys: 'Piano & strings', gf_chill: 'Chill', gf_energy: 'Energy', gf_epic: 'Epic', gf_mine: 'Your music', gf_none: 'No music',
       nf_nature: 'Nature', nf_places: 'Places', nf_noise: 'Noise', ambiences: 'Ambiences',
       n_plane: 'Airplane cabin', n_train: 'Train', n_cafe: 'Café', n_white: 'White noise', n_pink: 'Pink noise',
-      n_rain: 'Rain', n_thunder: 'Thunder', n_wind: 'Wind', n_river: 'River', n_beach: 'Beach', n_forest: 'Forest', n_rainforest: 'Rainforest', n_night: 'Night', n_underwater: 'Underwater', n_bowls: 'Chimes and bowls', n_fire: 'Campfire', n_brown: 'Brown noise',
+      n_rain: 'Rain', n_thunder: 'Thunder', n_wind: 'Wind', n_river: 'River', n_royalriver: '♛ Royal river', n_beach: 'Beach', n_forest: 'Forest', n_rainforest: 'Rainforest', n_night: 'Night', n_underwater: 'Underwater', n_bowls: 'Chimes and bowls', n_fire: 'Campfire', n_brown: 'Brown noise',
       activity: 'Activity', genre: 'Genre', nature: 'Nature', music_vol: 'Music', master_vol: 'Master volume',
       neural: 'Neural modulation', neural_hint: 'Gentle pulses in the music, faster for focus, slower for sleep. Effects vary from person to person.',
       neural_off: 'Off', neural_light: 'Light', neural_medium: 'Medium', neural_strong: 'Strong',
@@ -72,7 +72,7 @@
     energy: ['electronic', 'grooves', 'synthwave', 'chiptune'], epic: ['cinematic'], mine: ['mine'], none: ['none'],
   };
   const GENRES = Object.values(GENRE_FAM).flat();
-  const NATURE_FAM = { nature: ['rain', 'thunder', 'wind', 'river', 'beach', 'forest', 'rainforest', 'night', 'underwater'], places: ['fire', 'cafe', 'train', 'plane', 'bowls'], noise: ['white', 'pink', 'brown'] };
+  const NATURE_FAM = { nature: ['rain', 'thunder', 'wind', 'river', 'royalriver', 'beach', 'forest', 'rainforest', 'night', 'underwater'], places: ['fire', 'cafe', 'train', 'plane', 'bowls'], noise: ['white', 'pink', 'brown'] };
   const NATURE = Object.values(NATURE_FAM).flat();
   const famOf = (fams, k) => Object.keys(fams).find(f => fams[f].includes(k));
   const DEPTH = { off: 0, light: 0.12, medium: 0.25, strong: 0.4 };
@@ -250,6 +250,17 @@
       const bb = L.f('bandpass', 2200, 4); L.src('white').connect(bb).connect(L.g(0.09)).connect(L.out);
       L.every(() => bb.frequency.setTargetAtTime(rnd(1400, 3400), ctx.currentTime, 0.03), 70);
     },
+    // Royal river (only for Royal hippo owners): a wide lazy river, water lapping at the bank, hippo bubbles
+    // rising from the deep, far reed birds and, now and then, a soft contented rumble
+    royalriver(L) {
+      [-0.6, 0.6].forEach(p => { const bp = L.f('bandpass', rnd(600, 800), 0.4), g = L.g(0.16), pn = L.pan(p); L.src('white').connect(bp).connect(g).connect(pn).connect(L.out); L.nodes.push(pn); L.lfo(rnd(0.04, 0.08), 160, bp.frequency); L.lfo(rnd(0.05, 0.1), 0.05, g.gain); });
+      L.src('pink').connect(L.f('lowpass', 380)).connect(L.g(0.32)).connect(L.out);
+      const lap = () => { const t0 = ctx.currentTime, pan = rnd(-0.5, 0.5); burst(L.out, { type: 'pink', t0, attack: rnd(0.15, 0.3), decay: rnd(0.4, 0.8), peak: rnd(0.12, 0.22), filter: 'bandpass', freq: rnd(500, 900), q: 1, pan }); };
+      L.loop(lap, 1600, 3600);
+      L.loop(() => { const t0 = ctx.currentTime, n = 2 + Math.floor(Math.random() * 5), pan = rnd(-0.4, 0.4); for (let i = 0; i < n; i++) { const f = rnd(140, 320); blip(L.out, { f, f2: f * rnd(2, 3), t0: t0 + i * rnd(0.08, 0.2), dur: rnd(0.08, 0.16), peak: 0.06, pan }); } }, 3500, 9000);
+      L.loop(() => { const t0 = ctx.currentTime, pan = rnd(-0.9, 0.9), f = rnd(1500, 1900); blip(L.out, { f, f2: f * 1.25, t0, dur: 0.22, peak: 0.018, attack: 0.03, pan }); blip(L.out, { f: f * 1.25, f2: f, t0: t0 + 0.28, dur: 0.3, peak: 0.014, attack: 0.03, pan }); }, 6000, 15000);
+      L.loop(() => burst(L.out, { type: 'brown', t0: ctx.currentTime, attack: 0.25, decay: 1.4, peak: 0.35, filter: 'lowpass', freq: 110 }), 40000, 90000);
+    },
     beach(L) {
       const lp = L.f('lowpass', 400), g = L.g(0.12), fizzG = L.g(0.01);
       L.src('brown').connect(lp).connect(g).connect(L.out);
@@ -329,13 +340,14 @@
       L.loop(() => { const t0 = ctx.currentTime, f = rnd(2600, 4200), pan = rnd(-0.7, 0.7); blip(L.out, { f, t0, dur: rnd(0.15, 0.35), peak: rnd(0.015, 0.035), attack: 0.001, pan }); blip(L.out, { f: f * 2.4, t0, dur: 0.1, peak: 0.01, attack: 0.001, pan }); }, 700, 3500);
     },
   };
+  const hasHippo = () => !!(S.econ && S.econ.owned.familiar.includes('hippo')); // the Royal river belongs to Royal hippo owners
   const natureLayers = {};
   function syncNature() {
     if (!ctx) return;
     const want = playing ? S.audio.nature : {};
     for (const k of Object.keys(natureLayers)) if (!(k in want)) { const L = natureLayers[k]; L.out.gain.setTargetAtTime(0, ctx.currentTime, 0.3); setTimeout(() => L.stop(), 1500); delete natureLayers[k]; }
     for (const [k, v] of Object.entries(want)) {
-      if (!NATURE_BUILD[k]) continue;
+      if (!NATURE_BUILD[k] || (k === 'royalriver' && !hasHippo())) continue;
       if (!natureLayers[k]) { const L = layer(natureBus); L.out.gain.value = 0; NATURE_BUILD[k](L); natureLayers[k] = L; }
       natureLayers[k].out.gain.setTargetAtTime(v * v * 1.2, ctx.currentTime, 0.6);
     }
@@ -995,7 +1007,7 @@
         <label class="d-slider"><span>${esc(t('music_vol'))}</span><input type="range" id="d-mvol" min="0" max="1" step="0.05" value="${A.musicVol}"></label>
         <div class="d-row"><span class="label">${esc(t('ambiences'))}</span>
           <div class="chips fam-row">${Object.keys(NATURE_FAM).map(f => { const n = NATURE_FAM[f].filter(k => k in A.nature).length; return `<button type="button" class="chip-btn fam-chip ${f === curNatFam ? 'open' : ''} ${n ? 'has' : ''}" data-dnfam="${f}" aria-expanded="${f === curNatFam}">${esc(t('nf_' + f))}${n ? ' · ' + n : ''} ▾</button>`; }).join('')}</div>
-          <div class="nat-grid">${NATURE_FAM[curNatFam].map(k => `<button type="button" class="nat ${k in A.nature ? 'on' : ''}" data-dnat="${k}" aria-pressed="${k in A.nature}">${esc(t('n_' + k))}</button>`).join('')}</div>
+          <div class="nat-grid">${NATURE_FAM[curNatFam].filter(k => k !== 'royalriver' || hasHippo()).map(k => `<button type="button" class="nat ${k in A.nature ? 'on' : ''}" data-dnat="${k}" aria-pressed="${k in A.nature}">${esc(t('n_' + k))}</button>`).join('')}</div>
           ${Object.keys(A.nature).length ? `<div class="nat-vols">${Object.entries(A.nature).map(([k, v]) => `<label class="d-slider"><span>${esc(t('n_' + k))}</span><input type="range" data-dnatv="${k}" min="0.05" max="1" step="0.05" value="${v}"></label>`).join('')}</div>` : ''}
         </div>
         <div class="d-row"><span class="label" title="${esc(t('neural_hint'))}">${esc(t('neural'))} ⓘ</span><div class="chips">${chipRow(Object.keys(DEPTH), A.neural, 'dneural', v => t('neural_' + v))}</div></div>

@@ -114,7 +114,7 @@
      Each device keeps a "base": the last state it agreed on with the cloud. When both sides changed since
      then, they are merged field by field: lists of items (tasks, notes, events, blocks, sessions…) are merged
      item by item, so an edit or deletion on one device never wipes what the other one added. */
-  const LOCAL_ONLY = ['tab', 'section', 'compact', 'showAll', 'audio.open', 'notes.current', 'cal.month', 'cal.sel', 'planner.date', 'sport.tab'];
+  const LOCAL_ONLY = ['tab', 'section', 'compact', 'showAll', 'audio.open', 'notes.current', 'cal.month', 'cal.sel', 'planner.date', 'sport.tab', 'dayNight'];
   const COUNTERS = ['xp', 'econ.gold'];
   const same = (a, b) => a === b || JSON.stringify(a) === JSON.stringify(b);
   const isObj = v => v && typeof v === 'object' && !Array.isArray(v);

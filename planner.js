@@ -341,12 +341,12 @@
     order: 30,
     render: () => `<h3>${esc(t('set_planner'))}</h3>
       ${ML.ui.chk('set-autostart', t('opt_autostart'), S.planner.autoStart)}
-      <label class="field"><span>${esc(t('day_start'))}</span>${ML.ui.sel('set-dstart', [5, 6, 7, 8, 9, 10].map(h => [h, h + ':00']), S.planner.startH)}</label>
+      <label class="field"><span>${esc(t('day_start'))}</span>${ML.ui.sel('set-dstart', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(h => [h, h + ':00']), S.planner.startH)}</label>
       <label class="field"><span>${esc(t('day_end'))}</span>${ML.ui.sel('set-dend', [20, 21, 22, 23, 24].map(h => [h, (h % 24) + ':00']), S.planner.endH)}</label>`,
     bind: r => {
       r.querySelector('#set-autostart').onchange = e => { S.planner.autoStart = e.target.checked; save(); };
-      r.querySelector('#set-dstart').onchange = e => { S.planner.startH = +e.target.value; save(); };
-      r.querySelector('#set-dend').onchange = e => { S.planner.endH = +e.target.value; save(); };
+      r.querySelector('#set-dstart').onchange = e => { S.planner.startH = +e.target.value; save(); ML.renderAll(); };
+      r.querySelector('#set-dend').onchange = e => { S.planner.endH = +e.target.value; save(); ML.renderAll(); };
     },
   });
 })();

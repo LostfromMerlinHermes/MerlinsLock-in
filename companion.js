@@ -20,7 +20,9 @@
       l_sleep: ['Zzz… réveille-moi pour une session.', 'Zzz…'],
       l_pet: ['Hé, ça chatouille !', '♥', 'Merci, ça fait du bien.', 'On s’y remet ?'],
       l_morning: 'Bonjour ! Une session pour bien commencer ?',
-      fam_hippo: 'Hippopotame royal', fam_hippo_d: 'Le plus lourd des familiers, et le plus fidèle. Le trésor ultime de la boutique.',
+      fam_hippo: 'Hippopotame royal', fam_hippo_d: 'Le trésor ultime. Bouclier royal : une fois par jour, il s’assoit sur ta tour et empêche un étage de tomber. Débloque l’ambiance Rivière royale.',
+      hippo_shield: 'Bouclier royal : l’hippopotame s’est assis sur ta tour. Aucun étage n’est tombé.', shield_ready: 'Bouclier royal prêt : il protégera ta tour une fois aujourd’hui.', shield_used: 'Bouclier royal utilisé aujourd’hui. Il revient demain.',
+      l_shield_hippo: ['Personne ne touche à ma tour.', 'Je me suis assis dessus. Elle ne bougera plus.'],
       // Each familiar has its own voice (mixed with the shared lines above)
       l_idle_owl: ['Hou hou. La sagesse commence par une petite tâche.', 'J’ai relu tout le grimoire cette nuit.', 'Je vois tout, même tes onglets ouverts.'],
       l_focus_owl: ['Je veille, comme chaque nuit.', 'Pas un bruit. Hou.'], l_happy_owl: ['Hou ! Je m’envole de fierté !', 'Un vol de victoire !'], l_pet_owl: ['Hou… doucement les plumes.', 'Tu sens l’encre et le café.'],
@@ -48,7 +50,9 @@
       l_sleep: ['Zzz… wake me for a session.', 'Zzz…'],
       l_pet: ['Hey, that tickles!', '♥', 'Thanks, I needed that.', 'Back to it?'],
       l_morning: 'Good morning! A session to start strong?',
-      fam_hippo: 'Royal hippo', fam_hippo_d: 'The heaviest familiar, and the most loyal. The shop’s ultimate treasure.',
+      fam_hippo: 'Royal hippo', fam_hippo_d: 'The ultimate treasure. Royal shield: once a day it sits on your tower and stops a floor from falling. Unlocks the Royal river ambience.',
+      hippo_shield: 'Royal shield: the hippo sat on your tower. No floor fell.', shield_ready: 'Royal shield ready: it will protect your tower once today.', shield_used: 'Royal shield used today. It comes back tomorrow.',
+      l_shield_hippo: ['Nobody touches my tower.', 'I sat on it. It won’t move now.'],
       l_idle_owl: ['Hoo hoo. Wisdom starts with one small task.', 'I reread the whole grimoire last night.', 'I see everything, even your open tabs.'],
       l_focus_owl: ['On watch, like every night.', 'Not a sound. Hoo.'], l_happy_owl: ['Hoo! I’m flying with pride!', 'A victory lap!'], l_pet_owl: ['Hoo… careful with the feathers.', 'You smell of ink and coffee.'],
       l_idle_cat: ['Are you working or can I go back to sleep?', 'I’m pretending not to look at you.', 'That keyboard looks comfy…'],
@@ -74,7 +78,7 @@
     cat: '<ellipse class="f-eye" cx="27" cy="27" rx="3.6" ry="4.2"/><ellipse class="f-eye" cx="37" cy="27" rx="3.6" ry="4.2"/><ellipse class="f-pupil" cx="27" cy="27" rx="1.3" ry="3.4"/><ellipse class="f-pupil" cx="37" cy="27" rx="1.3" ry="3.4"/>',
     raven: '<circle class="f-eye" cx="40" cy="22" r="3.2"/><circle class="f-pupil" cx="40.6" cy="22" r="1.6"/>',
     fox: '<ellipse class="f-eye" cx="26" cy="25" rx="3" ry="3.4"/><ellipse class="f-eye" cx="38" cy="25" rx="3" ry="3.4"/><circle class="f-pupil" cx="26" cy="25.4" r="1.6"/><circle class="f-pupil" cx="38" cy="25.4" r="1.6"/>',
-    hippo: '<ellipse class="f-eye white" cx="25.5" cy="20.5" rx="3.2" ry="3.4"/><ellipse class="f-eye white" cx="38.5" cy="20.5" rx="3.2" ry="3.4"/><circle class="f-pupil" cx="26" cy="21.2" r="1.6"/><circle class="f-pupil" cx="38" cy="21.2" r="1.6"/>',
+    hippo: '<ellipse class="f-eye white" cx="25.5" cy="20.5" rx="3.2" ry="3.4"/><ellipse class="f-eye white" cx="38.5" cy="20.5" rx="3.2" ry="3.4"/><circle class="f-pupil" cx="26" cy="21.2" r="1.6"/><circle class="f-pupil" cx="38" cy="21.2" r="1.6"/><circle class="f-glint" cx="26.6" cy="20.4" r=".6"/><circle class="f-glint" cx="38.6" cy="20.4" r=".6"/>',
   };
   const BODY = {
     owl: `<path class="f-wing" d="M14 34 C9 40 11 48 16 51 Z M50 34 C55 40 53 48 48 51 Z"/>
@@ -101,7 +105,10 @@
       <ellipse class="f-body" cx="32" cy="23" rx="14" ry="10.5"/>
       <ellipse class="f-belly" cx="32" cy="31" rx="13" ry="7.5"/>
       <ellipse class="f-beak" cx="27.5" cy="29" rx="1.4" ry="1.1"/><ellipse class="f-beak" cx="36.5" cy="29" rx="1.4" ry="1.1"/>
-      <rect class="f-tooth" x="26.5" y="35" width="2.6" height="3" rx=".6"/><rect class="f-tooth" x="34.9" y="35" width="2.6" height="3" rx=".6"/>`,
+      <rect class="f-tooth" x="26.5" y="35" width="2.6" height="3" rx=".6"/><rect class="f-tooth" x="34.9" y="35" width="2.6" height="3" rx=".6"/>
+      <ellipse class="f-blush" cx="20.5" cy="28" rx="3" ry="1.6"/><ellipse class="f-blush" cx="43.5" cy="28" rx="3" ry="1.6"/>
+      <circle class="f-earring" cx="18.6" cy="16.6" r="1.5"/><circle class="f-pearl" cx="18.6" cy="18.6" r="1.1"/><circle class="f-earring" cx="45.4" cy="16.6" r="1.5"/><circle class="f-pearl" cx="45.4" cy="18.6" r="1.1"/>
+      <path class="f-medal" d="M27 40.5 Q32 44 37 40.5"/><circle class="f-gold" cx="32" cy="44.6" r="2.2"/>`,
   };
   const HAT_POS = { owl: 'translate(20 -2)', cat: 'translate(20 -4)', raven: 'translate(26 -4)', fox: 'translate(20 -6)', hippo: 'translate(24 -2)' };
 
@@ -149,13 +156,21 @@
   }
   const equippedCostume = () => { const k = S.econ && S.econ.equip.costume; return COSTUME[k] ? k : null; };
 
+  // Royal hippo extras: a crown instead of the Elder hat, and a pool it stands in. Everything below the
+  // waterline is clipped, so it can dive in (celebration) and float half-submerged (focus).
+  const CROWN = '<g class="f-crown"><path d="M24.5 12.6 L23.4 5.2 L28.2 8.8 L32 2.6 L35.8 8.8 L40.6 5.2 L39.5 12.6 Z"/><path class="f-crown-band" d="M24.6 11 H39.4"/><circle class="f-ruby" cx="32" cy="9.6" r="1.3"/><circle class="f-pearl" cx="32" cy="2.4" r="1"/><circle class="f-pearl" cx="23.4" cy="5" r=".8"/><circle class="f-pearl" cx="40.6" cy="5" r=".8"/></g>';
+  const POOL = '<g class="f-pool"><ellipse class="pool" cx="32" cy="57.4" rx="25" ry="4.8"/><ellipse class="ripple r1" cx="32" cy="57.4" rx="12" ry="2.4"/><ellipse class="ripple r2" cx="32" cy="57.4" rx="12" ry="2.4"/></g>';
+  const SPLASH = '<g class="f-splash">' + [[-14, -20], [-8, -28], [-2, -32], [5, -30], [11, -24], [16, -16], [-18, -12]].map(([dx, dy], i) => `<circle cx="32" cy="56" r="${(1 + (i % 3) * 0.5).toFixed(1)}" style="--dx:${dx}px;--dy:${dy}px"/>`).join('') + '</g>';
+  let clipN = 0;
   function familiarSvg(kind = species(), state = 'idle', st = 2, extra = '', costume = equippedCostume()) {
     if (!BODY[kind]) kind = 'owl';
-    const C = costume && COSTUME[costume];
+    const C = costume && COSTUME[costume], hippo = kind === 'hippo', clip = hippo ? 'hc' + (++clipN) : '';
+    const hat = hippo ? (C && C.head ? '' : CROWN)
+      : st >= 3 && !(C && C.head) ? `<g transform="${HAT_POS[kind]}"><path class="f-hat" d="M0 12 C3 8 5 4 10 0 C9 4 11 8 16 12 Z"/><path class="f-hatband" d="M1 11 H15"/></g>` : '';
+    const body = `<g class="f-all">${C ? costumeSvg(kind, costume, 'back') : ''}${BODY[kind]}<g class="f-eyes">${EYES[kind]}</g>${hat}${C ? costumeSvg(kind, costume, 'front') : ''}</g>`;
     return `<svg class="fam fam-${kind} ${state} st-${st} ${C ? 'cos-' + costume : ''} ${extra}" viewBox="-4 -14 72 78" aria-hidden="true">
-      <ellipse class="f-shadow" cx="32" cy="58" rx="16" ry="3"/>${C ? costumeSvg(kind, costume, 'ground') : ''}
-      <g class="f-all">${C ? costumeSvg(kind, costume, 'back') : ''}${BODY[kind]}<g class="f-eyes">${EYES[kind]}</g>
-      ${st >= 3 && !(C && C.head) ? `<g transform="${HAT_POS[kind]}"><path class="f-hat" d="M0 12 C3 8 5 4 10 0 C9 4 11 8 16 12 Z"/><path class="f-hatband" d="M1 11 H15"/></g>` : ''}${C ? costumeSvg(kind, costume, 'front') : ''}</g>
+      ${hippo ? `<defs><clipPath id="${clip}"><rect x="-20" y="-40" width="110" height="97.4"/></clipPath></defs>${POOL}` : '<ellipse class="f-shadow" cx="32" cy="58" rx="16" ry="3"/>'}${C ? costumeSvg(kind, costume, 'ground') : ''}
+      ${hippo ? `<g clip-path="url(#${clip})">${body}</g><path class="pool-edge" d="M10 57.6 Q32 54.6 54 57.6"/>${SPLASH}` : body}
       <g class="f-zzz"><text x="46" y="8">z</text><text x="52" y="0">z</text><text x="58" y="-8">Z</text></g>
       <g class="f-spark"><path d="M8 6 l2 -6 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2 Z"/><path d="M52 14 l1.5 -4 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5 Z"/></g>
     </svg>`;
@@ -202,7 +217,7 @@
     }
     const T = S.tower;
     el.innerHTML = `
-      <button type="button" class="fam-btn ${cele ? 'flying' : ''}" id="fam-btn" title="${esc(famName())} · ${esc(t('fam_' + species()))} · ${esc(t('stage_' + stage()))}" ${cele ? `style="--ce:-${Date.now() - cele.at}ms"` : ''}>${familiarSvg(species(), st, stage(), cele ? 'cele' + (cele.big ? ' big' : '') : '')}</button>
+      <button type="button" class="fam-btn ${cele ? 'flying' : ''}" id="fam-btn" title="${esc(famName())} · ${esc(t('fam_' + species()))} · ${esc(t('stage_' + stage()))}" ${cele ? `style="--ce:-${Date.now() - cele.at}ms"` : ''}>${familiarSvg(species(), st, stage(), cele ? 'cele' + (cele.big ? ' big' : '') : '')}${species() === 'hippo' ? `<span class="shield-badge ${shieldReady() ? 'on' : 'used'}" title="${esc(t(shieldReady() ? 'shield_ready' : 'shield_used'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18 L3 7 L8.5 11 L12 4 L15.5 11 L21 7 L20 18 Z"/></svg></span>` : ''}</button>
       <div class="bubble"><b>${esc(famName())}</b><span>${esc(line || '')}</span></div>
       <button type="button" class="mini-tower" id="mini-tower" title="${esc(t('tower'))}">${towerSvg(Math.min(8, Math.max(1, T.day === today() ? T.built : 0)), T.day === today() ? T.built : 0, true)}
         <span><b>${esc(ML.tn('floors_n', T.floors))}</b><small>${esc(t('floors_today', { n: T.day === today() ? T.built : 0 }))}</small></span></button>`;
@@ -243,7 +258,17 @@
     const T = towerDay(); T.floors += g; T.built += g; T.log[T.day] = (T.log[T.day] || 0) + g; T.best = Math.max(T.best, T.log[T.day]);
     save(); lastActive = Date.now(); react('happy');
   });
+  // Royal shield (Royal hippo only): once a day, the first floor that should fall doesn't
+  const shieldReady = () => species() === 'hippo' && S.tower.shieldDay !== today();
+  function useShield() {
+    if (!shieldReady()) return false;
+    S.tower.shieldDay = today(); save();
+    toast(t('hippo_shield'), { ms: 7000 });
+    react('happy', 7000); line = pick(t('l_shield_hippo')); celebrate(false);
+    return true;
+  }
   on('abandon', () => {
+    if (useShield()) return;
     initTower();
     const T = towerDay();
     if (T.floors > 0) { T.floors--; T.fallen++; T.built = Math.max(0, T.built - 1); T.fallLog.push(Date.now()); if (T.fallLog.length > 200) T.fallLog = T.fallLog.slice(-200); }
@@ -252,6 +277,7 @@
   });
   on('left', ({ strict }) => {
     if (!strict) { react('sad', 6000); return; }
+    if (useShield()) return;
     initTower();
     const T = towerDay();
     if (T.floors > 0) { T.floors--; T.fallen++; T.built = Math.max(0, T.built - 1); T.fallLog.push(Date.now()); }

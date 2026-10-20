@@ -258,8 +258,11 @@
       buff_ready: 'prêt', buff_combo: 'Combo ×{n}', buff_streak: '+{n} %', buff_nopause: 'sans pause +25 %', buff_short: 'courtes +20 %',
       park_bonus: 'Ancrage : +5 XP',
       th_auto: 'Auto (selon l’humeur)', th_sorcerer: 'Cyber sorcier', th_fog: 'Brouillard gris (Tarot)', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuaire', th_arcade: 'Arcade 8-bit',
-      th_hint: 'Auto : chaque humeur a son univers. Épuisé → Sanctuaire, Stable → Cyber sorcier, À fond → Netrunner, Dispersé → Arcade 8-bit.',
-      opt_nightfog: 'La nuit (21h–6h), passer en Brouillard gris',
+      th_hint: 'Auto : chaque humeur a un univers de jour et un de nuit. Épuisé → Sanctuaire / Abysses, Stable → Observatoire / Cyber sorcier, À fond → Netrunner / Ville néon, Dispersé → Arcade 8-bit / Brouillard gris.',
+      th_observatory: 'Observatoire', th_abyss: 'Abysses', th_neoncity: 'Ville néon',
+      daynight: 'Jour / nuit', dn_auto: 'Auto (nuit de 21h à 6h)', dn_day: 'Toujours jour', dn_night: 'Toujours nuit',
+      dn_title_auto: 'Jour / nuit : auto ({now}). Touche pour forcer le jour.', dn_title_day: 'Jour forcé. Touche pour forcer la nuit.', dn_title_night: 'Nuit forcée. Touche pour revenir en auto.',
+      dn_now_day: 'jour en ce moment', dn_now_night: 'nuit en ce moment',
     },
     en: {
       class_drained: 'Sanctuary hermit', class_steady: 'Cyber sorcerer', class_fired: 'Netrunner', class_scattered: '8-bit adventurer',
@@ -271,13 +274,20 @@
       buff_ready: 'ready', buff_combo: 'Combo ×{n}', buff_streak: '+{n}%', buff_nopause: 'no pause +25%', buff_short: 'short +20%',
       park_bonus: 'Anchor: +5 XP',
       th_auto: 'Auto (by mood)', th_sorcerer: 'Cyber sorcerer', th_fog: 'Gray fog (Tarot)', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuary', th_arcade: '8-bit arcade',
-      th_hint: 'Auto: every mood has its own world. Drained → Sanctuary, Steady → Cyber sorcerer, Fired up → Netrunner, Scattered → 8-bit arcade.',
-      opt_nightfog: 'At night (9pm–6am), switch to Gray fog',
+      th_hint: 'Auto: every mood has a day world and a night world. Drained → Sanctuary / Abyss, Steady → Observatory / Cyber sorcerer, Fired up → Netrunner / Neon city, Scattered → 8-bit arcade / Gray fog.',
+      th_observatory: 'Observatory', th_abyss: 'Abyss', th_neoncity: 'Neon city',
+      daynight: 'Day / night', dn_auto: 'Auto (night from 9pm to 6am)', dn_day: 'Always day', dn_night: 'Always night',
+      dn_title_auto: 'Day / night: auto ({now}). Tap to force day.', dn_title_day: 'Day forced. Tap to force night.', dn_title_night: 'Night forced. Tap to go back to auto.',
+      dn_now_day: 'day right now', dn_now_night: 'night right now',
     },
   });
-  ML.defaults(() => ({ nightFog: false }));
+  ML.defaults(() => ({ dayNight: 'auto' })); // 'auto' (night 21h–6h) | 'day' | 'night'; kept per device (sync.js LOCAL_ONLY)
 
-  const THEME_OF = { drained: 'sanctuary', steady: 'sorcerer', fired: 'netrunner', scattered: 'arcade' };
+  // Each mood has a day world and a night world (Auto theme only)
+  const THEME_DAY = { drained: 'sanctuary', steady: 'observatory', fired: 'netrunner', scattered: 'arcade' };
+  const THEME_NIGHT = { drained: 'abyss', steady: 'sorcerer', fired: 'neoncity', scattered: 'fog' };
+  const nightByClock = () => { const h = new Date().getHours(); return h >= 21 || h < 6; };
+  const isNight = () => (S.dayNight === 'night' ? true : S.dayNight === 'day' ? false : nightByClock());
   const todaysSessions = () => { const td = today(); return S.sessions.filter(s => dayKey(new Date(s.at)) === td); };
   function comboNow() { let n = 0; const ss = todaysSessions(); for (let i = ss.length - 1; i >= 0 && ss[i].full; i--) n++; return n; }
 
@@ -310,17 +320,33 @@
   function effectiveTheme() {
     if (S.section === 'sport') return 'arena'; // the Sport section has its own look
     if (S.theme !== 'auto') return S.theme;
-    const h = new Date().getHours();
-    if (S.nightFog && (h >= 21 || h < 6)) return 'fog';
-    return THEME_OF[S.mood] || 'sorcerer';
+    return (isNight() ? THEME_NIGHT : THEME_DAY)[S.mood] || 'sorcerer';
   }
+  // The small sun / moon button at the end of the mood line: Auto → Day → Night → Auto
+  const SUN = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>';
+  const MOON = '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>';
+  function renderDayNight() {
+    const b = $('dn-toggle'); if (!b) return;
+    b.hidden = S.theme !== 'auto' || S.section === 'sport'; // fixed themes and the Sport arena ignore day / night
+    const m = S.dayNight || 'auto', night = isNight();
+    b.dataset.mode = m;
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${night ? MOON : SUN}</svg>${m === 'auto' ? '<i>A</i>' : ''}`;
+    const title = t('dn_title_' + m, { now: t(night ? 'dn_now_night' : 'dn_now_day') });
+    b.title = title; b.setAttribute('aria-label', title);
+  }
+  $('dn-toggle').onclick = () => {
+    S.dayNight = { auto: 'day', day: 'night', night: 'auto' }[S.dayNight] || 'auto';
+    save(); applyTheme(); renderDayNight();
+    toast(t('daynight') + ' : ' + t('dn_' + S.dayNight), { ms: 2200 });
+  };
   let themed = false;
   function applyTheme() {
+    renderDayNight();
     const th = effectiveTheme(), root = document.documentElement;
     if (root.dataset.theme === th) return;
     root.dataset.theme = th;
     const meta = document.querySelector('meta[name=theme-color]');
-    if (meta) meta.content = { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#120c24', arena: '#0c0706' }[th];
+    if (meta) meta.content = { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#120c24', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
     if (themed) playTransition(th);
     themed = true;
     setTimeout(FX.reset, 30);
@@ -339,13 +365,13 @@
   ML.settingsSection({
     order: 15,
     render: () => `<h3>${esc(t('set_look'))}</h3>
-      <label class="field"><span>${esc(t('theme'))}</span>${ML.ui.sel('set-theme', ['auto', 'sorcerer', 'sanctuary', 'netrunner', 'arcade', 'fog'].map(v => [v, t('th_' + v)]), S.theme)}</label>
+      <label class="field"><span>${esc(t('theme'))}</span>${ML.ui.sel('set-theme', ['auto', 'observatory', 'sorcerer', 'sanctuary', 'abyss', 'netrunner', 'neoncity', 'arcade', 'fog'].map(v => [v, t('th_' + v)]), S.theme)}</label>
       <p class="hint">${esc(t('th_hint'))}</p>
-      ${ML.ui.chk('set-nightfog', t('opt_nightfog'), S.nightFog)}
+      <label class="field"><span>${esc(t('daynight'))}</span>${ML.ui.sel('set-daynight', ['auto', 'day', 'night'].map(v => [v, t('dn_' + v)]), S.dayNight || 'auto')}</label>
       ${ML.ui.chk('set-sfx', t('opt_sfx'), S.game.sfx)}`,
     bind: r => {
       r.querySelector('#set-theme').onchange = e => { S.theme = e.target.value; save(); applyTheme(); };
-      r.querySelector('#set-nightfog').onchange = e => { S.nightFog = e.target.checked; save(); applyTheme(); };
+      r.querySelector('#set-daynight').onchange = e => { S.dayNight = e.target.value; save(); applyTheme(); };
       r.querySelector('#set-sfx').onchange = e => { S.game.sfx = e.target.checked; save(); };
     },
   });
@@ -355,7 +381,7 @@
     const cv = $('fx'), cx = cv.getContext('2d');
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const GLYPHS = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>/{}';
-    let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], shoot = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
+    let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], jellies = [], city = [], shoot = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
     function size() {
       const d = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
       cv.width = W * d; cv.height = H * d; cv.style.width = W + 'px'; cv.style.height = H + 'px'; cx.setTransform(d, 0, 0, d, 0, 0);
@@ -364,6 +390,10 @@
       flies = Array.from({ length: Math.round(W * H / 26000) + 6 }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: 0, vy: 0, p: Math.random() * 6.28, s: 0.6 + Math.random() * 0.8 }));
       stars = Array.from({ length: Math.round(W * H / 9000) }, () => ({ x: Math.floor(Math.random() * W / 4) * 4, y: Math.floor(Math.random() * H / 4) * 4, s: Math.random() < 0.15 ? 4 : 2, p: Math.floor(Math.random() * 8) }));
       drops = Array.from({ length: Math.max(6, Math.round(W / 70)) }, () => ({ x: Math.floor(Math.random() * W / 14) * 14, y: Math.random() * H, v: 0.6 + Math.random() * 1.4, n: 4 + Math.floor(Math.random() * 10) }));
+      jellies = Array.from({ length: Math.max(3, Math.round(W / 320)) }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, s: 14 + Math.random() * 16, v: 0.12 + Math.random() * 0.18, p: Math.random() * 6.28, c: i % 2 }));
+      // Neon city skyline: buildings with a few lit windows, drawn in front of the striped sun
+      const hz = H * 0.66; city = []; let bx = -10;
+      while (bx < W + 10) { const w = 24 + Math.random() * 46, h = 30 + Math.random() * H * 0.22, wins = []; for (let y = hz - h + 8; y < hz - 6; y += 9) for (let x = bx + 5; x < bx + w - 5; x += 8) if (Math.random() < 0.18) wins.push([x, y, Math.random() < 0.5]); city.push({ x: bx, w, h, wins }); bx += w + 2 + Math.random() * 6; }
     }
     function reset() {
       const cs = getComputedStyle(document.documentElement);
@@ -397,6 +427,65 @@
           glow(f.x, f.y, 9 * f.s, colors[0], 0.35 * pulse);
           cx.globalAlpha = 0.9 * pulse; cx.fillStyle = colors[0]; cx.fillRect(f.x - 1, f.y - 1, 2, 2); cx.globalAlpha = 1;
         }
+      } else if (th === 'observatory') {
+        // Warm sun, slow light shafts, golden dust, and a brass orrery turning in the corner
+        glow(W * 0.92, H * 0.02, Math.max(W, H) * 0.5, 'rgba(255,200,120,1)', 0.12);
+        cx.save(); cx.translate(W * 0.95, -H * 0.05); cx.rotate(0.62 + (still ? 0 : Math.sin(tm / 9000) * 0.03));
+        [[-60, 70, 0.05], [60, 40, 0.04], [150, 90, 0.03]].forEach(([o, w, a]) => { const g = cx.createLinearGradient(0, 0, 0, H * 1.3); g.addColorStop(0, `rgba(255,214,150,${a})`); g.addColorStop(1, 'rgba(255,214,150,0)'); cx.fillStyle = g; cx.fillRect(o, 0, w, H * 1.3); });
+        cx.restore();
+        for (const q of parts) {
+          if (!still) { q.y -= q.v * 0.25; q.x += Math.sin(tm / 4000 + q.p) * 0.15; if (q.y < -4) { q.y = H + 4; q.x = Math.random() * W; } }
+          cx.globalAlpha = 0.12 + 0.3 * (still ? 0.5 : (Math.sin(tm / 1700 + q.p) + 1) / 2); cx.fillStyle = q.c ? colors[0] : '#fff1d6';
+          cx.beginPath(); cx.arc(q.x, q.y, q.r, 0, 6.29); cx.fill();
+        }
+        const ox = W * 0.08, oy = H * 0.9, R = Math.min(W, H) * 0.32, a0 = still ? 0 : tm / 1000;
+        cx.globalAlpha = 0.16; cx.strokeStyle = colors[0]; cx.lineWidth = 1;
+        [0.35, 0.6, 0.85, 1].forEach((f, i) => { cx.beginPath(); cx.ellipse(ox, oy, R * f, R * f * 0.92, 0.2, 0, 6.29); cx.stroke(); const ang = a0 * (0.05 / (i + 1)) + i * 1.7; cx.fillStyle = i % 2 ? colors[1] : colors[0]; cx.beginPath(); cx.arc(ox + Math.cos(ang) * R * f, oy + Math.sin(ang) * R * f * 0.92, 3 + i, 0, 6.29); cx.fill(); });
+        cx.globalAlpha = 0.25; cx.fillStyle = colors[0]; cx.beginPath(); cx.arc(ox, oy, 7, 0, 6.29); cx.fill();
+        cx.globalAlpha = 1;
+      } else if (th === 'abyss') {
+        // Deep sea: faint light from the surface, rising bubbles, bioluminescent jellyfish pulsing upward
+        glow(W * 0.5, -H * 0.1, Math.max(W, H) * 0.55, 'rgba(90,200,220,1)', 0.07);
+        for (const q of parts) {
+          if (!still) { q.y -= q.v * 1.4; if (q.y < -4) { q.y = H + 4; q.x = Math.random() * W; } }
+          cx.globalAlpha = 0.18; cx.strokeStyle = '#bff6ff'; cx.lineWidth = 0.8;
+          cx.beginPath(); cx.arc(q.x + Math.sin(tm / 1500 + q.p) * 4, q.y, q.r * 1.6, 0, 6.29); cx.stroke();
+        }
+        for (const j of jellies) {
+          const pulse = still ? 0.5 : (Math.sin(tm / 900 + j.p) + 1) / 2;
+          if (!still) { j.y -= j.v * (0.4 + pulse); j.x += Math.sin(tm / 5000 + j.p) * 0.12; if (j.y < -j.s * 4) { j.y = H + j.s * 2; j.x = Math.random() * W; } }
+          const col = j.c ? colors[1] : colors[0], s = j.s, w = s * (0.9 + 0.15 * pulse), h = s * (0.75 - 0.12 * pulse);
+          glow(j.x, j.y, s * 2.4, col, 0.12);
+          cx.globalAlpha = 0.32; cx.fillStyle = col; cx.beginPath(); cx.ellipse(j.x, j.y, w, h, 0, Math.PI, 0); cx.closePath(); cx.fill();
+          cx.globalAlpha = 0.28; cx.strokeStyle = col; cx.lineWidth = 1.1;
+          for (let k = 0; k < 4; k++) {
+            const tx = j.x - w * 0.6 + k * w * 0.4; cx.beginPath(); cx.moveTo(tx, j.y);
+            for (let d = 1; d <= 6; d++) cx.lineTo(tx + Math.sin(tm / 600 + j.p + d * 0.9 + k) * 2.4, j.y + d * s * 0.32);
+            cx.stroke();
+          }
+        }
+        cx.globalAlpha = 1;
+      } else if (th === 'neoncity') {
+        // Synthwave night: striped sun on the horizon, a skyline, and a perspective grid rolling toward you
+        const hz = H * 0.66, sr = Math.min(W, H) * 0.2, sx = W * 0.5;
+        const sg = cx.createLinearGradient(0, hz - sr, 0, hz); sg.addColorStop(0, '#ffcf5a'); sg.addColorStop(0.55, colors[1]); sg.addColorStop(1, colors[0]);
+        glow(sx, hz - sr * 0.4, sr * 2.6, colors[0], 0.16);
+        cx.globalAlpha = 0.34; cx.fillStyle = sg; cx.beginPath(); cx.arc(sx, hz, sr, Math.PI, 0); cx.fill();
+        cx.globalCompositeOperation = 'destination-out'; cx.globalAlpha = 1;
+        for (let i = 0; i < 6; i++) { const y = hz - sr * 0.08 - i * sr * 0.11, hh = Math.max(1, 5 - i * 0.7); cx.fillRect(sx - sr, y - hh, sr * 2, hh); }
+        cx.globalCompositeOperation = 'source-over';
+        for (const b of city) {
+          cx.globalAlpha = 0.9; cx.fillStyle = '#0b0418'; cx.fillRect(b.x, hz - b.h, b.w, b.h);
+          cx.globalAlpha = 0.25; cx.strokeStyle = colors[0]; cx.lineWidth = 0.6; cx.strokeRect(b.x + 0.5, hz - b.h + 0.5, b.w - 1, b.h);
+          for (const [x, y, warm] of b.wins) { cx.globalAlpha = 0.3; cx.fillStyle = warm ? colors[1] : '#7ef3ff'; cx.fillRect(x, y, 3, 4); }
+        }
+        cx.globalAlpha = 0.28; cx.strokeStyle = colors[0]; cx.lineWidth = 1;
+        cx.beginPath(); cx.moveTo(0, hz); cx.lineTo(W, hz); cx.stroke();
+        const off = still ? 0 : (tm / 1600) % 1;
+        for (let i = 0; i < 14; i++) { const f = Math.pow((i + off) / 14, 2.2), y = hz + f * (H - hz); cx.globalAlpha = 0.08 + 0.25 * f; cx.beginPath(); cx.moveTo(0, y); cx.lineTo(W, y); cx.stroke(); }
+        cx.globalAlpha = 0.18;
+        for (let i = -12; i <= 12; i++) { cx.beginPath(); cx.moveTo(sx + i * 6, hz); cx.lineTo(sx + i * W * 0.14, H); cx.stroke(); }
+        cx.globalAlpha = 1;
       } else if (th === 'arcade') {
         // Pixel starfield that twinkles in steps, plus the odd shooting pixel
         const step = still ? 0 : Math.floor(tm / 220);
