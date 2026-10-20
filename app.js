@@ -958,9 +958,15 @@
     ML.applyI18n(); if (ML.applyTheme) ML.applyTheme();
     renderAll(); emit('timer');
   };
+  // Another tab or the mini popup saved: take its copy. If this tab has a change waiting to be saved,
+  // merge the two instead of replacing, so neither side's change is lost.
   addEventListener('storage', e => {
     if (e.key !== ML.storageKey() || !e.newValue) return;
-    try { ML.applyRemote(JSON.parse(e.newValue)); } catch (err) {}
+    let incoming; try { incoming = JSON.parse(e.newValue); } catch (err) { return; }
+    if (ML.savePending && ML.savePending() && ML.auth && ML.auth.merge3) {
+      const merged = ML.auth.merge3(undefined, JSON.parse(JSON.stringify(S)), incoming, true, '');
+      ML.applyRemote(merged); ML.saveNow();
+    } else ML.applyRemote(incoming);
   });
 
   /* ---------- Render + day change ---------- */

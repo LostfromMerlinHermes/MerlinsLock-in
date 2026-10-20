@@ -18,6 +18,7 @@
       set_account: 'Compte', acc_signed: 'Connecté : {email}', acc_guest: 'Tu utilises l’app sans compte : tes données restent sur cet appareil.',
       acc_sync_now: 'Synchroniser maintenant', acc_logout: 'Se déconnecter', acc_login: 'Se connecter / créer un compte', acc_last: 'Dernière synchro : {when}', acc_never: 'jamais',
       acc_delete: 'Supprimer mon compte', acc_deleted: 'Compte supprimé. Toutes tes données en ligne ont été effacées.', del_missing: 'La suppression de compte n’est pas encore activée sur le serveur. Contacte l’éditeur.',
+      acc_conflict: '(copie de conflit)', acc_stale: 'Synchro impossible depuis un moment : tes changements restent sur cet appareil et partiront dès que la connexion au compte revient.',
       acc_guard: 'Synchro : une des deux copies avait perdu presque tout son contenu. Les deux ont été fusionnées pour ne rien perdre.',
       acc_synced: 'Synchronisé', acc_sync_err: 'Synchro impossible pour l’instant. On réessaie bientôt.', acc_wipe: 'Effacer mes données du cloud', acc_wiped: 'Données du cloud effacées.',
       import_h: 'Importer la progression de cet appareil ?', import_p: 'Cet appareil a déjà des tâches, de l’XP et des sessions sans compte. Tu peux les mettre dans ton compte.',
@@ -35,6 +36,7 @@
       set_account: 'Account', acc_signed: 'Signed in: {email}', acc_guest: "You're using the app without an account: your data stays on this device.",
       acc_sync_now: 'Sync now', acc_logout: 'Sign out', acc_login: 'Sign in / create account', acc_last: 'Last sync: {when}', acc_never: 'never',
       acc_delete: 'Delete my account', acc_deleted: 'Account deleted. All your online data was erased.', del_missing: 'Account deletion is not enabled on the server yet. Contact the publisher.',
+      acc_conflict: '(conflict copy)', acc_stale: "Sync hasn't worked for a while: your changes stay on this device and will go up as soon as the account connection is back.",
       acc_guard: 'Sync: one of the two copies had lost almost everything. Both were merged so nothing is lost.',
       acc_synced: 'Synced', acc_sync_err: "Can't sync right now. Retrying soon.", acc_wipe: 'Delete my cloud data', acc_wiped: 'Cloud data deleted.',
       import_h: "Import this device's progress?", import_p: 'This device already has tasks, XP and sessions without an account. You can move them into your account.',
@@ -143,7 +145,9 @@
         const keys = [...new Set([...L.map(keyOf), ...R.map(keyOf)])];
         keys.forEach(k => {
           const inL = ml.has(k), inR = mr.has(k), inB = mb.has(k);
-          if (inL && inR) out.push(merge3(mb.get(k), ml.get(k), mr.get(k), localWins, path));
+          // Items that carry an edit time (notes pages…): on a conflict, the most recently edited side wins
+          const lu = inL && ml.get(k).updated, ru = inR && mr.get(k).updated;
+          if (inL && inR) out.push(merge3(mb.get(k), ml.get(k), mr.get(k), typeof lu === 'number' && typeof ru === 'number' ? lu >= ru : localWins, path));
           else if (inL) { if (!inB || !same(mb.get(k), ml.get(k))) out.push(ml.get(k)); } // deleted on R: drop unless edited on L
           else if (!inB || !same(mb.get(k), mr.get(k))) out.push(mr.get(k));
         });
@@ -157,6 +161,20 @@
     }
     return localWins ? L : R;
   }
+  // The same notebook page edited on two devices: the newer text stays in the page, the other one is
+  // kept as a separate "conflict copy" page, so no writing is ever lost
+  function rescueNotes(base, L, R, merged) {
+    const pages = d => (d && d.notes && d.notes.pages) || [];
+    const bm = new Map(pages(base).map(p => [p.id, p])), rm = new Map(pages(R).map(p => [p.id, p]));
+    pages(L).forEach(lp => {
+      const rp = rm.get(lp.id), bp = bm.get(lp.id); if (!rp || !merged.notes) return;
+      const bh = bp ? bp.html : null;
+      if (lp.html === rp.html || lp.html === bh || rp.html === bh) return; // not edited on both sides
+      const kept = merged.notes.pages.find(p => p.id === lp.id); if (!kept) return;
+      const loser = kept.html === lp.html ? rp : lp;
+      merged.notes.pages.push(Object.assign({}, loser, { id: lp.id + '-c' + Date.now().toString(36), date: null, title: (loser.title || '') + ' ' + t('acc_conflict'), updated: Date.now() }));
+    });
+  }
   const baseKey = () => 'mli-sync-base:' + user.id;
   const getBase = () => { try { return JSON.parse(localStorage.getItem(baseKey())); } catch (e) { return null; } };
   const setBase = d => { try { localStorage.setItem(baseKey(), JSON.stringify(d)); } catch (e) {} };
@@ -166,7 +184,7 @@
   // ready: a pull succeeded this session. Until then NOTHING is pushed: a device that starts offline, slowly,
   // or with wiped storage must never send its (possibly empty) copy over the cloud one.
   // noRow: the last pull proved the account has no cloud row yet (only then may we create it).
-  let remoteAt = null, syncing = null, ready = false, noRow = false;
+  let remoteAt = null, syncing = null, ready = false, noRow = false, staleWarned = false;
   // Rough size of a state, to spot a copy that lost most of its content
   const weight = d => !d ? 0 : ['tasks', 'sessions', 'parked', 'events', 'blocks'].reduce((a, k) => a + ((d[k] && d[k].length) || 0), 0)
     + ((d.notes && d.notes.pages && d.notes.pages.length) || 0) * 3 + ((d.sport && d.sport.workouts && d.sport.workouts.length) || 0) + Math.floor((+d.xp || 0) / 100);
@@ -214,6 +232,7 @@
         noRow = false;
         const rd = remote.data || {}, rAt = rd._savedAt || 0;
         remoteAt = rd._savedAt == null ? null : rAt;
+        ML.flushSave && ML.flushSave(); // a change made a split second ago must be part of the comparison
         const base = getBase();
         // Safety net: a cloud copy that lost most of what this device holds is never taken as "everything was deleted"
         const remoteWiped = !freshLocal && looksWiped(rd, S), localWiped = !freshLocal && looksWiped(S, rd);
@@ -223,13 +242,24 @@
           merged._savedAt = Date.now();
           applyData(merged); await push(false, true);
           toast(t('acc_guard'), { ms: 7000 });
-        } else if ((initial && freshLocal) || rAt === S._savedAt) { if (rAt !== S._savedAt) applyData(rd); setBase(rd); } // a device new to this account takes the cloud copy
+        } else if (freshLocal) {
+          // A device new to this account takes the cloud copy, plus anything done on it before this first sync
+          // (minus the example tasks a fresh install starts with)
+          const merged = JSON.parse(JSON.stringify(rd)); let added = 0;
+          const addMissing = (from, to, key) => { const have = new Set((to[key] || []).map(keyOf)); (from[key] || []).forEach(x => { if (!x.sample && keyOf(x) && !have.has(keyOf(x))) { (to[key] = to[key] || []).push(x); added++; } }); };
+          ['tasks', 'parked', 'events', 'blocks', 'sessions'].forEach(k => addMissing(S, merged, k));
+          if (S.notes && merged.notes) addMissing(S.notes, merged.notes, 'pages');
+          if ((+S.xp || 0) > (+merged.xp || 0)) { merged.xp = S.xp; added++; }
+          if (!added) { applyData(rd); setBase(rd); }
+          else { merged._savedAt = Date.now(); applyData(merged); await push(false, true); }
+        } else if (rAt === S._savedAt) setBase(rd);
         else {
           const localChanged = !base || S._savedAt !== base._savedAt, remoteChanged = !base || rAt !== base._savedAt;
           if (!remoteChanged) { if (localChanged) await push(false, true); }
           else if (!localChanged) { applyData(rd); setBase(rd); }
           else {
             const merged = merge3(base || undefined, JSON.parse(JSON.stringify(S)), rd, !!base && (S._savedAt || 0) > rAt, '');
+            rescueNotes(base, S, rd, merged);
             merged._savedAt = Date.now();
             applyData(merged);
             await push(false, true);
@@ -238,10 +268,14 @@
         lastSync = Date.now();
       }
       freshLocal = false;
+      try { localStorage.setItem('mli-sync-ok:' + user.id, String(Date.now())); } catch (e) {}
       renderStatus();
       return true;
     } catch (e) {
-      if (!initial && !e.net) toast(t('acc_sync_err'));
+      // Tell the user once if the account hasn't synced for a day (e.g. the Supabase project is paused)
+      let okAt = 0; try { okAt = +localStorage.getItem('mli-sync-ok:' + user.id) || 0; } catch (e2) {}
+      if (okAt && Date.now() - okAt > 864e5 && !staleWarned) { staleWarned = true; toast(t('acc_stale'), { ms: 9000 }); }
+      else if (!initial && !e.net) toast(t('acc_sync_err'));
       return false;
     }
   }
@@ -389,7 +423,7 @@
     try { if (localStorage.getItem(GUEST_FLAG) === '1') return 'guest'; } catch (e) {}
     return await showAuth();
   }
-  async function afterLoad() { if (user) { await syncNow(true); } }
+  async function afterLoad() { if (user) { if (ML.loadState && ML.loadState() === 'corrupt') freshLocal = true; await syncNow(true); } }
   async function logout() {
     try { if (pushT) await push(); } catch (e) {}
     try { await api('/auth/v1/logout', { method: 'POST', token: sess && sess.access_token }); } catch (e) {}
@@ -433,7 +467,7 @@
         try {
           clearTimeout(pushT); pushT = null;
           await api('/rest/v1/rpc/delete_my_account', { method: 'POST', body: {}, token: await token() });
-          try { localStorage.removeItem(ML.storageKey()); } catch (e) {}
+          try { [ML.storageKey(), 'mli-snaps:' + ML.storageKey(), 'mli-sync-base:' + user.id, 'mli-sync-ok:' + user.id].forEach(k => localStorage.removeItem(k)); } catch (e) {}
           writeSession(null); user = null; sess = null; ML.setStorageKey(null);
           toast(t('acc_deleted')); setTimeout(() => location.reload(), 1800);
         } catch (e) { toast(e.status === 404 ? t('del_missing') : errText(e)); }

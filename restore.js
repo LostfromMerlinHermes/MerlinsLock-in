@@ -28,6 +28,7 @@
   const meaningful = d => d && ((d.sessions && d.sessions.length) || (d.tasks && d.tasks.some(x => !x.sample)) || (+d.xp > 0) || (d.notes && d.notes.pages && d.notes.pages.length));
   function snapshot(reason = 'daily') {
     if (!meaningful(S)) return;
+    if (JSON.stringify(S).length > 600000) return; // very large data: keep the space for the live copy
     let list = readSnaps();
     if (reason === 'daily' && list.some(s => s.reason === 'daily' && s.day === ML.today())) return;
     list.push({ at: Date.now(), day: ML.today(), reason, data: JSON.parse(JSON.stringify(S)) });

@@ -59,12 +59,21 @@ window.ML = (() => {
   const defaultFns = [];
   const S = {};
   function makeDefaults() { const d = {}; defaultFns.forEach(fn => Object.assign(d, fn())); return d; }
+  let loadState = 'ok'; // 'ok' | 'corrupt' (the saved copy couldn't be read: this device starts like a new one)
   function load() {
     let data = null;
+    let raw = null;
+    loadState = 'ok';
     try {
-      const raw = localStorage.getItem(KEY);
+      raw = localStorage.getItem(KEY);
       if (!raw && KEY !== GUEST_KEY) { replaceState({}); return; } // a new account starts fresh
-      if (raw) data = JSON.parse(raw);
+      if (raw) {
+        try { data = JSON.parse(raw); }
+        catch (e) { // unreadable save: keep the raw text aside (never overwrite it) and start from the restore points / cloud
+          try { localStorage.setItem('mli-corrupt:' + KEY + ':' + Date.now(), raw); } catch (e2) {}
+          data = null; loadState = 'corrupt';
+        }
+      }
       else {
         const old = localStorage.getItem(OLD_KEY);
         if (old) {
@@ -93,12 +102,20 @@ window.ML = (() => {
     saveT = setTimeout(saveNow, 120);
   }
   function saveNow() {
-    clearTimeout(saveT);
+    clearTimeout(saveT); saveT = null;
     if (S.sessions && S.sessions.length > 4000) S.sessions = S.sessions.slice(-4000);
     S._savedAt = Date.now();
-    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+    const json = JSON.stringify(S);
+    if (!writeMain(json)) {
+      // Storage full: free the space used by restore points and old copies, then try again. The live data comes first.
+      try { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k && (k.startsWith('mli-snaps:') || k.startsWith('mli-corrupt:'))) localStorage.removeItem(k); } } catch (e) {}
+      if (!writeMain(json)) { emit('save-failed'); return; }
+    }
     emit('saved');
   }
+  function writeMain(json) { try { localStorage.setItem(KEY, json); return localStorage.getItem(KEY) === json; } catch (e) { return false; } }
+  // Write now if a save is waiting (used before syncing, so a change made a split second earlier is never skipped)
+  function flushSave() { if (saveT) saveNow(); }
   addEventListener('pagehide', saveNow);
 
   /* ---------- Event bus ---------- */
@@ -153,7 +170,7 @@ window.ML = (() => {
   return {
     $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon, isTyping,
     addStrings, t, tn, locale, applyI18n,
-    defaults: fn => defaultFns.push(fn), load, replaceState, save, saveNow,
+    defaults: fn => defaultFns.push(fn), load, loadState: () => loadState, replaceState, save, saveNow, flushSave, savePending: () => !!saveT,
     on, emit, toast, armedButton, bgSend,
   };
 })();
