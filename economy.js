@@ -35,6 +35,11 @@
       burst_sakura: 'Pétales de sakura', burst_sakura_d: 'Une pluie de fleurs de cerisier, très zen.',
       pot_midas: 'Potion de Midas', pot_midas_d: 'Double l’or gagné sur tes 100 prochains XP.', midas_on: 'Midas actif : encore {n} XP en or double',
       elixir_on: 'Élixir actif : +50 % sur la prochaine session', elixir_used: 'Élixir', seal_used: 'Un Sceau de série a protégé ta série d’hier.', in_stock: 'En stock : {n}',
+      cat_seq: 'Costumes de Séquence', seq_hint: 'Chaque Séquence atteinte débloque un costume pour ton familier. Il est à toi pour toujours.', seq_reach: 'Atteins la Séquence {n}',
+      cs_none: 'Sans costume', cs_none_d: 'Ton familier au naturel.', cs_won: 'Costume débloqué : {name}', unequip: 'Retirer',
+      cs_seer_d: 'Foulard pourpre, pièces d’or et troisième œil.', cs_clown_d: 'Fraise, nez rouge et chapeau pointu.', cs_magician_d: 'Haut-de-forme, nœud papillon et cape.',
+      cs_faceless_d: 'Un masque lisse. Qui est vraiment derrière ?', cs_marionettist_d: 'Une croix de bois et des fils invisibles.', cs_bizarro_d: 'Diadème d’orbes et filaments violets.',
+      cs_scholar_d: 'Toque de savant et monocle d’or.', cs_miracle_d: 'Auréole dorée et rayons de lumière.', cs_attendant_d: 'Capuche grise, étoile d’or et brume.', cs_fool_d: 'Haut-de-forme étoilé, cape grise et brouillard.',
     },
     en: {
       shop: 'Shop', gold_n: '{n} gold', buy: 'Buy', equip: 'Equip', equipped: 'Equipped', owned: 'owned', use: 'Use', not_enough: 'Not enough gold: you need {n} more ◈.',
@@ -66,14 +71,19 @@
       burst_sakura: 'Sakura petals', burst_sakura_d: 'A shower of cherry blossoms, very zen.',
       pot_midas: 'Midas potion', pot_midas_d: 'Doubles the gold earned on your next 100 XP.', midas_on: 'Midas active: {n} more XP at double gold',
       elixir_on: 'Elixir active: +50% on the next session', elixir_used: 'Elixir', seal_used: 'A Streak seal protected yesterday’s streak.', in_stock: 'In stock: {n}',
+      cat_seq: 'Sequence costumes', seq_hint: 'Every Sequence you reach unlocks a costume for your familiar. It’s yours forever.', seq_reach: 'Reach Sequence {n}',
+      cs_none: 'No costume', cs_none_d: 'Your familiar as it is.', cs_won: 'Costume unlocked: {name}', unequip: 'Remove',
+      cs_seer_d: 'Purple headscarf, gold coins and a third eye.', cs_clown_d: 'Ruff, red nose and pointy hat.', cs_magician_d: 'Top hat, bow tie and cape.',
+      cs_faceless_d: 'A smooth mask. Who is really behind it?', cs_marionettist_d: 'A wooden cross and invisible strings.', cs_bizarro_d: 'A circlet of orbs and violet tendrils.',
+      cs_scholar_d: 'Scholar’s cap and golden monocle.', cs_miracle_d: 'Golden halo and rays of light.', cs_attendant_d: 'Gray hood, golden star and mist.', cs_fool_d: 'Starred top hat, gray cape and fog.',
     },
   });
 
   ML.defaults(() => ({
     econ: {
       gold: 0,
-      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'] },
-      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic' },
+      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [] },
+      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none' },
       potions: { seal: 0, elixir: 0, scroll: 0 }, elixir: false, frozen: [], lastCheck: null,
     },
   }));
@@ -91,7 +101,26 @@
   const OWNER_GIFTS = { familiar: ['hippo'] };
   const premOnly = (cat, k) => (PREMIUM_ONLY[cat] || []).includes(k);
   // Categories added after launch: older saves lack them (nested defaults only merge one level deep)
-  function migrate() { const E = S.econ; if (!E) return; if (!E.owned.skin) E.owned.skin = ['classic']; if (!E.equip.skin) E.equip.skin = 'classic'; }
+  function migrate() {
+    const E = S.econ; if (!E) return;
+    if (!E.owned.skin) E.owned.skin = ['classic']; if (!E.equip.skin) E.equip.skin = 'classic';
+    if (!Array.isArray(E.owned.costume)) E.owned.costume = []; if (!E.equip.costume) E.equip.costume = 'none';
+  }
+
+  /* ---------- Sequence costumes: earned by reaching each Sequence, never lost ----------
+     Stored as a plain list of keys, which the sync merges as a union (an unlock on one device survives
+     whatever the other device did), and re-derived from XP so a costume can't go missing. */
+  const csName = k => (ML.SEQUENCES[ML.COSTUMES.indexOf(k)] || [0, k])[1];
+  function grantCostumes(announce) {
+    if (!S.econ || !ML.COSTUMES) return;
+    migrate();
+    const i = ML.seqInfo().i, have = S.econ.owned.costume, won = ML.COSTUMES.slice(0, i + 1).filter(k => !have.includes(k));
+    if (!won.length) return;
+    have.push(...won); save();
+    if (!announce) return;
+    const k = won[won.length - 1];
+    toast(t('cs_won', { name: csName(k) }), { ms: 8000, action: { label: t('equip'), fn: () => { S.econ.equip.costume = k; save(); applyCosmetics(); } } });
+  }
   function ownerGifts() {
     if (!S.econ || !(ML.isOwner && ML.isOwner())) return;
     let changed = false;
@@ -107,7 +136,7 @@
     setTimeout(() => ML.floater && ML.floater('+' + g + ' ◈', 'gold'), 250);
   });
   function renderGold() { const el = $('gold-chip'); if (el) { el.innerHTML = `<span>◈</span><b>${S.econ.gold.toLocaleString(ML.locale())}</b>`; el.title = t('gold_n', { n: S.econ.gold }); } }
-  $('gold-chip').onclick = () => { migrate(); ownerGifts(); renderShop(); ML.openOverlay('shop'); };
+  $('gold-chip').onclick = () => { migrate(); ownerGifts(); grantCostumes(false); renderShop(); ML.openOverlay('shop'); };
   ML.openShop = () => $('gold-chip').click();
 
   /* ---------- Cosmetics: hats (header logo), seal rings (timer), bursts (juice.js reads equip.burst) ---------- */
@@ -191,9 +220,21 @@
         ${cat === 'potion' ? `<small class="stock">${esc(t('in_stock', { n: E.potions[k] || 0 }))}${k === 'elixir' && E.elixir ? ' · ' + esc(t('elixir_on')) : ''}${k === 'midas' && E.midas > 0 ? ' · ' + esc(t('midas_on', { n: E.midas })) : ''}</small>` : ''}
         <div class="shop-btns">${btn}</div></div>`;
     }).join('')}</div>`;
+    // Sequence costumes first: earned ones show the familiar wearing them, the others a black silhouette
+    const seqTile = (k, i) => {
+      const own = k === 'none' || E.owned.costume.includes(k), eq = (E.equip.costume || 'none') === k;
+      const name = k === 'none' ? t('cs_none') : csName(k), num = 9 - i;
+      return `<div class="shop-item ${eq ? 'is-eq' : ''} ${own ? '' : 'locked'}">
+        ${k === 'none' ? '<span class="seq-num">&nbsp;</span>' : `<span class="seq-num">${esc(t('sequence'))} ${num}</span>`}
+        <div class="shop-prev">${ML.costumeSvg ? ML.costumeSvg(k === 'none' ? null : k) : ''}</div>
+        <b>${esc(name)}</b><small>${esc(own ? t('cs_' + k + '_d') : t('seq_reach', { n: num }))}</small>
+        <div class="shop-btns">${eq ? `<button type="button" class="small" disabled>${esc(t('equipped'))}</button>` : own ? `<button type="button" class="small" data-equip="costume:${k}">${esc(t('equip'))}</button>` : `<button type="button" class="small" disabled>🔒 ${esc(ML.SEQUENCES[i][0].toLocaleString(ML.locale()))} XP</button>`}</div></div>`;
+    };
     $('shop-body').innerHTML = `
       <div class="shop-gold"><span>◈</span><b>${E.gold.toLocaleString(ML.locale())}</b></div>
       <p class="hint">${esc(t('shop_hint'))}</p>
+      <h3>${esc(t('cat_seq'))}</h3><p class="hint">${esc(t('seq_hint'))}</p>
+      <div class="shop-grid seq-grid">${seqTile('none', -1)}${(ML.COSTUMES || []).map(seqTile).join('')}</div>
       ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('burst', 'cat_bursts')}${section('skin', 'cat_skins')}`;
   }
   $('shop-body').addEventListener('click', e => {
@@ -207,7 +248,9 @@
       else { E.owned[cat].push(k); E.equip[cat] = k; applyCosmetics(); }
       ML.sfx && ML.sfx('buy'); toast(t('bought', { name: label(cat, k) }));
     } else if (b.dataset.equip) {
-      const [cat, k] = b.dataset.equip.split(':'); E.equip[cat] = k; applyCosmetics();
+      const [cat, k] = b.dataset.equip.split(':');
+      if (cat === 'costume' ? k !== 'none' && !E.owned.costume.includes(k) : !E.owned[cat].includes(k)) return;
+      E.equip[cat] = k; applyCosmetics();
       if (cat === 'burst' && ML.burst) ML.burst(k === 'theme' ? document.documentElement.dataset.theme : k);
     } else if (b.dataset.use === 'elixir') {
       if (E.potions.elixir < 1) return; E.potions.elixir--; E.elixir = true; toast(t('elixir_on'));
@@ -222,7 +265,10 @@
     // People who earned XP before the shop existed get the matching gold once
     if (!S.econ.init) { S.econ.gold += Math.floor(S.xp / 4); S.econ.init = true; save(); }
     migrate(); ownerGifts(); checkSeal(); applyCosmetics(); renderGold();
+    setTimeout(() => grantCostumes(true), 3000); // after the title screen: people already high up get theirs, with a toast
   });
+  on('levelup', () => grantCostumes(true));
+  on('render', () => grantCostumes(false)); // XP that came in through a sync
   on('premium', ownerGifts);
   on('newday', checkSeal);
   ML.applyHat = applyHat;

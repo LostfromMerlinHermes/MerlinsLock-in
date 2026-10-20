@@ -876,6 +876,35 @@ html.deep-on body { overflow: hidden; }
 .fam-fox { --fb: #e0763c; --fbe: #fff1e0; --fbk: #2a1a10; }
 .fam-hippo { --fb: #8e84b0; --fbe: #e9b6c9; --fbk: #3a2f4f; } .fam-hippo .f-inner { fill: #e9b6c9; } .fam .f-tooth { fill: #fff8ec; }
 .fam-hippo .f-tail { stroke-width: 3; }
+/* Sequence costumes worn by the familiar (fixed colours: they're outfits, not theme parts) */
+.fam .cs-white { fill: #f6f1e7; } .fam .cs-red { fill: #e0434f; } .fam .cs-gold { fill: #f2c14e; } .fam .cs-black { fill: #17131f; stroke: #3a3150; stroke-width: .6; }
+.fam .cs-purple { fill: #6d3fb8; stroke: #a57bf0; stroke-width: .6; } .fam .cs-gem { fill: #7fe8ff; filter: drop-shadow(0 0 2px #7fe8ff); }
+.fam .cs-ruff { fill: #f6f1e7; stroke: #e0434f; stroke-width: .8; } .fam .cs-shine { fill: rgba(255, 255, 255, .7); }
+.fam .cs-cape-red { fill: #1b1424; stroke: #a8283a; stroke-width: 1.4; } .fam .cs-cape-gray { fill: #3c4050; stroke: #6b7186; stroke-width: .8; }
+.fam .cs-goldline { fill: none; stroke: #f2c14e; stroke-width: 1.6; }
+.fam .cs-mask { fill: #f2efe9; stroke: #c9c3b8; stroke-width: .6; } .fam .cs-slit { stroke: #17131f; stroke-width: 1.3; stroke-linecap: round; }
+.fam .cs-string { stroke: rgba(240, 232, 214, .75); stroke-width: .5; fill: none; } .fam .cs-wood { fill: #8a5a33; stroke: #5b3a1f; stroke-width: .5; }
+.fam .cs-tendril { fill: none; stroke: #b07bff; stroke-width: 1.4; stroke-linecap: round; opacity: .85; filter: drop-shadow(0 0 2px #b07bff); }
+.fam .cs-circlet { fill: none; stroke: #7a52c7; stroke-width: 1.8; } .fam .cs-orb { fill: #d3b3ff; filter: drop-shadow(0 0 2px #b07bff); }
+.fam.cos-bizarro .f-eye { fill: #b07bff; } .fam.cos-bizarro .f-eye.white { fill: #e6d6ff; }
+.fam .cs-glass { fill: rgba(200, 230, 255, .18); stroke: #f2c14e; stroke-width: 1.1; } .fam .cs-chain { fill: none; stroke: #f2c14e; stroke-width: .7; stroke-dasharray: 1.2 .8; }
+.fam .cs-rays path { fill: rgba(255, 214, 110, .35); } .fam .cs-halo { fill: none; stroke: #ffd66e; stroke-width: 1.8; filter: drop-shadow(0 0 3px #ffd66e); }
+.fam .cs-hood { fill: #4a4e5e; stroke: #2c2f3a; stroke-width: .8; } .fam .cs-hood-rim { fill: none; stroke: #6d7285; stroke-width: 1.6; }
+.fam .cs-fog ellipse { fill: rgba(205, 210, 225, .32); }
+.fam.cos-fool .f-eye:not(.white), .fam.cos-fool .f-pupil { fill: #f2c14e; }
+@media (prefers-reduced-motion: no-preference) {
+  .fam .cs-fog { animation: cs-drift 7s ease-in-out infinite alternate; }
+  .fam .cs-rays { animation: cs-spin 24s linear infinite; transform-box: fill-box; transform-origin: center; }
+  .fam .cs-twinkle, .fam .cs-orb { animation: cs-twinkle 2.2s ease-in-out infinite alternate; }
+}
+@keyframes cs-drift { to { translate: 4px 0; } }
+@keyframes cs-spin { to { rotate: 360deg; } }
+@keyframes cs-twinkle { from { opacity: .45; } to { opacity: 1; } }
+/* Shop: Sequence collection — not earned yet = a black, blurred silhouette */
+.seq-grid .shop-item.locked .shop-prev { filter: brightness(0) blur(1.3px) drop-shadow(0 0 2px var(--mist)); }
+.seq-grid .shop-item.locked b { color: var(--mist); }
+.seq-grid .seq-num { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .08em; color: var(--accent-2); text-transform: uppercase; }
+.seq-grid .shop-prev .fam { width: 72px; height: 72px; } .seq-grid .shop-prev { height: 78px; }
 
 /* Familiar personalities: idle quirks (individual transform properties, so they don't fight the stage scale) */
 .fam-owl.idle .f-all { animation: owl-tilt 7s ease-in-out infinite; }
@@ -1248,7 +1277,26 @@ html.deep-on body { overflow: hidden; }
 .rm-members li.st-focus i { background: var(--accent); box-shadow: 0 0 8px var(--accent); } .rm-members li.st-break i { background: var(--good); } .rm-members li.st-idle i { background: var(--mist); }
 .rm-members li span { margin-left: auto; font-size: 11px; color: var(--mist); } .rm-members li small { font-size: 10px; color: var(--accent-2); }
 @media (max-width: 440px) { .st-tools button span { font-size: 11px; } .st-tools button { flex-direction: column; gap: 2px; } }
-.st-sub { margin-bottom: 2px; }
+.st-sub { margin-bottom: 2px; grid-auto-flow: row; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); }
+/* Calculator (Study → Tools) */
+.ca { display: grid; gap: 8px; }
+.ca-screen { border: 1px solid var(--accent); border-radius: var(--radius); background: var(--soft); padding: 8px 10px; display: grid; gap: 2px; }
+.ca .ca-in { border: 0; background: transparent; padding: 2px 0; font-family: var(--f-mono); font-size: 20px; text-align: right; color: var(--text); box-shadow: none; width: 100%; }
+.ca .ca-in:focus { outline: none; box-shadow: none; }
+.ca-out { text-align: right; font-family: var(--f-mono); font-size: 15px; color: var(--accent); min-height: 1.3em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ca-err { color: var(--warn); font-family: var(--f-body); font-size: 13px; }
+.ca-fns { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.ca-fns button { padding: 6px 2px; font-size: 12.5px; font-family: var(--f-mono); background: var(--panel); border-color: var(--line); text-transform: none; letter-spacing: 0; }
+.ca-fns .ca-mode { color: var(--accent); border-color: var(--line-2); font-size: 11px; letter-spacing: .08em; }
+.ca-keys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.ca-keys button { padding: 12px 0; font-size: 18px; font-family: var(--f-mono); background: var(--panel); border-color: var(--line); text-transform: none; letter-spacing: 0; }
+.ca-keys button.op { color: var(--accent); background: var(--panel-2); }
+.ca-keys button.fx { color: var(--mist); }
+.ca-keys button.primary { background: var(--accent); border-color: var(--accent); color: var(--void); font-weight: 700; }
+.ca-hist ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; max-height: 180px; overflow-y: auto; }
+.ca-hist-head { display: flex; justify-content: space-between; align-items: center; }
+.ca-hist li button { width: 100%; display: flex; justify-content: space-between; gap: 10px; padding: 5px 8px; border: 1px solid var(--line); background: transparent; font-family: var(--f-mono); font-size: 12.5px; text-transform: none; letter-spacing: 0; text-align: left; }
+.ca-hist li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--mist); } .ca-hist li b { flex: none; color: var(--text); font-weight: 500; }
 .dc-entry { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--panel); }
 .dc-word { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; } .dc-word h3 { margin: 0; font-size: 18px; }
 .dc-sense ol { margin: 4px 0 0; padding-left: 20px; display: grid; gap: 6px; font-size: 13px; }

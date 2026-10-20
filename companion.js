@@ -104,17 +104,64 @@
       <rect class="f-tooth" x="26.5" y="35" width="2.6" height="3" rx=".6"/><rect class="f-tooth" x="34.9" y="35" width="2.6" height="3" rx=".6"/>`,
   };
   const HAT_POS = { owl: 'translate(20 -2)', cat: 'translate(20 -4)', raven: 'translate(26 -4)', fox: 'translate(20 -6)', hippo: 'translate(24 -2)' };
-  function familiarSvg(kind = species(), state = 'idle', st = 2, extra = '') {
+
+  /* ---------- Sequence costumes (one per Sequence, earned for good, worn by the familiar) ----------
+     Each costume is drawn once in a head-centred frame; ANCHOR places that frame on each species:
+     c = head centre, s = scale, top = top of the head, nose, neck, eyes [x, y, r], face = mask ellipse [cx, cy, rx, ry]. */
+  const COSTUMES = ['seer', 'clown', 'magician', 'faceless', 'marionettist', 'bizarro', 'scholar', 'miracle', 'attendant', 'fool'];
+  const ANCHOR = {
+    owl: { c: [32, 25], s: 1, top: -11, nose: [0, 7.5], neck: [0, 11], eyes: [[-8, 1, 7], [8, 1, 7]], face: [0, 1, 16, 9.5] },
+    cat: { c: [32, 26], s: 1, top: -12, nose: [0, 6.3], neck: [0, 13], eyes: [[-5, 1, 4], [5, 1, 4]], face: [0, 2, 11, 8.5] },
+    raven: { c: [38, 23], s: 0.8, top: -12.5, nose: [15, 2.5], neck: [-6, 11], eyes: [[2.5, -1.2, 4]], face: [2.5, -1, 7, 6.5] },
+    fox: { c: [32, 25], s: 1, top: -11, nose: [0, 7.5], neck: [0, 13], eyes: [[-6, 0, 3.4], [6, 0, 3.4]], face: [0, 1.5, 10.5, 7.5] },
+    hippo: { c: [32, 22], s: 1, top: -9.5, nose: [0, 7], neck: [0, 13], eyes: [[-6.5, -1.5, 3.4], [6.5, -1.5, 3.4]], face: [0, -1, 11, 6.5] },
+  };
+  const FOG = '<g class="cs-fog"><ellipse cx="18" cy="56" rx="14" ry="3.4"/><ellipse cx="46" cy="57" rx="15" ry="3.4"/><ellipse cx="32" cy="59.5" rx="24" ry="3"/></g>';
+  const cape = (A, cls, edge) => { const [x, y] = A.neck; return `<path class="${cls}" d="M${x - 7} ${y - 1} C${x - 18} ${y + 7} ${x - 20} ${y + 15} ${x - 17} ${y + 20} L${x + 17} ${y + 20} C${x + 20} ${y + 15} ${x + 18} ${y + 7} ${x + 7} ${y - 1} Z"/>${edge ? `<path class="${edge}" d="M${x - 17} ${y + 20} L${x + 17} ${y + 20}"/>` : ''}`; };
+  const topHat = (y, h, rot, band, star) => `<g transform="translate(0 ${y}) rotate(${rot})"><path class="cs-black" d="M-7 0 L-6 -${h} H6 L7 0 Z"/><rect class="${band}" x="-6.7" y="-4" width="13.4" height="2.6"/><ellipse class="cs-black" cx="0" cy="0.4" rx="11.5" ry="2.1"/>${star ? `<path class="cs-gold" d="M0 -${h - 3} l1 2.2 2.4 .2 -1.8 1.6 .6 2.4 -2.2 -1.3 -2.2 1.3 .6 -2.4 -1.8 -1.6 2.4 -.2 Z"/>` : ''}</g>`;
+  const monocle = A => { const [x, y, r] = A.eyes[A.eyes.length - 1]; return `<circle class="cs-glass" cx="${x}" cy="${y}" r="${r + 1.4}"/><path class="cs-chain" d="M${x + r * 0.7} ${y + r + 0.6} C${x + r + 3} ${y + 8} ${x + r + 2} ${y + 12} ${x + 4} ${A.neck[1] + 3}"/>`; };
+  // back: drawn behind the body · front: over the face · ground: unscaled, at the familiar's feet · head: replaces the Elder hat
+  const COSTUME = {
+    seer: { head: true, front: A => { const y = A.top + 6; return `<path class="cs-purple" d="M-13 ${y + 1} C-12 ${y - 9} 12 ${y - 9} 13 ${y + 1} C6 ${y - 2} -6 ${y - 2} -13 ${y + 1} Z"/><path class="cs-purple" d="M12 ${y} L18 ${y + 8} L14.5 ${y + 9} Z"/>`
+      + [-9, -4.5, 0, 4.5, 9].map(x => `<circle class="cs-gold" cx="${x}" cy="${(y + 0.6 - Math.abs(x) * 0.08).toFixed(1)}" r="1.4"/>`).join('') + `<circle class="cs-gem" cx="0" cy="${y - 3.6}" r="1.7"/>`; } },
+    clown: { head: true, front: A => { const [x, y] = A.neck, [nx, ny] = A.nose; return [-4, -3, -2, -1, 0, 1, 2, 3, 4].map(j => `<circle class="cs-ruff" cx="${x + j * 3.1}" cy="${(y - Math.abs(j) * 0.5).toFixed(1)}" r="2.7"/>`).join('')
+      + `<circle class="cs-red" cx="${nx}" cy="${ny}" r="2.7"/><circle class="cs-shine" cx="${nx - 0.9}" cy="${ny - 0.9}" r=".8"/>`
+      + `<g transform="translate(5 ${A.top + 2}) rotate(18)"><path class="cs-red" d="M-5.5 0 L0 -13 L5.5 0 Z"/><circle class="cs-white" cx="0" cy="-13.4" r="2.2"/><circle class="cs-white" cx="-1.5" cy="-5" r="1"/><circle class="cs-white" cx="1.6" cy="-8.5" r="1"/></g>`; } },
+    magician: { head: true, back: A => cape(A, 'cs-cape-red'), front: A => { const [x, y] = A.neck; return topHat(A.top + 2, 11, -8, 'cs-red') + `<path class="cs-red" d="M${x} ${y} l-5 -3 v6 Z M${x} ${y} l5 -3 v6 Z"/><circle class="cs-red" cx="${x}" cy="${y}" r="1.4"/>`; } },
+    faceless: { front: A => { const [cx, cy, rx, ry] = A.face; return `<ellipse class="cs-mask" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>` + A.eyes.map(([x, y]) => `<path class="cs-slit" d="M${x - 2.4} ${y} h4.8"/>`).join(''); } },
+    marionettist: { head: true, front: A => { const y = A.top - 15, ny = A.neck[1] + 4; return `<path class="cs-string" d="M-12 ${y + 2} L-16 ${ny} M12 ${y + 2} L16 ${ny} M0 ${y + 3} L0 ${A.top + 1}"/>`
+      + `<rect class="cs-wood" x="-14" y="${y}" width="28" height="3" rx="1.5"/><rect class="cs-wood" x="-1.5" y="${y - 6}" width="3" height="13" rx="1.5"/>`
+      + `<circle class="cs-gold" cx="-16" cy="${ny}" r="1.2"/><circle class="cs-gold" cx="16" cy="${ny}" r="1.2"/>`; } },
+    bizarro: { head: true, back: A => `<path class="cs-tendril" d="M-9 ${A.top + 5} c-7 -3 -3 -9 -9 -13 M9 ${A.top + 5} c7 -3 3 -9 9 -13 M0 ${A.top + 2} c-3 -5 3 -8 0 -14"/>`,
+      front: A => { const y = A.top + 5; return `<path class="cs-circlet" d="M-12.5 ${y + 1} Q0 ${y - 4} 12.5 ${y + 1}"/><circle class="cs-orb" cx="0" cy="${y - 1.6}" r="1.9"/><circle class="cs-orb" cx="-7.5" cy="${y - 0.4}" r="1.1"/><circle class="cs-orb" cx="7.5" cy="${y - 0.4}" r="1.1"/>`; } },
+    scholar: { head: true, front: A => `<g transform="translate(0 ${A.top + 2})"><path class="cs-black" d="M-8 0 v-4 h16 v4 Z"/><path class="cs-black" d="M-15 -5 L0 -10.5 L15 -5 L0 .5 Z"/><path class="cs-chain" d="M0 -5 L10 -3 v6"/><circle class="cs-gold" cx="10" cy="3.6" r="1.4"/></g>` + monocle(A) },
+    miracle: { head: true, back: A => `<g class="cs-rays">${Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6, c = Math.cos(a), s = Math.sin(a), q = Math.cos(a + 0.12), w = Math.sin(a + 0.12), q2 = Math.cos(a - 0.12), w2 = Math.sin(a - 0.12); return `<path d="M${(c * 12).toFixed(1)} ${(s * 12).toFixed(1)} L${(q * 24).toFixed(1)} ${(w * 24).toFixed(1)} L${(q2 * 24).toFixed(1)} ${(w2 * 24).toFixed(1)} Z"/>`; }).join('')}</g>`,
+      front: A => `<ellipse class="cs-halo" cx="0" cy="${A.top - 5}" rx="9.5" ry="2.6"/><path class="cs-gold cs-twinkle" d="M-17 ${A.top + 4} l1 -3 1 3 3 1 -3 1 -1 3 -1 -3 -3 -1 Z M16 ${A.top + 12} l.8 -2.4 .8 2.4 2.4 .8 -2.4 .8 -.8 2.4 -.8 -2.4 -2.4 -.8 Z"/>` },
+    attendant: { head: true, ground: FOG, back: A => `<path class="cs-hood" d="M-17 ${A.neck[1] + 4} C-19 ${A.top - 6} 19 ${A.top - 6} 17 ${A.neck[1] + 4} C20 ${A.neck[1] + 11} 18 ${A.neck[1] + 17} 15 ${A.neck[1] + 20} L-15 ${A.neck[1] + 20} C-18 ${A.neck[1] + 17} -20 ${A.neck[1] + 11} -17 ${A.neck[1] + 4} Z"/>`,
+      front: A => { const [x, y] = A.neck; return `<path class="cs-hood-rim" d="M-15.5 ${y + 3} C-17 ${A.top - 3} 17 ${A.top - 3} 15.5 ${y + 3}"/><path class="cs-gold" d="M${x} ${y - 2.5} l1.1 2.4 2.6 .3 -1.9 1.7 .5 2.6 -2.3 -1.3 -2.3 1.3 .5 -2.6 -1.9 -1.7 2.6 -.3 Z"/>`; } },
+    fool: { head: true, ground: FOG, back: A => cape(A, 'cs-cape-gray', 'cs-goldline'), front: A => topHat(A.top + 2, 14, -6, 'cs-gold', true) + monocle(A) },
+  };
+  ML.COSTUMES = COSTUMES;
+  function costumeSvg(kind, k, layer) {
+    const C = COSTUME[k], A = ANCHOR[kind]; if (!C || !A || !C[layer]) return '';
+    if (layer === 'ground') return C.ground;
+    return `<g class="cs cs-${layer}" transform="translate(${A.c[0]} ${A.c[1]}) scale(${A.s})">${C[layer](A)}</g>`;
+  }
+  const equippedCostume = () => { const k = S.econ && S.econ.equip.costume; return COSTUME[k] ? k : null; };
+
+  function familiarSvg(kind = species(), state = 'idle', st = 2, extra = '', costume = equippedCostume()) {
     if (!BODY[kind]) kind = 'owl';
-    return `<svg class="fam fam-${kind} ${state} st-${st} ${extra}" viewBox="-4 -14 72 78" aria-hidden="true">
-      <ellipse class="f-shadow" cx="32" cy="58" rx="16" ry="3"/>
-      <g class="f-all">${BODY[kind]}<g class="f-eyes">${EYES[kind]}</g>
-      ${st >= 3 ? `<g transform="${HAT_POS[kind]}"><path class="f-hat" d="M0 12 C3 8 5 4 10 0 C9 4 11 8 16 12 Z"/><path class="f-hatband" d="M1 11 H15"/></g>` : ''}</g>
+    const C = costume && COSTUME[costume];
+    return `<svg class="fam fam-${kind} ${state} st-${st} ${C ? 'cos-' + costume : ''} ${extra}" viewBox="-4 -14 72 78" aria-hidden="true">
+      <ellipse class="f-shadow" cx="32" cy="58" rx="16" ry="3"/>${C ? costumeSvg(kind, costume, 'ground') : ''}
+      <g class="f-all">${C ? costumeSvg(kind, costume, 'back') : ''}${BODY[kind]}<g class="f-eyes">${EYES[kind]}</g>
+      ${st >= 3 && !(C && C.head) ? `<g transform="${HAT_POS[kind]}"><path class="f-hat" d="M0 12 C3 8 5 4 10 0 C9 4 11 8 16 12 Z"/><path class="f-hatband" d="M1 11 H15"/></g>` : ''}${C ? costumeSvg(kind, costume, 'front') : ''}</g>
       <g class="f-zzz"><text x="46" y="8">z</text><text x="52" y="0">z</text><text x="58" y="-8">Z</text></g>
       <g class="f-spark"><path d="M8 6 l2 -6 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2 Z"/><path d="M52 14 l1.5 -4 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5 Z"/></g>
     </svg>`;
   }
-  ML.familiarSvg = (k, s) => familiarSvg(k, s, 2);
+  ML.familiarSvg = (k, s, costume = null) => familiarSvg(k, s, 2, '', costume); // shop previews: bare unless a costume is asked for
+  ML.costumeSvg = k => familiarSvg(species(), 'idle', 2, '', k);
 
   /* ---------- Behaviour ---------- */
   let flash = null, flashT = null, line = null, lastActive = Date.now();

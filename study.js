@@ -13,7 +13,7 @@
       st_f_search: 'Recherche intégrée : résumés Wikipédia directement dans l’app, à envoyer dans ton Carnet.',
       st_f_translate: 'Traducteur : traduis un mot ou un paragraphe, écoute la prononciation, transforme-le en flashcard.',
       st_f_room: 'Salles d’étude : un minuteur partagé en direct avec tes amis, et tu vois qui est concentré.',
-      st_f_tools: 'Boîte à outils : dictionnaire, générateur de bibliographie (APA, MLA, ISO 690…), convertisseur d’unités, formules mathématiques dans le Carnet.',
+      st_f_tools: 'Boîte à outils : dictionnaire, générateur de bibliographie (APA, MLA, ISO 690…), convertisseur d’unités, calculatrice scientifique, formules mathématiques dans le Carnet.',
       st_locked_how: 'Déjà Premium ? Connecte-toi avec ton compte, la section se débloque toute seule.',
       fc_decks: 'Mes paquets', fc_new_deck_ph: 'Nom du paquet (ex. Anglais, Histoire…)', fc_create: 'Créer', fc_due: '{n} à revoir', fc_due_one: '{n} à revoir', fc_cards_n: '{n} cartes', fc_cards_n_one: '{n} carte',
       fc_review: 'Réviser', fc_open: 'Ouvrir', fc_none: 'Aucun paquet. Crée-en un pour commencer.', fc_back: '← Paquets', fc_front: 'Recto (question)', fc_backside: 'Verso (réponse)',
@@ -37,7 +37,7 @@
       st_f_search: 'Built-in search: Wikipedia summaries right in the app, ready to send to your Notebook.',
       st_f_translate: 'Translator: translate a word or a paragraph, hear it spoken, turn it into a flashcard.',
       st_f_room: 'Study rooms: a live timer shared with your friends, and you see who is focusing.',
-      st_f_tools: 'Toolbox: dictionary, bibliography generator (APA, MLA, ISO 690…), unit converter, math formulas in the Notebook.',
+      st_f_tools: 'Toolbox: dictionary, bibliography generator (APA, MLA, ISO 690…), unit converter, scientific calculator, math formulas in the Notebook.',
       st_locked_how: 'Already Premium? Sign in with your account and the section unlocks by itself.',
       fc_decks: 'My decks', fc_new_deck_ph: 'Deck name (e.g. Spanish, History…)', fc_create: 'Create', fc_due: '{n} due', fc_due_one: '{n} due', fc_cards_n: '{n} cards', fc_cards_n_one: '{n} card',
       fc_review: 'Review', fc_open: 'Open', fc_none: 'No decks yet. Create one to start.', fc_back: '← Decks', fc_front: 'Front (question)', fc_backside: 'Back (answer)',
@@ -68,6 +68,8 @@
       ct_bib: 'Ma bibliographie', ct_copy: 'Copier', ct_copy_all: 'Tout copier', ct_copied: 'Copié', ct_empty: 'Ta bibliographie est vide. Cherche une source ci-dessus.', ct_hint: 'Données : Crossref (articles, DOI) et Open Library (livres, ISBN). Vérifie toujours la référence avant de la rendre.',
       ct_online: 'en ligne', ct_seen: 'Consulté le {d}', ct_avail: 'Disponible à l’adresse',
       un_length: 'Longueur', un_mass: 'Masse', un_temp: 'Température', un_volume: 'Volume', un_area: 'Surface', un_speed: 'Vitesse', un_time: 'Durée', un_data: 'Données', un_energy: 'Énergie', un_pressure: 'Pression', un_all: 'Toutes les unités',
+      tl_calc: 'Calculatrice', ca_ph: 'Ex. 2(3+4)^2, sqrt(2), sin(30)…', ca_err: 'Expression invalide', ca_hist: 'Historique', ca_clear: 'Effacer l’historique',
+      ca_hint: 'Entrée = calculer · ↑ reprend le calcul précédent · la virgule marche comme le point · ans = dernier résultat.',
     },
     en: {
       tl_exams: 'Exams', ex_intro: 'Enter your exam date and how much revision you want: the app places spaced sessions (D-21, D-14, D-7, D-3, D-1…) in your Day view, and the exam in the Calendar.',
@@ -80,6 +82,8 @@
       ct_bib: 'My bibliography', ct_copy: 'Copy', ct_copy_all: 'Copy all', ct_copied: 'Copied', ct_empty: 'Your bibliography is empty. Search a source above.', ct_hint: 'Data: Crossref (articles, DOI) and Open Library (books, ISBN). Always check a reference before handing it in.',
       ct_online: 'online', ct_seen: 'Accessed {d}', ct_avail: 'Available at',
       un_length: 'Length', un_mass: 'Mass', un_temp: 'Temperature', un_volume: 'Volume', un_area: 'Area', un_speed: 'Speed', un_time: 'Time', un_data: 'Data', un_energy: 'Energy', un_pressure: 'Pressure', un_all: 'All units',
+      tl_calc: 'Calculator', ca_ph: 'E.g. 2(3+4)^2, sqrt(2), sin(30)…', ca_err: 'Invalid expression', ca_hist: 'History', ca_clear: 'Clear history',
+      ca_hint: 'Enter = calculate · ↑ brings back the previous calculation · a comma works as a decimal point · ans = last result.',
     },
   });
 
@@ -376,8 +380,8 @@
   /* ---------- Toolbox: dictionary, citations, unit converter ---------- */
   function toolsHtml() {
     const sub = ST().sub || 'dict';
-    return `<div class="seg-toggle st-sub" role="group">${['exams', 'dict', 'cite', 'units'].map(k => `<button type="button" data-stsub="${k}" aria-pressed="${sub === k}">${esc(t('tl_' + k))}</button>`).join('')}</div>
-      ${sub === 'cite' ? citeHtml() : sub === 'units' ? unitsHtml() : sub === 'exams' ? examsHtml() : dictHtml()}`;
+    return `<div class="seg-toggle st-sub" role="group">${['exams', 'dict', 'cite', 'units', 'calc'].map(k => `<button type="button" data-stsub="${k}" aria-pressed="${sub === k}">${esc(t('tl_' + k))}</button>`).join('')}</div>
+      ${sub === 'cite' ? citeHtml() : sub === 'units' ? unitsHtml() : sub === 'exams' ? examsHtml() : sub === 'calc' ? calcHtml() : dictHtml()}`;
   }
 
   // Exam planner: an exam date + hours of revision → spaced revision blocks in the Day planner and the exam in the calendar
@@ -613,8 +617,129 @@
     const a = $('un-all'); if (a) a.innerHTML = us.filter(u => u !== uFrom).map(u => `<li><span>${esc(u)}</span><b>${isNaN(v) ? '—' : fmtNum(convert(cat, v, uFrom, u))}</b></li>`).join('');
   }
 
+  // Scientific calculator. A small recursive-descent parser (extension pages forbid eval):
+  // + - * / ^ ! %, implicit multiplication (2π, 3(1+2), 2sin(30)), functions, π e ans, degrees or radians.
+  // Only the angle mode is saved; the history lives in memory for this session.
+  const FNS = {
+    sin: Math.sin, cos: Math.cos, tan: Math.tan, asin: Math.asin, acos: Math.acos, atan: Math.atan,
+    sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh, sqrt: Math.sqrt, cbrt: Math.cbrt, ln: Math.log, log: Math.log10,
+    exp: Math.exp, abs: Math.abs, floor: Math.floor, ceil: Math.ceil, round: Math.round,
+  };
+  const NAMES = [...Object.keys(FNS), 'pi', 'ans', 'e'].sort((a, b) => b.length - a.length);
+  function fact(n) { if (n < 0 || n !== Math.floor(n) || n > 170) return NaN; let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; }
+  function calc(src, deg, ans) {
+    const s = String(src).toLowerCase().replace(/\*\*/g, '^').replace(/×/g, '*').replace(/÷/g, '/').replace(/[−–]/g, '-').replace(/π/g, 'pi').replace(/√/g, 'sqrt').replace(/,/g, '.').replace(/\s+/g, '');
+    const toks = [];
+    for (let i = 0; i < s.length;) {
+      const num = /^(\d+\.?\d*|\.\d+)(e[+-]?\d+)?/.exec(s.slice(i));
+      if (num) { toks.push(+num[0]); i += num[0].length; continue; }
+      if ('+-*/^()!%'.includes(s[i])) { toks.push(s[i++]); continue; }
+      const name = NAMES.find(n => s.startsWith(n, i)); // letters split into known names: "2pisin" → 2 pi sin
+      if (!name) throw new Error('token');
+      toks.push(name); i += name.length;
+    }
+    if (!toks.length) throw new Error('empty');
+    let p = 0;
+    const peek = () => toks[p], startsValue = k => typeof k === 'number' || k === '(' || NAMES.includes(k);
+    const toRad = x => (deg ? x * Math.PI / 180 : x), fromRad = x => (deg ? x * 180 / Math.PI : x);
+    function expr() { let v = term(); while (peek() === '+' || peek() === '-') { const o = toks[p++], r = term(); v = o === '+' ? v + r : v - r; } return v; }
+    function term() {
+      let v = unary();
+      for (;;) {
+        const k = peek();
+        if (k === '*' || k === '/') { p++; const r = unary(); v = k === '*' ? v * r : v / r; }
+        else if (k !== undefined && startsValue(k)) v *= unary(); // implicit multiplication
+        else return v;
+      }
+    }
+    function unary() { if (peek() === '-') { p++; return -unary(); } if (peek() === '+') { p++; return unary(); } return power(); }
+    function power() { const b = postfix(); if (peek() === '^') { p++; return Math.pow(b, unary()); } return b; }
+    function postfix() { let v = primary(); while (peek() === '!' || peek() === '%') v = toks[p++] === '!' ? fact(v) : v / 100; return v; }
+    function primary() {
+      const k = toks[p++];
+      if (typeof k === 'number') return k;
+      if (k === '(') { const v = expr(); if (peek() === ')') p++; else if (p < toks.length) throw new Error('paren'); return v; } // a missing ")" at the end is forgiven
+      if (k === 'pi') return Math.PI;
+      if (k === 'e') return Math.E;
+      if (k === 'ans') return ans;
+      if (FNS[k]) {
+        const x = peek() === '(' ? primary() : postfix();
+        if (['sin', 'cos', 'tan'].includes(k)) return FNS[k](toRad(x));
+        if (['asin', 'acos', 'atan'].includes(k)) return fromRad(FNS[k](x));
+        return FNS[k](x);
+      }
+      throw new Error('syntax');
+    }
+    const v = expr();
+    if (p < toks.length) throw new Error('syntax');
+    return Math.abs(v) < 1e-13 ? 0 : +v.toPrecision(12); // sin(180°) gives 1.2e-16: show 0
+  }
+  ML.calc = calc;
+  let caExpr = '', caPos = 0, caAns = 0, caHist = [];
+  const caTry = src => { try { const v = calc(src, ST().calcDeg !== false, caAns); return isNaN(v) ? null : v; } catch (e) { return null; } };
+  const caFmt = v => (v === Infinity ? '∞' : v === -Infinity ? '−∞' : fmtNum(v));
+  const caPlain = v => String(v).replace('.', ML.locale().startsWith('fr') ? ',' : '.'); // back into the input, without digit grouping
+  const CA_FN = [['sin', 'sin('], ['cos', 'cos('], ['tan', 'tan('], ['sin⁻¹', 'asin('], ['cos⁻¹', 'acos('], ['tan⁻¹', 'atan('],
+    ['ln', 'ln('], ['log', 'log('], ['√', '√('], ['x²', '^2'], ['xʸ', '^'], ['n!', '!'], ['π', 'π'], ['e', 'e'], ['%', '%'], ['ans', 'ans']];
+  const CA_KEYS = ['AC', '(', ')', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', ',', '⌫', '='];
+  function calcHtml() {
+    const deg = ST().calcDeg !== false, prev = caTry(caExpr);
+    return `<div class="ca">
+      <div class="ca-screen">
+        <input type="text" id="ca-in" class="ca-in" value="${esc(caExpr)}" placeholder="${esc(t('ca_ph'))}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="none">
+        <div class="ca-out" id="ca-out">${prev == null || !caExpr ? '&nbsp;' : '= ' + esc(caFmt(prev))}</div>
+      </div>
+      <div class="ca-fns"><button type="button" class="ca-mode" data-camode aria-pressed="${deg}">${deg ? 'DEG' : 'RAD'}</button>${CA_FN.map(([l, ins]) => `<button type="button" data-cains="${esc(ins)}">${esc(l)}</button>`).join('')}</div>
+      <div class="ca-keys">${CA_KEYS.map(k => `<button type="button" data-cakey="${esc(k)}" class="${k === '=' ? 'primary' : /[÷×−+()]/.test(k) ? 'op' : k === 'AC' || k === '⌫' ? 'fx' : ''}">${esc(k)}</button>`).join('')}</div>
+      ${caHist.length ? `<div class="ca-hist"><div class="ca-hist-head"><span class="label">${esc(t('ca_hist'))}</span><button type="button" class="ghost small" data-caclear>${esc(t('ca_clear'))}</button></div>
+        <ul>${caHist.map((h, i) => `<li><button type="button" data-cahist="${i}"><span>${esc(h.expr)}</span><b>= ${esc(caFmt(h.v))}</b></button></li>`).join('')}</ul></div>` : ''}
+      <p class="hint">${esc(t('ca_hint'))}</p>
+    </div>`;
+  }
+  const fineMouse = () => matchMedia('(pointer: fine)').matches; // don't pop the phone keyboard for keypad taps
+  function caSet(v, pos = v.length) {
+    caExpr = v; caPos = pos; caJustEq = false;
+    const i = $('ca-in'); if (i) { i.value = v; if (fineMouse()) { i.focus(); i.setSelectionRange(pos, pos); } }
+    const o = $('ca-out'), r = caTry(v); if (o) o.innerHTML = r == null || !v ? '&nbsp;' : '= ' + esc(caFmt(r));
+  }
+  let caJustEq = false;
+  function caInsert(s) {
+    // Right after "=", an operator chains on the result; anything else starts a new calculation
+    if (caJustEq && !/^[÷×−+^!%)]/.test(s)) { caExpr = ''; caPos = 0; }
+    caJustEq = false;
+    caSet(caExpr.slice(0, caPos) + s + caExpr.slice(caPos), caPos + s.length);
+  }
+  function caEquals() {
+    if (!caExpr.trim()) return;
+    const v = caTry(caExpr);
+    if (v == null) { const o = $('ca-out'); if (o) o.innerHTML = `<span class="ca-err">${esc(t('ca_err'))}</span>`; return; }
+    caHist.unshift({ expr: caExpr, v }); caHist = caHist.slice(0, 12); caAns = v;
+    caExpr = caPlain(v); caPos = caExpr.length; renderTool(); caJustEq = true;
+    const i = $('ca-in'); if (i && fineMouse()) { i.focus(); i.setSelectionRange(caPos, caPos); }
+  }
+
   /* ---------- Events ---------- */
   const root = $('study');
+  root.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || ST().tool !== 'tools' || ST().sub !== 'calc') return;
+    if (b.dataset.cains != null) { caInsert(b.dataset.cains); return; }
+    if (b.hasAttribute('data-camode')) { ST().calcDeg = ST().calcDeg === false; save(); renderTool(); return; }
+    if (b.hasAttribute('data-caclear')) { caHist = []; renderTool(); return; }
+    if (b.dataset.cahist != null) { const h = caHist[+b.dataset.cahist]; if (h) caSet(h.expr); return; }
+    const k = b.dataset.cakey; if (!k) return;
+    if (k === '=') caEquals();
+    else if (k === 'AC') caSet('');
+    else if (k === '⌫') { if (caPos > 0) { caExpr = caExpr.slice(0, caPos - 1) + caExpr.slice(caPos); caSet(caExpr, caPos - 1); } }
+    else caInsert(k);
+  });
+  root.addEventListener('input', e => { if (e.target.id === 'ca-in') { caJustEq = false; caExpr = e.target.value; caPos = e.target.selectionStart; caSet(caExpr, caPos); } });
+  ['keyup', 'click', 'select'].forEach(ev => root.addEventListener(ev, e => { if (e.target.id === 'ca-in') caPos = e.target.selectionStart; }));
+  root.addEventListener('keydown', e => {
+    if (e.target.id !== 'ca-in') return;
+    if (e.key === 'Enter') { e.preventDefault(); caEquals(); }
+    else if (e.key === 'ArrowUp' && caHist.length) { e.preventDefault(); caSet(caHist[0].expr); }
+    else if (e.key === 'Escape') { e.preventDefault(); caSet(''); }
+  });
   root.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b || ST().tool !== 'tools') return;
     if (b.dataset.stsub) { ST().sub = b.dataset.stsub; save(); renderTool(); return; }
