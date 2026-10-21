@@ -181,7 +181,7 @@
         <div class="t-meta">
           ${isNext && !active ? `<span class="chip next-chip">${esc(t('next_up'))}</span>` : ''}
           ${extra.html || ''}
-          <span class="chip">${task.spent ? fmtMins(task.spent) + ' / ' : ''}${fmtMins(task.mins)}</span>
+          <span class="chip t-dur">${task.spent ? fmtMins(task.spent) + ' / ' : ''}${fmtMins(task.mins)}</span>
           <span class="chip p-${task.pri}">${esc(t('pri_' + task.pri))}</span>
           ${dueChip(task)}
           ${task.repeat ? `<span class="chip" title="${esc(t('repeat_' + task.repeat))}">↻ ${esc(t('repeat_' + task.repeat))}</span>` : ''}
@@ -537,6 +537,9 @@
     const btn = running() ? t('pause') : (rem < S.total ? t('resume') : (S.mode === 'focus' ? t('lock_in_big') : t('start_break')));
     $('start').textContent = btn; $('c-start').textContent = btn;
     document.title = running() ? fmtClock(rem) + ' · ' + (S.mode === 'focus' ? 'LockIN' : t('break')) : 'MerlinsLockIN';
+    // Global timer state for CSS and the animated backgrounds: idle | running (focus) | break | paused
+    const tState = running() ? (S.mode === 'focus' ? 'running' : 'break') : rem < S.total ? 'paused' : 'idle';
+    if (document.documentElement.dataset.timer !== tState) document.documentElement.dataset.timer = tState;
     renderFloat(rem);
     emit('tick', rem);
   }

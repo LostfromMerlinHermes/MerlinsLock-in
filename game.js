@@ -266,8 +266,8 @@
       dn_now_day: 'jour en ce moment', dn_now_night: 'nuit en ce moment',
       dn_light: 'Toujours clair', dn_autolight: 'Auto clair (clair le jour, nuit de 21h à 6h)',
       dn_title_light: 'Mode clair. Touche pour revenir en auto.', dn_title_autolight: 'Auto clair ({now}). Touche pour forcer le jour.',
-      light_premium_hint: 'Premium : un troisième univers, clair, pour chaque humeur (Aube, Atelier, Tokyo midi, Cartouche).',
-      th_light_aube: 'Aube', th_light_atelier: 'Atelier', th_light_tokyo: 'Tokyo midi', th_light_cartouche: 'Cartouche',
+      light_premium_hint: 'Premium : un troisième univers, clair, pour chaque humeur (Aube, Atelier, Salle blanche, Cartouche).',
+      th_light_aube: 'Aube', th_light_atelier: 'Atelier', th_light_tokyo: 'Salle blanche', th_light_cartouche: 'Cartouche',
     },
     en: {
       class_drained: 'Sanctuary hermit', class_steady: 'Cyber sorcerer', class_fired: 'Netrunner', class_scattered: '8-bit adventurer',
@@ -287,8 +287,8 @@
       dn_now_day: 'day right now', dn_now_night: 'night right now',
       dn_light: 'Always light', dn_autolight: 'Auto light (light by day, night from 9pm to 6am)',
       dn_title_light: 'Light mode. Tap to go back to auto.', dn_title_autolight: 'Auto light ({now}). Tap to force day.',
-      light_premium_hint: 'Premium: a third, light world for every mood (Dawn, Studio, Tokyo noon, Cartridge).',
-      th_light_aube: 'Dawn', th_light_atelier: 'Studio', th_light_tokyo: 'Tokyo noon', th_light_cartouche: 'Cartridge',
+      light_premium_hint: 'Premium: a third, light world for every mood (Dawn, Studio, Clean Room, Cartridge).',
+      th_light_aube: 'Dawn', th_light_atelier: 'Studio', th_light_tokyo: 'Clean Room', th_light_cartouche: 'Cartridge',
     },
   });
   ML.defaults(() => ({ dayNight: 'auto' })); // 'auto' (night 21h–6h) | 'day' | 'night'; kept per device (sync.js LOCAL_ONLY)
@@ -337,6 +337,14 @@
     if (S.theme !== 'auto') return S.theme;
     return (isNight() ? THEME_NIGHT : THEME_DAY)[S.mood] || 'sorcerer';
   }
+  // Salle blanche (Fired up, light): fixed technical metadata on the page edge, decorative and still
+  // (it only changes when the minute does). Shown by CSS for that theme on wide screens only.
+  const decoMeta = document.createElement('div');
+  decoMeta.className = 'deco-meta'; decoMeta.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(decoMeta);
+  const BARCODE = '<svg viewBox="0 0 64 14" width="64" height="14">' + [2, 1, 1, 3, 1, 2, 2, 1, 3, 1, 1, 2, 1, 1, 3, 2, 1, 1, 2, 3, 1, 1, 2, 1].reduce((a, w, i) => { if (i % 2 === 0) a.s += `<rect x="${a.x}" width="${w}" height="14"/>`; a.x += w; return a; }, { s: '', x: 0 }).s + '</svg>';
+  const renderDecoMeta = () => { const d = new Date(); decoMeta.innerHTML = `<span>SYS//ONLINE</span><span>NODE 07</span><span>${ML.pad2(d.getHours())}:${ML.pad2(d.getMinutes())}</span>${BARCODE}`; };
+  renderDecoMeta(); on('minute', renderDecoMeta);
   // The small sun / moon button at the end of the mood line: Auto → Day → Night → Auto
   const SUN = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>';
   const MOON = '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>';
@@ -387,6 +395,16 @@
     sfx(th === 'netrunner' ? 'level' : 'quest');
   }
   on('mood', () => { applyTheme(); renderBuff(); });
+  // Netrunner: one short RGB glitch on the digits when a focus session starts (CSS .glitch-in, cut by reduced motion)
+  let wasRunning = false;
+  on('timer', () => {
+    const r = ML.running() && S.mode === 'focus';
+    if (r && !wasRunning && document.documentElement.dataset.theme === 'netrunner' && !ML.reducedMotion()) {
+      const c = $('clock'); c.classList.remove('glitch-in'); void c.offsetWidth; c.classList.add('glitch-in');
+      setTimeout(() => c.classList.remove('glitch-in'), 200);
+    }
+    wasRunning = r;
+  });
   on('premium', applyTheme); // a Premium status that arrives after boot unlocks the light skins
   on('session', renderBuff);
   on('render', renderBuff);
@@ -407,13 +425,17 @@
 
   /* ---------- Background effects per theme ---------- */
   const FX = (() => {
-    const cv = $('fx'), cx = cv.getContext('2d');
+    const cv = $('fx'), ctx = cv.getContext('2d');
+    // ~30 fps painting: positions still update every animation frame (speeds are tuned per frame), but on
+    // every other frame the drawing calls go to NOP, a do-nothing stand-in for the canvas context
+    const NOP = new Proxy(function () {}, { get: () => NOP, apply: () => NOP, set: () => true });
+    let cx = ctx, lastPaint = 0;
     let still = ML.reducedMotion(); // reduced motion: one static frame, redrawn only on resize / theme change
     const GLYPHS = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>/{}';
     let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], jellies = [], city = [], shoot = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
     function size() {
       const d = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
-      cv.width = W * d; cv.height = H * d; cv.style.width = W + 'px'; cv.style.height = H + 'px'; cx.setTransform(d, 0, 0, d, 0, 0);
+      cv.width = W * d; cv.height = H * d; cv.style.width = W + 'px'; cv.style.height = H + 'px'; ctx.setTransform(d, 0, 0, d, 0, 0);
       parts = Array.from({ length: Math.round(W * H / 14000) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.2 + 0.3, v: Math.random() * 0.25 + 0.05, p: Math.random() * 6.28, c: Math.random() < 0.5 }));
       fog = Array.from({ length: 7 }, () => ({ x: Math.random() * W, y: Math.random() * H, r: (0.35 + Math.random() * 0.4) * Math.max(W, H), v: (Math.random() - 0.5) * 0.15, a: 0.04 + Math.random() * 0.05 }));
       flies = Array.from({ length: Math.round(W * H / 26000) + 6 }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: 0, vy: 0, p: Math.random() * 6.28, s: 0.6 + Math.random() * 0.8 }));
@@ -437,6 +459,9 @@
     function draw(tm) {
       raf = null; // set again below only while animating, so start() / the 'motion' event can restart the loop
       const th = document.documentElement.dataset.theme || 'sorcerer';
+      const paint = still || !tm || tm - lastPaint >= 31;
+      if (paint) lastPaint = tm;
+      cx = paint ? ctx : NOP;
       cx.clearRect(0, 0, W, H);
       if (th === 'fog') {
         glow(W * 0.85, H * 0.08, Math.max(W, H) * 0.35, 'rgba(196,56,74,0.9)', 0.14);
@@ -511,7 +536,7 @@
         }
         cx.globalAlpha = 0.28; cx.strokeStyle = colors[0]; cx.lineWidth = 1;
         cx.beginPath(); cx.moveTo(0, hz); cx.lineTo(W, hz); cx.stroke();
-        const off = still ? 0 : (tm / 1600) % 1;
+        const off = still ? 0 : (tm / 20000) % 1; // the floor rolls slowly toward you: one band every ~20 s
         for (let i = 0; i < 14; i++) { const f = Math.pow((i + off) / 14, 2.2), y = hz + f * (H - hz); cx.globalAlpha = 0.08 + 0.25 * f; cx.beginPath(); cx.moveTo(0, y); cx.lineTo(W, y); cx.stroke(); }
         cx.globalAlpha = 0.18;
         for (let i = -12; i <= 12; i++) { cx.beginPath(); cx.moveTo(sx + i * 6, hz); cx.lineTo(sx + i * W * 0.14, H); cx.stroke(); }
@@ -539,8 +564,9 @@
           for (const d of drops) {
             if (!still) { d.y += d.v; if (d.y - d.n * 14 > H) { d.y = -10; d.x = Math.floor(Math.random() * W / 14) * 14; } }
             for (let i = 0; i < d.n; i++) {
-              cx.globalAlpha = (1 - i / d.n) * (i === 0 ? 0.5 : 0.14);
-              cx.fillStyle = i === 0 ? '#dcf8ff' : colors[0];
+              // the head glyph used to be near-white at 50 %: a lone bright digit in a gap read like a stray UI label
+              cx.globalAlpha = (1 - i / d.n) * (i === 0 ? 0.3 : 0.14);
+              cx.fillStyle = colors[0];
               cx.fillText(GLYPHS[(Math.floor(d.y / 14) + i * 7 + d.x) % GLYPHS.length], d.x, d.y - i * 14);
             }
           }

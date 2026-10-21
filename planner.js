@@ -90,7 +90,7 @@
         <b>${esc(blockTitle(b))}</b><span>${hm(b.start)}–${hm(b.start + b.mins)} · ${fmtMins(b.mins)}</span><i class="pl-resize" data-resize="${b.id}"></i></div>`;
     };
     const nm = nowMins();
-    const nowLine = k === td && nm >= 0 ? `<div class="pl-now" style="top:${px(nm)}px"></div>` : '';
+    const nowLine = k === td && nm >= 0 ? `<div class="pl-now" style="top:${px(nm)}px" data-t="${hm(nm)}"></div>` : '';
     const past = k === td ? `<div class="pl-past" style="height:${clamp(px(nm), 0, H)}px"></div>` : k < td ? `<div class="pl-past" style="height:${H}px"></div>` : '';
     const allDay = evs.filter(o => o.start == null);
 
@@ -120,7 +120,7 @@
       ${allDay.length ? `<div class="pl-allday">${allDay.map(o => `<span class="chip" style="border-color:${ML.evColor(o.ev)};color:${ML.evColor(o.ev)}">${esc(o.ev.title)}</span>`).join('')}</div>` : ''}
       ${popover ? popoverHtml() : ''}
       <div class="pl-scroll" id="pl-scroll">
-        <div class="pl-grid" id="pl-grid" style="height:${H}px">${past}${hours}${items.map(itemHtml).join('')}${nowLine}</div>
+        <div class="pl-grid" id="pl-grid" style="height:${H}px;--hpx:${P.hourPx}px">${past}${hours}${items.map(itemHtml).join('')}${nowLine}</div>
       </div>
       <div class="pl-review g-card">
         <h2>${esc(t('review'))}</h2>
