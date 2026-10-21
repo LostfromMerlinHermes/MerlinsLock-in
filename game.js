@@ -124,6 +124,7 @@
       if (!Q.claimed.includes(id) && q.val(st) >= q.target) {
         Q.claimed.push(id); ML.addXp(q.xp); sfx('quest');
         toast(t('quest_done', { q: t(id), xp: q.xp }));
+        if (Q.claimed.length === Q.ids.length) emit('quests:clear'); // juice.js shows the "daily quests clear" banner
       }
     });
   }
@@ -197,7 +198,11 @@
     clearTimeout(luT); luT = setTimeout(() => { el.hidden = true; }, 3800);
   }
   $('levelup').onclick = () => { $('levelup').hidden = true; };
-  on('levelup', s => { showOverlay(t('new_seq'), t('sequence') + ' ' + s.num, s.name); checkAch(); });
+  // A new Sequence reached during a focus session is celebrated when the session ends, not in the middle of it
+  let luPending = null;
+  const celebrateSeq = s => showOverlay(t('new_seq'), t('sequence') + ' ' + s.num, s.name);
+  on('levelup', s => { if (ML.running() && S.mode === 'focus') luPending = s; else celebrateSeq(s); checkAch(); });
+  on('timer', () => { if (luPending && !(ML.running() && S.mode === 'focus')) { const s = luPending; luPending = null; setTimeout(() => celebrateSeq(s), 400); } });
 
   /* ---------- UI sound effects ---------- */
   let sctx = null;
@@ -266,8 +271,8 @@
       dn_now_day: 'jour en ce moment', dn_now_night: 'nuit en ce moment',
       dn_light: 'Toujours clair', dn_autolight: 'Auto clair (clair le jour, nuit de 21h à 6h)',
       dn_title_light: 'Mode clair. Touche pour revenir en auto.', dn_title_autolight: 'Auto clair ({now}). Touche pour forcer le jour.',
-      light_premium_hint: 'Premium : un troisième univers, clair, pour chaque humeur (Aube, Atelier, Salle blanche, Cartouche).',
-      th_light_aube: 'Aube', th_light_atelier: 'Atelier', th_light_tokyo: 'Salle blanche', th_light_cartouche: 'Cartouche',
+      light_premium_hint: 'Premium : un troisième univers, clair, pour chaque humeur (Washi, Codex, Salle blanche, Cartouche).',
+      th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Salle blanche', th_light_cartouche: 'Cartouche',
     },
     en: {
       class_drained: 'Sanctuary hermit', class_steady: 'Cyber sorcerer', class_fired: 'Netrunner', class_scattered: '8-bit adventurer',
@@ -287,8 +292,8 @@
       dn_now_day: 'day right now', dn_now_night: 'night right now',
       dn_light: 'Always light', dn_autolight: 'Auto light (light by day, night from 9pm to 6am)',
       dn_title_light: 'Light mode. Tap to go back to auto.', dn_title_autolight: 'Auto light ({now}). Tap to force day.',
-      light_premium_hint: 'Premium: a third, light world for every mood (Dawn, Studio, Clean Room, Cartridge).',
-      th_light_aube: 'Dawn', th_light_atelier: 'Studio', th_light_tokyo: 'Clean Room', th_light_cartouche: 'Cartridge',
+      light_premium_hint: 'Premium: a third, light world for every mood (Washi, Codex, Clean Room, Cartridge).',
+      th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Clean Room', th_light_cartouche: 'Cartridge',
     },
   });
   ML.defaults(() => ({ dayNight: 'auto' })); // 'auto' (night 21h–6h) | 'day' | 'night'; kept per device (sync.js LOCAL_ONLY)
@@ -380,7 +385,7 @@
     root.dataset.theme = th;
     if (light) root.dataset.light = light; else delete root.dataset.light;
     const meta = document.querySelector('meta[name=theme-color]');
-    if (meta) meta.content = light ? { sanctuary: '#f7f1ec', observatory: '#f3eee3', netrunner: '#eceef2', arcade: '#c6d29c' }[th]
+    if (meta) meta.content = light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#eceef2', arcade: '#c6d29c' }[th]
       : { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#120c24', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
     if (themed) playTransition(th);
     themed = true;
@@ -432,7 +437,7 @@
     let cx = ctx, lastPaint = 0;
     let still = ML.reducedMotion(); // reduced motion: one static frame, redrawn only on resize / theme change
     const GLYPHS = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>/{}';
-    let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], jellies = [], city = [], shoot = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
+    let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], jellies = [], twinkles = [], petals = [], consts = [], dust = [], embers = [], drawn = [], city = [], shoot = null, sky = null, nextSky = 0, hiGlyph = null, ptr = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
     function size() {
       const d = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
       cv.width = W * d; cv.height = H * d; cv.style.width = W + 'px'; cv.style.height = H + 'px'; ctx.setTransform(d, 0, 0, d, 0, 0);
@@ -441,7 +446,23 @@
       flies = Array.from({ length: Math.round(W * H / 26000) + 6 }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: 0, vy: 0, p: Math.random() * 6.28, s: 0.6 + Math.random() * 0.8 }));
       stars = Array.from({ length: Math.round(W * H / 9000) }, () => ({ x: Math.floor(Math.random() * W / 4) * 4, y: Math.floor(Math.random() * H / 4) * 4, s: Math.random() < 0.15 ? 4 : 2, p: Math.floor(Math.random() * 8) }));
       drops = Array.from({ length: Math.max(6, Math.round(W / 70)) }, () => ({ x: Math.floor(Math.random() * W / 14) * 14, y: Math.random() * H, v: 0.6 + Math.random() * 1.4, n: 4 + Math.floor(Math.random() * 10) }));
-      jellies = Array.from({ length: Math.max(3, Math.round(W / 320)) }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, s: 14 + Math.random() * 16, v: 0.12 + Math.random() * 0.18, p: Math.random() * 6.28, c: i % 2 }));
+      // each jellyfish beats on its own 4–6 s cycle (T, ms)
+      jellies = Array.from({ length: Math.max(3, Math.round(W / 320)) }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, s: 14 + Math.random() * 16, v: 0.1 + Math.random() * 0.12, p: Math.random() * 6.28, T: 4000 + Math.random() * 2000, c: i % 2 }));
+      // Sanctuary: a few faint stars in the upper sky, each twinkling on its own offset cycle
+      twinkles = Array.from({ length: Math.min(24, Math.round(W * H / 40000) + 8) }, () => ({ x: Math.random() * W, y: Math.random() * H * 0.55, r: 0.5 + Math.random() * 0.7, T: 3000 + Math.random() * 4000, p: Math.random() * 6.28 }));
+      // Washi: 6–10 sakura petals falling very slowly, swaying and turning
+      petals = Array.from({ length: W < 600 ? 6 : 9 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: 4 + Math.random() * 3, v: 0.12 + Math.random() * 0.12, p: Math.random() * 6.28, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.01 }));
+      // Cyber sorcerer: a few constellations (stars joined by pale lines), each fading in and out on its own 20–32 s cycle
+      consts = Array.from({ length: W < 600 ? 3 : 5 }, () => {
+        const cx0 = Math.random() * W, cy0 = Math.random() * H, R = 45 + Math.random() * 50, n = 4 + Math.floor(Math.random() * 4);
+        const pts = Array.from({ length: n }, () => [cx0 + (Math.random() - 0.5) * 2 * R, cy0 + (Math.random() - 0.5) * 2 * R * 0.7]);
+        const edges = pts.slice(1).map((_, i) => [i, i + 1]); if (n > 4) edges.push([1, n - 1]);
+        return { pts, edges, T: 20000 + Math.random() * 12000, p: Math.random() * 6.28 };
+      });
+      // Codex: golden dust motes drifting inside a slanted beam of light (u = position across the beam, 0–1)
+      dust = Array.from({ length: W < 600 ? 14 : 24 }, () => ({ u: Math.random(), y: Math.random() * H, r: 0.6 + Math.random() * 1.1, v: 0.04 + Math.random() * 0.08, p: Math.random() * 6.28 }));
+      // Gray fog: slow embers rising from two candles at the edges
+      embers = Array.from({ length: 10 }, (_, i) => ({ side: i % 2, x: 0, y: H + Math.random() * H * 0.4, v: 0.15 + Math.random() * 0.2, p: Math.random() * 6.28, r: 0.7 + Math.random() * 0.8 }));
       // Neon city skyline: buildings with a few lit windows, drawn in front of the striped sun
       const hz = H * 0.66; city = []; let bx = -10;
       while (bx < W + 10) { const w = 24 + Math.random() * 46, h = 30 + Math.random() * H * 0.22, wins = []; for (let y = hz - h + 8; y < hz - 6; y += 9) for (let x = bx + 5; x < bx + w - 5; x += 8) if (Math.random() < 0.18) wins.push([x, y, Math.random() < 0.5]); city.push({ x: bx, w, h, wins }); bx += w + 2 + Math.random() * 6; }
@@ -456,24 +477,95 @@
       g.addColorStop(0, color); g.addColorStop(1, 'rgba(0,0,0,0)');
       cx.globalAlpha = a; cx.fillStyle = g; cx.fillRect(x - r, y - r, r * 2, r * 2); cx.globalAlpha = 1;
     }
+    // Three states (step 6): at rest the decor runs at full speed; during a focus session it runs at 30 % (and the
+    // canvas is dimmed in CSS); in the last 10 s it holds still. A virtual clock (vt) drives every phase, and
+    // per-frame moves only happen on frames the accumulator allows (mv), so both slow down together.
+    let vt = 0, lastTm = 0, acc = 0;
+    // Rest effects (only while the timer isn't running): the pointer position (jellyfish keep their distance), rare
+    // shooting stars (one every 1–2 min), a rain glyph lighting up in magenta now and then
+    addEventListener('pointermove', e => { ptr = e.pointerType === 'mouse' ? [e.clientX, e.clientY] : null; }, { passive: true });
+    document.addEventListener('mouseleave', () => { ptr = null; });
+    const skyDue = (rest, now) => {
+      if (!rest) { nextSky = 0; return false; }
+      if (!nextSky) nextSky = now + 60000 + Math.random() * 60000;
+      if (now < nextSky) return false;
+      nextSky = now + 60000 + Math.random() * 60000; return true;
+    };
+    // Cyber sorcerer: a completed task draws a small constellation, line by line, which then fades (real time, ~4 s)
+    ML.fxConstellation = () => {
+      if (still || (document.documentElement.dataset.theme || 'sorcerer') !== 'sorcerer') return;
+      const x0 = W * (0.1 + Math.random() * 0.8), y0 = H * (0.1 + Math.random() * 0.5), n = 5 + Math.floor(Math.random() * 3);
+      const pts = Array.from({ length: n }, (_, i) => [x0 + Math.cos(i * 1.3 + Math.random()) * (30 + Math.random() * 50), y0 + Math.sin(i * 1.3 + Math.random()) * (20 + Math.random() * 35)]);
+      drawn.push({ pts, t0: performance.now() }); if (drawn.length > 3) drawn.shift();
+    };
     function draw(tm) {
       raf = null; // set again below only while animating, so start() / the 'motion' event can restart the loop
-      const th = document.documentElement.dataset.theme || 'sorcerer';
+      const root = document.documentElement, th = root.dataset.theme || 'sorcerer';
       const paint = still || !tm || tm - lastPaint >= 31;
       if (paint) lastPaint = tm;
+      const slow = root.classList.contains('t-final') ? 0 : root.dataset.timer === 'running' ? 0.3 : 1;
+      if (tm) { vt += lastTm ? Math.min(100, tm - lastTm) * slow : 0; lastTm = tm; tm = vt; }
+      acc += slow; const mv = !still && acc >= 1; if (acc >= 1) acc -= 1;
+      const rest = !still && slow === 1 && root.dataset.timer !== 'running', now = performance.now();
       cx = paint ? ctx : NOP;
       cx.clearRect(0, 0, W, H);
+      // Deep focus (step 6, item 61): its opaque scene covers the page, so the decor stops drawing altogether
+      const deepEl = $('deep');
+      if (deepEl && !deepEl.hidden) { if (!still) raf = requestAnimationFrame(draw); return; }
       if (th === 'fog') {
         glow(W * 0.85, H * 0.08, Math.max(W, H) * 0.35, 'rgba(196,56,74,0.9)', 0.14);
         for (const f of fog) {
-          if (!still) { f.x += f.v; if (f.x - f.r > W) f.x = -f.r; if (f.x + f.r < 0) f.x = W + f.r; }
+          if (mv) { f.x += f.v; if (f.x - f.r > W) f.x = -f.r; if (f.x + f.r < 0) f.x = W + f.r; }
           glow(f.x, f.y, f.r, 'rgba(170,170,180,1)', f.a);
         }
+        // Two candles at the sides, flickering gently, and slow embers rising from them
+        [W * 0.035, W * 0.965].forEach((x, i) => {
+          const y = H * 0.86, fl = still ? 1 : 0.85 + 0.1 * Math.sin(tm / 230 + i * 2) + 0.05 * Math.sin(tm / 97 + i);
+          glow(x, y - 10, 70 * fl, 'rgba(255,170,90,1)', 0.1 * fl);
+          cx.globalAlpha = 0.35; cx.fillStyle = '#d9cbb0'; cx.fillRect(x - 3, y, 6, 26);
+          cx.globalAlpha = 0.75 * fl; cx.fillStyle = '#ffcf8a';
+          cx.beginPath(); cx.ellipse(x + (still ? 0 : Math.sin(tm / 400 + i) * 0.6), y - 6, 2.4, 6 * fl, 0, 0, 6.29); cx.fill();
+        });
+        for (const e of embers) {
+          const bx = e.side ? W * 0.965 : W * 0.035;
+          if (mv) { e.y -= e.v; e.x = Math.sin(vt / 1800 + e.p) * 10; if (e.y < H * 0.35) { e.y = H * 0.86; } }
+          const life = Math.max(0, Math.min(1, (e.y - H * 0.35) / (H * 0.51)));
+          cx.globalAlpha = 0.5 * life; cx.fillStyle = '#ff9a5a'; cx.beginPath(); cx.arc(bx + e.x, e.y, e.r, 0, 6.29); cx.fill();
+        }
+        cx.globalAlpha = 1;
+      } else if (th === 'sanctuary' && document.documentElement.dataset.light) {
+        // Washi: a handful of sakura petals drifting down (the canvas is multiplied onto the paper)
+        for (const q of petals) {
+          if (mv) {
+            q.y += q.v; q.x += Math.sin(tm / 3200 + q.p) * 0.25 + 0.06; q.rot += q.vr;
+            if (q.y > H + 12) { q.y = -12; q.x = Math.random() * W; } if (q.x > W + 12) q.x = -12;
+          }
+          const s = q.s, flip = still ? 1 : 0.55 + 0.45 * Math.abs(Math.sin(tm / 2600 + q.p)); // the petal turns over as it falls
+          cx.save(); cx.translate(q.x, q.y); cx.rotate(q.rot); cx.scale(1, flip);
+          cx.globalAlpha = 0.7; cx.fillStyle = '#E8B4C0';
+          cx.beginPath(); cx.moveTo(0, -s); cx.quadraticCurveTo(s * 0.95, -s * 0.2, 0, s); cx.quadraticCurveTo(-s * 0.95, -s * 0.2, 0, -s); cx.fill();
+          cx.globalAlpha = 0.35; cx.fillStyle = '#D48A9E'; cx.beginPath(); cx.moveTo(0, -s); cx.lineTo(s * 0.18, -s * 0.72); cx.lineTo(-s * 0.18, -s * 0.72); cx.fill(); // the notch
+          cx.restore();
+        }
+        cx.globalAlpha = 1;
       } else if (th === 'sanctuary') {
-        // Moonlight and fireflies that wander slowly
+        // Moonlight, a few faint twinkling stars, and fireflies that wander slowly
         glow(W * 0.12, H * 0.06, Math.max(W, H) * 0.4, 'rgba(160,200,255,1)', 0.08);
+        for (const s of twinkles) {
+          cx.globalAlpha = still ? 0.35 : 0.12 + 0.45 * Math.pow((Math.sin(tm * 6.283 / s.T + s.p) + 1) / 2, 2);
+          cx.fillStyle = '#e8eefc'; cx.beginPath(); cx.arc(s.x, s.y, s.r, 0, 6.29); cx.fill();
+        }
+        cx.globalAlpha = 1;
+        // Rest only: a rare shooting star across the upper sky
+        if (!sky && skyDue(rest, now)) sky = { x: W * (0.15 + Math.random() * 0.6), y: H * (0.04 + Math.random() * 0.2), vx: 5 + Math.random() * 3, vy: 1.6 + Math.random(), n: 0 };
+        if (sky) {
+          const g = cx.createLinearGradient(sky.x, sky.y, sky.x - sky.vx * 12, sky.y - sky.vy * 12);
+          g.addColorStop(0, 'rgba(240,244,255,.75)'); g.addColorStop(1, 'rgba(240,244,255,0)');
+          cx.strokeStyle = g; cx.lineWidth = 1.2; cx.globalAlpha = 1 - sky.n / 60; cx.beginPath(); cx.moveTo(sky.x, sky.y); cx.lineTo(sky.x - sky.vx * 12, sky.y - sky.vy * 12); cx.stroke(); cx.globalAlpha = 1;
+          if (!still) { sky.x += sky.vx; sky.y += sky.vy; if (++sky.n > 60) sky = null; }
+        }
         for (const f of flies) {
-          if (!still) {
+          if (mv) {
             f.vx = (f.vx + (Math.random() - 0.5) * 0.06) * 0.97; f.vy = (f.vy + (Math.random() - 0.5) * 0.06 - 0.002) * 0.97;
             f.x += f.vx * f.s; f.y += f.vy * f.s;
             if (f.x < -10) f.x = W + 10; if (f.x > W + 10) f.x = -10; if (f.y < -10) f.y = H + 10; if (f.y > H + 10) f.y = -10;
@@ -482,6 +574,19 @@
           glow(f.x, f.y, 9 * f.s, colors[0], 0.35 * pulse);
           cx.globalAlpha = 0.9 * pulse; cx.fillStyle = colors[0]; cx.fillRect(f.x - 1, f.y - 1, 2, 2); cx.globalAlpha = 1;
         }
+      } else if (th === 'observatory' && document.documentElement.dataset.light) {
+        // Codex: a slanted beam of warm light from the top right, with golden dust drifting slowly inside it
+        // (the canvas is multiplied onto the parchment, so the beam reads as a warm band, the motes as gold specks)
+        const bx0 = W * 0.78, bw = Math.min(260, W * 0.35), slant = H * 0.45;
+        const bg = cx.createLinearGradient(bx0, 0, bx0 - slant, H); bg.addColorStop(0, 'rgba(214,170,90,.16)'); bg.addColorStop(1, 'rgba(214,170,90,0)');
+        cx.fillStyle = bg; cx.beginPath(); cx.moveTo(bx0, 0); cx.lineTo(bx0 + bw, 0); cx.lineTo(bx0 + bw - slant, H); cx.lineTo(bx0 - slant, H); cx.closePath(); cx.fill();
+        for (const d of dust) {
+          if (mv) { d.y += d.v; d.u += Math.sin(tm / 5000 + d.p) * 0.0006; if (d.y > H) { d.y = 0; d.u = Math.random(); } }
+          const x = bx0 + d.u * bw - slant * (d.y / H);
+          cx.globalAlpha = (0.35 + 0.4 * (still ? 0.5 : (Math.sin(tm / 2100 + d.p) + 1) / 2)) * (1 - d.y / H * 0.7);
+          cx.fillStyle = '#A8842F'; cx.beginPath(); cx.arc(x, d.y, d.r, 0, 6.29); cx.fill();
+        }
+        cx.globalAlpha = 1;
       } else if (th === 'observatory') {
         // Warm sun, slow light shafts, golden dust, and a brass orrery turning in the corner
         glow(W * 0.92, H * 0.02, Math.max(W, H) * 0.5, 'rgba(255,200,120,1)', 0.12);
@@ -489,33 +594,45 @@
         [[-60, 70, 0.05], [60, 40, 0.04], [150, 90, 0.03]].forEach(([o, w, a]) => { const g = cx.createLinearGradient(0, 0, 0, H * 1.3); g.addColorStop(0, `rgba(255,214,150,${a})`); g.addColorStop(1, 'rgba(255,214,150,0)'); cx.fillStyle = g; cx.fillRect(o, 0, w, H * 1.3); });
         cx.restore();
         for (const q of parts) {
-          if (!still) { q.y -= q.v * 0.25; q.x += Math.sin(tm / 4000 + q.p) * 0.15; if (q.y < -4) { q.y = H + 4; q.x = Math.random() * W; } }
+          if (mv) { q.y -= q.v * 0.25; q.x += Math.sin(tm / 4000 + q.p) * 0.15; if (q.y < -4) { q.y = H + 4; q.x = Math.random() * W; } }
           cx.globalAlpha = 0.12 + 0.3 * (still ? 0.5 : (Math.sin(tm / 1700 + q.p) + 1) / 2); cx.fillStyle = q.c ? colors[0] : '#fff1d6';
           cx.beginPath(); cx.arc(q.x, q.y, q.r, 0, 6.29); cx.fill();
         }
-        const ox = W * 0.08, oy = H * 0.9, R = Math.min(W, H) * 0.32, a0 = still ? 0 : tm / 1000;
+        // Brass astrolabe in the corner: engraved rings, each turning very slowly (2–3 min a turn), in alternating directions
+        const ox = W * 0.08, oy = H * 0.9, R = Math.min(W, H) * 0.32;
         cx.globalAlpha = 0.16; cx.strokeStyle = colors[0]; cx.lineWidth = 1;
-        [0.35, 0.6, 0.85, 1].forEach((f, i) => { cx.beginPath(); cx.ellipse(ox, oy, R * f, R * f * 0.92, 0.2, 0, 6.29); cx.stroke(); const ang = a0 * (0.05 / (i + 1)) + i * 1.7; cx.fillStyle = i % 2 ? colors[1] : colors[0]; cx.beginPath(); cx.arc(ox + Math.cos(ang) * R * f, oy + Math.sin(ang) * R * f * 0.92, 3 + i, 0, 6.29); cx.fill(); });
-        cx.globalAlpha = 0.25; cx.fillStyle = colors[0]; cx.beginPath(); cx.arc(ox, oy, 7, 0, 6.29); cx.fill();
+        cx.beginPath(); cx.moveTo(ox - R, oy); cx.lineTo(ox + R, oy); cx.moveTo(ox, oy - R); cx.lineTo(ox, oy + R); cx.stroke();
+        [[0.35, 150], [0.6, 180], [0.85, 130], [1, 165]].forEach(([f, P], i) => {
+          const r = R * f, rot = still ? i * 0.7 : (i % 2 ? -1 : 1) * tm / (P * 1000) * 6.283 + i * 0.7;
+          cx.globalAlpha = 0.16; cx.beginPath(); cx.arc(ox, oy, r, 0, 6.29); cx.stroke();
+          cx.globalAlpha = 0.13; cx.beginPath();
+          for (let k = 0; k < 24; k++) { const a = rot + k * 0.2618, l = k % 6 ? 4 : 9; cx.moveTo(ox + Math.cos(a) * r, oy + Math.sin(a) * r); cx.lineTo(ox + Math.cos(a) * (r - l), oy + Math.sin(a) * (r - l)); }
+          cx.stroke();
+          cx.globalAlpha = 0.22; cx.fillStyle = i % 2 ? colors[1] : colors[0]; cx.beginPath(); cx.arc(ox + Math.cos(rot) * r, oy + Math.sin(rot) * r, 2.5 + i * 0.6, 0, 6.29); cx.fill();
+        });
+        cx.globalAlpha = 0.25; cx.fillStyle = colors[0]; cx.beginPath(); cx.arc(ox, oy, 6, 0, 6.29); cx.fill();
         cx.globalAlpha = 1;
       } else if (th === 'abyss') {
         // Deep sea: faint light from the surface, rising bubbles, bioluminescent jellyfish pulsing upward
         glow(W * 0.5, -H * 0.1, Math.max(W, H) * 0.55, 'rgba(90,200,220,1)', 0.07);
         for (const q of parts) {
-          if (!still) { q.y -= q.v * 1.4; if (q.y < -4) { q.y = H + 4; q.x = Math.random() * W; } }
+          if (mv) { q.y -= q.v * 0.7; if (q.y < -4) { q.y = H + 4; q.x = Math.random() * W; } } // small bubbles rising slowly
           cx.globalAlpha = 0.18; cx.strokeStyle = '#bff6ff'; cx.lineWidth = 0.8;
           cx.beginPath(); cx.arc(q.x + Math.sin(tm / 1500 + q.p) * 4, q.y, q.r * 1.6, 0, 6.29); cx.stroke();
         }
         for (const j of jellies) {
-          const pulse = still ? 0.5 : (Math.sin(tm / 900 + j.p) + 1) / 2;
-          if (!still) { j.y -= j.v * (0.4 + pulse); j.x += Math.sin(tm / 5000 + j.p) * 0.12; if (j.y < -j.s * 4) { j.y = H + j.s * 2; j.x = Math.random() * W; } }
-          const col = j.c ? colors[1] : colors[0], s = j.s, w = s * (0.9 + 0.15 * pulse), h = s * (0.75 - 0.12 * pulse);
-          glow(j.x, j.y, s * 2.4, col, 0.12);
+          // one beat per 4–6 s: a quick contraction of the bell, then a long relaxed glide (pulse 1 = contracted)
+          const ph = still ? 0.6 : ((tm / j.T + j.p / 6.283) % 1), pulse = ph < 0.25 ? Math.sin(ph / 0.25 * Math.PI / 2) : Math.pow(1 - (ph - 0.25) / 0.75, 2);
+          if (mv) { j.y -= j.v * (0.35 + 1.4 * pulse); j.x += Math.sin(tm / 7000 + j.p) * 0.1; if (j.y < -j.s * 4) { j.y = H + j.s * 2; j.x = Math.random() * W; } }
+          // Rest only: they drift gently away from the mouse pointer
+          if (rest && ptr) { const dx = j.x - ptr[0], dy = j.y - ptr[1], d2 = dx * dx + dy * dy; if (d2 < 150 * 150 && d2 > 1) { const k = (1 - Math.sqrt(d2) / 150) * 0.9 / Math.sqrt(d2); j.x += dx * k; j.y += dy * k * 0.6; } }
+          const col = j.c ? colors[1] : colors[0], s = j.s, w = s * (1.02 - 0.16 * pulse), h = s * (0.66 + 0.14 * pulse);
+          glow(j.x, j.y, s * 2.4, col, 0.09 + 0.06 * pulse);
           cx.globalAlpha = 0.32; cx.fillStyle = col; cx.beginPath(); cx.ellipse(j.x, j.y, w, h, 0, Math.PI, 0); cx.closePath(); cx.fill();
           cx.globalAlpha = 0.28; cx.strokeStyle = col; cx.lineWidth = 1.1;
           for (let k = 0; k < 4; k++) {
             const tx = j.x - w * 0.6 + k * w * 0.4; cx.beginPath(); cx.moveTo(tx, j.y);
-            for (let d = 1; d <= 6; d++) cx.lineTo(tx + Math.sin(tm / 600 + j.p + d * 0.9 + k) * 2.4, j.y + d * s * 0.32);
+            for (let d = 1; d <= 6; d++) cx.lineTo(tx + Math.sin(tm / 1100 + j.p + d * 0.9 + k) * 2.4, j.y + d * s * (0.3 + 0.06 * pulse)); // tentacles trail longer on the push
             cx.stroke();
           }
         }
@@ -541,16 +658,18 @@
         cx.globalAlpha = 0.18;
         for (let i = -12; i <= 12; i++) { cx.beginPath(); cx.moveTo(sx + i * 6, hz); cx.lineTo(sx + i * W * 0.14, H); cx.stroke(); }
         cx.globalAlpha = 1;
+      } else if (th === 'arcade' && document.documentElement.dataset.light) {
+        // Cartouche: the overworld is a static CSS background (stars would read as specks of dirt on the pale sky)
       } else if (th === 'arcade') {
-        // Pixel starfield that twinkles in steps, plus the odd shooting pixel
-        const step = still ? 0 : Math.floor(tm / 220);
+        // Pixel starfield that twinkles slowly in steps (a ~5 s cycle per star), plus the odd shooting pixel
+        const step = still ? 0 : Math.floor(tm / 650), dim = document.documentElement.dataset.timer === 'running' ? 0.4 : 1; // dimmer during a session
         for (const s of stars) {
           const ph = (step + s.p) % 8, a = ph < 4 ? [0.15, 0.35, 0.6, 0.35][ph] : 0.15;
-          cx.globalAlpha = a; cx.fillStyle = s.s === 4 ? colors[0] : '#fff3d6'; cx.fillRect(s.x, s.y, s.s, s.s);
+          cx.globalAlpha = a * dim; cx.fillStyle = s.s === 4 ? colors[0] : '#fff3d6'; cx.fillRect(s.x, s.y, s.s, s.s);
         }
         cx.globalAlpha = 1;
         if (!still) {
-          if (!shoot && Math.random() < 0.004) shoot = { x: Math.random() * W * 0.6, y: Math.random() * H * 0.3, n: 0 };
+          if (!shoot && skyDue(rest, now)) shoot = { x: Math.random() * W * 0.6, y: Math.random() * H * 0.3, n: 0 };
           if (shoot) {
             for (let i = 0; i < 6; i++) { cx.globalAlpha = 1 - i / 6; cx.fillStyle = i ? colors[1] : '#fff'; cx.fillRect(Math.floor((shoot.x - i * 8) / 4) * 4, Math.floor((shoot.y - i * 4) / 4) * 4, 4, 4); }
             cx.globalAlpha = 1; shoot.x += 8; shoot.y += 4; if (++shoot.n > 70) shoot = null;
@@ -561,26 +680,57 @@
         if (square) {
           // Sparse data rain behind everything
           cx.font = '12px "JetBrains Mono", monospace';
+          // Rest only: now and then one glyph of the rain lights up in magenta for a moment
+          if (rest && (!hiGlyph || now - hiGlyph.t0 > 900) && Math.random() < 0.004) hiGlyph = { d: drops[Math.floor(Math.random() * drops.length)], i: 1 + Math.floor(Math.random() * 3), t0: now };
+          if (hiGlyph && (!rest || now - hiGlyph.t0 > 900)) hiGlyph = null;
           for (const d of drops) {
-            if (!still) { d.y += d.v; if (d.y - d.n * 14 > H) { d.y = -10; d.x = Math.floor(Math.random() * W / 14) * 14; } }
+            if (mv) { d.y += d.v; if (d.y - d.n * 14 > H) { d.y = -10; d.x = Math.floor(Math.random() * W / 14) * 14; } }
             for (let i = 0; i < d.n; i++) {
               // the head glyph used to be near-white at 50 %: a lone bright digit in a gap read like a stray UI label
-              cx.globalAlpha = (1 - i / d.n) * (i === 0 ? 0.3 : 0.14);
-              cx.fillStyle = colors[0];
+              const lit = hiGlyph && hiGlyph.d === d && hiGlyph.i === i;
+              cx.globalAlpha = lit ? 0.55 * Math.sin(Math.min(1, (now - hiGlyph.t0) / 900) * Math.PI) : (1 - i / d.n) * (i === 0 ? 0.3 : 0.14);
+              cx.fillStyle = lit ? '#ff2bd6' : colors[0];
               cx.fillText(GLYPHS[(Math.floor(d.y / 14) + i * 7 + d.x) % GLYPHS.length], d.x, d.y - i * 14);
             }
           }
           cx.globalAlpha = 1;
         }
+        if (th === 'sorcerer') {
+          // Arcane constellations: each fades in, holds, fades out; barely there while a session runs
+          const dim = document.documentElement.dataset.timer === 'running' ? 0.35 : 1;
+          for (const k of consts) {
+            const a = (still ? 0.5 : Math.pow(Math.max(0, Math.sin(tm * 6.283 / k.T + k.p)), 2)) * dim;
+            if (a < 0.01) continue;
+            cx.globalAlpha = 0.22 * a; cx.strokeStyle = colors[1]; cx.lineWidth = 0.7; cx.beginPath();
+            for (const [i, j] of k.edges) { cx.moveTo(k.pts[i][0], k.pts[i][1]); cx.lineTo(k.pts[j][0], k.pts[j][1]); }
+            cx.stroke();
+            cx.globalAlpha = 0.6 * a; cx.fillStyle = '#e9e4ff';
+            for (const [x, y] of k.pts) { cx.beginPath(); cx.arc(x, y, 1.3, 0, 6.29); cx.fill(); }
+          }
+          // a constellation drawn by a completed task: lines appear one by one (1.5 s), hold, then fade (to 4 s)
+          drawn = drawn.filter(k => now - k.t0 < 4000);
+          for (const k of drawn) {
+            const e = (now - k.t0) / 1500, a = Math.min(1, (4000 - (now - k.t0)) / 1500), segs = k.pts.length - 1;
+            cx.strokeStyle = colors[1]; cx.lineWidth = 0.9; cx.fillStyle = '#e9e4ff';
+            for (let i = 0; i < segs; i++) {
+              const f = Math.max(0, Math.min(1, e * segs - i)); if (!f) break;
+              const [x1, y1] = k.pts[i], [x2, y2] = k.pts[i + 1];
+              cx.globalAlpha = 0.45 * a; cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x1 + (x2 - x1) * f, y1 + (y2 - y1) * f); cx.stroke();
+              cx.globalAlpha = 0.8 * a; cx.beginPath(); cx.arc(x1, y1, 1.6, 0, 6.29); cx.fill();
+              if (f === 1 && i === segs - 1) { cx.beginPath(); cx.arc(x2, y2, 1.6, 0, 6.29); cx.fill(); }
+            }
+          }
+          cx.globalAlpha = 1;
+        }
         for (const q of parts) {
-          if (!still) { q.y -= q.v * (square ? 1.6 : 1); if (q.y < -4) { q.y = H + 4; q.x = Math.random() * W; } }
+          if (mv) { q.y -= q.v * (square ? 1.6 : 1); if (q.y < -4) { q.y = H + 4; q.x = Math.random() * W; } }
           cx.globalAlpha = 0.15 + 0.35 * (still ? 0.5 : (Math.sin(tm / 1300 + q.p) + 1) / 2);
           cx.fillStyle = q.c ? colors[0] : colors[1];
           if (square) cx.fillRect(q.x, q.y, q.r * 1.6, q.r * 1.6);
           else { cx.beginPath(); cx.arc(q.x + Math.sin(tm / 3000 + q.p) * 6, q.y, q.r, 0, 6.29); cx.fill(); }
         }
         cx.globalAlpha = 1;
-        if (square && !still) {
+        if (square && !still && slow === 1) { // no stray glitch lines during a session
           if (Math.random() < 0.006) glitch = 6;
           if (glitch > 0) { glitch--; cx.fillStyle = colors[Math.random() < 0.5 ? 0 : 1]; cx.globalAlpha = 0.12; cx.fillRect(0, Math.random() * H, W, 1 + Math.random() * 3); cx.globalAlpha = 1; }
         }

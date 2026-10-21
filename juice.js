@@ -128,7 +128,7 @@
   function floater(text, cls) {
     const { x, y } = origin();
     const el = document.createElement('div');
-    el.className = 'floater ' + (cls || '');
+    el.className = 'floater ' + (cls || ''); el.dataset.at = Date.now(); // a task's "+XP" is recoloured right after (rarity)
     el.textContent = text;
     el.style.left = x + 'px'; el.style.top = (y - 40 - (floatQueue % 3) * 22) + 'px';
     floatQueue++; setTimeout(() => floatQueue--, 600);
@@ -177,6 +177,170 @@
     if (b && S.game && S.game.sfx) ML.sfxTheme('click');
   }, true);
   on('abandon', () => ML.sfx && ML.sfx('abandon'));
+
+  /* ---------- Motion (step 6): micro-interactions and timer moments ----------
+     Event animations only (150–600 ms, never looping), through the Web Animations API, skipped with reduced motion.
+     The CSS side (button press, task hover, breathing dial, last-minute pulse, tick wave…) is in app.css. */
+  const anim = (el, frames, opts) => (!still && el && el.animate) ? el.animate(frames, Object.assign({ easing: 'cubic-bezier(.2,.7,.3,1)' }, opts)) : null;
+  const afterRender = fn => setTimeout(fn, 0); // app.js re-renders synchronously right after these events
+  // 3. The tick draws itself in the box of a task you complete
+  on('task:done', task => afterRender(() => {
+    const p = document.querySelector(`#tasks .task[data-id="${task.id}"] .check path`); if (!p) return;
+    anim(p, [{ strokeDasharray: 14, strokeDashoffset: 14 }, { strokeDasharray: 14, strokeDashoffset: 0 }], { duration: 300 });
+  }));
+  // 5. A new task slides from the field into the list
+  on('task:added', task => afterRender(() => {
+    const li = document.querySelector(`#tasks .task[data-id="${task.id}"]`), field = $('new-title'); if (!li || !field) return;
+    const dy = Math.max(-240, Math.min(240, field.getBoundingClientRect().top - li.getBoundingClientRect().top));
+    anim(li, [{ transform: `translateY(${dy}px) scale(.96)`, opacity: 0.2 }, { transform: 'none', opacity: 1 }], { duration: 380 });
+  }));
+  // 11. "Show more tasks": the others unfold in a quick cascade
+  $('tasks').addEventListener('click', e => {
+    if (!e.target.closest('[data-act=more]') || !S.showAll) return;
+    afterRender(() => [...document.querySelectorAll('#tasks > .task')].slice(1, 12).forEach((li, i) =>
+      anim(li, [{ transform: 'translateY(-8px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, delay: i * 35, fill: 'backwards' })));
+  });
+  // 6. Tabs: a bar glides from the old tab to the new one, then the theme's own underline takes over
+  const ink = document.createElement('i'); ink.className = 'tab-ink'; ink.setAttribute('aria-hidden', 'true');
+  const tabsEl = document.querySelector('.tabs'); if (tabsEl) tabsEl.appendChild(ink);
+  let lastTabBtn = document.querySelector('.tabs button[aria-selected=true]'), inkT = null;
+  on('tab', () => {
+    const now = document.querySelector('.tabs button[aria-selected=true]'), from = lastTabBtn; lastTabBtn = now;
+    if (!tabsEl || !now || !from || from === now || still || !tabReady) return;
+    const box = tabsEl.getBoundingClientRect(), a = from.getBoundingClientRect(), b = now.getBoundingClientRect();
+    if (!a.width || !b.width || Math.abs(a.top - b.top) > 4) return; // wrapped onto two rows: no glide
+    const at = r => `translateX(${r.left - box.left + tabsEl.scrollLeft}px) scaleX(${r.width / 100})`;
+    ink.getAnimations().forEach(x => x.cancel()); document.querySelectorAll('.tab-gliding').forEach(x => x.classList.remove('tab-gliding'));
+    now.classList.add('tab-gliding');
+    anim(ink, [{ transform: at(a), opacity: 1 }, { transform: at(b), opacity: 1 }], { duration: 260 });
+    clearTimeout(inkT); inkT = setTimeout(() => now.classList.remove('tab-gliding'), 280);
+  });
+  let tabReady = false; // the boot's setTab doesn't glide
+  on('started', () => { tabReady = true; lastTabBtn = document.querySelector('.tabs button[aria-selected=true]'); });
+  // 9. A parked thought glides to the Parked tab (or the More button on the phone bar); the timer keeps running
+  on('parked', () => {
+    if (still) return;
+    const p = S.parked[S.parked.length - 1], from = $('park-input'); if (!p || !from) return;
+    const to = [$('t-park'), document.querySelector('#mnav [data-mnav="more"]')].find(el => el && el.getBoundingClientRect().width);
+    if (!to) return;
+    const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+    const ghost = document.createElement('div'); ghost.className = 'park-ghost'; ghost.textContent = p.text;
+    ghost.style.left = a.left + 'px'; ghost.style.top = a.top + 'px'; ghost.style.maxWidth = a.width + 'px';
+    document.body.appendChild(ghost);
+    const g = anim(ghost, [{ transform: 'none', opacity: 1 }, { transform: `translate(${b.left + b.width / 2 - a.left - 20}px, ${b.top + b.height / 2 - a.top - 10}px) scale(.25)`, opacity: 0 }], { duration: 550, easing: 'cubic-bezier(.5,0,.6,1)' });
+    if (g) { g.onfinish = () => ghost.remove(); setTimeout(() => ghost.remove(), 650); } else ghost.remove();
+  });
+  // Timer: last minute (remaining ticks pulse), last 10 s (digits beat, decor holds still), end-of-session light wave
+  const rootEl = document.documentElement;
+  on('tick', rem => {
+    const focusing = ML.running() && S.mode === 'focus';
+    rootEl.classList.toggle('t-lastmin', focusing && rem <= 60 && rem > 10);
+    rootEl.classList.toggle('t-final', focusing && rem <= 10);
+  });
+  on('session', () => {
+    const lit = $('segs-lit'); if (!lit || still) return;
+    lit.classList.remove('wave'); void lit.getBBox(); lit.classList.add('wave');
+    setTimeout(() => lit.classList.remove('wave'), 1400);
+  });
+
+  /* ---------- Progression (step 6b) ---------- */
+  ML.addStrings({ fr: { quests_clear: 'Quêtes du jour terminées' }, en: { quests_clear: 'Daily quests clear' } });
+  // 20. "+XX XP" for a task floats up from the task itself, in its rarity colour; 21. a Legendary one also gets a
+  // short burst of stars kept around the card (< 1.5 s); 32. Cyber sorcerer draws a constellation
+  on('task:done', task => {
+    const li = document.querySelector(`#tasks .task[data-id="${task.id}"]`), f = $('floaters').lastElementChild;
+    const r = (ML.taskBadges ? ML.taskBadges(task).cls : '').match(/rar-(\w+)/), rar = r ? r[1] : 'common';
+    if (f && f.classList.contains('xp') && Date.now() - (+f.dataset.at || 0) < 200) {
+      f.style.color = `var(--r-${rar})`;
+      if (li) { const b = li.getBoundingClientRect(); if (b.width) { f.style.left = (b.left + b.width / 2) + 'px'; f.style.top = (b.top + 6) + 'px'; } }
+    }
+    if (rar === 'legendary' && li && !still) {
+      const b = li.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + Math.min(b.height, 120) / 2, c = css('--r-legendary') || '#ffc247';
+      parts.push(...Array.from({ length: 34 }, () => Object.assign((() => { const ang = Math.random() * 6.283, s = rnd(1, 3.2); return { vx: Math.cos(ang) * s, vy: Math.sin(ang) * s * 0.6 }; })(),
+        { kind: 'star', x, y, size: rnd(2, 4), color: Math.random() < 0.7 ? c : '#fff4da', life: 0, max: rnd(50, 80), drag: 0.93, g: 0.02, rot: 0, vr: 0 })));
+      if (!raf) raf = requestAnimationFrame(step);
+    }
+    if (ML.fxConstellation) ML.fxConstellation();
+  });
+  // 22. All of today's quests done: a banner for 2 s
+  on('quests:clear', () => {
+    const el = document.createElement('div'); el.className = 'quest-banner'; el.setAttribute('role', 'status');
+    el.innerHTML = `<span>◆</span>${esc(t('quests_clear'))}<span>◆</span>`;
+    document.body.appendChild(el);
+    anim(el, [{ transform: 'translate(-50%, -12px)', opacity: 0 }, { transform: 'translate(-50%, 0)', opacity: 1, offset: 0.15 }, { transform: 'translate(-50%, 0)', opacity: 1, offset: 0.85 }, { transform: 'translate(-50%, -8px)', opacity: 0 }], { duration: 2000 });
+    setTimeout(() => el.remove(), 2050);
+  });
+  // 7. Counters roll to their new value (gold); 23. the streak number pops when it goes up;
+  // 26. the mood bonus chip shines once when its value changes (combo, streak %, bonus ready…)
+  function roll(el, from, to) {
+    if (still || from === to || !el) return;
+    const t0 = performance.now(), d = 500, fmt = n => Math.round(n).toLocaleString(ML.locale());
+    const stepN = () => { const k = Math.min(1, (performance.now() - t0) / d), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(from + (to - from) * e); if (k < 1) setTimeout(stepN, 33); };
+    stepN();
+  }
+  let lastGold = null, lastStreak = null, lastBuff = null;
+  on('render', () => {
+    const g = $('gold-chip'), gb = g && g.querySelector('b'), gold = S.econ ? S.econ.gold : 0;
+    if (gb && lastGold !== null && gold > lastGold) roll(gb, lastGold, gold);
+    lastGold = gold;
+    const st = ML.streaks().cur, sb = document.querySelector('#streak-pill b');
+    if (sb && lastStreak !== null && st > lastStreak) anim(sb, [{ transform: 'scale(1)' }, { transform: 'scale(1.5)' }, { transform: 'scale(1)' }], { duration: 450 });
+    lastStreak = st;
+    const bc = $('buff-chip'), bt = bc ? bc.textContent : '';
+    if (bc && lastBuff !== null && bt !== lastBuff) anim(bc, [{ boxShadow: '0 0 0 0 transparent', filter: 'brightness(1)' }, { boxShadow: '0 0 16px 2px var(--accent)', filter: 'brightness(1.35)' }, { boxShadow: '0 0 0 0 transparent', filter: 'brightness(1)' }], { duration: 600 });
+    lastBuff = bt;
+  });
+  on('xp', () => setTimeout(() => {
+    const g = $('gold-chip'), gb = g && g.querySelector('b'), gold = S.econ ? S.econ.gold : 0;
+    if (gb && lastGold !== null && gold > lastGold) roll(gb, lastGold, gold);
+    lastGold = gold;
+  }, 0));
+  // 8. Quest bars fill smoothly from where they were (transform only) and give a short flash at 100 %
+  const qPrev = {};
+  new MutationObserver(() => {
+    document.querySelectorAll('#quest-strip li').forEach(li => {
+      const key = (li.querySelector('.q-name') || {}).textContent, b = li.querySelector('.q-bar b'); if (!key || !b) return;
+      const w = parseFloat(b.style.width) || 0, was = qPrev[key];
+      qPrev[key] = w;
+      if (was === undefined || w <= was || !w) return;
+      anim(b, [{ transform: `scaleX(${Math.max(0.02, was / w)})` }, { transform: 'scaleX(1)' }], { duration: 600, easing: 'cubic-bezier(.3,.7,.3,1)' });
+      if (w >= 100) anim(li.querySelector('.q-bar'), [{ filter: 'brightness(1)' }, { filter: 'brightness(1.8)', offset: 0.7 }, { filter: 'brightness(1)' }], { duration: 900 });
+    });
+  }).observe($('quest-strip'), { childList: true, subtree: true });
+
+  /* ---------- Theme decor in the page (step 6b) ---------- */
+  // CSS decor loops run at 30 % during a session and hold still in the last 10 s, like the canvas
+  const DECOR_ANIMS = ['cloud-drift']; // (the walker and the Washi ink are rest-only: CSS pauses them)
+  let decorT = 0;
+  function syncDecor(force) {
+    if (!document.getAnimations || (!force && Date.now() - decorT < 1000)) return;
+    decorT = Date.now();
+    const r = rootEl.classList.contains('t-final') ? 0 : rootEl.dataset.timer === 'running' ? 0.3 : 1;
+    document.getAnimations().forEach(a => { if (DECOR_ANIMS.includes(a.animationName) && a.playbackRate !== r) a.playbackRate = r; });
+  }
+  on('timer', () => syncDecor(true)); on('tick', () => syncDecor()); on('mood', () => setTimeout(() => syncDecor(true), 100));
+  // 40. Cartouche: a little pixel wanderer walks along the bottom at rest; during a session it sits down and dozes
+  const px = (x, y, w, h, c) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`;
+  const D = '#0F380F', M = '#306230', L = '#9BBC0F';
+  const body = px(2, 0, 4, 1, D) + px(1, 1, 1, 2, D) + px(2, 1, 4, 2, L) + px(6, 1, 1, 2, D) + px(4, 1, 1, 1, D) + px(2, 3, 4, 1, D) + px(1, 4, 6, 3, M) + px(0, 4, 1, 2, D) + px(7, 4, 1, 2, D);
+  const walker = document.createElement('div'); walker.className = 'walker'; walker.setAttribute('aria-hidden', 'true');
+  walker.innerHTML = `<svg viewBox="0 0 8 11" shape-rendering="crispEdges">
+    <g class="w-a">${body + px(2, 7, 1, 3, D) + px(5, 7, 1, 2, D) + px(6, 9, 1, 1, D)}</g>
+    <g class="w-b">${body + px(3, 7, 1, 3, D) + px(2, 9, 1, 1, D) + px(4, 7, 1, 3, D)}</g>
+    <g class="w-sit">${body.replace(/y="(\d+)"/g, (m, y) => `y="${+y + 2}"`) + px(1, 9, 6, 1, D) + px(6, 10, 2, 1, D)}</g></svg><i class="w-z">z</i>`;
+  document.body.appendChild(walker);
+  // 30. Codex: on load only, a quill writes today's date at the top of the page, once
+  const quill = document.createElement('div'); quill.className = 'quill-date'; quill.setAttribute('aria-hidden', 'true');
+  quill.innerHTML = `<span class="qd-text"></span><i class="qd-cover"></i><svg class="qd-pen" viewBox="0 0 24 24"><path d="M20 2C12 4 7 10 5 18l-1 4 3-2c6-3 10-8 13-18zM5 18l4-4"/></svg>`;
+  document.body.appendChild(quill);
+  on('started', () => {
+    quill.querySelector('.qd-text').textContent = new Date().toLocaleDateString(ML.locale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const codex = rootEl.dataset.theme === 'observatory' && rootEl.dataset.light;
+    if (!codex || still || !quill.getBoundingClientRect().width) return;
+    const w = quill.getBoundingClientRect().width;
+    anim(quill.querySelector('.qd-cover'), [{ transform: 'translateX(0)' }, { transform: `translateX(${w}px)` }], { duration: 1600, delay: 500, easing: 'cubic-bezier(.4,.1,.5,1)', fill: 'both' });
+    anim(quill.querySelector('.qd-pen'), [{ transform: 'translate(-4px, 0) rotate(-8deg)', opacity: 1 }, { transform: `translate(${w * 0.5}px, -2px) rotate(4deg)`, opacity: 1, offset: 0.5 }, { transform: `translate(${w}px, 0) rotate(-6deg)`, opacity: 1, offset: 0.9 }, { transform: `translate(${w + 6}px, -4px)`, opacity: 0 }], { duration: 1800, delay: 500, fill: 'both' });
+  });
 
   /* ---------- Boss fight timer ---------- */
   const hud = document.createElement('div');

@@ -823,7 +823,9 @@
   function applyLevels() {
     if (!ctx) return;
     const now = ctx.currentTime, cur = current();
-    master.gain.setTargetAtTime(playing ? S.audio.master * S.audio.master : 0, now, playing ? 0.6 : 0.25);
+    // the header mute (sfx.js) silences everything; a paused focus session dips the ambience to 35 %
+    const muted = ML.muted && ML.muted(), paused = !ML.running() && S.mode === 'focus' && S.remaining < S.total;
+    master.gain.setTargetAtTime(playing && !muted ? S.audio.master * S.audio.master * (paused ? 0.35 : 1) : 0, now, playing ? 0.6 : 0.25);
     musicBus.gain.setTargetAtTime(S.audio.musicVol * S.audio.musicVol * 1.4, now, 0.2);
     const d = DEPTH[S.audio.neural] || 0;
     amLfo.frequency.setTargetAtTime(cur.rate, now, 0.2);
@@ -890,8 +892,9 @@
     } catch (e) {}
   }
   on('timer', () => { if (!ML.running()) setTimeout(sleepMedia, 1500); });
+  on('timer', () => applyLevels()); on('mute', () => applyLevels());
   ML.Audio = {
-    play, stop: stopAll, get playing() { return playing; },
+    play, stop: stopAll, refresh, get playing() { return playing; },
     // Sport section: upbeat electronic mix while a workout timer runs
     workout(onOff) { if (onOff) { override = { mode: 'focus', sub: 'motivation' }; userStopped = false; if (ensure()) play(); } else { override = null; stopAll(); } },
   };
@@ -899,7 +902,7 @@
   on('gesture', () => ensure());
   on('sound:toggle', () => { if (playing) { userStopped = true; stopAll(); } else { userStopped = false; override = null; play(); } });
   on('chime', () => {
-    if (!ensure()) return;
+    if ((ML.muted && ML.muted()) || !ensure()) return;
     [523.25, 783.99, 1046.5, 1567.98].forEach((f, i) => blip(out, { type: i % 2 ? 'triangle' : 'sine', f, t0: ctx.currentTime + i * 0.16, dur: 1.8, peak: 0.18, attack: 0.015 }));
   });
   on('timer', () => {

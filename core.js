@@ -156,8 +156,11 @@ window.ML = (() => {
     el.classList.toggle('has-action', !!item.opts.action);
     el.classList.add('show');
     const ms = item.opts.ms || (item.opts.action ? 7000 : 2800);
+    // a thin bar that empties over the toast's lifetime (CSS animation, so reduced motion stops it)
+    const bar = document.createElement('i'); bar.className = 'toast-bar'; bar.setAttribute('aria-hidden', 'true'); bar.style.animationDuration = ms + 'ms';
+    el.appendChild(bar);
     let tm = setTimeout(hide, ms);
-    restart = () => { span.textContent = item.msg; clearTimeout(tm); tm = setTimeout(hide, ms); };
+    restart = () => { span.textContent = item.msg; clearTimeout(tm); tm = setTimeout(hide, ms); bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; bar.style.animationDuration = ms + 'ms'; };
     function hide() { clearTimeout(tm); restart = null; el.classList.remove('show'); setTimeout(nextToast, 260); }
   }
 
@@ -178,15 +181,19 @@ window.ML = (() => {
   // Reduced motion, in one place: CSS animations are switched off by the @media rule at the end of app.css;
   // anything animated from JS (canvases, SVG <animate>, transitions) asks ML.reducedMotion() and listens to
   // the 'motion' event, which fires when the system setting changes while the app is open.
+  // The app has its own "reduced animations" switch too (per device, localStorage 'mli-motion'), on top of the
+  // system setting; html.reduce-motion carries either one to the CSS (rule at the end of app.css).
   const motionMq = matchMedia('(prefers-reduced-motion: reduce)');
-  const reducedMotion = () => motionMq.matches;
-  const syncMotion = () => document.documentElement.classList.toggle('reduce-motion', motionMq.matches);
+  const motionPref = () => { try { return localStorage.getItem('mli-motion') === 'reduce'; } catch (e) { return false; } };
+  const reducedMotion = () => motionMq.matches || motionPref();
+  const syncMotion = () => document.documentElement.classList.toggle('reduce-motion', reducedMotion());
   syncMotion();
-  const onMotion = () => { syncMotion(); emit('motion', motionMq.matches); };
+  const onMotion = () => { syncMotion(); emit('motion', reducedMotion()); };
   if (motionMq.addEventListener) motionMq.addEventListener('change', onMotion); else if (motionMq.addListener) motionMq.addListener(onMotion);
+  const setReducedMotion = on => { try { if (on) localStorage.setItem('mli-motion', 'reduce'); else localStorage.removeItem('mli-motion'); } catch (e) {} onMotion(); };
 
   return {
-    $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, reducedMotion, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon, isTyping,
+    $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, reducedMotion, setReducedMotion, motionPref, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon, isTyping,
     addStrings, t, tn, locale, applyI18n,
     defaults: fn => defaultFns.push(fn), load, loadState: () => loadState, replaceState, save, saveNow, flushSave, savePending: () => !!saveT,
     on, emit, toast, armedButton, bgSend,

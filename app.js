@@ -223,6 +223,22 @@
       </div>
     </form></li>`;
   }
+  // Scattered shows one task as a tarot-sized card (.single-card / .card, styled per theme in app.css). Long titles get a
+  // smaller size; when the card's task is completed, the next one turns over into view (a fade with reduced motion).
+  // Web Animations, so the reduced-motion CSS rule (animation: none) doesn't cancel the fade.
+  let cardId = null;
+  function cardFx(ul, li) {
+    ul.classList.toggle('single-card', !!li);
+    const prev = cardId; cardId = li ? li.dataset.id : null;
+    if (!li) return;
+    li.classList.add('card');
+    const n = li.querySelector('.t-title').textContent.length;
+    li.style.setProperty('--card-fs', (n > 70 ? 15 : n > 40 ? 17 : 20) + 'px');
+    const was = prev && prev !== cardId && S.tasks.find(x => x.id === prev);
+    if (!was || !was.done || !li.animate) return;
+    if (ML.reducedMotion()) li.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: 'ease-out' });
+    else li.animate([{ transform: 'perspective(1000px) rotateY(-180deg)', opacity: 0 }, { opacity: 0, offset: 0.4 }, { opacity: 1, offset: 0.5 }, { transform: 'perspective(1000px) rotateY(0deg)', opacity: 1 }], { duration: 600, easing: 'cubic-bezier(.3,.7,.3,1)' });
+  }
   function renderTasks() {
     const M = MOODS[S.mood];
     const open = orderedOpen(), done = S.tasks.filter(x => x.done);
@@ -239,6 +255,7 @@
       if (!M.single || S.showAll) html += done.map(x => taskHtml(x, false)).join('');
       ul.innerHTML = html;
     }
+    cardFx(ul, M.single && !S.showAll ? ul.querySelector(':scope > .task:not(.editing)') : null);
     $('sort-note').innerHTML = S.tasks.length ? t('sorted_for', { mood: `<b>${esc(t('mood_' + S.mood))}</b>`, sort: esc(t('sort_' + M.sort)) }) + (M.single ? ' ' + esc(t('only_next')) : '') : '';
     $('foot-note').textContent = S.tasks.length ? t('open_planned', { n: open.length, m: fmtMins(open.reduce((a, x) => a + x.mins, 0)) }) : '';
     const ed = ul.querySelector('.t-edit input[name=title]');
@@ -281,7 +298,16 @@
     const id = li.dataset.id, task = S.tasks.find(x => x.id === id);
     if (!task) return;
     if (act === 'toggle') { if (task.done) { task.done = false; } else completeTask(task); }
-    if (act === 'del') { S.tasks = S.tasks.filter(x => x.id !== id); if (S.activeId === id) S.activeId = null; emit('task:deleted', id); }
+    if (act === 'del') {
+      let gone = false;
+      const del = () => { if (gone) return; gone = true; S.tasks = S.tasks.filter(x => x.id !== id); if (S.activeId === id) S.activeId = null; emit('task:deleted', id); save(); renderAll(); };
+      // the row folds up and fades before it goes (skipped with reduced motion)
+      if (ML.reducedMotion() || !li.animate || li.dataset.leaving) { if (!li.dataset.leaving) del(); return; }
+      li.dataset.leaving = '1'; li.style.overflow = 'hidden';
+      li.animate([{ opacity: 1, maxHeight: li.offsetHeight + 'px' }, { opacity: 0, maxHeight: '0px', paddingTop: '0px', paddingBottom: '0px', marginTop: '0px' }], { duration: 220, easing: 'ease-in' }).onfinish = del;
+      setTimeout(del, 260); // in case the animation never reports (a page in the background)
+      return;
+    }
     if (act === 'focus') { lockIn({ taskId: id, mins: task.mins }); return; }
     if (act === 'edit') { editingId = id; renderTasks(); return; }
     if (act === 'subs') { expanded.has(id) ? expanded.delete(id) : expanded.add(id); renderTasks(); return; }
@@ -355,8 +381,10 @@
     e.preventDefault();
     const title = $('new-title').value.trim(); if (!title) return;
     S.tasks = S.tasks.filter(x => !x.sample);
-    S.tasks.push({ id: uid(), title, mins: +$('new-mins').value, pri: $('new-pri').value, done: false, created: Date.now() });
+    const task = { id: uid(), title, mins: +$('new-mins').value, pri: $('new-pri').value, done: false, created: Date.now() };
+    S.tasks.push(task);
     $('new-title').value = ''; save(); renderAll();
+    emit('task:added', task); // juice.js slides it in from the field
   });
   $('clear-done').onclick = () => { S.tasks = S.tasks.filter(x => !x.done || x.repeat); save(); renderAll(); };
   armedButton($('clear-all'), 'clear_all', () => { S.tasks = []; S.activeId = null; save(); renderAll(); });
@@ -433,7 +461,7 @@
       const a = (i / 60) * Math.PI * 2 - Math.PI / 2, r1 = i % 5 ? 86 : 83, r2 = 95;
       const p = { x1: 120 + r1 * Math.cos(a), y1: 120 + r1 * Math.sin(a), x2: 120 + r2 * Math.cos(a), y2: 120 + r2 * Math.sin(a) };
       mk('line', p, $('segs-dim'));
-      mk('line', Object.assign({ 'data-i': i, visibility: 'hidden' }, p), $('segs-lit'));
+      mk('line', Object.assign({ 'data-i': i, visibility: 'hidden', style: '--i:' + i }, p), $('segs-lit')); // --i: the end-of-session light wave
     }
     const runes = $('runes');
     mk('circle', { cx: 120, cy: 120, r: 108, class: 'orbit' }, runes);

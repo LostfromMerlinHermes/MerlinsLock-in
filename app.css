@@ -21,18 +21,18 @@
 /* Timer inner ring (.arc): one variable per theme, all in one place, so each palette can tune it.
    Values below are the current ones (each theme's accent-2, Gray fog's accent); edit a line to retune a theme. */
 :root { --timer-ring: var(--accent-2); }                                  /* Cyber sorcerer (Steady, night) */
-:root[data-theme="sanctuary"] { --timer-ring: var(--accent-2); }          /* Sanctuary (Drained, day) */
-:root[data-theme="abyss"] { --timer-ring: var(--accent-2); }              /* Abyss (Drained, night) */
-:root[data-theme="observatory"] { --timer-ring: var(--accent-2); }        /* Observatory (Steady, day) */
+:root[data-theme="sanctuary"] { --timer-ring: #E8D3A0; }                 /* Sanctuary (Drained, day): pale gold */
+:root[data-theme="abyss"] { --timer-ring: #5CC4C8; }                     /* Abyss (Drained, night): teal */
+:root[data-theme="observatory"] { --timer-ring: #C9A45C; }               /* Observatory / Cuivre (Steady, day): brass */
 :root[data-theme="netrunner"] { --timer-ring: var(--accent-2); }          /* Netrunner (Fired up, day) */
 :root[data-theme="neoncity"] { --timer-ring: var(--accent-2); }           /* Neon city (Fired up, night) */
 :root[data-theme="arcade"] { --timer-ring: var(--accent-2); }             /* 8-bit arcade (Scattered, day) */
 :root[data-theme="fog"] { --timer-ring: var(--accent); }                  /* Gray fog (Scattered, night) */
 :root[data-theme="arena"] { --timer-ring: var(--accent-2); }              /* Arena (Sport) */
-:root[data-light="1"][data-theme="sanctuary"] { --timer-ring: var(--accent-2); }   /* Aube (light) */
-:root[data-light="1"][data-theme="observatory"] { --timer-ring: var(--accent-2); } /* Atelier (light) */
+:root[data-light="1"][data-theme="sanctuary"] { --timer-ring: #2E3A8C; }  /* Washi (light): indigo ink */
+:root[data-light="1"][data-theme="observatory"] { --timer-ring: #A8842F; } /* Codex (light): engraved gold */
 :root[data-light="1"][data-theme="netrunner"] { --timer-ring: rgba(255, 255, 255, .3); } /* Salle blanche (light): on the black dial */
-:root[data-light="1"][data-theme="arcade"] { --timer-ring: var(--accent-2); }      /* Cartouche (light) */
+:root[data-light="1"][data-theme="arcade"] { --timer-ring: #0F380F; }   /* Cartouche (light): darkest green */
 /* Fired up: vivid neon (pink / light blue lead) */
 :root[data-theme="netrunner"], :root[data-theme="sorcerer"][data-mood="fired"] {
   --ev-1: #ff2bd6; --ev-2: #00f0ff; --ev-3: #3dffb0; --ev-4: #ffe14d; --ev-5: #ff8af2; --ev-6: #ff3d71; --ev-7: #8ff8ff; --ev-8: #b26bff;
@@ -97,7 +97,7 @@ body::before {
 input, select, button, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; border: 1px solid var(--line-2); background: var(--panel-2); border-radius: var(--radius); padding: 8px 12px; font-weight: 600; transition: background .15s, border-color .15s, color .15s, box-shadow .15s, transform .1s; }
 button:hover { border-color: var(--accent); }
-button:active { transform: translateY(1px); }
+button:active { transform: scale(.97); } /* step 6: a slight press (the transform transition is .1s) */
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
 .primary { background: var(--accent); border-color: var(--accent); color: var(--ink); box-shadow: 0 0 18px -4px var(--glow); }
 .primary:hover { border-color: var(--text); }
@@ -607,6 +607,49 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-theme="fog"] .task.editing, :root[data-theme="fog"] .tasks > li:not(.task) { grid-column: 1 / -1; }
 :root[data-theme="fog"] .task.next { background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 65%), var(--panel); }
 :root[data-theme="fog"] .chip.next-chip { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+/* Tarot frame (step 5): engraved gold corners over the double rule, a shade lighter than the page, the rarity star on top */
+:root[data-theme="fog"] { --rar-icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8Z'/></svg>");
+  --fg-c: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22'><g fill='none' stroke='%23c9a55c' stroke-width='1'><path d='M1.5 20V7a5.5 5.5 0 0 1 5.5-5.5h13'/><path d='M4 20V9a5 5 0 0 1 5-5h11' stroke-opacity='.5'/><circle cx='7.5' cy='7.5' r='1.6' fill='%23c9a55c'/></g></svg>"); }
+/* one corner image as a background layer (top left); the other three are mirrored copies on pseudo-elements */
+:root[data-theme="fog"] .task:not(.editing) { background-color: var(--panel-2); background-repeat: no-repeat; background-position: 4px 4px, 0 0;
+  background-image: var(--fg-c), radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--accent-2) 10%, transparent), transparent 60%); }
+:root[data-theme="fog"] .task.next:not(.editing) { background-image: var(--fg-c), radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 65%); }
+:root[data-theme="fog"] .task:not(.editing) > .t-body::before, :root[data-theme="fog"] .task:not(.editing) > .t-body::after,
+:root[data-theme="fog"] .task:not(.editing) > .t-actions::after { content: ""; position: absolute; width: 22px; height: 22px; background: var(--fg-c); pointer-events: none; }
+:root[data-theme="fog"] .task:not(.editing) > .t-body::before { top: 4px; right: 4px; scale: -1 1; }
+:root[data-theme="fog"] .task:not(.editing) > .t-body::after { bottom: 4px; left: 4px; scale: 1 -1; }
+:root[data-theme="fog"] .task:not(.editing) > .t-actions::after { bottom: 4px; right: 4px; scale: -1 -1; }
+:root[data-theme="fog"] .task:not(.editing)::before { content: ""; position: absolute; top: 9px; left: 50%; translate: -50% 0; width: 12px; height: 12px; pointer-events: none;
+  background: var(--rc, var(--r-common)); -webkit-mask: var(--rar-icon) center / contain no-repeat; mask: var(--rar-icon) center / contain no-repeat; }
+
+/* =================== Scattered: the single card (step 5) ===================
+   With the Scattered mood the task list shows one task (app.js adds .single-card / .card): a tarot-sized card (2:3,
+   ~300px), centred in the right column. Each Scattered theme dresses it (tarot, retro game card). */
+.task.rar-common { --rc: var(--r-common); } .task.rar-rare { --rc: var(--r-rare); } .task.rar-epic { --rc: var(--r-epic); } .task.rar-legendary { --rc: var(--r-legendary); }
+:root .tasks.single-card { grid-template-columns: minmax(0, 1fr); justify-items: center; } /* beats Gray fog's tarot grid */
+.tasks.single-card > li:not(.task), .tasks.single-card > .task.editing { justify-self: stretch; }
+.tasks.single-card > .task.card { width: min(300px, 100%); aspect-ratio: 2 / 3; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: center; text-align: center; gap: 16px; padding: 40px 20px 20px; }
+.task.card .check { position: absolute; top: 12px; left: 12px; }
+.task.card [data-act=del] { position: absolute; top: 8px; right: 8px; }
+.task.card .t-body { grid-row: 1; align-self: center; display: grid; gap: 14px; justify-items: center; width: 100%; }
+.task.card .t-title { text-align: center; font-size: var(--card-fs, 20px); line-height: 1.3; text-transform: uppercase; letter-spacing: .05em;
+  display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.task.card .t-meta { justify-content: center; gap: 8px; margin-top: 0; }
+.task.card .t-actions { grid-row: 2; justify-content: center; width: 100%; }
+.task.card [data-act=focus] { min-width: 62%; padding: 9px 14px; font-size: 13px; }
+.task.card::before { content: ""; position: absolute; top: 12px; left: 50%; translate: -50% 0; width: 16px; height: 16px; pointer-events: none;
+  background: var(--rc, var(--r-common)); -webkit-mask: var(--rar-icon, var(--rar-pixel)) center / contain no-repeat; mask: var(--rar-icon, var(--rar-pixel)) center / contain no-repeat; }
+:root { --rar-pixel: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'><path d='M2 0h4v1h1v1h1v2h-1v1h-1v1h-1v1h-2v-1h-1v-1h-1v-1h-1v-2h1v-1h1z'/></svg>"); }
+:root[data-theme="fog"] .task.card { min-height: 0; padding: 44px 20px 20px; }
+:root[data-theme="fog"] .task.card::before { width: 16px; height: 16px; top: 14px; }
+/* Retro game card (8-bit arcade and Cartouche): thick pixel frame with notched corners, pixel rarity gem */
+:root[data-theme="arcade"] .task.card { --rar-icon: var(--rar-pixel); border: var(--px) solid var(--card-frame, var(--accent));
+  box-shadow: 0 calc(-1 * var(--px)) 0 0 var(--line-2), 0 var(--px) 0 0 var(--line-2), calc(-1 * var(--px)) 0 0 0 var(--line-2), var(--px) 0 0 0 var(--line-2),
+    inset 0 0 0 var(--px) var(--panel), inset 0 0 0 calc(2 * var(--px)) var(--line); background: var(--panel); }
+:root[data-theme="arcade"] .task.card::before { width: 18px; height: 18px; image-rendering: pixelated; }
+:root[data-theme="arcade"] .task.card .t-title { box-shadow: none; font-family: var(--f-display); font-size: calc(var(--card-fs, 20px) + 6px); line-height: 1.1; letter-spacing: .06em; }
+:root[data-theme="arcade"] .task.card.next .t-title::before { content: none; }
 
 /* =================== Theme: Netrunner =================== */
 :root[data-theme="netrunner"] body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -647,6 +690,15 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-theme="netrunner"] .clock.glitch-in { animation: glitch-in .15s steps(3) 1; }
 @keyframes glitch-in { 0% { transform: translate(-2px, 0); text-shadow: 2px 0 var(--accent-2), -2px 0 var(--accent); } 50% { transform: translate(1px, -1px); text-shadow: -2px 0 var(--accent-2), 2px 0 var(--accent); } 100% { transform: none; } }
 
+/* =================== Theme: Cyber sorcerer (Steady, night) — arcane: constellations, a slow ring of sigils ===================
+   Keeps the violet / teal palette (and the per-mood accents above); the synthwave grid goes, the canvas draws constellations. */
+:root[data-theme="sorcerer"] body::before { opacity: 0; }
+/* the sigil ring turns very slowly at all times (one turn in 4 min), finer strokes; nearly gone while a session runs */
+:root[data-theme="sorcerer"] .runes { animation-duration: 240s; animation-play-state: running; transition: opacity .6s; }
+:root[data-theme="sorcerer"] .runes .glyph, :root[data-theme="sorcerer"] .running .runes .glyph { stroke: color-mix(in srgb, var(--accent) 55%, var(--dim)); stroke-width: .8; }
+:root[data-theme="sorcerer"] .runes circle.orbit { stroke: color-mix(in srgb, var(--accent) 30%, var(--line-2)); stroke-width: .6; stroke-dasharray: 1 5; }
+:root[data-theme="sorcerer"][data-timer="running"] .runes { opacity: .3; }
+
 /* =================== Theme: Sanctuary (Drained) — a moonlit refuge to recover =================== */
 :root[data-theme="sanctuary"] {
   --void: #08101a; --panel: #0e1824; --panel-2: #13202f; --line: #1f3246; --line-2: #2c4560;
@@ -662,7 +714,6 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-theme="sanctuary"] h2, :root[data-theme="sanctuary"] .label, :root[data-theme="sanctuary"] .tabs button, :root[data-theme="sanctuary"] .seg-toggle button, :root[data-theme="sanctuary"] .state { font-size: 13px; letter-spacing: .12em; font-weight: 700; }
 :root[data-theme="sanctuary"] .sigil-card { box-shadow: 0 20px 60px -30px rgba(127, 214, 200, .35); }
 :root[data-theme="sanctuary"] .sigil-card::before, :root[data-theme="sanctuary"] .sigil-card::after { display: none; }
-:root[data-theme="sanctuary"] .ring-wrap { animation: breathe 7s ease-in-out infinite; }
 @keyframes breathe { 50% { transform: scale(1.025); filter: brightness(1.1); } }
 :root[data-theme="sanctuary"] .segs-lit line { stroke: var(--accent); stroke-width: 2.6; }
 :root[data-theme="sanctuary"] .segs-dim line { stroke-width: 2.6; }
@@ -714,6 +765,8 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-theme="arcade"] .task.next .t-title::before { content: "▶ "; color: var(--accent); animation: caret 0.8s steps(1) infinite; }
 :root[data-theme="arcade"] .check { border-radius: 0; border-width: 2px; }
 :root[data-theme="arcade"] .q-bar, :root[data-theme="arcade"] .hp, :root[data-theme="arcade"] .seq-bar { height: 8px; border-radius: 0; background: #000; box-shadow: 0 0 0 2px var(--line-2); }
+/* Quest / XP bars (step 5): empty = a pixel outline only, filled block by block (no solid black track) */
+:root[data-theme="arcade"] .q-bar, :root[data-theme="arcade"] .seq-bar { height: 10px; padding: 2px; background: transparent; box-sizing: border-box; }
 :root[data-theme="arcade"] .q-bar b, :root[data-theme="arcade"] .seq-bar b { background: repeating-linear-gradient(90deg, var(--accent-2) 0 6px, transparent 6px 8px); box-shadow: none; }
 :root[data-theme="arcade"] .mood-chip, :root[data-theme="arcade"] .buff, :root[data-theme="arcade"] .streak { border-radius: 0; }
 :root[data-theme="arcade"] .toast { border-width: 3px; font-family: var(--f-mono); font-size: 18px; }
@@ -758,7 +811,6 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-theme="abyss"] h2, :root[data-theme="abyss"] .label, :root[data-theme="abyss"] .tabs button, :root[data-theme="abyss"] .seg-toggle button { letter-spacing: .12em; }
 :root[data-theme="abyss"] .sigil-card { background: radial-gradient(circle at 50% 40%, rgba(127, 207, 189, .06), transparent 60%), var(--panel); box-shadow: 0 0 60px -30px rgba(127, 207, 189, .35); }
 :root[data-theme="abyss"] .sigil-card::before, :root[data-theme="abyss"] .sigil-card::after { display: none; }
-:root[data-theme="abyss"] .ring-wrap { animation: breathe 9s ease-in-out infinite; }
 :root[data-theme="abyss"] .hex { display: none; }
 :root[data-theme="abyss"] .segs-lit line { stroke: var(--accent); stroke-width: 2.4; } :root[data-theme="abyss"] .segs-lit { filter: drop-shadow(0 0 2px rgba(127, 207, 189, .45)); }
 :root[data-theme="abyss"] .arc { stroke-width: 3; filter: drop-shadow(0 0 6px var(--timer-ring)); }
@@ -767,6 +819,13 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-theme="abyss"] .task { background: linear-gradient(90deg, rgba(127, 207, 189, .04), transparent 70%), var(--panel); border-color: var(--line); }
 :root[data-theme="abyss"] .check { border-radius: 50%; }
 :root[data-theme="abyss"] .q-bar b, :root[data-theme="abyss"] .seq-bar b { background: linear-gradient(90deg, var(--accent-2), var(--accent)); }
+/* Every dark world: --dim fails AA as text (2.8–4.2:1), so the Sequence ladder and unaffordable prices use --mist,
+   and reached steps sit between mist and text to stay distinct (light skins have --dim = --mist already) */
+:root:not([data-light]) .ladder li, :root:not([data-light]) .coin-pill.short { color: var(--mist); }
+:root .ladder li.reached { color: color-mix(in srgb, var(--text) 70%, var(--mist)); }
+:root .ladder li.current { color: var(--text); }
+/* Work / Sport active: a dark teal slab with a mint outline, a soft glow and mint text (instead of the flat pale-mint block) */
+:root[data-theme="abyss"] .section-switch button[aria-pressed=true] { background: #0A2F35; color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent), 0 0 18px -5px var(--accent); }
 
 /* =================== Theme: Neon city (Fired up, night) — synthwave skyline, hot pink and sunset orange =================== */
 :root[data-theme="neoncity"] {
@@ -797,25 +856,158 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 
 /* =================== Light skins (Premium): the third world of each mood ===================
    data-light="1" sits on top of the mood's day theme, so each keeps its fonts, shapes and effects:
-   Sanctuary → Aube (dawn pastels), Observatory → Atelier (paper, ink, copper), Netrunner → Salle blanche
+   Sanctuary → Washi (paper, indigo ink), Observatory → Codex (parchment grimoire), Netrunner → Salle blanche
    (white concrete, neon signs), Arcade → Cartouche (a 4-tone pocket-console LCD). */
 :root[data-light="1"] { --r-common: #5f5a73; --r-rare: #17699a; --r-epic: #6a32b0; --r-legendary: #8a5f00; color-scheme: light; --glow: color-mix(in srgb, var(--accent) 30%, transparent); --soft: color-mix(in srgb, var(--accent) 10%, transparent); }
+/* ---------- Washi (Drained, light, Premium): Japanese paper, washed indigo ink, zen calm ----------
+   Cold mist page, paper panels, indigo ink for text and actions; sakura only as decor, hanko red only on LOCK IN. */
 :root[data-light="1"][data-theme="sanctuary"] {
-  --void: #f7f1ec; --panel: #fffaf6; --panel-2: #f4ebe4; --line: #e6dad1; --line-2: #d5c4b8;
-  --text: #3b3047; --mist: #5f5470; --dim: #736781; --accent: #9a4a6e; --accent-2: #407b8f; --ink: #ffffff; --good: #3f9a72; --warn: #cc5468;
-  --ev-1: #9a83d6; --ev-2: #5f9fb3; --ev-3: #4fa37a; --ev-4: #d99a3e; --ev-5: #c4708f; --ev-6: #cc5468; --ev-7: #b8a05a; --ev-8: #6f86c9;
+  --void: #ECEEF3; --panel: #F7F6F2; --panel-2: #E2E5EC; --line: rgba(31, 42, 68, .14); --line-2: rgba(31, 42, 68, .24);
+  --text: #1F2A44; --mist: #545D73; --dim: #545D73; /* secondary text never lighter than the muted ink */
+  --accent: #2E3A8C; --accent-2: #3F6A8A; --ink: #ffffff; --good: #2F7A57; --warn: #A8323C;
+  --sakura: #E8B4C0; /* decor only */ --hanko: #C8323C; /* LOCK IN only */
+  --r-common: #545D73; --r-rare: #2F6A8F; --r-epic: #5B3D9A; --r-legendary: #8A5F00;
+  --glow: transparent; --soft: rgba(46, 58, 140, .08);
+  --shadow-soft: 0 1px 2px rgba(31, 42, 68, .05), 0 10px 28px -18px rgba(31, 42, 68, .28);
+  --ev-1: #2E3A8C; --ev-2: #3F6A8A; --ev-3: #4E7A5A; --ev-4: #B07A2A; --ev-5: #B0607A; --ev-6: #A8323C; --ev-7: #7A6A3A; --ev-8: #5A5F9A;
 }
-:root[data-light="1"][data-theme="sanctuary"] body { background-image: radial-gradient(900px 600px at 10% -10%, rgba(255, 200, 170, .45), transparent 60%), radial-gradient(800px 600px at 100% 110%, rgba(170, 200, 235, .35), transparent 60%); }
-:root[data-light="1"][data-theme="sanctuary"] .primary { background: linear-gradient(180deg, #c06c8d, #a2506f); border-color: #c06c8d; color: #fff; box-shadow: 0 6px 18px -8px rgba(196, 112, 143, .7); }
-:root[data-light="1"][data-theme="sanctuary"] h1 span { text-shadow: none; }
+/* Paper: fine grain + a few long pale fibres; two very pale indigo ink-wash blots in opposite corners (static) */
+:root[data-light="1"][data-theme="sanctuary"] body { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='520' height='520'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .12  0 0 0 0 .16  0 0 0 0 .27  0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23g)' opacity='.06'/><g fill='none' stroke-linecap='round'><g stroke='%23fff' stroke-opacity='.75' stroke-width='.7'><path d='M-10 60C120 40 260 90 530 70'/><path d='M40 210C160 230 300 180 470 205'/><path d='M-10 380C90 360 210 400 330 370'/><path d='M180 480C300 460 420 500 530 470'/></g><g stroke='%231F2A44' stroke-opacity='.05' stroke-width='.6'><path d='M-10 140C140 120 300 160 530 130'/><path d='M60 300C200 320 360 280 520 310'/><path d='M-10 450C120 430 240 470 400 440'/></g></g></svg>"); background-size: 520px 520px; background-repeat: repeat; }
+/* the two ink-wash blots sit on their own layers so they can spread very slowly at rest (37), from their corners */
+:root[data-light="1"][data-theme="sanctuary"] body::before, :root[data-light="1"][data-theme="sanctuary"] body::after { content: ""; position: fixed; inset: auto; z-index: 0; pointer-events: none; width: min(700px, 120vw); aspect-ratio: 700 / 560; opacity: 1; mask-image: none; -webkit-mask-image: none;
+  background-size: 100% 100%; background-repeat: no-repeat; animation: ink-spread 90s ease-in-out infinite alternate; }
+:root[data-light="1"][data-theme="sanctuary"] body::before { left: -120px; top: -90px; transform-origin: 20% 20%; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='700' height='560'><filter id='b' x='-30%' y='-30%' width='160%' height='160%'><feTurbulence type='fractalNoise' baseFrequency='.011' numOctaves='3' seed='7'/><feDisplacementMap in='SourceGraphic' scale='130'/><feGaussianBlur stdDeviation='22'/></filter><g filter='url(%23b)' fill='%232E3A8C'><ellipse cx='150' cy='120' rx='190' ry='130' fill-opacity='.055'/><ellipse cx='300' cy='70' rx='90' ry='60' fill-opacity='.04'/></g></svg>"); }
+:root[data-light="1"][data-theme="sanctuary"] body::after { right: -120px; bottom: -90px; transform-origin: 80% 80%; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='700' height='560'><filter id='b' x='-30%' y='-30%' width='160%' height='160%'><feTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='3' seed='3'/><feDisplacementMap in='SourceGraphic' scale='120'/><feGaussianBlur stdDeviation='22'/></filter><g filter='url(%23b)' fill='%232E3A8C'><ellipse cx='520' cy='420' rx='200' ry='140' fill-opacity='.05'/><ellipse cx='380' cy='500' rx='100' ry='55' fill-opacity='.035'/></g></svg>"); animation-delay: -45s; }
+@keyframes ink-spread { to { transform: scale(1.08); } }
+/* during a session the blots hold where they are */
+:root[data-light="1"][data-theme="sanctuary"][data-timer="running"] body::before, :root[data-light="1"][data-theme="sanctuary"][data-timer="running"] body::after { animation-play-state: paused; }
+:root[data-light="1"][data-theme="sanctuary"] h1 span { text-shadow: none; color: var(--accent); }
+/* Paper panels and secondary buttons: a hairline of ink and a soft, diffuse shadow */
+:root[data-light="1"][data-theme="sanctuary"] .sigil-card, :root[data-light="1"][data-theme="sanctuary"] .g-card, :root[data-light="1"][data-theme="sanctuary"] .quests,
+:root[data-light="1"][data-theme="sanctuary"] .task { background: var(--panel); border-color: var(--line); box-shadow: var(--shadow-soft); }
+:root[data-light="1"][data-theme="sanctuary"] .task.next { border-color: color-mix(in srgb, var(--accent) 45%, transparent); box-shadow: var(--shadow-soft); }
+:root[data-light="1"][data-theme="sanctuary"] .controls button:not(.primary), :root[data-light="1"][data-theme="sanctuary"] .presets button,
+:root[data-light="1"][data-theme="sanctuary"] .custom button, :root[data-light="1"][data-theme="sanctuary"] button.small:not(.primary):not(.ghost) {
+  background: var(--panel); border-color: var(--line); box-shadow: 0 1px 2px rgba(31, 42, 68, .06), 0 4px 12px -8px rgba(31, 42, 68, .3); }
+:root[data-light="1"][data-theme="sanctuary"] .presets button[aria-pressed=true] { border-color: var(--accent); color: var(--accent); background: var(--soft); }
+/* Main actions in indigo ink; LOCK IN is a hanko seal: vermilion, white text, a light inner border, slightly uneven edges */
+:root[data-light="1"][data-theme="sanctuary"] .primary { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px -8px rgba(46, 58, 140, .6); }
+:root[data-light="1"][data-theme="sanctuary"] #start, :root[data-light="1"][data-theme="sanctuary"] #c-start {
+  background: var(--hanko); border-color: var(--hanko); color: #fff; border-radius: 5px 8px 4px 7px / 7px 4px 8px 5px; letter-spacing: .08em;
+  box-shadow: inset 0 0 0 3px var(--hanko), inset 0 0 0 4px rgba(255, 255, 255, .75), 0 4px 14px -8px rgba(200, 50, 60, .7); }
+:root[data-light="1"][data-theme="sanctuary"] #start:hover, :root[data-light="1"][data-theme="sanctuary"] #c-start:hover { border-color: #A8262F; }
+/* Work / Sport and Focus / Break: indigo slab, white text */
+:root[data-light="1"][data-theme="sanctuary"] .section-switch button[aria-pressed=true], :root[data-light="1"][data-theme="sanctuary"] .seg-toggle button[aria-pressed=true] { background: var(--accent); color: #fff; box-shadow: none; }
+:root[data-light="1"][data-theme="sanctuary"] .mood-chip[aria-pressed=true] { box-shadow: inset 0 0 0 1px var(--mood-c); background: var(--soft); }
+/* Active tab: a brush stroke of indigo instead of a straight line */
+:root[data-light="1"][data-theme="sanctuary"] .tabs button[aria-selected=true] { border-bottom-color: transparent; background: no-repeat center bottom 1px / 86% 7px
+  url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8' preserveAspectRatio='none'><path d='M1 4.6C18 2.4 40 2 62 2.6S92 3.4 99 2.8L98.6 4.4C88 5.4 70 6.4 48 6.6S12 6.6 2 6.8Z' fill='%232E3A8C' fill-opacity='.9'/></svg>"); }
+/* Rarity badges: thin outline, 10 % tint, dark text */
+:root[data-light="1"][data-theme="sanctuary"] .chip.rar { color: var(--text); }
+:root[data-light="1"][data-theme="sanctuary"] .rar-common .chip.rar { border-color: var(--r-common); background: color-mix(in srgb, var(--r-common) 10%, transparent); }
+:root[data-light="1"][data-theme="sanctuary"] .rar-rare .chip.rar { border-color: var(--r-rare); background: color-mix(in srgb, var(--r-rare) 10%, transparent); }
+:root[data-light="1"][data-theme="sanctuary"] .rar-epic .chip.rar { border-color: var(--r-epic); background: color-mix(in srgb, var(--r-epic) 10%, transparent); }
+:root[data-light="1"][data-theme="sanctuary"] .rar-legendary .chip.rar { border-color: var(--r-legendary); background: color-mix(in srgb, var(--r-legendary) 10%, transparent); }
+/* Timer: an ensō (one brush circle, left open) around fine indigo ticks, serif digits, no glow */
+:root[data-light="1"][data-theme="sanctuary"] .ring-wrap { isolation: isolate; }
+:root[data-light="1"][data-theme="sanctuary"] .ring-wrap::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .82;
+  background: center / 100% 100% no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='d'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.6'/></filter><path filter='url(%23d)' fill='%232E3A8C' d='M177.9 29.8L185.8 35.2L195 39.3L202 46.2L208.3 53.7L213.8 61.9L218.5 70.5L222.4 79.5L225.6 88.8L228.1 98.3L230 107.9L231.1 117.7L231.3 127.7L230.5 137.6L228.6 147.4L225.5 156.9L221.5 165.9L216.6 174.6L211.1 182.7L204.9 190.4L198.2 197.6L191 204.2L183.3 210.2L175 215.5L166.2 219.9L157.1 223.4L147.6 226L138.1 227.7L128.4 228.7L118.7 229.1L109 228.8L99.2 227.8L89.6 226L80.1 223.3L71 219.6L62.3 214.9L54.1 209.3L46.6 202.9L39.7 195.9L33.4 188.4L27.6 180.4L22.6 172L18.2 163.1L14.8 153.9L12.4 144.4L11 134.7L10.6 124.9L11.1 115.2L12.4 105.6L14.3 96.1L16.8 86.8L19.9 77.6L23.7 68.7L28.3 60.1L33.8 52L40.1 44.5L47.1 37.7L54.8 31.7L63.7 27.5L72.1 22.8L80.9 18.7L90 15.3L99.3 12.8L108.9 11.2L118.6 10.6L118.7 11.1L109 11.7L99.4 13.3L90.1 15.8L81 19.2L72.3 23.2L63.9 27.9L57.3 35.1L50 41L43.3 47.5L37.3 54.8L32.1 62.6L27.7 70.8L24.1 79.4L21.2 88.2L18.9 97.1L17.1 106.2L16 115.4L15.5 124.7L15.9 134L17.3 143.3L19.7 152.4L23 161.1L27.2 169.5L32.1 177.5L37.6 185.1L43.6 192.2L50.2 198.8L57.4 204.9L65.2 210.2L73.5 214.6L82.2 218L91.2 220.5L100.3 222.1L109.6 222.9L118.8 223.1L127.9 222.7L137.1 221.7L146.1 220L155 217.6L163.6 214.3L171.8 210.1L179.6 205L186.9 199.3L193.6 193L199.9 186.2L205.6 179L210.8 171.3L215.4 163.2L219.1 154.6L221.9 145.7L223.7 136.5L224.3 127.2L224.1 117.9L222.9 108.7L221.1 99.7L218.7 90.8L215.6 82.2L212 73.8L207.5 65.8L202.4 58.2L196.5 51.2L189.9 44.8L185.5 35.6L177.7 30.2Z'/></svg>"); }
+:root[data-light="1"][data-theme="sanctuary"] .runes { display: none; }
+:root[data-light="1"][data-theme="sanctuary"] .segs-dim line { stroke: rgba(31, 42, 68, .2); stroke-width: 1.4; }
+:root[data-light="1"][data-theme="sanctuary"] .segs-lit line { stroke: var(--accent); stroke-width: 1.6; }
+:root[data-light="1"][data-theme="sanctuary"] .segs-lit { filter: none; }
+:root[data-light="1"][data-theme="sanctuary"] .arc { stroke-width: 2.4; filter: none; }
+:root[data-light="1"][data-theme="sanctuary"] .arc-track { stroke: rgba(31, 42, 68, .1); }
+:root[data-light="1"][data-theme="sanctuary"] .clock { font-weight: 600; text-shadow: none; color: var(--text); }
+:root[data-light="1"][data-theme="sanctuary"] .q-bar b, :root[data-light="1"][data-theme="sanctuary"] .seq-bar b { background: var(--accent); }
+:root[data-light="1"][data-theme="sanctuary"] .chip.sample { color: var(--mist); border-color: var(--line-2); }
+:root[data-light="1"][data-theme="sanctuary"] .nb-item small { color: #365E7D; } /* accent-2 is 4.4:1 on a selected page: one notch deeper */
+/* ---------- Codex (Steady, light, Premium): a Victorian magician's grimoire on aged parchment ----------
+   Sepia ink, engraved gold (decor and borders only), a wax seal on LOCK IN, an astrolabe for a timer, tasks as a ledger. */
 :root[data-light="1"][data-theme="observatory"] {
-  --void: #f3eee3; --panel: #fbf8f1; --panel-2: #eee7d8; --line: #ddd2bd; --line-2: #c7b89c;
-  --text: #2a251f; --mist: #574d40; --dim: #6c6152; --accent: #a2461f; --accent-2: #2f5c8a; --ink: #ffffff; --good: #4f8a3a; --warn: #b8403a;
-  --ev-1: #b4532c; --ev-2: #2f5c8a; --ev-3: #4f8a3a; --ev-4: #c08a1e; --ev-5: #8a4f8a; --ev-6: #b8403a; --ev-7: #8a7a3a; --ev-8: #4f6fb0;
+  --void: #E6D9BC; --panel: #F2E8D2; --panel-2: #E0D1B0; --line: rgba(43, 29, 18, .18); --line-2: rgba(43, 29, 18, .3);
+  --text: #2B1D12; --mist: #5C4632; --dim: #5C4632;
+  /* the plan's gold text #7A5A1A is 4.2:1 on panel-2: accent text uses a deeper gold-brown */
+  --accent: #6B4A12; --accent-text: #6B4A12; --accent-2: #2A5480; --ink: #F7F0DF; --good: #34591B; --warn: #8E2A1F;
+  --gold: #A8842F; /* decor and borders only */ --seal: #7E1F1F; /* LOCK IN only */
+  --r-common: #5C4632; --r-rare: #2A5480; --r-epic: #5A3A7A; --r-legendary: #6B4A12;
+  --glow: transparent; --soft: rgba(168, 132, 47, .12);
+  --shadow-soft: 0 1px 2px rgba(43, 29, 18, .08), 0 10px 26px -18px rgba(43, 29, 18, .4);
+  --ev-1: #6B4A12; --ev-2: #2A5480; --ev-3: #34591B; --ev-4: #A8842F; --ev-5: #5A3A7A; --ev-6: #8E2A1F; --ev-7: #7A6A3A; --ev-8: #3F5A8A;
+  /* engraved gold corner flourishes, one per corner */
+  --cx-tl: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='26' height='26'><g fill='none' stroke='%23A8842F' stroke-width='1.1'><path d='M2 24V9a7 7 0 0 1 7-7h15'/><path d='M5 24V11a6 6 0 0 1 6-6h13' stroke-opacity='.6'/></g><path d='M9 6.5l2.5 2.5L9 11.5 6.5 9z' fill='%23A8842F'/></svg>");
+  --cx-tr: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='26' height='26'><g transform='translate(26 0) scale(-1 1)'><g fill='none' stroke='%23A8842F' stroke-width='1.1'><path d='M2 24V9a7 7 0 0 1 7-7h15'/><path d='M5 24V11a6 6 0 0 1 6-6h13' stroke-opacity='.6'/></g><path d='M9 6.5l2.5 2.5L9 11.5 6.5 9z' fill='%23A8842F'/></g></svg>");
+  --cx-bl: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='26' height='26'><g transform='translate(0 26) scale(1 -1)'><g fill='none' stroke='%23A8842F' stroke-width='1.1'><path d='M2 24V9a7 7 0 0 1 7-7h15'/><path d='M5 24V11a6 6 0 0 1 6-6h13' stroke-opacity='.6'/></g><path d='M9 6.5l2.5 2.5L9 11.5 6.5 9z' fill='%23A8842F'/></g></svg>");
+  --cx-br: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='26' height='26'><g transform='translate(26 26) scale(-1 -1)'><g fill='none' stroke='%23A8842F' stroke-width='1.1'><path d='M2 24V9a7 7 0 0 1 7-7h15'/><path d='M5 24V11a6 6 0 0 1 6-6h13' stroke-opacity='.6'/></g><path d='M9 6.5l2.5 2.5L9 11.5 6.5 9z' fill='%23A8842F'/></g></svg>");
 }
-:root[data-light="1"][data-theme="observatory"] body { background-image: repeating-linear-gradient(0deg, transparent 0 27px, rgba(47, 92, 138, .06) 27px 28px), radial-gradient(900px 600px at 100% -10%, rgba(230, 160, 110, .25), transparent 60%); }
-:root[data-light="1"][data-theme="observatory"] .primary { background: linear-gradient(180deg, #c8653a, #a14523); border-color: #c8653a; color: #fff; }
-:root[data-light="1"][data-theme="observatory"] h1 span { text-shadow: none; }
+/* 1. Parchment: fine grain, a few very pale stains, a light vignette at the edges (static) */
+:root[data-light="1"][data-theme="observatory"] body {
+  background-image:
+    radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(43, 29, 18, .13) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .17  0 0 0 0 .11  0 0 0 0 .07  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23g)' opacity='.08'/></svg>"),
+    radial-gradient(260px 190px at 18% 22%, rgba(140, 98, 40, .07), transparent 70%),
+    radial-gradient(200px 150px at 84% 68%, rgba(140, 98, 40, .06), transparent 70%),
+    radial-gradient(150px 110px at 62% 12%, rgba(120, 80, 30, .045), transparent 70%);
+  background-size: 100% 100%, 420px 420px, auto, auto, auto;
+  background-repeat: no-repeat, repeat, no-repeat, no-repeat, no-repeat;
+}
+:root[data-light="1"][data-theme="observatory"] body::before { opacity: 0; }
+:root[data-light="1"][data-theme="observatory"] h1 span { text-shadow: none; color: var(--accent); }
+/* 2. Panels: engraved gold corners and a double rule */
+:root[data-light="1"][data-theme="observatory"] .sigil-card, :root[data-light="1"][data-theme="observatory"] .quests, :root[data-light="1"][data-theme="observatory"] .g-card {
+  background-color: var(--panel); border-color: var(--line-2);
+  background-image: var(--cx-tl), var(--cx-tr), var(--cx-bl), var(--cx-br);
+  background-position: 3px 3px, right 3px top 3px, left 3px bottom 3px, right 3px bottom 3px; background-repeat: no-repeat;
+  box-shadow: inset 0 0 0 3px var(--panel), inset 0 0 0 4px rgba(168, 132, 47, .5), var(--shadow-soft); }
+:root[data-light="1"][data-theme="observatory"] .sigil-card::before, :root[data-light="1"][data-theme="observatory"] .sigil-card::after { display: none; }
+/* 6. Astrolabe circles as a watermark (≤ 6 %) in the lower part of the timer column */
+:root[data-light="1"][data-theme="observatory"] .sigil-card {
+  background-image: var(--cx-tl), var(--cx-tr), var(--cx-bl), var(--cx-br),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><g fill='none' stroke='%232B1D12' stroke-opacity='.055' stroke-width='.6'><circle cx='100' cy='100' r='96'/><circle cx='100' cy='100' r='90'/><circle cx='100' cy='100' r='62'/><circle cx='100' cy='100' r='30'/><ellipse cx='100' cy='112' rx='70' ry='48'/><path d='M4 100h192M100 4v192M32 32l136 136M168 32L32 168'/><circle cx='100' cy='100' r='93' stroke-dasharray='1 3.9' stroke-width='3'/></g></svg>");
+  background-position: 3px 3px, right 3px top 3px, left 3px bottom 3px, right 3px bottom 3px, center bottom -80px;
+  background-size: auto, auto, auto, auto, 380px 380px; }
+/* 3. Timer: an engraved astrolabe (concentric rings, discreet Roman numerals), fine gold index */
+:root[data-light="1"][data-theme="observatory"] .ring-wrap { isolation: isolate; }
+:root[data-light="1"][data-theme="observatory"] .ring-wrap::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: center / 100% 100% no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><g fill='none' stroke='%23A8842F'><circle cx='120' cy='120' r='115' stroke-width='1.2'/><circle cx='120' cy='120' r='112' stroke-width='.5'/><circle cx='120' cy='120' r='97' stroke-width='.6'/><circle cx='120' cy='120' r='113.5' stroke-width='2.2' stroke-dasharray='.6 5.34' stroke-opacity='.8'/></g><g fill='%235C4632' font-family='Georgia, serif' font-size='8.5' text-anchor='middle' letter-spacing='.5'><text x='120' y='11' dy='3'>XII</text><text x='229' y='123' transform='rotate(90 229 120)'>III</text><text x='120' y='232'>VI</text><text x='11' y='123' transform='rotate(-90 11 120)'>IX</text></g></svg>"); }
+:root[data-light="1"][data-theme="observatory"] .runes, :root[data-light="1"][data-theme="observatory"] .hex { display: none; }
+:root[data-light="1"][data-theme="observatory"] .segs-dim line { stroke: rgba(43, 29, 18, .22); stroke-width: 1.3; }
+:root[data-light="1"][data-theme="observatory"] .segs-lit line { stroke: var(--gold); stroke-width: 1.8; }
+:root[data-light="1"][data-theme="observatory"] .segs-lit { filter: none; }
+:root[data-light="1"][data-theme="observatory"] .arc-track { stroke: rgba(43, 29, 18, .12); }
+:root[data-light="1"][data-theme="observatory"] .arc { stroke-width: 2; filter: none; }
+:root[data-light="1"][data-theme="observatory"] .clock { color: var(--text); text-shadow: none; }
+/* 4. LOCK IN: a wax seal (seal red, cream text, uneven edge, stamped look); other main actions in sepia gold */
+:root[data-light="1"][data-theme="observatory"] .primary { background: var(--accent); border-color: var(--accent); color: var(--ink); box-shadow: 0 3px 10px -6px rgba(43, 29, 18, .6); }
+:root[data-light="1"][data-theme="observatory"] #start, :root[data-light="1"][data-theme="observatory"] #c-start {
+  background: radial-gradient(circle at 35% 30%, #962A28 0, var(--seal) 55%, #6A1818 100%); border-color: #651616; color: #F2E8D2;
+  border-radius: 46% 54% 50% 50% / 58% 46% 54% 42%; font-family: var(--f-display); letter-spacing: .1em;
+  box-shadow: inset 0 0 0 3px var(--seal), inset 0 0 0 4px rgba(242, 232, 210, .3), inset 0 -2px 5px rgba(0, 0, 0, .35), inset 0 2px 3px rgba(255, 220, 200, .18), 0 3px 9px -4px rgba(60, 10, 10, .65);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, .35); }
+:root[data-light="1"][data-theme="observatory"] #start:hover, :root[data-light="1"][data-theme="observatory"] #c-start:hover { border-color: #3E0D0D; }
+:root[data-light="1"][data-theme="observatory"] .controls button:not(.primary), :root[data-light="1"][data-theme="observatory"] .presets button,
+:root[data-light="1"][data-theme="observatory"] .custom button, :root[data-light="1"][data-theme="observatory"] button.small:not(.primary):not(.ghost) { background: var(--panel); border-color: var(--line-2); }
+:root[data-light="1"][data-theme="observatory"] .presets button[aria-pressed=true] { border-color: var(--accent); color: var(--accent); background: var(--soft); }
+:root[data-light="1"][data-theme="observatory"] .section-switch button[aria-pressed=true], :root[data-light="1"][data-theme="observatory"] .seg-toggle button[aria-pressed=true] { background: var(--text); color: var(--panel); box-shadow: inset 0 -2px 0 var(--gold); }
+:root[data-light="1"][data-theme="observatory"] .mood-chip[aria-pressed=true] { box-shadow: inset 0 0 0 1px var(--mood-c); background: var(--soft); }
+/* 5. Tasks as a ledger: fine ruled lines, a gold serif numeral as the index */
+:root[data-light="1"][data-theme="observatory"] .tasks { counter-reset: q; gap: 0; border-top: 1px solid var(--line-2); }
+:root[data-light="1"][data-theme="observatory"] .task:not(.editing) { counter-increment: q; background: transparent; border: 0; border-bottom: 1px solid var(--line); border-left: 2px solid var(--r-common); border-radius: 0; box-shadow: none; }
+:root[data-light="1"][data-theme="observatory"] .task.rar-rare { border-left-color: var(--r-rare); } :root[data-light="1"][data-theme="observatory"] .task.rar-epic { border-left-color: var(--r-epic); } :root[data-light="1"][data-theme="observatory"] .task.rar-legendary { border-left-color: var(--r-legendary); }
+:root[data-light="1"][data-theme="observatory"] .task .t-title::before { content: counter(q, upper-roman) ". "; font-family: var(--f-display); font-weight: 700; color: var(--accent-text); }
+:root[data-light="1"][data-theme="observatory"] .task.next:not(.editing) { background: linear-gradient(90deg, var(--soft), transparent 70%); }
+:root[data-light="1"][data-theme="observatory"] .task.active:not(.editing) { background: var(--soft); border-bottom-color: var(--gold); }
+:root[data-light="1"][data-theme="observatory"] .task.editing { background: var(--panel); box-shadow: var(--shadow-soft); }
+/* 7. Active tab: serif, a double gold rule underneath */
+:root[data-light="1"][data-theme="observatory"] .tabs button[aria-selected=true] { border-bottom: 4px double var(--gold); font-weight: 700; }
+/* 8. Rarity badges: thin outline, 10 % tint, dark text */
+:root[data-light="1"][data-theme="observatory"] .chip.rar { color: var(--text); }
+:root[data-light="1"][data-theme="observatory"] .rar-common .chip.rar { border-color: var(--r-common); background: color-mix(in srgb, var(--r-common) 10%, transparent); }
+:root[data-light="1"][data-theme="observatory"] .rar-rare .chip.rar { border-color: var(--r-rare); background: color-mix(in srgb, var(--r-rare) 10%, transparent); }
+:root[data-light="1"][data-theme="observatory"] .rar-epic .chip.rar { border-color: var(--r-epic); background: color-mix(in srgb, var(--r-epic) 10%, transparent); }
+:root[data-light="1"][data-theme="observatory"] .rar-legendary .chip.rar { border-color: var(--r-legendary); background: color-mix(in srgb, var(--r-legendary) 10%, transparent); }
+:root[data-light="1"][data-theme="observatory"] .chip.sample { color: var(--mist); border-color: var(--line-2); }
+:root[data-light="1"][data-theme="observatory"] .q-bar b, :root[data-light="1"][data-theme="observatory"] .seq-bar b { background: var(--accent); }
 /* ---------- Salle blanche (Fired up, light, Premium): corporate cyberpunk in daylight ----------
    A high-tech lab on a technical drawing: cold concrete, a blueprint grid, cut marks, black dial as the focal point,
    magenta for actions, dark cyan for information only, acid green only ever on black. Hard offset shadows. */
@@ -918,14 +1110,51 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-light="1"][data-theme="netrunner"] .pl-now { background: var(--accent); box-shadow: none; }
 :root[data-light="1"][data-theme="netrunner"] .pl-now::before { background: var(--accent); }
 :root[data-light="1"][data-theme="netrunner"] .pl-now::after { content: attr(data-t); position: absolute; left: -40px; top: -8px; padding: 1px 4px; background: #0B0D12; color: #fff; font: 600 10px/14px var(--f-mono); }
+/* ---------- Cartouche (Scattered, light, Premium): a pocket-console overworld ----------
+   The 4-tone green palette (#0F380F, #306230, #8BAC0F, #9BBC0F) plus pale sky tints; light panels with a 3px pixel
+   frame and an offset pixel shadow; VT323 everywhere (font-size-adjust keeps small text readable). */
 :root[data-light="1"][data-theme="arcade"] {
-  --void: #c6d29c; --panel: #d6dfb0; --panel-2: #c0cc8f; --line: #95a764; --line-2: #6c8042;
-  --text: #1c331c; --mist: #2f4a24; --dim: #3f5a30; --accent: #2c5a2c; --accent-2: #7a5a1e; --ink: #e2ebc4; --good: #2c5a2c; --warn: #8a2c1e;
-  --ev-1: #2c5a2c; --ev-2: #3b6e6e; --ev-3: #4f7a1e; --ev-4: #7a5a1e; --ev-5: #6e3b5a; --ev-6: #8a2c1e; --ev-7: #5a5a1e; --ev-8: #2c3b6e;
+  --void: #D2E2B0; --panel: #E3EDC8; --panel-2: #CFDDAA; --line: #8BAC0F; --line-2: #0F380F;
+  --text: #0F380F; --mist: #306230; --dim: #306230; --accent: #306230; --accent-2: #6B4A12; --ink: #E3EDC8; --good: #306230; --warn: #8A2C1E;
+  --r-common: #306230; --r-rare: #2C3B6E; --r-epic: #4F2F6A; --r-legendary: #6B4A12;
+  --card-frame: #0F380F; --glow: transparent; --soft: rgba(48, 98, 48, .07); /* .12 put green text on it at 4.46:1 */
+  --ev-1: #306230; --ev-2: #2C3B6E; --ev-3: #3A5A1A; --ev-4: #6B4A12; --ev-5: #6E3B5A; --ev-6: #8A2C1E; --ev-7: #5A5A1E; --ev-8: #4F2F6A;
+  --f-body: "VT323", "Cascadia Mono", Consolas, monospace;
 }
-:root[data-light="1"][data-theme="arcade"] h1 span, :root[data-light="1"][data-theme="arcade"] .clock { text-shadow: 3px 3px 0 #95a764; }
-:root[data-light="1"][data-theme="arcade"] .primary { color: var(--ink); box-shadow: inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 0 rgba(0, 0, 0, .25), 0 0 0 2px #1c331c; }
-:root[data-light="1"][data-theme="arcade"] body { background-image: radial-gradient(rgba(28, 51, 28, .08) 1px, transparent 1px); background-size: 4px 4px; }
+/* 5. Overworld: pale green sky, pixel clouds, hills, trees and bushes along the bottom (static; crisp pixels) */
+:root[data-light="1"][data-theme="arcade"] body {
+  font-size-adjust: .5;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='48' viewBox='0 0 160 48' shape-rendering='crispEdges'><rect x='0' y='28' width='20' height='20' fill='%239BBC0F'/><rect x='20' y='30' width='12' height='18' fill='%239BBC0F'/><rect x='32' y='32' width='42' height='16' fill='%239BBC0F'/><rect x='74' y='34' width='8' height='14' fill='%239BBC0F'/><rect x='82' y='36' width='6' height='12' fill='%239BBC0F'/><rect x='88' y='38' width='6' height='10' fill='%239BBC0F'/><rect x='94' y='40' width='8' height='8' fill='%239BBC0F'/><rect x='102' y='42' width='22' height='6' fill='%239BBC0F'/><rect x='124' y='40' width='6' height='8' fill='%239BBC0F'/><rect x='130' y='38' width='4' height='10' fill='%239BBC0F'/><rect x='134' y='36' width='6' height='12' fill='%239BBC0F'/><rect x='140' y='34' width='4' height='14' fill='%239BBC0F'/><rect x='144' y='32' width='4' height='16' fill='%239BBC0F'/><rect x='148' y='30' width='6' height='18' fill='%239BBC0F'/><rect x='154' y='28' width='6' height='20' fill='%239BBC0F'/><rect x='0' y='40' width='20' height='8' fill='%238BAC0F'/><rect x='20' y='42' width='6' height='6' fill='%238BAC0F'/><rect x='26' y='44' width='8' height='4' fill='%238BAC0F'/><rect x='34' y='46' width='16' height='2' fill='%238BAC0F'/><rect x='50' y='44' width='6' height='4' fill='%238BAC0F'/><rect x='56' y='42' width='8' height='6' fill='%238BAC0F'/><rect x='64' y='40' width='36' height='8' fill='%238BAC0F'/><rect x='100' y='38' width='6' height='10' fill='%238BAC0F'/><rect x='106' y='36' width='8' height='12' fill='%238BAC0F'/><rect x='114' y='34' width='16' height='14' fill='%238BAC0F'/><rect x='130' y='36' width='6' height='12' fill='%238BAC0F'/><rect x='136' y='38' width='8' height='10' fill='%238BAC0F'/><rect x='144' y='40' width='16' height='8' fill='%238BAC0F'/><rect x='0' y='45' width='160' height='3' fill='%23306230'/><rect x='17' y='40' width='2' height='5' fill='%230F380F'/><rect x='15' y='36' width='6' height='2' fill='%23306230'/><rect x='14' y='32' width='8' height='4' fill='%23306230'/><rect x='15' y='30' width='6' height='2' fill='%23306230'/><rect x='17' y='29' width='2' height='1' fill='%23306230'/><rect x='19' y='33' width='2' height='2' fill='%230F380F'/><rect x='15' y='35' width='2' height='1' fill='%230F380F'/><rect x='25' y='40' width='2' height='5' fill='%230F380F'/><rect x='23' y='36' width='6' height='2' fill='%23306230'/><rect x='22' y='32' width='8' height='4' fill='%23306230'/><rect x='23' y='30' width='6' height='2' fill='%23306230'/><rect x='25' y='29' width='2' height='1' fill='%23306230'/><rect x='27' y='33' width='2' height='2' fill='%230F380F'/><rect x='23' y='35' width='2' height='1' fill='%230F380F'/><rect x='74' y='40' width='2' height='5' fill='%230F380F'/><rect x='72' y='36' width='6' height='2' fill='%23306230'/><rect x='71' y='32' width='8' height='4' fill='%23306230'/><rect x='72' y='30' width='6' height='2' fill='%23306230'/><rect x='74' y='29' width='2' height='1' fill='%23306230'/><rect x='76' y='33' width='2' height='2' fill='%230F380F'/><rect x='72' y='35' width='2' height='1' fill='%230F380F'/><rect x='121' y='40' width='2' height='5' fill='%230F380F'/><rect x='119' y='36' width='6' height='2' fill='%23306230'/><rect x='118' y='32' width='8' height='4' fill='%23306230'/><rect x='119' y='30' width='6' height='2' fill='%23306230'/><rect x='121' y='29' width='2' height='1' fill='%23306230'/><rect x='123' y='33' width='2' height='2' fill='%230F380F'/><rect x='119' y='35' width='2' height='1' fill='%230F380F'/><rect x='129' y='40' width='2' height='5' fill='%230F380F'/><rect x='127' y='36' width='6' height='2' fill='%23306230'/><rect x='126' y='32' width='8' height='4' fill='%23306230'/><rect x='127' y='30' width='6' height='2' fill='%23306230'/><rect x='129' y='29' width='2' height='1' fill='%23306230'/><rect x='131' y='33' width='2' height='2' fill='%230F380F'/><rect x='127' y='35' width='2' height='1' fill='%230F380F'/><rect x='4' y='42' width='6' height='3' fill='%23306230'/><rect x='5' y='41' width='4' height='1' fill='%23306230'/><rect x='8' y='43' width='1' height='1' fill='%230F380F'/><rect x='5' y='44' width='1' height='1' fill='%230F380F'/><rect x='40' y='42' width='6' height='3' fill='%23306230'/><rect x='41' y='41' width='4' height='1' fill='%23306230'/><rect x='44' y='43' width='1' height='1' fill='%230F380F'/><rect x='41' y='44' width='1' height='1' fill='%230F380F'/><rect x='58' y='42' width='6' height='3' fill='%23306230'/><rect x='59' y='41' width='4' height='1' fill='%23306230'/><rect x='62' y='43' width='1' height='1' fill='%230F380F'/><rect x='59' y='44' width='1' height='1' fill='%230F380F'/><rect x='92' y='42' width='6' height='3' fill='%23306230'/><rect x='93' y='41' width='4' height='1' fill='%23306230'/><rect x='96' y='43' width='1' height='1' fill='%230F380F'/><rect x='93' y='44' width='1' height='1' fill='%230F380F'/><rect x='104' y='42' width='6' height='3' fill='%23306230'/><rect x='105' y='41' width='4' height='1' fill='%23306230'/><rect x='108' y='43' width='1' height='1' fill='%230F380F'/><rect x='105' y='44' width='1' height='1' fill='%230F380F'/><rect x='146' y='42' width='6' height='3' fill='%23306230'/><rect x='147' y='41' width='4' height='1' fill='%23306230'/><rect x='150' y='43' width='1' height='1' fill='%230F380F'/><rect x='147' y='44' width='1' height='1' fill='%230F380F'/></svg>"),
+    linear-gradient(#E6F0CF 0, #D2E2B0 55%, #C4D89C 100%);
+  background-size: 640px 192px, 100% 100%;
+  background-position: left bottom, 0 0;
+  background-repeat: repeat-x, no-repeat;
+  image-rendering: pixelated;
+}
+:root[data-light="1"][data-theme="arcade"] body::before { opacity: 0; }
+/* 33. The pixel clouds drift slowly (their own layer, so only transform moves; 30 % speed during a session, juice.js) */
+:root[data-light="1"][data-theme="arcade"] body::after { content: ""; position: fixed; top: 36px; left: 0; width: calc(100% + 660px); height: 102px; z-index: 0; pointer-events: none;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='34' viewBox='0 0 220 34' shape-rendering='crispEdges'><rect x='14' y='8' width='10' height='2' fill='%23F2F7E1'/><rect x='11' y='10' width='18' height='3' fill='%23F2F7E1'/><rect x='18' y='6' width='6' height='2' fill='%23F2F7E1'/><rect x='10' y='13' width='22' height='2' fill='%23F2F7E1'/><rect x='12' y='15' width='18' height='1' fill='%23B9CF8A'/><rect x='124' y='18' width='10' height='2' fill='%23F2F7E1'/><rect x='121' y='20' width='18' height='3' fill='%23F2F7E1'/><rect x='128' y='16' width='6' height='2' fill='%23F2F7E1'/><rect x='120' y='23' width='22' height='2' fill='%23F2F7E1'/><rect x='122' y='25' width='18' height='1' fill='%23B9CF8A'/><rect x='180' y='6' width='10' height='2' fill='%23F2F7E1'/><rect x='177' y='8' width='18' height='3' fill='%23F2F7E1'/><rect x='184' y='4' width='6' height='2' fill='%23F2F7E1'/><rect x='176' y='11' width='22' height='2' fill='%23F2F7E1'/><rect x='178' y='13' width='18' height='1' fill='%23B9CF8A'/></svg>") left top / 660px 102px repeat-x; image-rendering: pixelated; animation: cloud-drift 150s linear infinite; }
+@keyframes cloud-drift { to { transform: translateX(-660px); } }
+/* the pixel title and clock keep their own size (Press Start 2P is already wide) */
+:root[data-light="1"][data-theme="arcade"] h1, :root[data-light="1"][data-theme="arcade"] .clock, :root[data-light="1"][data-theme="arcade"] .cbar-clock,
+:root[data-light="1"][data-theme="arcade"] .lu-title, :root[data-light="1"][data-theme="arcade"] .deep-clock { font-size-adjust: none; }
+:root[data-light="1"][data-theme="arcade"] h1 span, :root[data-light="1"][data-theme="arcade"] .clock { text-shadow: 3px 3px 0 #8BAC0F; }
+/* 6. Light panels, 3px pixel frame in the darkest green, an offset pixel shadow without blur */
+:root[data-light="1"][data-theme="arcade"] .sigil-card, :root[data-light="1"][data-theme="arcade"] .quests, :root[data-light="1"][data-theme="arcade"] .g-card,
+:root[data-light="1"][data-theme="arcade"] .sheet, :root[data-light="1"][data-theme="arcade"] .task:not(.card), :root[data-light="1"][data-theme="arcade"] .ev-form {
+  background: var(--panel);
+  box-shadow: 0 -3px 0 0 #0F380F, 0 3px 0 0 #0F380F, -3px 0 0 0 #0F380F, 3px 0 0 0 #0F380F, 6px 6px 0 0 rgba(15, 56, 15, .3); }
+:root[data-light="1"][data-theme="arcade"] .task.card { box-shadow: 0 -3px 0 0 #0F380F, 0 3px 0 0 #0F380F, -3px 0 0 0 #0F380F, 3px 0 0 0 #0F380F,
+  inset 0 0 0 3px var(--panel), inset 0 0 0 6px var(--line), 9px 9px 0 0 rgba(15, 56, 15, .3); }
+:root[data-light="1"][data-theme="arcade"] .primary { color: var(--ink); box-shadow: inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 0 rgba(0, 0, 0, .25), 0 0 0 2px #0F380F; }
+:root[data-light="1"][data-theme="arcade"] .section-switch button[aria-pressed=true] { background: #0F380F; color: var(--ink); box-shadow: none; }
+:root[data-light="1"][data-theme="arcade"] .chip.sample { color: var(--mist); border-color: var(--mist); }
+:root[data-light="1"][data-theme="arcade"] .buff b, :root[data-light="1"][data-theme="arcade"] .buff span { color: var(--text); }
+:root[data-light="1"][data-theme="arcade"] .coin-pill, :root[data-light="1"][data-theme="arcade"] .gold span { color: #6B4A12; }
+/* 8. Quest bars: outline in the dark green, blocks in the mid green */
+:root[data-light="1"][data-theme="arcade"] .q-bar b, :root[data-light="1"][data-theme="arcade"] .seq-bar b { background: repeating-linear-gradient(90deg, #306230 0 6px, transparent 6px 8px); }
 /* Shared fixes for light backgrounds: softer shadows, readable floaters, the gold chip */
 :root[data-light="1"] .floater { text-shadow: 0 1px 0 rgba(255, 255, 255, .8); }
 :root[data-light="1"] .floater.gold, :root[data-light="1"] .gold span, :root[data-light="1"] .coin-pill { color: #8a5f00; text-shadow: none; }
@@ -939,8 +1168,8 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 .light-prev { width: 76px; height: 54px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--lp-bg); position: relative; overflow: hidden; box-shadow: 0 6px 16px -10px rgba(0, 0, 0, .5); }
 .light-prev::before { content: ""; position: absolute; left: 8px; top: 8px; width: 24px; height: 24px; border-radius: 50%; border: 3px solid var(--lp-a); }
 .light-prev::after { content: ""; position: absolute; left: 38px; right: 8px; top: 10px; height: 5px; border-radius: 3px; background: var(--lp-t); box-shadow: 0 9px 0 var(--lp-l), 0 18px 0 var(--lp-l), 0 30px 0 var(--lp-b); }
-.lp-aube { --lp-bg: #fffaf6; --lp-a: #c4708f; --lp-t: #3b3047; --lp-l: #e6dad1; --lp-b: #5f9fb3; }
-.lp-atelier { --lp-bg: #fbf8f1; --lp-a: #b4532c; --lp-t: #2a251f; --lp-l: #ddd2bd; --lp-b: #2f5c8a; }
+.lp-aube { --lp-bg: #F7F6F2; --lp-a: #2E3A8C; --lp-t: #1F2A44; --lp-l: #E2E5EC; --lp-b: #C8323C; }
+.lp-atelier { --lp-bg: #F2E8D2; --lp-a: #A8842F; --lp-t: #2B1D12; --lp-l: #E0D1B0; --lp-b: #7E1F1F; }
 .lp-tokyo { --lp-bg: #F7F7F5; --lp-a: #E6005C; --lp-t: #0B0D12; --lp-l: #DFE2E7; --lp-b: #007A99; border-radius: 0; box-shadow: 3px 3px 0 #0B0D12; }
 .lp-cartouche { --lp-bg: #d6dfb0; --lp-a: #2c5a2c; --lp-t: #1c331c; --lp-l: #95a764; --lp-b: #7a5a1e; border-radius: 0; }
 .light-acts { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
@@ -1848,4 +2077,85 @@ html.mnav-on[data-mview="timer"] .sigil-card { animation: screen-in .22s ease-ou
 
 /* Reduced motion (system setting), in one place: every CSS animation and transition stops (backgrounds, particles,
    pulses, glitches, floats). Canvas and SVG animations follow ML.reducedMotion() in core.js (they draw one still frame). */
+/* =================== Motion (step 6a): three states, micro-interactions, timer moments ===================
+   Rest = decor at full speed. Focus (data-timer="running") = the canvas runs at 30 % (game.js) and dims here, over
+   500 ms when LOCK IN is pressed. Event animations are 150–600 ms and never loop; juice.js plays the JS ones. */
+#fx { transition: opacity .5s ease; }
+:root[data-timer="running"] #fx { opacity: .5; }
+:root[data-light="1"][data-timer="running"] #fx { opacity: .3; }
+/* 2. Task cards lift 2px and their edge lights up (pointer devices only) */
+@media (hover: hover) {
+  .task:not(.editing):hover { transform: translateY(-2px); border-top-color: color-mix(in srgb, var(--accent) 45%, var(--line)); border-right-color: color-mix(in srgb, var(--accent) 45%, var(--line)); border-bottom-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+}
+/* 6. The gliding tab bar (juice.js); the theme's own underline hides while it travels */
+.tabs { position: relative; }
+.tab-ink { position: absolute; left: 0; bottom: -1px; width: 100px; height: 2px; background: var(--accent); transform-origin: 0 0; opacity: 0; pointer-events: none; }
+.tabs button.tab-gliding[aria-selected=true] { border-bottom-color: transparent !important; background-image: none !important; }
+/* 9. A parked thought on its way to the Parked tab */
+.park-ghost { position: fixed; z-index: 45; pointer-events: none; padding: 6px 10px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--panel-2); color: var(--text);
+  font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transform-origin: 0 0; }
+/* 10. Toasts: they already slide in; a thin bar empties over their lifetime */
+.toast { overflow: hidden; }
+.toast-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--accent); opacity: .7; transform-origin: 0 50%; animation: toast-bar linear forwards; }
+@keyframes toast-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+/* 12. The dial breathes very lightly during a session only (1.00 ↔ 1.01, 8 s) */
+:root[data-timer="running"] .ring-wrap { animation: dial-breathe 8s ease-in-out infinite; }
+@keyframes dial-breathe { 50% { transform: scale(1.01); } }
+/* 14. Last minute: the remaining ticks pulse gently */
+:root.t-lastmin .segs-lit line { animation: tick-pulse 2s ease-in-out infinite; }
+@keyframes tick-pulse { 50% { opacity: .5; } }
+/* 15. Last 10 seconds: the digits beat once a second (the canvas holds still, game.js) */
+:root.t-final[data-timer] .clock, :root.t-final[data-timer] .cbar-clock, :root.t-final[data-timer] .deep-clock { animation: clock-beat 1s ease-out infinite; }
+@keyframes clock-beat { 0% { transform: scale(1.04); } 35%, 100% { transform: scale(1); } }
+/* 16. End of a session: one wave of light runs round the ticks (--i set per tick in app.js) */
+.segs-lit.wave line { animation: tick-wave .6s ease-out both; animation-delay: calc(var(--i) * 10ms); }
+@keyframes tick-wave { 0% { opacity: .15; } 45% { opacity: 1; } 100% { opacity: 1; } }
+/* 17. Paused: the dial loses a little colour */
+:root[data-timer="paused"] .ring-wrap .ring { filter: saturate(.5); opacity: .85; }
+/* 18. Focus → break: the ring fades to a resting colour */
+.arc { transition: stroke-dashoffset .3s linear, stroke .6s ease; }
+.break-mode .arc { stroke: color-mix(in srgb, var(--good) 70%, var(--timer-ring)); }
+/* 19. Deep focus: the dial zooms in smoothly */
+.overlay.deep:not([hidden]) .deep-dial { animation: deep-zoom .45s cubic-bezier(.2, .7, .3, 1) both; }
+@keyframes deep-zoom { from { transform: scale(.82); opacity: 0; } }
+
+/* =================== Motion (step 6b): progression, page decor =================== */
+.q-bar b { transform-origin: 0 50%; } /* 8. quest bars grow from where they were (juice.js) */
+/* 22. "Daily quests clear" banner (2 s, juice.js) */
+.quest-banner { position: fixed; top: calc(14px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); z-index: 46; pointer-events: none; display: flex; gap: 10px; align-items: center;
+  padding: 9px 18px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--panel-2); color: var(--text); font-family: var(--f-display); font-size: 14px; letter-spacing: .1em; text-transform: uppercase;
+  box-shadow: 0 8px 30px -12px var(--glow); white-space: nowrap; }
+.quest-banner span { color: var(--accent); }
+/* 40. Cartouche's pixel wanderer: walks at rest, sits and dozes during a session (rest-only, so it pauses there) */
+.walker { display: none; }
+:root[data-light="1"][data-theme="arcade"] .walker { display: block; position: fixed; left: 0; bottom: 8px; z-index: 0; width: 24px; height: 33px; pointer-events: none;
+  transform: translateX(12vw); animation: walk-across 70s linear infinite; }
+:root.mnav-on[data-light="1"][data-theme="arcade"] .walker { bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+.walker svg { width: 100%; height: 100%; image-rendering: pixelated; }
+.walker .w-b, .walker .w-sit, .walker .w-z { opacity: 0; }
+:root[data-light="1"][data-theme="arcade"] .walker .w-a { animation: walk-step .5s steps(1) infinite; }
+:root[data-light="1"][data-theme="arcade"] .walker .w-b { animation: walk-step .5s steps(1) infinite reverse; }
+@keyframes walk-across { from { transform: translateX(-30px); } to { transform: translateX(calc(100vw + 30px)); } }
+@keyframes walk-step { 0% { opacity: 1; } 50% { opacity: 0; } }
+:root[data-light="1"][data-theme="arcade"][data-timer="running"] .walker { animation-play-state: paused; }
+:root[data-light="1"][data-theme="arcade"][data-timer="running"] .walker .w-a, :root[data-light="1"][data-theme="arcade"][data-timer="running"] .walker .w-b { animation: none; opacity: 0; }
+:root[data-light="1"][data-theme="arcade"][data-timer="running"] .walker .w-sit { opacity: 1; }
+:root[data-light="1"][data-theme="arcade"][data-timer="running"] .walker .w-z { opacity: 1; animation: doze 3s ease-in-out infinite; }
+.walker .w-z { position: absolute; right: -8px; top: -10px; font: 400 16px/1 var(--f-mono); font-style: normal; color: #0F380F; }
+@keyframes doze { 0%, 100% { transform: translate(0, 0); opacity: .2; } 50% { transform: translate(3px, -6px); opacity: .9; } }
+/* 30. Codex: today's date at the top of the page, written once by a quill on load (juice.js) */
+.quill-date { display: none; }
+@media (min-width: 900px) {
+  :root[data-light="1"][data-theme="observatory"] .quill-date { display: block; position: fixed; top: 4px; left: 50%; transform: translateX(-50%); z-index: 0; pointer-events: none; overflow: hidden; padding: 2px 4px;
+    font: 600 12px/1.4 var(--f-display); letter-spacing: .08em; color: var(--mist); white-space: nowrap; }
+}
+.qd-cover { position: absolute; inset: 0; background: var(--void); transform: translateX(100%); }
+.qd-pen { position: absolute; left: 0; top: -6px; width: 16px; height: 16px; fill: none; stroke: var(--text); stroke-width: 1.4; stroke-linecap: round; opacity: 0; }
+
+/* 58. The mute button in the header: speaker with waves, or crossed out */
+#mute-btn .mute-on { display: none; } #mute-btn[aria-pressed=true] .mute-on { display: inline; } #mute-btn[aria-pressed=true] .mute-off { display: none; }
+#mute-btn[aria-pressed=true] { color: var(--warn); }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+/* the same, from the app's own "reduced animations" option (Settings, per device; html.reduce-motion from core.js) */
+:root.reduce-motion *, :root.reduce-motion *::before, :root.reduce-motion *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
