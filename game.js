@@ -117,16 +117,23 @@
     save();
     return G.quests;
   }
+  // quest:progress / quest:done feed the game-style quest cards of themes that have them (juice.js); those themes
+  // replace the plain toast (ML.questFeed() is true there)
+  const qLast = {}; let qSeen = false;
   function checkQuests() {
     const Q = ensureQuests(), st = dayStats();
     Q.ids.forEach(id => {
-      const q = QUESTS[id];
+      const q = QUESTS[id], v = Math.min(q.val(st), q.target);
+      if (qSeen && qLast[id] !== undefined && v > qLast[id] && v < q.target && !Q.claimed.includes(id)) emit('quest:progress', { id, name: t(id), v, target: q.target, fmt: q.fmt });
+      qLast[id] = v;
       if (!Q.claimed.includes(id) && q.val(st) >= q.target) {
         Q.claimed.push(id); ML.addXp(q.xp); sfx('quest');
-        toast(t('quest_done', { q: t(id), xp: q.xp }));
+        emit('quest:done', { id, name: t(id), xp: q.xp, n: Q.claimed.length, of: Q.ids.length });
+        if (!(ML.questFeed && ML.questFeed())) toast(t('quest_done', { q: t(id), xp: q.xp }));
         if (Q.claimed.length === Q.ids.length) emit('quests:clear'); // juice.js shows the "daily quests clear" banner
       }
     });
+    qSeen = true; // the first pass after load only records where each quest stands
   }
 
   /* ---------- Boss ---------- */
@@ -271,8 +278,9 @@
       dn_now_day: 'jour en ce moment', dn_now_night: 'nuit en ce moment',
       dn_light: 'Toujours clair', dn_autolight: 'Auto clair (clair le jour, nuit de 21h à 6h)',
       dn_title_light: 'Mode clair. Touche pour revenir en auto.', dn_title_autolight: 'Auto clair ({now}). Touche pour forcer le jour.',
-      light_premium_hint: 'Premium : un troisième univers, clair, pour chaque humeur (Washi, Codex, Salle blanche, Cartouche).',
-      th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Salle blanche', th_light_cartouche: 'Cartouche',
+      light_premium_hint: 'Premium : un troisième univers, clair, pour chaque humeur (Washi, Codex, Estampe, Cartouche).',
+      th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Estampe', th_light_cartouche: 'Cartouche',
+      ink_focus: 'Focus auj. {t}', ink_streak: 'Série {n} j', ink_quests: 'Quêtes {n}/{m}', ink_next: 'Prochain bloc {t}',
     },
     en: {
       class_drained: 'Sanctuary hermit', class_steady: 'Cyber sorcerer', class_fired: 'Netrunner', class_scattered: '8-bit adventurer',
@@ -292,8 +300,9 @@
       dn_now_day: 'day right now', dn_now_night: 'night right now',
       dn_light: 'Always light', dn_autolight: 'Auto light (light by day, night from 9pm to 6am)',
       dn_title_light: 'Light mode. Tap to go back to auto.', dn_title_autolight: 'Auto light ({now}). Tap to force day.',
-      light_premium_hint: 'Premium: a third, light world for every mood (Washi, Codex, Clean Room, Cartridge).',
-      th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Clean Room', th_light_cartouche: 'Cartridge',
+      light_premium_hint: 'Premium: a third, light world for every mood (Washi, Codex, Print, Cartridge).',
+      th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Print', th_light_cartouche: 'Cartridge',
+      ink_focus: 'Focus today {t}', ink_streak: 'Streak {n} d', ink_quests: 'Quests {n}/{m}', ink_next: 'Next block {t}',
     },
   });
   ML.defaults(() => ({ dayNight: 'auto' })); // 'auto' (night 21h–6h) | 'day' | 'night'; kept per device (sync.js LOCAL_ONLY)
@@ -342,7 +351,7 @@
     if (S.theme !== 'auto') return S.theme;
     return (isNight() ? THEME_NIGHT : THEME_DAY)[S.mood] || 'sorcerer';
   }
-  // Salle blanche (Fired up, light): fixed technical metadata on the page edge, decorative and still
+  // (old Salle blanche, now unused: CSS keeps .deco-meta hidden) fixed technical metadata on the page edge, decorative and still
   // (it only changes when the minute does). Shown by CSS for that theme on wide screens only.
   const decoMeta = document.createElement('div');
   decoMeta.className = 'deco-meta'; decoMeta.setAttribute('aria-hidden', 'true');
@@ -385,7 +394,7 @@
     root.dataset.theme = th;
     if (light) root.dataset.light = light; else delete root.dataset.light;
     const meta = document.querySelector('meta[name=theme-color]');
-    if (meta) meta.content = light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#eceef2', arcade: '#c6d29c' }[th]
+    if (meta) meta.content = light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#F7F5EF', arcade: '#c6d29c' }[th]
       : { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#120c24', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
     if (themed) playTransition(th);
     themed = true;
@@ -498,6 +507,99 @@
       const pts = Array.from({ length: n }, (_, i) => [x0 + Math.cos(i * 1.3 + Math.random()) * (30 + Math.random() * 50), y0 + Math.sin(i * 1.3 + Math.random()) * (20 + Math.random() * 35)]);
       drawn.push({ pts, t0: performance.now() }); if (drawn.length > 3) drawn.shift();
     };
+    /* ---------- Estampe (ex Salle blanche): the ink city (Fired up, light) ----------
+       A static ink drawing cached per screen size (paper, a setting sun, three rows of towers, a monorail viaduct),
+       then live parts each frame: red windows and neon columns that light up with today's progress, screens with
+       the day's numbers, searchlights, drones, the monorail after a focus session, ink rain. */
+    let ink = null, inkKey = '', inkSigns = [], inkScreens = [], inkLights = [], inkDrones = [], inkDrops = [], inkTrain = null, inkData = null, inkDataT = 0, inkGround = 0, inkRail = 0;
+    const INK = '#111111', RED = '#E3001B', PAPER = '#F7F5EF';
+    function inkTowers(rnd, gy, hmin, hmax, wmin, wmax, gap) {
+      const out = []; let x = -20;
+      while (x < W + 20) {
+        const w = wmin + rnd() * (wmax - wmin), h = H * (hmin + Math.pow(rnd(), 1.5) * (hmax - hmin)), tiers = 1 + Math.floor(rnd() * 3), parts = []; let y = gy, cw = w, cx0 = x;
+        for (let k = 0; k < tiers; k++) { const th = h * (k === 0 ? 0.66 : 0.34 / (tiers - 1 || 1)); parts.push([cx0, y - th, cw, th]); y -= th; const nw = cw * (0.6 + rnd() * 0.26); cx0 += (cw - nw) / 2; cw = nw; }
+        out.push({ x, w, h, parts, top: y, mid: cx0 + cw / 2, spire: rnd() < 0.45, sign: rnd() < 0.35, screen: rnd() < 0.14 }); x += w + 2 + rnd() * gap;
+      }
+      return out;
+    }
+    function inkBuild() {
+      let s = 5; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+      const c = document.createElement('canvas'), d = Math.min(2, devicePixelRatio || 1); c.width = W * d; c.height = H * d; const b = c.getContext('2d'); b.setTransform(d, 0, 0, d, 0, 0);
+      inkSigns = []; inkScreens = []; inkLights = []; inkGround = H * 0.86; inkRail = inkGround - H * 0.17;
+      b.fillStyle = PAPER; b.fillRect(0, 0, W, H);
+      const R = Math.min(W, H), sr = R * 0.2, sx = W * 0.035, sy = inkGround - H * 0.3;                       // the setting sun, low in the left margin
+      b.fillStyle = RED; b.beginPath(); b.arc(sx, sy, sr, 0, 6.29); b.fill();
+      b.fillStyle = PAPER; for (let k = 0; k < 6; k++) b.fillRect(sx - sr, sy + sr * (0.1 + k * 0.15), sr * 2, 2 + k);
+      b.strokeStyle = INK; b.lineCap = 'round';                                                                  // a few ink strokes for clouds
+      [[0.02, 0.32, 0.12], [0.86, 0.3, 0.12], [0.9, 0.42, 0.08], [0.05, 0.44, 0.08]].forEach(([fx, fy, fw]) => { const x = W * fx, y = H * fy, w = W * fw; b.lineWidth = 2; b.beginPath(); b.moveTo(x, y); b.lineTo(x + w, y); b.stroke(); b.lineWidth = 1.2; b.beginPath(); b.moveTo(x + w * 0.15, y + 7); b.lineTo(x + w * 0.8, y + 7); b.stroke(); });
+      inkTowers(rnd, inkGround - 34, 0.2, 0.5, 40, 110, 4).forEach(t => t.parts.forEach(([x, y, w, h]) => { b.fillStyle = PAPER; b.fillRect(x, y, w, h); b.strokeStyle = '#A8A59C'; b.lineWidth = 1; b.strokeRect(x + 0.5, y + 0.5, w, h); }));
+      inkTowers(rnd, inkGround - 10, 0.14, 0.44, 46, 120, 16).forEach(t => {
+        t.parts.forEach(([x, y, w, h]) => {
+          b.fillStyle = '#FFFFFF'; b.fillRect(x, y, w, h); b.fillStyle = '#E4E1D8'; b.fillRect(x + w * 0.72, y, w * 0.28, h);
+          for (let yy = y + 9; yy < y + h - 6; yy += 11) for (let xx = x + 6; xx < x + w * 0.66; xx += 9) { const r = rnd(); if (r < 0.22) { b.fillStyle = INK; b.fillRect(xx, yy, 3, 5); } else if (r < 0.3) inkLights.push([xx, yy]); }
+          b.strokeStyle = INK; b.lineWidth = 1.6; b.strokeRect(x + 0.5, y + 0.5, w, h);
+        });
+        if (t.spire) { b.fillStyle = INK; b.fillRect(t.mid - 1, t.top - 44, 2, 44); }
+        if (t.sign) inkSigns.push({ x: t.x + t.w - 10, y: inkGround - 10 - t.h * 0.72, h: 50 + rnd() * 70, p: rnd() * 100, rate: 0.002 + rnd() * 0.004 });
+        if (t.screen) inkScreens.push({ x: t.x + t.w / 2 - 75, y: inkGround - 10 - t.h * 0.6, w: 150, h: 46, o: rnd() * 400 });
+      });
+      inkLights.sort(() => rnd() - 0.5);
+      b.fillStyle = INK; b.fillRect(0, inkRail, W, 6); for (let px = 30; px < W; px += 130) { b.fillRect(px, inkRail, 6, inkGround - inkRail); b.fillRect(px - 8, inkRail + 6, 22, 3); }
+      inkTowers(rnd, inkGround, 0.06, 0.26, 60, 170, 30).forEach(t => t.parts.forEach(([x, y, w, h]) => { b.fillStyle = INK; b.fillRect(x, y, w, h); b.fillStyle = PAPER; for (let yy = y + 7; yy < y + h - 4; yy += 9) for (let xx = x + 6; xx < x + w - 6; xx += 7) if (rnd() < 0.13) b.fillRect(xx, yy, 2, 3); }));
+      b.fillStyle = INK; b.fillRect(0, inkGround, W, H - inkGround);
+      b.strokeStyle = PAPER; b.lineWidth = 1; b.globalAlpha = 0.7; for (let k = 0; k < 46; k++) { const x = rnd() * W, y = inkGround + 8 + rnd() * (H - inkGround - 12); b.beginPath(); b.moveTo(x, y); b.lineTo(x + 12 + rnd() * 34, y); b.stroke(); }
+      ink = c; inkKey = W + 'x' + H;
+      inkDrops = Array.from({ length: Math.round(W * H / 5600) }, () => ({ x: Math.random() * W, y: Math.random() * H, l: 16 + Math.random() * 20, v: 11 + Math.random() * 7, a: 0.2 + Math.random() * 0.3 }));
+      inkDrones = Array.from({ length: W < 600 ? 2 : 4 }, (_, i) => ({ x: Math.random() * W, y: H * (0.12 + Math.random() * 0.3), v: (i % 2 ? -1 : 1) * (0.25 + Math.random() * 0.3), p: Math.random() * 6 }));
+    }
+    // today's numbers, for the lit windows / neon columns and the screens (refreshed every 2 s)
+    function inkNumbers(now) {
+      if (inkData && now - inkDataT < 2000) return inkData;
+      inkDataT = now;
+      const td = today(), ss = S.sessions.filter(x => dayKey(new Date(x.at)) === td), mins = ss.reduce((a, x) => a + x.mins, 0), D = S.game.daily, tasks = D && D.day === td ? D.tasks : 0;
+      const Q = S.game.quests && S.game.quests.day === td ? S.game.quests : null, nowM = new Date().getHours() * 60 + new Date().getMinutes();
+      const nb = (S.blocks || []).filter(x => x.date === td && x.start > nowM).sort((a, z) => a.start - z.start)[0];
+      const parts = [t('ink_focus', { t: fmtMins(mins) }), t('ink_streak', { n: ML.streaks().cur }), Q ? t('ink_quests', { n: Q.claimed.length, m: Q.ids.length }) : '', t('sequence') + ' ' + ML.seqInfo().num, nb ? t('ink_next', { t: ML.pad2(Math.floor(nb.start / 60)) + ':' + ML.pad2(nb.start % 60) }) : ''].filter(Boolean);
+      inkData = { lit: tasks * 12 + ss.length * 6, signsOn: 2 + tasks, ticker: parts.join('   ◆   ').toUpperCase() + '   ◆   ' };
+      return inkData;
+    }
+    on('session', () => { if (!still && document.documentElement.dataset.theme === 'netrunner' && document.documentElement.dataset.light) inkTrain = { x: -440, v: 3.4 }; inkData = null; });
+    on('task:done', () => { inkData = null; });
+    function inkDraw(tm, slow, rest, mv, now) {
+      if (!ink || inkKey !== W + 'x' + H) inkBuild();
+      const N = inkNumbers(now), sp = still ? 0 : slow;
+      cx.drawImage(ink, 0, 0, W, H);
+      cx.fillStyle = RED; for (let k = 0; k < Math.min(N.lit, inkLights.length); k++) cx.fillRect(inkLights[k][0], inkLights[k][1], 3, 5);
+      [[W * 0.2, 0], [W * 0.62, 2.2]].forEach(([bx, ph]) => { const a = -1.57 + Math.sin(tm * 0.00018 + ph) * 0.5; cx.globalAlpha = 0.05; cx.fillStyle = INK; cx.beginPath(); cx.moveTo(bx, inkGround); cx.lineTo(bx + Math.cos(a - 0.05) * H * 1.2, inkGround + Math.sin(a - 0.05) * H * 1.2); cx.lineTo(bx + Math.cos(a + 0.05) * H * 1.2, inkGround + Math.sin(a + 0.05) * H * 1.2); cx.fill(); cx.globalAlpha = 1; });
+      inkSigns.forEach((s, i) => {
+        const lit = i < N.signsOn, off = !lit || (rest && (Math.sin(tm * s.rate + s.p) > 0.97 || Math.random() < 0.003)); // rest only: the odd buzz
+        cx.fillStyle = off ? '#D9D6CC' : RED; cx.fillRect(s.x, s.y, 12, s.h); cx.strokeStyle = INK; cx.lineWidth = 1.6; cx.strokeRect(s.x, s.y, 12, s.h);
+        cx.fillStyle = off ? '#B9B6AC' : '#FFFFFF'; for (let k = 8; k < s.h - 8; k += 13) cx.fillRect(s.x + 3, s.y + k, 6, 7);
+      });
+      cx.font = '600 13px "Chakra Petch", "Bahnschrift", sans-serif'; cx.textBaseline = 'middle';
+      for (const s of inkScreens) {
+        cx.fillStyle = INK; cx.fillRect(s.x, s.y, s.w, s.h); cx.fillStyle = RED; cx.fillRect(s.x + 4, s.y + s.h - 8, s.w - 8, 3);
+        cx.save(); cx.beginPath(); cx.rect(s.x + 6, s.y + 4, s.w - 12, s.h - 14); cx.clip(); cx.fillStyle = '#FFFFFF';
+        const tw = cx.measureText(N.ticker).width || 1, ox = (tm * 0.03 + s.o) % tw; cx.fillText(N.ticker, s.x + 6 - ox, s.y + s.h / 2 - 4); cx.fillText(N.ticker, s.x + 6 - ox + tw, s.y + s.h / 2 - 4); cx.restore();
+      }
+      for (const d of inkDrones) {
+        if (mv) { d.x += d.v; if (d.x > W + 20) d.x = -20; if (d.x < -20) d.x = W + 20; }
+        const yy = d.y + Math.sin(tm * 0.001 + d.p) * 4; cx.fillStyle = INK; cx.fillRect(d.x - 7, yy, 14, 3); cx.fillRect(d.x - 2, yy - 3, 4, 3);
+        if (!still && Math.floor(now / 600 + d.p) % 2) { cx.fillStyle = RED; cx.fillRect(d.x - 1, yy + 3, 2, 2); }
+      }
+      if (inkTrain) {
+        if (!still) inkTrain.x += inkTrain.v; const ty = inkRail - 22;
+        cx.fillStyle = INK; cx.fillRect(inkTrain.x, ty, 400, 20); cx.beginPath(); cx.moveTo(inkTrain.x + 400, ty); cx.lineTo(inkTrain.x + 432, ty + 20); cx.lineTo(inkTrain.x + 400, ty + 20); cx.fill();
+        cx.fillStyle = RED; cx.fillRect(inkTrain.x, ty + 14, 422, 3); cx.fillStyle = PAPER; for (let k = 10; k < 390; k += 22) cx.fillRect(inkTrain.x + k, ty + 4, 14, 7);
+        if (inkTrain.x > W + 40) inkTrain = null;
+      }
+      if (sp > 0) { // ink rain, lighter during a session, still in the last 10 s
+        cx.strokeStyle = INK; cx.lineWidth = 1.1;
+        for (const d of inkDrops) { if (mv) { d.y += d.v; d.x -= d.v * 0.1; if (d.y > H) { d.y = -30; d.x = Math.random() * W * 1.1; } }
+          cx.globalAlpha = d.a * (rest ? 1 : 0.55); cx.beginPath(); cx.moveTo(d.x, d.y); cx.lineTo(d.x + d.l * 0.1, d.y - d.l); cx.stroke(); }
+        cx.globalAlpha = 1;
+      }
+    }
     function draw(tm) {
       raf = null; // set again below only while animating, so start() / the 'motion' event can restart the loop
       const root = document.documentElement, th = root.dataset.theme || 'sorcerer';
@@ -675,6 +777,8 @@
             cx.globalAlpha = 1; shoot.x += 8; shoot.y += 4; if (++shoot.n > 70) shoot = null;
           }
         }
+      } else if (th === 'netrunner' && root.dataset.light) {
+        inkDraw(tm, slow, rest, mv, now);
       } else {
         const square = th === 'netrunner';
         if (square) {

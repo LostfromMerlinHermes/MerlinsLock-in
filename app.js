@@ -550,6 +550,7 @@
     const clock = fmtClock(rem);
     $('clock').textContent = clock; $('c-clock').textContent = clock;
     $('arc').style.strokeDashoffset = ARC_C * (1 - frac);
+    $('tip').setAttribute('transform', `rotate(${(frac * 360).toFixed(2)} 120 120)`); // chronograph pointer at "now" (shown by themes that want it)
     $('c-prog').style.width = ((1 - frac) * 100).toFixed(2) + '%';
     const lit = Math.ceil(frac * 60);
     if (lit !== litCount && !isCompact()) {

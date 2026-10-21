@@ -31,7 +31,7 @@
 :root[data-theme="arena"] { --timer-ring: var(--accent-2); }              /* Arena (Sport) */
 :root[data-light="1"][data-theme="sanctuary"] { --timer-ring: #2E3A8C; }  /* Washi (light): indigo ink */
 :root[data-light="1"][data-theme="observatory"] { --timer-ring: #A8842F; } /* Codex (light): engraved gold */
-:root[data-light="1"][data-theme="netrunner"] { --timer-ring: rgba(255, 255, 255, .3); } /* Salle blanche (light): on the black dial */
+:root[data-light="1"][data-theme="netrunner"] { --timer-ring: #111111; } /* Estampe (light): ink ring on the chronograph */
 :root[data-light="1"][data-theme="arcade"] { --timer-ring: #0F380F; }   /* Cartouche (light): darkest green */
 /* Fired up: vivid neon (pink / light blue lead) */
 :root[data-theme="netrunner"], :root[data-theme="sorcerer"][data-mood="fired"] {
@@ -214,6 +214,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 18px var(--glow); }
 .segs-lit { filter: drop-shadow(0 0 3px var(--glow)); }
 .arc-track { fill: none; stroke: var(--line); stroke-width: 1; }
 .arc { fill: none; stroke: var(--timer-ring); stroke-width: 1.6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 120px 120px; transition: stroke-dashoffset .3s linear; opacity: .9; }
+.tip { display: none; }
 .hex { fill: none; stroke: var(--line); stroke-width: .8; transform-origin: 120px 120px; animation: spin 220s linear infinite reverse; animation-play-state: paused; }
 .running .hex { animation-play-state: running; stroke: color-mix(in srgb, var(--accent) 35%, var(--line)); }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -856,7 +857,7 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 
 /* =================== Light skins (Premium): the third world of each mood ===================
    data-light="1" sits on top of the mood's day theme, so each keeps its fonts, shapes and effects:
-   Sanctuary → Washi (paper, indigo ink), Observatory → Codex (parchment grimoire), Netrunner → Salle blanche
+   Sanctuary → Washi (paper, indigo ink), Observatory → Codex (parchment grimoire), Netrunner → Estampe
    (white concrete, neon signs), Arcade → Cartouche (a 4-tone pocket-console LCD). */
 :root[data-light="1"] { --r-common: #5f5a73; --r-rare: #17699a; --r-epic: #6a32b0; --r-legendary: #8a5f00; color-scheme: light; --glow: color-mix(in srgb, var(--accent) 30%, transparent); --soft: color-mix(in srgb, var(--accent) 10%, transparent); }
 /* ---------- Washi (Drained, light, Premium): Japanese paper, washed indigo ink, zen calm ----------
@@ -1008,108 +1009,138 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-light="1"][data-theme="observatory"] .rar-legendary .chip.rar { border-color: var(--r-legendary); background: color-mix(in srgb, var(--r-legendary) 10%, transparent); }
 :root[data-light="1"][data-theme="observatory"] .chip.sample { color: var(--mist); border-color: var(--line-2); }
 :root[data-light="1"][data-theme="observatory"] .q-bar b, :root[data-light="1"][data-theme="observatory"] .seq-bar b { background: var(--accent); }
-/* ---------- Salle blanche (Fired up, light, Premium): corporate cyberpunk in daylight ----------
-   A high-tech lab on a technical drawing: cold concrete, a blueprint grid, cut marks, black dial as the focal point,
-   magenta for actions, dark cyan for information only, acid green only ever on black. Hard offset shadows. */
-:root[data-light="1"][data-theme="netrunner"] {
-  --void: #E9EBEE; --panel: #F7F7F5; --panel-2: #DFE2E7; --line: rgba(11, 13, 18, .14); --line-2: rgba(11, 13, 18, .28);
-  --text: #0B0D12; --mist: #4A4F5C; --dim: #4A4F5C; /* secondary text never lighter than ink-muted */
-  --accent: #E6005C; --accent-2: #006F8C; --ink: #ffffff; --good: #00804F; --warn: #C8102E;
-  /* the brief's #E6005C / #007A99 fail AA as text (4.33 on the surface, 4.14 on the page): text uses deeper twins */
-  --accent-text: #B8004A;
-  --acid: #C6FF00; /* only on black */
-  --shadow-hard: 4px 4px 0 var(--text);
-  --r-common: #4A4F5C; --r-rare: #007A99; --r-epic: #6B2BD9; --r-legendary: #E85D00;
-  --glow: transparent; --soft: rgba(230, 0, 92, .08);
-  --ev-1: #E6005C; --ev-2: #007A99; --ev-3: #00804F; --ev-4: #E85D00; --ev-5: #6B2BD9; --ev-6: #C8102E; --ev-7: #8A7A00; --ev-8: #3D5BD1;
-}
-/* 1–2. No pink glow: a fine blueprint grid (24px, majors every 120px) and a light grain */
-:root[data-light="1"][data-theme="netrunner"] body {
-  background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.07'/></svg>"),
-    linear-gradient(rgba(11, 13, 18, .09) 1px, transparent 1px), linear-gradient(90deg, rgba(11, 13, 18, .09) 1px, transparent 1px),
-    linear-gradient(rgba(11, 13, 18, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(11, 13, 18, .045) 1px, transparent 1px);
-  background-size: 160px 160px, 120px 120px, 120px 120px, 24px 24px, 24px 24px;
-}
-:root[data-light="1"][data-theme="netrunner"] body::before { opacity: 0; }
-:root[data-light="1"][data-theme="netrunner"] body::after { background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, .02) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
-/* 3. L cut marks at the 4 corners of the main panels (drawn as background layers, no extra markup) */
-:root[data-light="1"][data-theme="netrunner"] { --cut: linear-gradient(var(--text), var(--text)); }
-:root[data-light="1"][data-theme="netrunner"] .sigil-card, :root[data-light="1"][data-theme="netrunner"] .panel {
-  background-image: var(--cut), var(--cut), var(--cut), var(--cut), var(--cut), var(--cut), var(--cut), var(--cut);
-  background-size: 14px 2px, 2px 14px, 14px 2px, 2px 14px, 14px 2px, 2px 14px, 14px 2px, 2px 14px;
-  background-position: 0 0, 0 0, 100% 0, 100% 0, 0 100%, 0 100%, 100% 100%, 100% 100%;
-  background-repeat: no-repeat;
-}
-:root[data-light="1"][data-theme="netrunner"] .sigil-card { background-color: var(--panel); border-color: var(--line-2); box-shadow: none; }
-:root[data-light="1"][data-theme="netrunner"] .panel { background-color: var(--veil); }
-:root[data-light="1"][data-theme="netrunner"] .sigil-card::before, :root[data-light="1"][data-theme="netrunner"] .sigil-card::after { display: none; }
-/* 4. Fixed technical metadata on the left edge (wide screens), still */
+/* ---------- Estampe (Fired up, light, Premium; ex Salle blanche): an ink-drawn megacity in the rain (3.23) ----------
+   Paper, black ink and one red. The city is drawn on the #fx canvas (game.js): a setting sun, neon columns that
+   light up as you finish tasks, screens with the day's numbers, drones, searchlights, a monorail at the end of a
+   session, ink rain. Cards are white with a 2px ink frame and one corner cut; the timer is a chronograph (black
+   bezel with a minute scale, white face, red ticks for the time left, a red pointer at "now"). Quest news comes as
+   a feed of game-style cards that leave by themselves (juice.js); a status strip carries the day's numbers. */
 .deco-meta { display: none; }
-@media (min-width: 900px) {
-  /* standing along the left edge, in the page margin */
-  :root[data-light="1"][data-theme="netrunner"] .deco-meta { display: flex; position: fixed; z-index: 0; left: 4px; bottom: 16px; gap: 14px; align-items: center; pointer-events: none;
-    writing-mode: vertical-rl; rotate: 180deg; font: 500 10px/1 var(--f-mono); letter-spacing: .14em; color: var(--mist); }
-  :root[data-light="1"][data-theme="netrunner"] .deco-meta svg { fill: var(--text); opacity: .55; rotate: 90deg; }
+:root[data-light="1"][data-theme="netrunner"] {
+  --void: #F7F5EF; --panel: #FFFFFF; --panel-2: #F1EFE8; --line: rgba(17, 17, 17, .16); --line-2: #111111;
+  --text: #111111; --mist: #5E5E5E; --dim: #5E5E5E;
+  /* red text is the deep #B5001A (7:1 on white); the bright #E3001B only fills (white text on it is 4.9:1) */
+  --accent: #B5001A; --accent-text: #B5001A; --hot: #E3001B; --accent-2: #111111; --ink: #FFFFFF; --good: #2F6B2F; --warn: #B5001A;
+  --soft: rgba(227, 0, 27, .07); --glow: transparent; --veil: #F7F5EF;
+  --r-common: #5E5E5E; --r-rare: #3A3A3A; --r-epic: #111111; --r-legendary: #B5001A;
+  --f-display: "Chakra Petch", "Bahnschrift", sans-serif; --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --cut: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+  --ev-1: #E3001B; --ev-2: #111111; --ev-3: #2F6B2F; --ev-4: #9A6A00; --ev-5: #5E5E5E; --ev-6: #B5001A; --ev-7: #8A877E; --ev-8: #3A3A3A;
 }
-/* 5. "LOCK-IN" watermark in outline mono behind the right column, ≤ 5 % */
-:root[data-light="1"][data-theme="netrunner"] .panel { position: relative; isolation: isolate; }
-:root[data-light="1"][data-theme="netrunner"] .panel::before { content: "LOCK-IN"; position: absolute; z-index: -1; top: 34%; left: 50%; translate: -50% 0; pointer-events: none; white-space: nowrap;
-  font: 800 clamp(64px, 11vw, 150px)/1 var(--f-mono); letter-spacing: .04em; color: transparent; -webkit-text-stroke: 1.5px var(--text); opacity: .045; }
-/* 6. Focal point: the dial becomes a black disc with a hard shadow */
-:root[data-light="1"][data-theme="netrunner"] .ring-wrap { border-radius: 50%; background: radial-gradient(circle at 50% 45%, #171A22 0, #0B0D12 70%); box-shadow: var(--shadow-hard); }
-:root[data-light="1"][data-theme="netrunner"] .segs-lit line { stroke: var(--accent); }
-:root[data-light="1"][data-theme="netrunner"] .segs-dim line { stroke: var(--acid); }  /* elapsed ticks */
-:root[data-light="1"][data-theme="netrunner"] .segs-lit { filter: none; }
-:root[data-light="1"][data-theme="netrunner"] .runes .glyph { stroke: #5C6170; }
-:root[data-light="1"][data-theme="netrunner"] .runes circle.orbit { stroke: rgba(255, 255, 255, .16); }
-:root[data-light="1"][data-theme="netrunner"] .hex, :root[data-light="1"][data-theme="netrunner"] .running .hex { stroke: rgba(255, 255, 255, .12); }
-:root[data-light="1"][data-theme="netrunner"] .arc-track { stroke: rgba(255, 255, 255, .1); }
-:root[data-light="1"][data-theme="netrunner"] .clock { color: #fff; text-shadow: 2px 0 rgba(230, 0, 92, .55), -2px 0 rgba(0, 170, 210, .45); }
-:root[data-light="1"][data-theme="netrunner"] .ring-center .state { color: var(--acid); }
-:root[data-light="1"][data-theme="netrunner"] .focus-on { color: #B9BDC7; } :root[data-light="1"][data-theme="netrunner"] .focus-on b { color: #fff; }
-/* 7. Work / Sport: active = black slab, white text, 4px magenta bar at the bottom */
-:root[data-light="1"][data-theme="netrunner"] .section-switch { background: var(--panel); border-color: var(--line-2); }
-:root[data-light="1"][data-theme="netrunner"] .section-switch button[aria-pressed=true] { background: #0B0D12; color: #fff; box-shadow: inset 0 -4px 0 var(--accent); }
-/* 8. Active mood: 2px ink border, hard shadow, faint magenta hazard stripes, [ACTIVE] tag */
-:root[data-light="1"][data-theme="netrunner"] .mood-chip[aria-pressed=true] { position: relative; border: 2px solid var(--text); box-shadow: var(--shadow-hard); color: var(--text);
-  background: repeating-linear-gradient(135deg, rgba(230, 0, 92, .06) 0 6px, transparent 6px 12px), var(--panel); }
-:root[data-light="1"][data-theme="netrunner"] .mood-chip[aria-pressed=true]::after { content: "[ACTIVE]"; position: absolute; top: -6px; right: 6px; padding: 0 3px; background: var(--panel);
-  font: 600 9px/11px var(--f-mono); letter-spacing: .06em; color: var(--accent); text-transform: none; } /* sits on the top border, clear of the icon */
-/* 9. LOCK IN (and the other main actions): a physical button */
-:root[data-light="1"][data-theme="netrunner"] .primary { background: var(--accent); color: #fff; border: 1px solid var(--text); box-shadow: var(--shadow-hard); transition: transform .08s, box-shadow .08s; }
-:root[data-light="1"][data-theme="netrunner"] .primary:hover { box-shadow: 6px 6px 0 var(--text); }
-:root[data-light="1"][data-theme="netrunner"] .primary:active { transform: translate(4px, 4px); box-shadow: none; }
-/* 10. Secondary buttons: light surface, 1px ink border, 2px hard shadow on hover; selected duration = black + acid */
+:root[data-light="1"][data-theme="netrunner"] body { background-image: none; }
+:root[data-light="1"][data-theme="netrunner"] body::before { opacity: 0; }
+:root[data-light="1"][data-theme="netrunner"] body::after { display: none; }
+:root[data-light="1"][data-theme="netrunner"] #fx { mix-blend-mode: normal; opacity: 1; }
+:root[data-light="1"][data-theme="netrunner"][data-timer="running"] #fx { opacity: .75; }
+/* cards: white, 2px ink frame, the top-right corner cut off (with an ink line along the cut) */
+:root[data-light="1"][data-theme="netrunner"] .sigil-card, :root[data-light="1"][data-theme="netrunner"] .panel,
+:root[data-light="1"][data-theme="netrunner"] .quests, :root[data-light="1"][data-theme="netrunner"] .g-card {
+  background: var(--panel); border: 2px solid var(--text); border-radius: 0; box-shadow: none; clip-path: var(--cut); }
+:root[data-light="1"][data-theme="netrunner"] .panel { padding: 14px; }
+:root[data-light="1"][data-theme="netrunner"] .sigil-card::before, :root[data-light="1"][data-theme="netrunner"] .panel::before { display: none; content: none; }
+:root[data-light="1"][data-theme="netrunner"] .sigil-card::after, :root[data-light="1"][data-theme="netrunner"] .panel::after,
+:root[data-light="1"][data-theme="netrunner"] .quests::after, :root[data-light="1"][data-theme="netrunner"] .g-card::after {
+  content: ""; display: block; position: absolute; right: 0; top: 0; left: auto; bottom: auto; width: 23px; height: 2px; border: 0; background: var(--text); filter: none;
+  transform-origin: 100% 0; transform: rotate(45deg); pointer-events: none; }
+/* type: straight and clean, no terminal decorations */
+:root[data-light="1"][data-theme="netrunner"] h1 span { color: var(--accent); text-shadow: none; }
+:root[data-light="1"][data-theme="netrunner"] h2::before, :root[data-light="1"][data-theme="netrunner"] .tabs button::before, :root[data-light="1"][data-theme="netrunner"] .tabs button::after,
+:root[data-light="1"][data-theme="netrunner"] .task .t-title::before, :root[data-light="1"][data-theme="netrunner"] .task.next .t-title::after { content: none; }
+:root[data-light="1"][data-theme="netrunner"] h2, :root[data-light="1"][data-theme="netrunner"] .label { letter-spacing: .16em; }
+/* tabs, Work / Sport, moods, Focus / Break: ink slabs when active */
+:root[data-light="1"][data-theme="netrunner"] .tabs { border-bottom: 2px solid var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .tabs button { color: var(--mist); letter-spacing: .14em; margin-bottom: 0; border-bottom: 0; }
+:root[data-light="1"][data-theme="netrunner"] .tabs button[aria-selected=true] { background: var(--text); color: #fff; }
+:root[data-light="1"][data-theme="netrunner"] .section-switch { background: var(--panel); border: 2px solid var(--text); border-radius: 0; }
+:root[data-light="1"][data-theme="netrunner"] .section-switch button { border-radius: 0; }
+:root[data-light="1"][data-theme="netrunner"] .section-switch button[aria-pressed=true], :root[data-light="1"][data-theme="netrunner"] .mood-chip[aria-pressed=true] {
+  background: var(--text); color: #fff; box-shadow: inset 0 -4px 0 var(--hot); border-color: var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .mood-chip { background: var(--panel); border: 2px solid var(--text); border-radius: 0; color: var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .mood-chip[aria-pressed=true] svg { stroke: #fff; }
+:root[data-light="1"][data-theme="netrunner"] .mood-chip[aria-pressed=true]::after { content: none; }
+:root[data-light="1"][data-theme="netrunner"] .seg-toggle { background: var(--panel); border: 2px solid var(--text); border-radius: 0; padding: 0; }
+:root[data-light="1"][data-theme="netrunner"] .seg-toggle button { border-radius: 0; color: var(--mist); }
+:root[data-light="1"][data-theme="netrunner"] .seg-toggle button[aria-pressed=true] { background: var(--text); color: #fff; box-shadow: none; }
+/* buttons: white with an ink frame; actions red; LOCK IN red with two corners cut */
+:root[data-light="1"][data-theme="netrunner"] button { border-radius: 0; }
 :root[data-light="1"][data-theme="netrunner"] .controls button:not(.primary), :root[data-light="1"][data-theme="netrunner"] .presets button,
 :root[data-light="1"][data-theme="netrunner"] .custom button, :root[data-light="1"][data-theme="netrunner"] button.small:not(.primary):not(.ghost) {
-  background: var(--panel); border: 1px solid var(--text); color: var(--text); transition: box-shadow .08s; }
+  background: var(--panel); border: 2px solid var(--text); color: var(--text); box-shadow: none; }
 :root[data-light="1"][data-theme="netrunner"] .controls button:not(.primary):hover, :root[data-light="1"][data-theme="netrunner"] .presets button:hover,
-:root[data-light="1"][data-theme="netrunner"] .custom button:hover, :root[data-light="1"][data-theme="netrunner"] button.small:not(.primary):not(.ghost):hover { box-shadow: 2px 2px 0 var(--text); }
-:root[data-light="1"][data-theme="netrunner"] .presets button[aria-pressed=true] { background: #0B0D12; color: var(--acid); border-color: #0B0D12; }
-/* 11. Tabs: active bold with magenta brackets and a 2px magenta underline; inactive ink-muted */
-:root[data-light="1"][data-theme="netrunner"] .tabs button { color: var(--mist); }
-:root[data-light="1"][data-theme="netrunner"] .tabs button[aria-selected=true] { color: var(--text); font-weight: 700; border-bottom: 2px solid var(--accent); }
-:root[data-light="1"][data-theme="netrunner"] .tabs button[aria-selected=true]::before, :root[data-light="1"][data-theme="netrunner"] .tabs button[aria-selected=true]::after { color: var(--accent); }
-/* 12. Tasks: 4px rarity bar + [01] index (from Netrunner), black duration tag, the task in focus inverted */
-:root[data-light="1"][data-theme="netrunner"] .task { border-left-width: 4px; background: var(--panel); }
-:root[data-light="1"][data-theme="netrunner"] .task .t-dur { background: #0B0D12; color: #fff; border-color: #0B0D12; }
-:root[data-light="1"][data-theme="netrunner"] .task.active { background: #0B0D12; color: #fff; }
-:root[data-light="1"][data-theme="netrunner"] .task.active .t-title, :root[data-light="1"][data-theme="netrunner"] .task.active .t-meta { color: #fff; }
-:root[data-light="1"][data-theme="netrunner"] .task.active .chip { border-color: rgba(255, 255, 255, .35); color: #fff; }
-:root[data-light="1"][data-theme="netrunner"] .task.active .t-title::before { color: var(--acid); }
-:root[data-light="1"][data-theme="netrunner"] .task [data-act=focus].is-active { background: var(--acid); color: #0B0D12; border-color: var(--acid); }
-/* 14. Text in magenta uses the deeper twin; the pressed Focus / Break switch is a black slab like Work / Sport */
-:root[data-light="1"][data-theme="netrunner"] .buff b, :root[data-light="1"][data-theme="netrunner"] .ca-mode, :root[data-light="1"][data-theme="netrunner"] .bubble b,
-:root[data-light="1"][data-theme="netrunner"] .mood-chip[aria-pressed=true]::after { color: var(--accent-text); }
-:root[data-light="1"][data-theme="netrunner"] .seg-toggle button[aria-pressed=true] { background: #0B0D12; color: #fff; box-shadow: inset 0 -3px 0 var(--accent); }
+:root[data-light="1"][data-theme="netrunner"] .custom button:hover, :root[data-light="1"][data-theme="netrunner"] button.small:not(.primary):not(.ghost):hover { background: var(--panel-2); }
+:root[data-light="1"][data-theme="netrunner"] .presets button[aria-pressed=true] { background: var(--text); color: #fff; border-color: var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .primary { background: var(--hot); border: 2px solid var(--hot); color: #fff; box-shadow: none; }
+:root[data-light="1"][data-theme="netrunner"] .primary:hover { border-color: var(--text); }
+:root[data-light="1"][data-theme="netrunner"] #start, :root[data-light="1"][data-theme="netrunner"] #c-start { background: var(--hot); border-color: var(--hot); color: #fff; font-weight: 700; letter-spacing: .26em;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
+:root[data-light="1"][data-theme="netrunner"] #start:hover, :root[data-light="1"][data-theme="netrunner"] #c-start:hover { background: #C70018; }
+/* the chronograph: bezel and face are a background image, the ticks and ring are restyled, a red pointer marks "now" */
+:root[data-light="1"][data-theme="netrunner"] { --timer-ring: #111111; }
+:root[data-light="1"][data-theme="netrunner"] .ring-wrap { isolation: isolate; border-radius: 50%; background: none; box-shadow: none; }
+:root[data-light="1"][data-theme="netrunner"] .ring-wrap::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: center / 100% 100% no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><circle cx='120' cy='120' r='119' fill='%23111111'/><circle cx='131.7' cy='9.1' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='143.2' cy='10.9' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='154.5' cy='14' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='165.4' cy='18.1' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='185.5' cy='29.8' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='194.6' cy='37.1' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='202.9' cy='45.4' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='210.2' cy='54.5' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='221.9' cy='74.6' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='226' cy='85.5' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='229.1' cy='96.8' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='230.9' cy='108.3' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='230.9' cy='131.7' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='229.1' cy='143.2' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='226' cy='154.5' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='221.9' cy='165.4' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='210.2' cy='185.5' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='202.9' cy='194.6' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='194.6' cy='202.9' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='185.5' cy='210.2' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='165.4' cy='221.9' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='154.5' cy='226' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='143.2' cy='229.1' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='131.7' cy='230.9' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='108.3' cy='230.9' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='96.8' cy='229.1' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='85.5' cy='226' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='74.6' cy='221.9' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='54.5' cy='210.2' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='45.4' cy='202.9' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='37.1' cy='194.6' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='29.8' cy='185.5' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='18.1' cy='165.4' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='14' cy='154.5' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='10.9' cy='143.2' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='9.1' cy='131.7' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='9.1' cy='108.3' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='10.9' cy='96.8' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='14' cy='85.5' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='18.1' cy='74.6' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='29.8' cy='54.5' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='37.1' cy='45.4' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='45.4' cy='37.1' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='54.5' cy='29.8' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='74.6' cy='18.1' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='85.5' cy='14' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='96.8' cy='10.9' r='.9' fill='%23fff' fill-opacity='.45'/><circle cx='108.3' cy='9.1' r='.9' fill='%23fff' fill-opacity='.45'/><text x='120' y='11.4' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>00</text><text x='175.8' y='26.3' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>05</text><text x='216.6' y='67.2' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>10</text><text x='231.5' y='122.9' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>15</text><text x='216.6' y='178.7' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>20</text><text x='175.8' y='219.5' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>25</text><text x='120' y='234.4' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>30</text><text x='64.3' y='219.5' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>35</text><text x='23.4' y='178.7' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>40</text><text x='8.5' y='122.9' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>45</text><text x='23.4' y='67.2' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>50</text><text x='64.2' y='26.3' text-anchor='middle' font-family='Consolas, monospace' font-size='8.2' font-weight='700' fill='%23fff'>55</text><circle cx='120' cy='120' r='103.5' fill='%23fff' stroke='%23111111' stroke-width='1'/><circle cx='120' cy='120' r='99' fill='none' stroke='%23E4E1D8' stroke-width='.8'/></svg>"); }
+:root[data-light="1"][data-theme="netrunner"] .runes, :root[data-light="1"][data-theme="netrunner"] .hex { display: none; }
+:root[data-light="1"][data-theme="netrunner"] .segs-dim line { stroke: rgba(17, 17, 17, .2); stroke-width: 1.3; }
+:root[data-light="1"][data-theme="netrunner"] .segs-lit line { stroke: var(--hot); stroke-width: 2.4; }
+:root[data-light="1"][data-theme="netrunner"] .segs-lit { filter: none; }
+:root[data-light="1"][data-theme="netrunner"] .arc-track { stroke: #E4E1D8; stroke-width: 4; }
+:root[data-light="1"][data-theme="netrunner"] .arc { stroke-width: 4; stroke-linecap: butt; filter: none; opacity: 1; }
+:root[data-light="1"][data-theme="netrunner"] .tip { display: inline; fill: var(--hot); stroke: #fff; stroke-width: 1.4; }
+:root[data-light="1"][data-theme="netrunner"] .clock { font-family: var(--f-display); font-weight: 700; color: var(--text); text-shadow: none; letter-spacing: 0; font-size: clamp(30px, 9.5vw, 42px); } /* fits 1:30:00 inside the face */
+:root[data-light="1"][data-theme="netrunner"] .running .clock, :root[data-light="1"][data-theme="netrunner"] .clock.glitch-in { animation: none; }
+:root.t-final[data-light="1"][data-theme="netrunner"] .clock { animation: clock-beat 1s ease-out infinite; }
+:root[data-light="1"][data-theme="netrunner"] .ring-center .state { color: var(--accent); letter-spacing: .26em; }
+:root[data-light="1"][data-theme="netrunner"] .focus-on { color: var(--mist); } :root[data-light="1"][data-theme="netrunner"] .focus-on b { color: var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .cbar-clock { font-family: var(--f-display); text-shadow: none; }
+/* tasks: white rows with an ink frame and a rarity bar (paper grey, grey, ink, red) */
+:root[data-light="1"][data-theme="netrunner"] .task { background: var(--panel); border: 2px solid var(--text); border-left: 6px solid #E4E1D8; border-radius: 0; padding-block: 10px; }
+:root[data-light="1"][data-theme="netrunner"] .task.rar-rare { border-left-color: #9A9890; }
+:root[data-light="1"][data-theme="netrunner"] .task.rar-epic { border-left-color: var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .task.rar-legendary { border-left-color: var(--hot); box-shadow: none; }
+:root[data-light="1"][data-theme="netrunner"] .task.active { background: #FFF6F6; }
+:root[data-light="1"][data-theme="netrunner"] .task.next { background: var(--panel); }
+:root[data-light="1"][data-theme="netrunner"] .chip { border-radius: 0; border-color: var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .rar-epic .chip.rar { background: var(--text); color: #fff; }
+:root[data-light="1"][data-theme="netrunner"] .rar-legendary .chip.rar { background: var(--hot); border-color: var(--hot); color: #fff; }
 :root[data-light="1"][data-theme="netrunner"] .chip.sample { color: var(--mist); border-color: var(--line-2); }
-/* 13. Day timeline: a ruler (tick every 15 min) and a magenta "now" line with its exact time on a black tag */
-:root[data-light="1"][data-theme="netrunner"] .pl-grid { background-image: repeating-linear-gradient(to bottom, var(--line-2) 0 1px, transparent 1px calc(var(--hpx, 52px) / 4));
-  background-size: 8px 100%; background-position: 38px 0; background-repeat: no-repeat; }
-:root[data-light="1"][data-theme="netrunner"] .pl-now { background: var(--accent); box-shadow: none; }
-:root[data-light="1"][data-theme="netrunner"] .pl-now::before { background: var(--accent); }
-:root[data-light="1"][data-theme="netrunner"] .pl-now::after { content: attr(data-t); position: absolute; left: -40px; top: -8px; padding: 1px 4px; background: #0B0D12; color: #fff; font: 600 10px/14px var(--f-mono); }
+:root[data-light="1"][data-theme="netrunner"] .chip.next-chip { background: var(--text); border-color: var(--text); color: #fff; }
+:root[data-light="1"][data-theme="netrunner"] .task [data-act=focus].is-active { background: var(--text); color: #fff; border-color: var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .check { border-radius: 0; border: 2px solid var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .q-bar { background: #E4E1D8; border-radius: 0; height: 6px; } :root[data-light="1"][data-theme="netrunner"] .q-bar b { background: var(--hot); }
+:root[data-light="1"][data-theme="netrunner"] .seq-bar { border-radius: 0; background: #E4E1D8; } :root[data-light="1"][data-theme="netrunner"] .seq-bar b { background: var(--hot); box-shadow: none; }
+:root[data-light="1"][data-theme="netrunner"] .buff, :root[data-light="1"][data-theme="netrunner"] .streak, :root[data-light="1"][data-theme="netrunner"] .gold { border-radius: 0; border: 2px solid var(--text); background: var(--panel); }
+:root[data-light="1"][data-theme="netrunner"] .buff b { color: var(--accent); }
+:root[data-light="1"][data-theme="netrunner"] .pl-now { background: var(--hot); box-shadow: none; } :root[data-light="1"][data-theme="netrunner"] .pl-now::before { background: var(--hot); }
+:root[data-light="1"][data-theme="netrunner"] input[type=text], :root[data-light="1"][data-theme="netrunner"] input[type=number], :root[data-light="1"][data-theme="netrunner"] select { border-radius: 0; border: 2px solid var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .top-actions .icon-only, :root[data-light="1"][data-theme="netrunner"] .dn-toggle { background: var(--panel); border: 2px solid var(--text); color: var(--text); }
+/* the status strip (juice.js): the day's numbers on an ink band at the top */
+.netstrip { display: none; }
+:root[data-light="1"][data-theme="netrunner"] .netstrip { display: flex; gap: 20px; align-items: center; padding: 7px 14px; background: var(--text); color: #fff; font: 500 11px/1 var(--f-mono); letter-spacing: .08em;
+  white-space: nowrap; overflow: hidden; clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+.netstrip b { color: #FF3B4E; font-weight: 600; } .netstrip i { font-style: normal; color: #A8A59C; }
+.netstrip .ns-live::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 7px; background: #E3001B; vertical-align: 1px; }
+/* the quest feed (juice.js): one card at a time, it comes in, says its thing and goes away */
+.qfeed { display: none; }
+:root[data-light="1"][data-theme="netrunner"] .qfeed { display: block; position: fixed; z-index: 46; right: 16px; top: calc(16px + env(safe-area-inset-top, 0px)); width: min(360px, calc(100vw - 32px)); pointer-events: none; }
+.qcard { position: relative; color: #fff; background: rgba(17, 17, 17, .96); padding: 12px 16px 15px 18px; clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 14px); }
+.qcard::before { content: ""; position: absolute; left: 14px; right: 0; top: 0; height: 2px; background: #E3001B; }
+.qcard::after { content: ""; position: absolute; left: 0; top: 14px; bottom: 0; width: 3px; background: #E3001B; }
+.qcard .qc-eb { display: flex; justify-content: space-between; gap: 10px; font: 600 10.5px/1.2 var(--f-display); letter-spacing: .2em; text-transform: uppercase; color: #FF3B4E; }
+.qcard .qc-eb span:last-child { color: #A8A59C; letter-spacing: .1em; font: 500 10.5px/1.2 var(--f-mono); }
+.qcard h4 { margin: 6px 0 8px; font: 700 17px/1.15 var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
+.qcard .qc-obj { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 12.5px; color: #D6D3CA; }
+.qcard .qc-obj i { width: 12px; height: 12px; border: 1.5px solid #D6D3CA; } .qcard .qc-obj i.ok { background: #E3001B; border-color: #E3001B; }
+.qcard .qc-obj em { font: 500 11px/1 var(--f-mono); font-style: normal; color: #fff; }
+.qcard .qc-steps { display: grid; grid-auto-flow: column; gap: 3px; margin-top: 8px; } .qcard .qc-steps i { height: 4px; background: #3A3A3A; } .qcard .qc-steps i.f { background: #E3001B; }
+.qcard .qc-life { position: absolute; left: 18px; right: 16px; bottom: 6px; height: 1px; background: #444; }
+.qcard .qc-life b { display: block; height: 100%; background: #8A877E; transform-origin: 0 50%; animation: life linear forwards; }
+.qcard.in { animation: qc-flick .42s steps(1, end) both, qc-slide .42s cubic-bezier(.2, .8, .3, 1) both; }
+.qcard.out { animation: qc-out .32s ease-in forwards; }
+@keyframes qc-slide { from { transform: translateX(24px); } }
+@keyframes qc-flick { 0% { opacity: 0; } 20% { opacity: 1; } 30% { opacity: .25; } 45% { opacity: 1; } 55% { opacity: .55; } 65%, 100% { opacity: 1; } }
+@keyframes qc-out { to { opacity: 0; transform: translateX(36px); } }
+@keyframes life { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+:root.mnav-on .qfeed { top: calc(10px + env(safe-area-inset-top, 0px)); }
 /* ---------- Cartouche (Scattered, light, Premium): a pocket-console overworld ----------
    The 4-tone green palette (#0F380F, #306230, #8BAC0F, #9BBC0F) plus pale sky tints; light panels with a 3px pixel
    frame and an offset pixel shadow; VT323 everywhere (font-size-adjust keeps small text readable). */
@@ -1170,7 +1201,7 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 .light-prev::after { content: ""; position: absolute; left: 38px; right: 8px; top: 10px; height: 5px; border-radius: 3px; background: var(--lp-t); box-shadow: 0 9px 0 var(--lp-l), 0 18px 0 var(--lp-l), 0 30px 0 var(--lp-b); }
 .lp-aube { --lp-bg: #F7F6F2; --lp-a: #2E3A8C; --lp-t: #1F2A44; --lp-l: #E2E5EC; --lp-b: #C8323C; }
 .lp-atelier { --lp-bg: #F2E8D2; --lp-a: #A8842F; --lp-t: #2B1D12; --lp-l: #E0D1B0; --lp-b: #7E1F1F; }
-.lp-tokyo { --lp-bg: #F7F7F5; --lp-a: #E6005C; --lp-t: #0B0D12; --lp-l: #DFE2E7; --lp-b: #007A99; border-radius: 0; box-shadow: 3px 3px 0 #0B0D12; }
+.lp-tokyo { --lp-bg: #F7F5EF; --lp-a: #E3001B; --lp-t: #111111; --lp-l: #E4E1D8; --lp-b: #111111; border-radius: 0; box-shadow: 3px 3px 0 #111111; }
 .lp-cartouche { --lp-bg: #d6dfb0; --lp-a: #2c5a2c; --lp-t: #1c331c; --lp-l: #95a764; --lp-b: #7a5a1e; border-radius: 0; }
 .light-acts { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
 

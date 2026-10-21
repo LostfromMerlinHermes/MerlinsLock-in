@@ -262,8 +262,51 @@
     }
     if (ML.fxConstellation) ML.fxConstellation();
   });
+  /* ---------- Estampe: the quest feed and the status strip ----------
+     Quest news comes as game-style cards, one at a time: each slides in with a short flicker, stays 4 s (a thin
+     line shows its life) and leaves by itself, so nothing lingers on screen. game.js skips the plain toast then. */
+  ML.addStrings({
+    fr: { ns_net: 'Réseau · À fond', ns_focus: 'Focus auj.', ns_streak: 'Série', ns_quests: 'Quêtes', ns_next: 'Prochain bloc', qf_update: 'Quête mise à jour', qf_done: 'Quête terminée', qf_left: 'Encore {n}', qf_day: 'Quêtes du jour {n}/{m}', qf_clear_k: 'Quêtes du jour', qf_clear: 'Toutes terminées', qf_reward: 'Récompense ajoutée' },
+    en: { ns_net: 'Network · Fired up', ns_focus: 'Focus today', ns_streak: 'Streak', ns_quests: 'Quests', ns_next: 'Next block', qf_update: 'Quest updated', qf_done: 'Quest complete', qf_left: '{n} to go', qf_day: 'Daily quests {n}/{m}', qf_clear_k: 'Daily quests', qf_clear: 'All clear', qf_reward: 'Reward added' },
+  });
+  const inkTheme = () => rootEl.dataset.theme === 'netrunner' && !!rootEl.dataset.light;
+  ML.questFeed = inkTheme;
+  const feed = document.createElement('div'); feed.className = 'qfeed'; feed.setAttribute('role', 'status'); feed.setAttribute('aria-live', 'polite');
+  document.body.appendChild(feed);
+  const fq = []; let fShowing = false;
+  function feedPush(n) { if (!inkTheme()) return; fq.push(n); if (fq.length > 4) fq.shift(); if (!fShowing) feedNext(); }
+  function feedNext() {
+    const n = fq.shift(); if (!n) { fShowing = false; feed.innerHTML = ''; return; } fShowing = true;
+    const el = document.createElement('div'); el.className = 'qcard in';
+    el.innerHTML = `<div class="qc-eb"><span>◆ ${esc(n.kind)}</span><span>${esc(n.tag || '')}</span></div><h4>${esc(n.title)}</h4>` +
+      (n.obj ? `<div class="qc-obj"><i class="${n.ok ? 'ok' : ''}"></i><span>${esc(n.obj)}</span><em>${esc(n.count || '')}</em></div>` : '') +
+      (n.steps && n.steps[1] <= 8 ? `<div class="qc-steps">${Array.from({ length: n.steps[1] }, (_, i) => `<i class="${i < n.steps[0] ? 'f' : ''}"></i>`).join('')}</div>` : '') +
+      '<div class="qc-life"><b style="animation-duration:4000ms"></b></div>';
+    feed.innerHTML = ''; feed.appendChild(el);
+    setTimeout(() => { el.className = 'qcard out'; setTimeout(feedNext, 330); }, 4000);
+  }
+  const qfmt = (p, v) => (p.fmt ? p.fmt(v) : String(v));
+  on('quest:progress', p => feedPush({ kind: t('qf_update'), tag: qfmt(p, p.v) + '/' + qfmt(p, p.target), title: p.name, obj: t('qf_left', { n: qfmt(p, p.target - p.v) }), count: qfmt(p, p.v) + '/' + qfmt(p, p.target), steps: [p.v, p.target] }));
+  on('quest:done', p => feedPush({ kind: t('qf_done'), tag: '+' + p.xp + ' XP', title: p.name, obj: t('qf_day', { n: p.n, m: p.of }), count: p.n + '/' + p.of, ok: true, steps: [p.n, p.of] }));
+  on('quests:clear', () => feedPush({ kind: t('qf_clear_k'), tag: '◆ ◆ ◆', title: t('qf_clear'), obj: t('qf_reward'), ok: true }));
+  // the status strip: the day's numbers on an ink band at the top of the page
+  const strip = document.createElement('div'); strip.className = 'netstrip'; strip.setAttribute('aria-hidden', 'true');
+  const appEl = document.querySelector('.app'); if (appEl) appEl.insertBefore(strip, appEl.firstChild);
+  function renderStrip() { // always kept current (CSS shows it only in that theme), so a theme switch shows it filled
+    const d = new Date(), td = today(), ss = S.sessions.filter(x => ML.dayKey(new Date(x.at)) === td), mins = ss.reduce((a, x) => a + x.mins, 0);
+    const Q = S.game && S.game.quests && S.game.quests.day === td ? S.game.quests : null, nowM = d.getHours() * 60 + d.getMinutes();
+    const nb = (S.blocks || []).filter(x => x.date === td && x.start > nowM).sort((a, z) => a.start - z.start)[0];
+    const hm = m => ML.pad2(Math.floor(m / 60)) + ':' + ML.pad2(m % 60);
+    strip.innerHTML = `<span class="ns-live">${esc(t('ns_net').toUpperCase())}</span><span>${ML.pad2(d.getDate())}.${ML.pad2(d.getMonth() + 1)} <i>·</i> <b>${hm(nowM)}</b></span>` +
+      `<span>${esc(t('ns_focus').toUpperCase())} <b>${esc(ML.fmtMins(mins).toUpperCase())}</b></span><span>${esc(t('ns_streak').toUpperCase())} <b>${ML.streaks().cur}</b></span>` +
+      (Q ? `<span>${esc(t('ns_quests').toUpperCase())} <b>${Q.claimed.length}/${Q.ids.length}</b></span>` : '') +
+      (nb ? `<span>${esc(t('ns_next').toUpperCase())} <b>${hm(nb.start)}</b></span>` : '');
+  }
+  on('render', renderStrip); on('minute', renderStrip); on('started', renderStrip); on('mood', () => setTimeout(renderStrip, 60)); on('session', renderStrip);
+
   // 22. All of today's quests done: a banner for 2 s
   on('quests:clear', () => {
+    if (inkTheme()) return; // that theme says it with a quest card
     const el = document.createElement('div'); el.className = 'quest-banner'; el.setAttribute('role', 'status');
     el.innerHTML = `<span>◆</span>${esc(t('quests_clear'))}<span>◆</span>`;
     document.body.appendChild(el);

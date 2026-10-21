@@ -99,7 +99,7 @@
 
   /* ---------- Packs (44–55): every recipe is soft and short; the session end is the longest ---------- */
   const PACKS = {
-    // Clean Room: dry clicks, a mechanical relay, a confirmation beep
+    // Estampe (Fired up, light): dry clicks, a mechanical relay, a confirmation beep
     cleanroom: (() => {
       const click = (at = 0, v = 0.22) => noise(at, 0.012, v, { type: 'highpass', f: 3200 });
       const relay = (at = 0) => { click(at, 0.26); tone('square', 120, at, 0.03, 0.05, { lp: 700 }); click(at + 0.035, 0.2); };
