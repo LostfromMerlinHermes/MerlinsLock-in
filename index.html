@@ -203,6 +203,19 @@
   <div class="sport-root" id="sport-root" hidden></div>
 </div>
 
+<!-- Phone / side panel navigation (nav.js): a running-timer strip and a bottom bar, under 900px wide -->
+<button type="button" class="mnav-run" id="mnav-run" hidden></button>
+<nav class="mnav" id="mnav" aria-label="Navigation"></nav>
+<div class="overlay" id="more" hidden>
+  <div class="sheet more-sheet" role="dialog" aria-modal="true" aria-labelledby="more-h">
+    <div class="sheet-head">
+      <h2 id="more-h" data-i18n="nav_more"></h2>
+      <button type="button" class="ghost icon-only" data-close="more" data-i18n-title="close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="more-grid" id="more-grid"></div>
+  </div>
+</div>
+
 <div class="overlay" id="checkin" hidden>
   <div class="sheet center" role="dialog" aria-modal="true" aria-labelledby="ci-h">
     <h2 id="ci-h" data-i18n="checkin_h"></h2>
@@ -293,6 +306,7 @@
 <script src="focusplus.js"></script>
 <script src="economy.js"></script>
 <script src="companion.js"></script>
+<script src="nav.js"></script>
 <script src="legal.js"></script>
 <script src="config.js"></script>
 <script src="sync.js"></script>

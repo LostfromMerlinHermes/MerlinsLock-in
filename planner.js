@@ -12,7 +12,7 @@
       no_slot: 'Plus de créneau libre aujourd’hui.', block_now: 'C’est l’heure : {title}', start_block: 'Lock in', mark_block_done: 'Fait',
       review: 'Bilan', planned: 'Prévu', done_lc: 'Réalisé', journal: 'Journal du jour', journal_ph: 'Trois lignes : ce qui a marché, ce qui a bloqué, la priorité de demain.',
       move_earlier: '−15 min', move_later: '+15 min', longer: 'Plus long', shorter: 'Plus court', block_deleted: 'Bloc retiré',
-      set_planner: 'Planning', opt_autostart: 'Lancer automatiquement les blocs à l’heure prévue', day_start: 'Début de journée', day_end: 'Fin de journée',
+      set_planner: 'Planning', opt_autostart: 'Lancer automatiquement les blocs à l’heure prévue', day_start: 'Planification auto : à partir de', day_end: 'Planification auto : jusqu’à', day_hint: 'La journée affiche toujours 0:00 → 24:00 ; tu peux planifier à n’importe quelle heure.',
     },
     en: {
       auto_plan: 'Auto-plan', tray_hint: 'Drag a task onto the timeline, or click it to drop it into the next free slot.',
@@ -21,7 +21,7 @@
       no_slot: 'No free slot left today.', block_now: "It's time: {title}", start_block: 'Lock in', mark_block_done: 'Done',
       review: 'Review', planned: 'Planned', done_lc: 'Done', journal: "Today's journal", journal_ph: 'Three lines: what worked, what got in the way, tomorrow’s priority.',
       move_earlier: '−15 min', move_later: '+15 min', longer: 'Longer', shorter: 'Shorter', block_deleted: 'Block removed',
-      set_planner: 'Planner', opt_autostart: 'Auto-start blocks at their planned time', day_start: 'Day starts', day_end: 'Day ends',
+      set_planner: 'Planner', opt_autostart: 'Auto-start blocks at their planned time', day_start: 'Auto-plan: from', day_end: 'Auto-plan: until', day_hint: 'The Day view always shows 0:00 → 24:00; you can plan at any hour.',
     },
   });
 
@@ -32,7 +32,9 @@
   const viewDate = () => S.planner.date || today();
   const blockTitle = b => { const x = b.taskId && S.tasks.find(y => y.id === b.taskId); return x ? ML.titleOf(x) : (b.title || '?'); };
   const nowMins = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
-  const px = m => ((m - S.planner.startH * 60) / 60) * S.planner.hourPx;
+  // The grid always shows the whole day (0:00–24:00); startH/endH are the working hours auto-plan uses
+  const DAY_END = 24 * 60;
+  const px = m => (m / 60) * S.planner.hourPx;
 
   // Busy intervals on a day (events with a time + blocks), sorted
   function busy(k, exceptId) {
@@ -75,9 +77,9 @@
     evs.forEach(o => { if (o.start != null) items.push({ kind: 'ev', start: o.start, end: o.end, ev: o.ev }); });
     S.blocks.filter(b => b.date === k).forEach(b => items.push({ kind: 'blk', start: b.start, end: b.start + b.mins, b }));
     layoutItems(items);
-    const H = (P.endH - P.startH) * P.hourPx;
+    const H = 24 * P.hourPx;
     let hours = '';
-    for (let h = P.startH; h <= P.endH; h++) hours += `<div class="pl-hour" style="top:${px(h * 60)}px"><span>${ML.pad2(h % 24)}:00</span></div>`;
+    for (let h = 0; h <= 24; h++) hours += `<div class="pl-hour" style="top:${px(h * 60)}px"><span>${ML.pad2(h % 24)}:00</span></div>`;
     const itemHtml = it => {
       const top = px(it.start), h = Math.max(18, px(it.end) - top), w = 100 / it.ncol, left = it.col * w;
       const style = `top:${top}px;height:${h}px;left:calc(46px + (100% - 50px) * ${left / 100});width:calc((100% - 50px) * ${w / 100} - 3px)`;
@@ -88,7 +90,7 @@
         <b>${esc(blockTitle(b))}</b><span>${hm(b.start)}–${hm(b.start + b.mins)} · ${fmtMins(b.mins)}</span><i class="pl-resize" data-resize="${b.id}"></i></div>`;
     };
     const nm = nowMins();
-    const nowLine = k === td && nm >= P.startH * 60 && nm <= P.endH * 60 ? `<div class="pl-now" style="top:${px(nm)}px"></div>` : '';
+    const nowLine = k === td && nm >= 0 ? `<div class="pl-now" style="top:${px(nm)}px"></div>` : '';
     const past = k === td ? `<div class="pl-past" style="height:${clamp(px(nm), 0, H)}px"></div>` : k < td ? `<div class="pl-past" style="height:${H}px"></div>` : '';
     const allDay = evs.filter(o => o.start == null);
 
@@ -99,6 +101,9 @@
     const doneM = daySessions.reduce((a, s) => a + s.mins, 0);
     const pct = plannedM ? Math.round((doneM / plannedM) * 100) : null;
 
+    // Re-renders (every minute, after a sync, opening a popover) replace the grid: keep where the user was
+    const prevSc = $('pl-scroll'), keepTop = prevSc && render.shownDate === k ? prevSc.scrollTop : null;
+    render.shownDate = k;
     root.innerHTML = `
       <div class="cal-head">
         <button type="button" class="ghost icon-only" data-pl="prev" aria-label="‹">‹</button>
@@ -128,9 +133,10 @@
         <label class="label" for="pl-journal">${esc(t('journal'))}</label>
         <textarea id="pl-journal" rows="3" placeholder="${esc(t('journal_ph'))}">${esc(S.journal[k] || '')}</textarea>
       </div>`;
-    if (k === td && !popover) {
-      const sc = $('pl-scroll');
-      if (sc && !render.scrolled) { sc.scrollTop = Math.max(0, px(nm) - 120); render.scrolled = true; }
+    const sc = $('pl-scroll');
+    if (sc) {
+      if (keepTop != null && render.scrolled) sc.scrollTop = keepTop;
+      else { sc.scrollTop = Math.max(0, px(k === td ? nm : 8 * 60) - 120); render.scrolled = true; } // first look: now (today) or the morning
     }
   }
   function popoverHtml() {
@@ -168,7 +174,7 @@
 
   /* ---------- Actions ---------- */
   function addBlock(k, start, mins, taskId, title) {
-    const b = { id: uid(), date: k, start: clamp(start, S.planner.startH * 60, S.planner.endH * 60 - SNAP), mins, taskId: taskId || null, title: title || null, done: false };
+    const b = { id: uid(), date: k, start: clamp(start, 0, DAY_END - SNAP), mins, taskId: taskId || null, title: title || null, done: false };
     S.blocks.push(b); save(); emit('blocks');
     return b;
   }
@@ -241,10 +247,10 @@
       const a = b.dataset.pla;
       if (a === 'go') { popover = null; startBlock(blk); }
       else if (a === 'done') { blk.done = true; const task = blk.taskId && S.tasks.find(x => x.id === blk.taskId); if (task && !task.done) ML.completeTask(task); popover = null; emit('block:done', blk); }
-      else if (a === 'earlier') blk.start = Math.max(P.startH * 60, blk.start - SNAP);
-      else if (a === 'later') blk.start = Math.min(P.endH * 60 - blk.mins, blk.start + SNAP);
+      else if (a === 'earlier') blk.start = Math.max(0, blk.start - SNAP);
+      else if (a === 'later') blk.start = Math.min(DAY_END - blk.mins, blk.start + SNAP);
       else if (a === 'shorter') blk.mins = Math.max(SNAP, blk.mins - SNAP);
-      else if (a === 'longer') blk.mins = Math.min(P.endH * 60 - blk.start, blk.mins + SNAP);
+      else if (a === 'longer') blk.mins = Math.min(DAY_END - blk.start, blk.mins + SNAP);
       else if (a === 'del') { S.blocks = S.blocks.filter(x => x.id !== blk.id); popover = null; toast(t('block_deleted')); }
       save(); ML.renderAll(); return;
     }
@@ -265,7 +271,7 @@
   let drag = null;
   const yToMins = (grid, clientY) => {
     const r = grid.getBoundingClientRect();
-    return Math.round(((clientY - r.top) / S.planner.hourPx * 60 + S.planner.startH * 60) / SNAP) * SNAP;
+    return Math.round(((clientY - r.top) / S.planner.hourPx * 60) / SNAP) * SNAP;
   };
   root.addEventListener('pointerdown', e => {
     const grid = e.target.closest('#pl-grid'); if (!grid || e.button !== 0) return;
@@ -281,8 +287,8 @@
     if (Math.abs(dy) > 4) drag.moved = true;
     if (!drag.moved) return;
     const dm = Math.round((dy / S.planner.hourPx * 60) / SNAP) * SNAP, P = S.planner;
-    if (drag.kind === 'move') drag.b.start = clamp(drag.start0 + dm, P.startH * 60, P.endH * 60 - drag.b.mins);
-    else drag.b.mins = clamp(drag.mins0 + dm, SNAP, P.endH * 60 - drag.b.start);
+    if (drag.kind === 'move') drag.b.start = clamp(drag.start0 + dm, 0, DAY_END - drag.b.mins);
+    else drag.b.mins = clamp(drag.mins0 + dm, SNAP, DAY_END - drag.b.start);
     drag.el.style.top = px(drag.b.start) + 'px';
     drag.el.style.height = Math.max(18, px(drag.b.start + drag.b.mins) - px(drag.b.start)) + 'px';
     drag.el.querySelector('span').textContent = hm(drag.b.start) + '–' + hm(drag.b.start + drag.b.mins) + ' · ' + fmtMins(drag.b.mins);
@@ -292,8 +298,8 @@
     const d = drag; drag = null;
     if (d.kind === 'new') {
       if (Math.abs(e.clientY - d.y0) > 6 || e.target.closest('.pl-ev')) return;
-      popover = { kind: 'new', start: clamp(Math.floor(yToMins(d.grid, e.clientY) / 30) * 30, S.planner.startH * 60, S.planner.endH * 60 - SNAP) };
-      render(); const f = root.querySelector('#pl-new select'); if (f) f.focus(); return;
+      popover = { kind: 'new', start: clamp(Math.floor(yToMins(d.grid, e.clientY) / 30) * 30, 0, DAY_END - SNAP) };
+      render(); const f = root.querySelector('#pl-new select'); if (f && matchMedia('(pointer: fine)').matches) f.focus({ preventScroll: true }); return;
     }
     if (d.moved) { save(); render(); emit('blocks'); }
     else { popover = { kind: 'block', id: d.b.id }; render(); }
@@ -308,7 +314,7 @@
     const grid = e.target.closest('#pl-grid'); if (!grid) return;
     e.preventDefault();
     const id = e.dataTransfer.getData('text/plain'); if (!id) return;
-    placeTask(id, clamp(yToMins(grid, e.clientY), S.planner.startH * 60, S.planner.endH * 60 - SNAP));
+    placeTask(id, clamp(yToMins(grid, e.clientY), 0, DAY_END - SNAP));
   });
 
   /* ---------- Block start prompts + linking sessions to blocks ---------- */
@@ -334,6 +340,7 @@
   on('started', checkBlocks);
   on('newday', () => { S.planner.date = null; const cutoff = addDays(today(), -90); S.blocks = S.blocks.filter(b => b.date >= cutoff); S.blockNotified = {}; });
   on('render', () => { if (S.tab === 'day') render(); });
+  on('started', () => { if (!(S.planner.startH >= 4)) { S.planner.startH = 7; save(); } }); // 3.11 allowed 0: auto-plan would start at midnight
   on('tab', name => { if (name === 'day') { render.scrolled = false; render(); } });
   ML.plannerGoto = k => { S.planner.date = k === today() ? null : k; render.scrolled = false; ML.setTab('day'); };
 
@@ -341,8 +348,9 @@
     order: 30,
     render: () => `<h3>${esc(t('set_planner'))}</h3>
       ${ML.ui.chk('set-autostart', t('opt_autostart'), S.planner.autoStart)}
-      <label class="field"><span>${esc(t('day_start'))}</span>${ML.ui.sel('set-dstart', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(h => [h, h + ':00']), S.planner.startH)}</label>
-      <label class="field"><span>${esc(t('day_end'))}</span>${ML.ui.sel('set-dend', [20, 21, 22, 23, 24].map(h => [h, (h % 24) + ':00']), S.planner.endH)}</label>`,
+      <label class="field"><span>${esc(t('day_start'))}</span>${ML.ui.sel('set-dstart', [4, 5, 6, 7, 8, 9, 10, 11, 12].map(h => [h, h + ':00']), S.planner.startH)}</label>
+      <label class="field"><span>${esc(t('day_end'))}</span>${ML.ui.sel('set-dend', [20, 21, 22, 23, 24].map(h => [h, (h % 24) + ':00']), S.planner.endH)}</label>
+      <p class="hint">${esc(t('day_hint'))}</p>`,
     bind: r => {
       r.querySelector('#set-autostart').onchange = e => { S.planner.autoStart = e.target.checked; save(); };
       r.querySelector('#set-dstart').onchange = e => { S.planner.startH = +e.target.value; save(); ML.renderAll(); };

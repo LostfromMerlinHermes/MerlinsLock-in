@@ -544,7 +544,8 @@
     if (S.remaining <= 0) S.remaining = S.total;
     if (S.remaining >= S.total) { S.pauses = 0; S.curDistr = 0; } // a fresh session
     S.endAt = Date.now() + S.remaining * 1000;
-    if (S.autoCompact && innerWidth < 900 && S.mode === 'focus' && !S.compact) { S.compact = true; autoCompacted = true; }
+    // With the bottom bar (nav.js) the Timer screen is the full dial, and other screens get a running strip instead
+    if (S.autoCompact && innerWidth < 900 && !document.documentElement.classList.contains('mnav-on') && S.mode === 'focus' && !S.compact) { S.compact = true; autoCompacted = true; }
     save(); loop(); bgSchedule();
     if (S.mode === 'focus' && S.block.on) bgSend({ type: 'block', on: true, domains: S.block.domains });
     try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(l => { wakeLock = l; }).catch(() => {}); } catch (e) {}

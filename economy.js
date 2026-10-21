@@ -157,9 +157,31 @@
       svg.querySelector('.lg-brim').style.display = h.brim ? '' : 'none';
     });
   }
+  // Seal rings: a moving gradient on the minute ticks plus each seal's own ornament behind the dial
+  const GRAD = {
+    gold: ['#8a5a12', '#ffd36b', '#fff4c9', '#ffc247', '#8a5a12'], blood: ['#5c0716', '#ff3b5c', '#ff9aa9', '#c4142f', '#5c0716'],
+    spectre: ['#6f86a8', '#eaf4ff', '#ffffff', '#b9d3f5', '#6f86a8'], emerald: ['#0b5a3a', '#2fd98a', '#c9ffe3', '#19b874', '#0b5a3a'],
+    aurora: ['#ff4fd8', '#ffb547', '#3ee8e0', '#8a7dff', '#ff4fd8'],
+  };
+  const pt = (r, a) => [(120 + r * Math.cos(a)).toFixed(1), (120 + r * Math.sin(a)).toFixed(1)];
+  const DECO = {
+    gold: () => `<g class="sd-spin"><circle cx="120" cy="120" r="101" class="sd-line" stroke-dasharray="1 5"/>${[0, 1, 2, 3].map(i => { const [x, y] = pt(101, i * Math.PI / 2 - Math.PI / 2); return `<path class="sd-fill" d="M${x} ${+y - 4} l3 4 -3 4 -3 -4 Z"/>`; }).join('')}</g>`,
+    blood: () => `<circle cx="120" cy="120" r="101" class="sd-line sd-pulse"/><g class="sd-moon"><circle cx="196" cy="40" r="11" class="sd-fill"/><circle cx="201" cy="36" r="10" class="sd-cut"/></g>`,
+    spectre: () => `<g class="sd-ghost"><circle cx="120" cy="120" r="101" class="sd-line"/><circle cx="120" cy="120" r="104" class="sd-line" stroke-dasharray="30 18"/></g>`,
+    emerald: () => `<g class="sd-spin slow">${Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6, [x, y] = pt(101, a); return `<ellipse cx="${x}" cy="${y}" rx="4.2" ry="1.6" class="sd-fill" transform="rotate(${(a * 180 / Math.PI + 90).toFixed(0)} ${x} ${y})"/>`; }).join('')}</g>`,
+    aurora: () => `<circle cx="120" cy="120" r="101" class="sd-halo"/>`,
+  };
   function applyRing() {
-    const card = $('sigil-card');
-    Object.keys(CATALOG.ring).forEach(r => card.classList.toggle('ring-' + r, S.econ.equip.ring === r && r !== 'default'));
+    const card = $('sigil-card'), k = S.econ.equip.ring;
+    Object.keys(CATALOG.ring).forEach(r => card.classList.toggle('ring-' + r, k === r && r !== 'default'));
+    const svg = card.querySelector('svg.ring'); if (!svg) return;
+    let deco = svg.querySelector('#seal-deco');
+    if (!deco) { svg.insertAdjacentHTML('afterbegin', '<defs id="seal-defs"></defs><g id="seal-deco"></g>'); deco = svg.querySelector('#seal-deco'); }
+    const g = GRAD[k];
+    svg.querySelector('#seal-defs').innerHTML = g ? `<linearGradient id="rg-${k}" gradientUnits="userSpaceOnUse" x1="20" y1="20" x2="220" y2="220">${g.map((c, i) => `<stop offset="${i / (g.length - 1)}" stop-color="${c}"/>`).join('')}<animateTransform attributeName="gradientTransform" type="rotate" from="0 120 120" to="360 120 120" dur="${k === 'aurora' ? 5 : 9}s" repeatCount="indefinite"/></linearGradient>` : '';
+    if (g) svg.style.setProperty('--rg', `url(#rg-${k})`); else svg.style.removeProperty('--rg');
+    deco.setAttribute('class', 'seal-deco sd-' + k);
+    deco.innerHTML = DECO[k] ? DECO[k]() : '';
   }
   function applyCosmetics() { applyHat(); applyRing(); emit('cosmetics'); }
 
@@ -193,9 +215,16 @@
     const h = HATS[k];
     return `<svg class="logo mini-logo" data-hat="${k}" viewBox="0 0 48 48" aria-hidden="true"><path class="lg-hat" d="${h.hat}"/>${h.band ? `<path class="lg-band" d="${h.band}"/>` : ''}${h.brim ? '<ellipse class="lg-brim" cx="24" cy="24.6" rx="15.5" ry="3.1"/>' : ''}<path class="lg-chain" d="M23.6 33.4 C20.5 36.5 19 41 12.5 44.5"/><circle class="lg-lens" cx="29" cy="33" r="5.3"/></svg>`;
   };
+  // A small working copy of the timer dial wearing the seal (three quarters lit)
+  function ringPreview(k) {
+    const g = GRAD[k], id = 'rgp-' + k;
+    const ticks = Array.from({ length: 60 }, (_, i) => { const a = i / 60 * Math.PI * 2 - Math.PI / 2, r1 = i % 5 ? 86 : 83, [x1, y1] = pt(r1, a), [x2, y2] = pt(95, a); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${i < 45 ? 'on' : 'off'}"/>`; }).join('');
+    return `<svg class="ring-prev sigil-${k}" viewBox="0 0 240 240" aria-hidden="true" ${g ? `style="--rg:url(#${id})"` : ''}>${g ? `<defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="20" y1="20" x2="220" y2="220">${g.map((c, i) => `<stop offset="${i / (g.length - 1)}" stop-color="${c}"/>`).join('')}<animateTransform attributeName="gradientTransform" type="rotate" from="0 120 120" to="360 120 120" dur="${k === 'aurora' ? 5 : 9}s" repeatCount="indefinite"/></linearGradient></defs>` : ''}
+      <g class="seal-deco sd-${k}">${DECO[k] ? DECO[k]() : ''}</g><g class="rp-ticks">${ticks}</g><circle cx="120" cy="120" r="60" class="rp-core"/></svg>`;
+  }
   const preview = (cat, k) => {
     if (cat === 'hat') return hatSvg(k);
-    if (cat === 'ring') return `<span class="ring-swatch rs-${k}"></span>`;
+    if (cat === 'ring') return ringPreview(k);
     if (cat === 'burst') return `<span class="burst-swatch">${{ theme: '✦', coins: '◈', confetti: '▚', stars: '★', sakura: '❀' }[k]}</span>`;
     if (cat === 'familiar') return ML.familiarSvg ? ML.familiarSvg(k, 'idle') : '';
     if (cat === 'skin') return ML.sportSkinPreview ? ML.sportSkinPreview(k) : '';
@@ -203,18 +232,23 @@
   };
   const label = (cat, k) => cat === 'familiar' ? t('fam_' + k) : t((cat === 'potion' ? 'pot' : cat) + '_' + k);
   const desc = (cat, k) => cat === 'familiar' ? t('fam_' + k + '_d') : t((cat === 'potion' ? 'pot' : cat) + '_' + k + '_d');
+  // Price sets the card's rarity frame, like task rarity: common / rare / epic / legendary
+  const tier = p => (p <= 150 ? 'common' : p <= 300 ? 'rare' : p <= 500 ? 'epic' : 'legendary');
+  const coin = (n, short) => `<span class="coin-pill ${short ? 'short' : ''}"><i>◈</i>${n.toLocaleString(ML.locale())}</span>`;
+  let justBought = null;
+  const NAV = [['seq', 'cat_seq'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['burst', 'cat_bursts'], ['skin', 'cat_skins']];
   function renderShop() {
     const E = S.econ;
-    const section = (cat, title) => `<h3>${esc(t(title))}</h3><div class="shop-grid">${Object.entries(CATALOG[cat]).map(([k, price]) => {
-      const own = cat !== 'potion' && E.owned[cat].includes(k), eq = cat !== 'potion' && E.equip[cat] === k;
+    const section = (cat, title) => `<h3 class="shop-h" id="shop-${cat}">${esc(t(title))}</h3><div class="shop-grid">${Object.entries(CATALOG[cat]).map(([k, price]) => {
+      const own = cat !== 'potion' && E.owned[cat].includes(k), eq = cat !== 'potion' && E.equip[cat] === k, short = !own && E.gold < price;
       let btn;
-      if (cat === 'potion') btn = `<button type="button" class="small primary" data-buy="${cat}:${k}">${esc(t('buy'))} · ${price} ◈</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" class="small" data-use="elixir">${esc(t('use'))}</button>` : '')
+      if (cat === 'potion') btn = `<button type="button" class="small buy" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(price, E.gold < price)}</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" class="small" data-use="elixir">${esc(t('use'))}</button>` : '')
         + (k === 'midas' && E.potions.midas > 0 && !(E.midas > 0) ? `<button type="button" class="small" data-use="midas">${esc(t('use'))}</button>` : '');
-      else if (eq) btn = `<button type="button" class="small" disabled>${esc(t('equipped'))}</button>`;
+      else if (eq) btn = `<span class="eq-tag">✓ ${esc(t('equipped'))}</span>`;
       else if (own) btn = `<button type="button" class="small" data-equip="${cat}:${k}">${esc(t('equip'))}</button>`;
       else if (premOnly(cat, k) && !(ML.isPremium && ML.isPremium())) btn = `<button type="button" class="small" disabled>${esc(t('premium_only'))}</button>`;
-      else btn = `<button type="button" class="small primary" data-buy="${cat}:${k}">${esc(t('buy'))} · ${price} ◈</button>`;
-      return `<div class="shop-item ${eq ? 'is-eq' : ''} ${!own && cat !== 'potion' && E.gold < price ? 'poor' : ''}">
+      else btn = `<button type="button" class="small buy" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(price, short)}</button>`;
+      return `<div class="shop-item t-${price ? tier(price) : 'common'} ${eq ? 'is-eq' : ''} ${own && !eq ? 'is-own' : ''} ${cat !== 'potion' && short ? 'poor' : ''} ${justBought === cat + ':' + k ? 'just' : ''}">
         <div class="shop-prev">${preview(cat, k)}</div>
         <b>${esc(label(cat, k))}${premOnly(cat, k) ? `<span class="prem-badge">Premium</span>` : ''}</b><small>${esc(desc(cat, k))}</small>
         ${cat === 'potion' ? `<small class="stock">${esc(t('in_stock', { n: E.potions[k] || 0 }))}${k === 'elixir' && E.elixir ? ' · ' + esc(t('elixir_on')) : ''}${k === 'midas' && E.midas > 0 ? ' · ' + esc(t('midas_on', { n: E.midas })) : ''}</small>` : ''}
@@ -231,14 +265,16 @@
         <div class="shop-btns">${eq ? `<button type="button" class="small" disabled>${esc(t('equipped'))}</button>` : own ? `<button type="button" class="small" data-equip="costume:${k}">${esc(t('equip'))}</button>` : `<button type="button" class="small" disabled>🔒 ${esc(ML.SEQUENCES[i][0].toLocaleString(ML.locale()))} XP</button>`}</div></div>`;
     };
     $('shop-body').innerHTML = `
-      <div class="shop-gold"><span>◈</span><b>${E.gold.toLocaleString(ML.locale())}</b></div>
-      <p class="hint">${esc(t('shop_hint'))}</p>
-      <h3>${esc(t('cat_seq'))}</h3><p class="hint">${esc(t('seq_hint'))}</p>
+      <div class="shop-top"><div class="shop-gold"><span>◈</span><b>${E.gold.toLocaleString(ML.locale())}</b></div><p class="hint">${esc(t('shop_hint'))}</p></div>
+      <nav class="shop-nav chips">${NAV.map(([c, l]) => `<button type="button" class="chip-btn" data-shopgo="${c}">${esc(t(l))}</button>`).join('')}</nav>
+      <h3 class="shop-h" id="shop-seq">${esc(t('cat_seq'))}</h3><p class="hint">${esc(t('seq_hint'))}</p>
       <div class="shop-grid seq-grid">${seqTile('none', -1)}${(ML.COSTUMES || []).map(seqTile).join('')}</div>
       ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('burst', 'cat_bursts')}${section('skin', 'cat_skins')}`;
   }
   $('shop-body').addEventListener('click', e => {
     const E = S.econ, b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.shopgo) { const h = $('shop-' + b.dataset.shopgo); if (h) h.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    justBought = null;
     if (b.dataset.buy) {
       const [cat, k] = b.dataset.buy.split(':'), price = CATALOG[cat][k];
       if (premOnly(cat, k) && !(ML.isPremium && ML.isPremium())) return;
@@ -247,6 +283,7 @@
       if (cat === 'potion') E.potions[k] = (E.potions[k] || 0) + 1;
       else { E.owned[cat].push(k); E.equip[cat] = k; applyCosmetics(); }
       ML.sfx && ML.sfx('buy'); toast(t('bought', { name: label(cat, k) }));
+      justBought = cat + ':' + k; if (ML.burst) ML.burst('coins');
     } else if (b.dataset.equip) {
       const [cat, k] = b.dataset.equip.split(':');
       if (cat === 'costume' ? k !== 'none' && !E.owned.costume.includes(k) : !E.owned[cat].includes(k)) return;
@@ -272,4 +309,5 @@
   on('premium', ownerGifts);
   on('newday', checkSeal);
   ML.applyHat = applyHat;
+  ML.applyCosmetics = applyCosmetics;
 })();
