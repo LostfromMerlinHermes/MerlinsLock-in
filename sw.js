@@ -1,8 +1,8 @@
 // Service worker for the installed web app: app files load from cache first (works offline),
 // fonts are cached the first time they load. Bump VERSION whenever app files change.
-const VERSION = 'mli-v3.13.0';
+const VERSION = 'mli-v3.15.0';
 const FILES = ['./', 'index.html', 'app.css', 'fonts.css', 'mini-view.js', 'core.js', 'strings.js', 'audio.js', 'app.js', 'calendar.js', 'planner.js', 'game.js', 'mathml.js', 'notes.js', 'study.js', 'rooms.js', 'notehelp.js', 'sport-data.js', 'sport.js',
-  'juice.js', 'focusplus.js', 'economy.js', 'companion.js', 'nav.js', 'legal.js', 'config.js', 'sync.js', 'restore.js', 'main.js',
+  'juice.js', 'focusplus.js', 'economy.js', 'companion.js', 'nav.js', 'endscreen.js', 'legal.js', 'config.js', 'sync.js', 'restore.js', 'push.js', 'main.js',
   'site.webmanifest', 'icon32.png', 'icon192.png', 'icon512.png'];
 
 self.addEventListener('install', e => {
@@ -10,6 +10,20 @@ self.addEventListener('install', e => {
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+});
+// Timer-end notification sent by the Supabase function send-push (push.js schedules it)
+self.addEventListener('push', e => {
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: e.data && e.data.text() }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'MerlinsLockIN', {
+    body: d.body || '', tag: d.tag || 'mli-timer', renotify: true, icon: 'icon192.png', badge: 'icon192.png', data: { url: './' },
+  }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    const open = list.find(c => 'focus' in c);
+    return open ? open.focus() : self.clients.openWindow('./');
+  }));
 });
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);

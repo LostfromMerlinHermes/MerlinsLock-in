@@ -260,8 +260,9 @@
       th_auto: 'Auto (selon l’humeur)', th_sorcerer: 'Cyber sorcier', th_fog: 'Brouillard gris (Tarot)', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuaire', th_arcade: 'Arcade 8-bit',
       th_hint: 'Auto : chaque humeur a un univers de jour et un de nuit. Épuisé → Sanctuaire / Abysses, Stable → Observatoire / Cyber sorcier, À fond → Netrunner / Ville néon, Dispersé → Arcade 8-bit / Brouillard gris.',
       th_observatory: 'Observatoire', th_abyss: 'Abysses', th_neoncity: 'Ville néon',
-      daynight: 'Jour / nuit', dn_auto: 'Auto (nuit de 21h à 6h)', dn_day: 'Toujours jour', dn_night: 'Toujours nuit',
-      dn_title_auto: 'Jour / nuit : auto ({now}). Touche pour forcer le jour.', dn_title_day: 'Jour forcé. Touche pour forcer la nuit.', dn_title_night: 'Nuit forcée. Touche pour revenir en auto.',
+      daynight: 'Jour / nuit', dn_auto: 'Auto (nuit de 21h à 6h)', dn_day: 'Toujours le monde de jour', dn_night: 'Toujours le monde de nuit',
+      dn_title_auto: 'Jour / nuit : auto ({now}). Touche pour forcer le monde de jour.', dn_title_day: 'Monde de jour forcé. Touche pour le monde de nuit.', dn_title_night: 'Monde de nuit forcé. Touche pour la suite.',
+      dn_t_auto: 'Auto', dn_t_autolight: 'Auto clair', dn_t_day: 'Monde de jour', dn_t_night: 'Monde de nuit', dn_t_light: 'Clair',
       dn_now_day: 'jour en ce moment', dn_now_night: 'nuit en ce moment',
       dn_light: 'Toujours clair', dn_autolight: 'Auto clair (clair le jour, nuit de 21h à 6h)',
       dn_title_light: 'Mode clair. Touche pour revenir en auto.', dn_title_autolight: 'Auto clair ({now}). Touche pour forcer le jour.',
@@ -280,8 +281,9 @@
       th_auto: 'Auto (by mood)', th_sorcerer: 'Cyber sorcerer', th_fog: 'Gray fog (Tarot)', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuary', th_arcade: '8-bit arcade',
       th_hint: 'Auto: every mood has a day world and a night world. Drained → Sanctuary / Abyss, Steady → Observatory / Cyber sorcerer, Fired up → Netrunner / Neon city, Scattered → 8-bit arcade / Gray fog.',
       th_observatory: 'Observatory', th_abyss: 'Abyss', th_neoncity: 'Neon city',
-      daynight: 'Day / night', dn_auto: 'Auto (night from 9pm to 6am)', dn_day: 'Always day', dn_night: 'Always night',
-      dn_title_auto: 'Day / night: auto ({now}). Tap to force day.', dn_title_day: 'Day forced. Tap to force night.', dn_title_night: 'Night forced. Tap to go back to auto.',
+      daynight: 'Day / night', dn_auto: 'Auto (night from 9pm to 6am)', dn_day: 'Always the day world', dn_night: 'Always the night world',
+      dn_title_auto: 'Day / night: auto ({now}). Tap to force the day world.', dn_title_day: 'Day world forced. Tap for the night world.', dn_title_night: 'Night world forced. Tap for what’s next.',
+      dn_t_auto: 'Auto', dn_t_autolight: 'Auto light', dn_t_day: 'Day world', dn_t_night: 'Night world', dn_t_light: 'Light',
       dn_now_day: 'day right now', dn_now_night: 'night right now',
       dn_light: 'Always light', dn_autolight: 'Auto light (light by day, night from 9pm to 6am)',
       dn_title_light: 'Light mode. Tap to go back to auto.', dn_title_autolight: 'Auto light ({now}). Tap to force day.',
@@ -349,9 +351,13 @@
     b.title = title; b.setAttribute('aria-label', title);
   }
   // Auto → Day → Night → (Premium) Light → Auto
+  // The toast names the mode *and* the theme you now see ("Night world · Neon city"), and replaces the previous
+  // one (key) — queued toasts used to lag behind fast taps and showed the label of an earlier state.
   function setDayNight(v) {
     S.dayNight = v; save(); applyTheme(); renderDayNight();
-    toast(t('daynight') + ' : ' + t('dn_' + v), { ms: 2200 });
+    const root = document.documentElement, th = root.dataset.theme;
+    const name = root.dataset.light ? t('th_light_' + LIGHT_NAME[th]) : t('th_' + th);
+    toast(t('dn_t_' + v) + ' · ' + name, { ms: 2200, key: 'daynight' });
   }
   ML.setDayNight = setDayNight;
   $('dn-toggle').onclick = () => {
@@ -375,7 +381,7 @@
   // Theme-specific screen transition (ripple, glitch, moonlight bloom, pixel wipe, fog roll)
   let fxT = null;
   function playTransition(th) {
-    const el = $('theme-fx'); if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const el = $('theme-fx'); if (!el || ML.reducedMotion()) return;
     el.dataset.fx = th; el.classList.remove('play'); void el.offsetWidth; el.classList.add('play');
     clearTimeout(fxT); fxT = setTimeout(() => el.classList.remove('play'), 1100);
     sfx(th === 'netrunner' ? 'level' : 'quest');
@@ -402,7 +408,7 @@
   /* ---------- Background effects per theme ---------- */
   const FX = (() => {
     const cv = $('fx'), cx = cv.getContext('2d');
-    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let still = ML.reducedMotion(); // reduced motion: one static frame, redrawn only on resize / theme change
     const GLYPHS = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>/{}';
     let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], jellies = [], city = [], shoot = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
     function size() {
@@ -429,6 +435,7 @@
       cx.globalAlpha = a; cx.fillStyle = g; cx.fillRect(x - r, y - r, r * 2, r * 2); cx.globalAlpha = 1;
     }
     function draw(tm) {
+      raf = null; // set again below only while animating, so start() / the 'motion' event can restart the loop
       const th = document.documentElement.dataset.theme || 'sorcerer';
       cx.clearRect(0, 0, W, H);
       if (th === 'fog') {
@@ -556,6 +563,10 @@
     }
     addEventListener('resize', () => { size(); if (still) draw(0); });
     size();
+    on('motion', reduce => {
+      still = reduce;
+      if (still) { if (raf) cancelAnimationFrame(raf); raf = null; draw(0); } else if (!raf) raf = requestAnimationFrame(draw);
+    });
     return { start() { reset(); if (!raf) raf = requestAnimationFrame(draw); }, reset };
   })();
 

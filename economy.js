@@ -163,6 +163,9 @@
     spectre: ['#6f86a8', '#eaf4ff', '#ffffff', '#b9d3f5', '#6f86a8'], emerald: ['#0b5a3a', '#2fd98a', '#c9ffe3', '#19b874', '#0b5a3a'],
     aurora: ['#ff4fd8', '#ffb547', '#3ee8e0', '#8a7dff', '#ff4fd8'],
   };
+  // The seal gradient turns slowly, unless the system asks for reduced motion (SVG animation isn't stopped by CSS)
+  const gradSpin = k => (ML.reducedMotion() ? '' : `<animateTransform attributeName="gradientTransform" type="rotate" from="0 120 120" to="360 120 120" dur="${k === 'aurora' ? 5 : 9}s" repeatCount="indefinite"/>`);
+  on('motion', () => applyRing());
   const pt = (r, a) => [(120 + r * Math.cos(a)).toFixed(1), (120 + r * Math.sin(a)).toFixed(1)];
   const DECO = {
     gold: () => `<g class="sd-spin"><circle cx="120" cy="120" r="101" class="sd-line" stroke-dasharray="1 5"/>${[0, 1, 2, 3].map(i => { const [x, y] = pt(101, i * Math.PI / 2 - Math.PI / 2); return `<path class="sd-fill" d="M${x} ${+y - 4} l3 4 -3 4 -3 -4 Z"/>`; }).join('')}</g>`,
@@ -178,7 +181,7 @@
     let deco = svg.querySelector('#seal-deco');
     if (!deco) { svg.insertAdjacentHTML('afterbegin', '<defs id="seal-defs"></defs><g id="seal-deco"></g>'); deco = svg.querySelector('#seal-deco'); }
     const g = GRAD[k];
-    svg.querySelector('#seal-defs').innerHTML = g ? `<linearGradient id="rg-${k}" gradientUnits="userSpaceOnUse" x1="20" y1="20" x2="220" y2="220">${g.map((c, i) => `<stop offset="${i / (g.length - 1)}" stop-color="${c}"/>`).join('')}<animateTransform attributeName="gradientTransform" type="rotate" from="0 120 120" to="360 120 120" dur="${k === 'aurora' ? 5 : 9}s" repeatCount="indefinite"/></linearGradient>` : '';
+    svg.querySelector('#seal-defs').innerHTML = g ? `<linearGradient id="rg-${k}" gradientUnits="userSpaceOnUse" x1="20" y1="20" x2="220" y2="220">${g.map((c, i) => `<stop offset="${i / (g.length - 1)}" stop-color="${c}"/>`).join('')}${gradSpin(k)}</linearGradient>` : '';
     if (g) svg.style.setProperty('--rg', `url(#rg-${k})`); else svg.style.removeProperty('--rg');
     deco.setAttribute('class', 'seal-deco sd-' + k);
     deco.innerHTML = DECO[k] ? DECO[k]() : '';
@@ -219,7 +222,7 @@
   function ringPreview(k) {
     const g = GRAD[k], id = 'rgp-' + k;
     const ticks = Array.from({ length: 60 }, (_, i) => { const a = i / 60 * Math.PI * 2 - Math.PI / 2, r1 = i % 5 ? 86 : 83, [x1, y1] = pt(r1, a), [x2, y2] = pt(95, a); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${i < 45 ? 'on' : 'off'}"/>`; }).join('');
-    return `<svg class="ring-prev sigil-${k}" viewBox="0 0 240 240" aria-hidden="true" ${g ? `style="--rg:url(#${id})"` : ''}>${g ? `<defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="20" y1="20" x2="220" y2="220">${g.map((c, i) => `<stop offset="${i / (g.length - 1)}" stop-color="${c}"/>`).join('')}<animateTransform attributeName="gradientTransform" type="rotate" from="0 120 120" to="360 120 120" dur="${k === 'aurora' ? 5 : 9}s" repeatCount="indefinite"/></linearGradient></defs>` : ''}
+    return `<svg class="ring-prev sigil-${k}" viewBox="0 0 240 240" aria-hidden="true" ${g ? `style="--rg:url(#${id})"` : ''}>${g ? `<defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="20" y1="20" x2="220" y2="220">${g.map((c, i) => `<stop offset="${i / (g.length - 1)}" stop-color="${c}"/>`).join('')}${gradSpin(k)}</linearGradient></defs>` : ''}
       <g class="seal-deco sd-${k}">${DECO[k] ? DECO[k]() : ''}</g><g class="rp-ticks">${ticks}</g><circle cx="120" cy="120" r="60" class="rp-core"/></svg>`;
   }
   const preview = (cat, k) => {

@@ -124,9 +124,15 @@ window.ML = (() => {
   const emit = (evt, data) => { (handlers[evt] || []).forEach(fn => { try { fn(data); } catch (e) { console.error(evt, e); } }); };
 
   /* ---------- Toasts (queued, so messages never overwrite each other) ---------- */
+  // opts.key: a status message about one thing (e.g. the day / night toggle). A newer one with the same key
+  // replaces the one on screen and any waiting in the queue, so a burst of taps never shows stale labels.
   const queue = [];
-  let showing = false;
+  let showing = false, current = null, restart = null;
   function toast(msg, opts = {}) {
+    if (opts.key) {
+      for (let i = queue.length - 1; i >= 0; i--) if (queue[i].opts.key === opts.key) queue.splice(i, 1);
+      if (current && current.opts.key === opts.key && restart) { current.msg = msg; restart(); return; }
+    }
     if (queue.length > 4) queue.shift();
     queue.push({ msg, opts });
     if (!showing) nextToast();
@@ -134,8 +140,9 @@ window.ML = (() => {
   function nextToast() {
     const item = queue.shift();
     const el = $('toast');
+    current = null; restart = null;
     if (!item || !el) { showing = false; return; }
-    showing = true;
+    showing = true; current = item;
     el.innerHTML = '';
     const span = document.createElement('span');
     span.textContent = item.msg;
@@ -150,7 +157,8 @@ window.ML = (() => {
     el.classList.add('show');
     const ms = item.opts.ms || (item.opts.action ? 7000 : 2800);
     let tm = setTimeout(hide, ms);
-    function hide() { clearTimeout(tm); el.classList.remove('show'); setTimeout(nextToast, 260); }
+    restart = () => { span.textContent = item.msg; clearTimeout(tm); tm = setTimeout(hide, ms); };
+    function hide() { clearTimeout(tm); restart = null; el.classList.remove('show'); setTimeout(nextToast, 260); }
   }
 
   // Two-tap confirm, since confirm() dialogs are blocked inside Claude artifacts.
@@ -167,8 +175,18 @@ window.ML = (() => {
     try { const p = chrome.runtime.sendMessage(msg); if (p && p.catch) p.catch(() => {}); } catch (e) {}
   }
 
+  // Reduced motion, in one place: CSS animations are switched off by the @media rule at the end of app.css;
+  // anything animated from JS (canvases, SVG <animate>, transitions) asks ML.reducedMotion() and listens to
+  // the 'motion' event, which fires when the system setting changes while the app is open.
+  const motionMq = matchMedia('(prefers-reduced-motion: reduce)');
+  const reducedMotion = () => motionMq.matches;
+  const syncMotion = () => document.documentElement.classList.toggle('reduce-motion', motionMq.matches);
+  syncMotion();
+  const onMotion = () => { syncMotion(); emit('motion', motionMq.matches); };
+  if (motionMq.addEventListener) motionMq.addEventListener('change', onMotion); else if (motionMq.addListener) motionMq.addListener(onMotion);
+
   return {
-    $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon, isTyping,
+    $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, reducedMotion, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon, isTyping,
     addStrings, t, tn, locale, applyI18n,
     defaults: fn => defaultFns.push(fn), load, loadState: () => loadState, replaceState, save, saveNow, flushSave, savePending: () => !!saveT,
     on, emit, toast, armedButton, bgSend,

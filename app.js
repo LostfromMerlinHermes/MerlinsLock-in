@@ -108,7 +108,9 @@
   }
   $('mood-chips').addEventListener('click', e => { const b = e.target.closest('[data-mood]'); if (b && b.dataset.mood !== S.mood) setMood(b.dataset.mood); });
 
+  ML.setMood = setMood;
   function showCheckin() {
+    if (ML.welcomeWillShow && ML.welcomeWillShow()) return; // the welcome screen (juice.js) asks the mood itself
     // Character-select screen: each mood is a class with its own stats and XP buff
     const INTENSITY = { drained: 25, steady: 55, fired: 100, scattered: 40 };
     const stat = (label, v) => `<span class="ci-stat"><span>${esc(label)}</span><i><b style="width:${Math.min(100, v).toFixed(0)}%"></b></i></span>`;
@@ -596,7 +598,7 @@
         let xp = early ? elapsed : Math.round(elapsed * 1.25);
         const bonus = ML.sessionBonus ? ML.sessionBonus(session, xp) : null; // mood buff from game.js
         if (bonus && bonus.xp > 0) xp += bonus.xp;
-        addXp(xp);
+        addXp(xp); session.xp = xp; // kept on the session (end-of-session screen, history)
         S.pendingRating = session.at;
         if (S.cycleDay !== today()) { S.cycle = 0; S.cycleDay = today(); }
         if (elapsed >= 10) S.cycle++;
