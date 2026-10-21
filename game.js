@@ -576,11 +576,13 @@
         cx.fillStyle = off ? '#D9D6CC' : RED; cx.fillRect(s.x, s.y, 12, s.h); cx.strokeStyle = INK; cx.lineWidth = 1.6; cx.strokeRect(s.x, s.y, 12, s.h);
         cx.fillStyle = off ? '#B9B6AC' : '#FFFFFF'; for (let k = 8; k < s.h - 8; k += 13) cx.fillRect(s.x + 3, s.y + k, 6, 7);
       });
-      cx.font = '600 13px "Chakra Petch", "Bahnschrift", sans-serif'; cx.textBaseline = 'middle';
+      cx.font = ctx.font = '600 13px "Chakra Petch", "Bahnschrift", sans-serif'; cx.textBaseline = 'middle';
+      // measured on the real context: on skipped frames cx is the NOP stand-in, and `x % NOP` threw, which killed the loop
+      const tw = ctx.measureText(N.ticker).width || 1;
       for (const s of inkScreens) {
         cx.fillStyle = INK; cx.fillRect(s.x, s.y, s.w, s.h); cx.fillStyle = RED; cx.fillRect(s.x + 4, s.y + s.h - 8, s.w - 8, 3);
         cx.save(); cx.beginPath(); cx.rect(s.x + 6, s.y + 4, s.w - 12, s.h - 14); cx.clip(); cx.fillStyle = '#FFFFFF';
-        const tw = cx.measureText(N.ticker).width || 1, ox = (tm * 0.03 + s.o) % tw; cx.fillText(N.ticker, s.x + 6 - ox, s.y + s.h / 2 - 4); cx.fillText(N.ticker, s.x + 6 - ox + tw, s.y + s.h / 2 - 4); cx.restore();
+        const ox = (tm * 0.03 + s.o) % tw; cx.fillText(N.ticker, s.x + 6 - ox, s.y + s.h / 2 - 4); cx.fillText(N.ticker, s.x + 6 - ox + tw, s.y + s.h / 2 - 4); cx.restore();
       }
       for (const d of inkDrones) {
         if (mv) { d.x += d.v; if (d.x > W + 20) d.x = -20; if (d.x < -20) d.x = W + 20; }
