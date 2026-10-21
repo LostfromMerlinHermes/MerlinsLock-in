@@ -35,7 +35,7 @@
       burst_sakura: 'Pétales de sakura', burst_sakura_d: 'Une pluie de fleurs de cerisier, très zen.',
       pot_midas: 'Potion de Midas', pot_midas_d: 'Double l’or gagné sur tes 100 prochains XP.', midas_on: 'Midas actif : encore {n} XP en or double',
       elixir_on: 'Élixir actif : +50 % sur la prochaine session', elixir_used: 'Élixir', seal_used: 'Un Sceau de série a protégé ta série d’hier.', in_stock: 'En stock : {n}',
-      cat_seq: 'Costumes de Séquence', seq_hint: 'Chaque Séquence atteinte débloque un costume pour ton familier. Il est à toi pour toujours.', seq_reach: 'Atteins la Séquence {n}',
+      cat_light: 'Thèmes clairs', cat_seq: 'Costumes de Séquence', seq_hint: 'Chaque Séquence atteinte débloque un costume pour ton familier. Il est à toi pour toujours.', seq_reach: 'Atteins la Séquence {n}',
       cs_none: 'Sans costume', cs_none_d: 'Ton familier au naturel.', cs_won: 'Costume débloqué : {name}', unequip: 'Retirer',
       cs_seer_d: 'Foulard pourpre, pièces d’or et troisième œil.', cs_clown_d: 'Fraise, nez rouge et chapeau pointu.', cs_magician_d: 'Haut-de-forme, nœud papillon et cape.',
       cs_faceless_d: 'Un masque lisse. Qui est vraiment derrière ?', cs_marionettist_d: 'Une croix de bois et des fils invisibles.', cs_bizarro_d: 'Diadème d’orbes et filaments violets.',
@@ -71,7 +71,7 @@
       burst_sakura: 'Sakura petals', burst_sakura_d: 'A shower of cherry blossoms, very zen.',
       pot_midas: 'Midas potion', pot_midas_d: 'Doubles the gold earned on your next 100 XP.', midas_on: 'Midas active: {n} more XP at double gold',
       elixir_on: 'Elixir active: +50% on the next session', elixir_used: 'Elixir', seal_used: 'A Streak seal protected yesterday’s streak.', in_stock: 'In stock: {n}',
-      cat_seq: 'Sequence costumes', seq_hint: 'Every Sequence you reach unlocks a costume for your familiar. It’s yours forever.', seq_reach: 'Reach Sequence {n}',
+      cat_light: 'Light themes', cat_seq: 'Sequence costumes', seq_hint: 'Every Sequence you reach unlocks a costume for your familiar. It’s yours forever.', seq_reach: 'Reach Sequence {n}',
       cs_none: 'No costume', cs_none_d: 'Your familiar as it is.', cs_won: 'Costume unlocked: {name}', unequip: 'Remove',
       cs_seer_d: 'Purple headscarf, gold coins and a third eye.', cs_clown_d: 'Ruff, red nose and pointy hat.', cs_magician_d: 'Top hat, bow tie and cape.',
       cs_faceless_d: 'A smooth mask. Who is really behind it?', cs_marionettist_d: 'A wooden cross and invisible strings.', cs_bizarro_d: 'A circlet of orbs and violet tendrils.',
@@ -236,7 +236,20 @@
   const tier = p => (p <= 150 ? 'common' : p <= 300 ? 'rare' : p <= 500 ? 'epic' : 'legendary');
   const coin = (n, short) => `<span class="coin-pill ${short ? 'short' : ''}"><i>◈</i>${n.toLocaleString(ML.locale())}</span>`;
   let justBought = null;
-  const NAV = [['seq', 'cat_seq'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['burst', 'cat_bursts'], ['skin', 'cat_skins']];
+  const NAV = [['seq', 'cat_seq'], ['light', 'cat_light'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['burst', 'cat_bursts'], ['skin', 'cat_skins']];
+  // Light skins (Premium, not bought with gold): one per mood, switched on from here or the sun / moon button
+  const LIGHTS = [['drained', 'aube'], ['steady', 'atelier'], ['fired', 'tokyo'], ['scattered', 'cartouche']];
+  function lightSection() {
+    const prem = ML.isPremium && ML.isPremium(), dn = S.dayNight;
+    const acts = prem ? `<div class="light-acts">
+        <button type="button" class="small ${dn === 'autolight' ? 'primary' : ''}" data-light="autolight">${esc(t('dn_autolight'))}</button>
+        <button type="button" class="small ${dn === 'light' ? 'primary' : ''}" data-light="light">${esc(t('dn_light'))}</button>
+        ${dn === 'light' || dn === 'autolight' ? `<button type="button" class="small ghost" data-light="auto">${esc(t('dn_auto'))}</button>` : ''}</div>`
+      : `<div class="light-acts"><button type="button" class="small" disabled>${esc(t('premium_only'))}</button></div>`;
+    return `<h3 class="shop-h" id="shop-light">${esc(t('cat_light'))}<span class="prem-badge">Premium</span></h3><p class="hint">${esc(t('light_premium_hint'))}</p>${acts}
+      <div class="shop-grid">${LIGHTS.map(([m, k]) => `<div class="shop-item t-legendary ${prem ? '' : 'poor'}"><div class="shop-prev"><span class="light-prev lp-${k}"></span></div>
+        <b>${esc(t('th_light_' + k))}</b><small>${esc(t('mood_' + m))}</small></div>`).join('')}</div>`;
+  }
   function renderShop() {
     const E = S.econ;
     const section = (cat, title) => `<h3 class="shop-h" id="shop-${cat}">${esc(t(title))}</h3><div class="shop-grid">${Object.entries(CATALOG[cat]).map(([k, price]) => {
@@ -269,10 +282,12 @@
       <nav class="shop-nav chips">${NAV.map(([c, l]) => `<button type="button" class="chip-btn" data-shopgo="${c}">${esc(t(l))}</button>`).join('')}</nav>
       <h3 class="shop-h" id="shop-seq">${esc(t('cat_seq'))}</h3><p class="hint">${esc(t('seq_hint'))}</p>
       <div class="shop-grid seq-grid">${seqTile('none', -1)}${(ML.COSTUMES || []).map(seqTile).join('')}</div>
+      ${lightSection()}
       ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('burst', 'cat_bursts')}${section('skin', 'cat_skins')}`;
   }
   $('shop-body').addEventListener('click', e => {
     const E = S.econ, b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.light) { if (ML.isPremium && ML.isPremium() && ML.setDayNight) { ML.setDayNight(b.dataset.light); renderShop(); } return; }
     if (b.dataset.shopgo) { const h = $('shop-' + b.dataset.shopgo); if (h) h.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     justBought = null;
     if (b.dataset.buy) {

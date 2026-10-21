@@ -145,7 +145,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 18px var(--glow); }
 .mood-chip svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .mood-chip svg { stroke: var(--mood-c); }
 .mood-chip:hover { border-color: var(--mood-c); }
-.mood-chip[aria-pressed=true] { --mood-c: var(--accent); color: var(--text); /* the chosen mood wears its world's colour */ border-color: var(--mood-c); background: color-mix(in srgb, var(--mood-c) 14%, transparent); box-shadow: inset 0 0 0 1px var(--mood-c), 0 0 18px -6px var(--mood-c); }
+.mood-chip[aria-pressed=true] { --mood-c: var(--accent) !important; color: var(--text); /* the chosen mood wears its world's colour (beats the inline mood colour) */ border-color: var(--mood-c); background: color-mix(in srgb, var(--mood-c) 14%, transparent); box-shadow: inset 0 0 0 1px var(--mood-c), 0 0 18px -6px var(--mood-c); }
 @media (max-width: 440px) { .mood-chip { flex-direction: column; gap: 2px; font-size: 12px; } }
 .mood-line { margin: 0; color: var(--mist); font-size: 12.5px; }
 .mood-line b { color: var(--text); font-weight: 600; }
@@ -765,6 +765,61 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-theme="neoncity"] .task.next { box-shadow: 0 0 20px -10px var(--accent); }
 :root[data-theme="neoncity"] .q-bar b, :root[data-theme="neoncity"] .seq-bar b { background: linear-gradient(90deg, #ff3fa4, #ffa34a); }
 
+/* =================== Light skins (Premium): the third world of each mood ===================
+   data-light="1" sits on top of the mood's day theme, so each keeps its fonts, shapes and effects:
+   Sanctuary → Aube (dawn pastels), Observatory → Atelier (paper, ink, copper), Netrunner → Tokyo midi
+   (white concrete, neon signs), Arcade → Cartouche (a 4-tone pocket-console LCD). */
+:root[data-light="1"] { color-scheme: light; --glow: color-mix(in srgb, var(--accent) 30%, transparent); --soft: color-mix(in srgb, var(--accent) 10%, transparent); }
+:root[data-light="1"][data-theme="sanctuary"] {
+  --void: #f7f1ec; --panel: #fffaf6; --panel-2: #f4ebe4; --line: #e6dad1; --line-2: #d5c4b8;
+  --text: #3b3047; --mist: #7a6e86; --dim: #a69bb0; --accent: #c4708f; --accent-2: #5f9fb3; --ink: #ffffff; --good: #3f9a72; --warn: #cc5468;
+  --ev-1: #9a83d6; --ev-2: #5f9fb3; --ev-3: #4fa37a; --ev-4: #d99a3e; --ev-5: #c4708f; --ev-6: #cc5468; --ev-7: #b8a05a; --ev-8: #6f86c9;
+}
+:root[data-light="1"][data-theme="sanctuary"] body { background-image: radial-gradient(900px 600px at 10% -10%, rgba(255, 200, 170, .45), transparent 60%), radial-gradient(800px 600px at 100% 110%, rgba(170, 200, 235, .35), transparent 60%); }
+:root[data-light="1"][data-theme="sanctuary"] .primary { background: linear-gradient(180deg, #db8ca8, #bd6585); border-color: #db8ca8; color: #fff; box-shadow: 0 6px 18px -8px rgba(196, 112, 143, .7); }
+:root[data-light="1"][data-theme="sanctuary"] h1 span { text-shadow: none; }
+:root[data-light="1"][data-theme="observatory"] {
+  --void: #f3eee3; --panel: #fbf8f1; --panel-2: #eee7d8; --line: #ddd2bd; --line-2: #c7b89c;
+  --text: #2a251f; --mist: #6d6253; --dim: #9b8e7a; --accent: #b4532c; --accent-2: #2f5c8a; --ink: #ffffff; --good: #4f8a3a; --warn: #b8403a;
+  --ev-1: #b4532c; --ev-2: #2f5c8a; --ev-3: #4f8a3a; --ev-4: #c08a1e; --ev-5: #8a4f8a; --ev-6: #b8403a; --ev-7: #8a7a3a; --ev-8: #4f6fb0;
+}
+:root[data-light="1"][data-theme="observatory"] body { background-image: repeating-linear-gradient(0deg, transparent 0 27px, rgba(47, 92, 138, .06) 27px 28px), radial-gradient(900px 600px at 100% -10%, rgba(230, 160, 110, .25), transparent 60%); }
+:root[data-light="1"][data-theme="observatory"] .primary { background: linear-gradient(180deg, #c8653a, #a14523); border-color: #c8653a; color: #fff; }
+:root[data-light="1"][data-theme="observatory"] h1 span { text-shadow: none; }
+:root[data-light="1"][data-theme="netrunner"] {
+  --void: #eceef2; --panel: #ffffff; --panel-2: #f2f3f7; --line: #d8dbe3; --line-2: #c1c5d0;
+  --text: #14151b; --mist: #5b5f6e; --dim: #8f94a2; --accent: #d1007a; --accent-2: #0093b3; --ink: #ffffff; --good: #00996b; --warn: #e0244c;
+  --ev-1: #d1007a; --ev-2: #0093b3; --ev-3: #00996b; --ev-4: #e08a00; --ev-5: #9a3dd1; --ev-6: #e0244c; --ev-7: #b8a000; --ev-8: #3d5bd1;
+}
+:root[data-light="1"][data-theme="netrunner"] body::after { background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, .025) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
+:root[data-light="1"][data-theme="netrunner"] .primary { color: #fff; }
+:root[data-light="1"][data-theme="arcade"] {
+  --void: #c6d29c; --panel: #d6dfb0; --panel-2: #c0cc8f; --line: #95a764; --line-2: #6c8042;
+  --text: #1c331c; --mist: #3b5a2c; --dim: #64804a; --accent: #2c5a2c; --accent-2: #7a5a1e; --ink: #e2ebc4; --good: #2c5a2c; --warn: #8a2c1e;
+  --ev-1: #2c5a2c; --ev-2: #3b6e6e; --ev-3: #4f7a1e; --ev-4: #7a5a1e; --ev-5: #6e3b5a; --ev-6: #8a2c1e; --ev-7: #5a5a1e; --ev-8: #2c3b6e;
+}
+:root[data-light="1"][data-theme="arcade"] h1 span, :root[data-light="1"][data-theme="arcade"] .clock { text-shadow: 3px 3px 0 #95a764; }
+:root[data-light="1"][data-theme="arcade"] .primary { color: var(--ink); box-shadow: inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 0 rgba(0, 0, 0, .25), 0 0 0 2px #1c331c; }
+:root[data-light="1"][data-theme="arcade"] body { background-image: radial-gradient(rgba(28, 51, 28, .08) 1px, transparent 1px); background-size: 4px 4px; }
+/* Shared fixes for light backgrounds: softer shadows, readable floaters, the gold chip */
+:root[data-light="1"] .floater { text-shadow: 0 1px 0 rgba(255, 255, 255, .8); }
+:root[data-light="1"] .floater.gold, :root[data-light="1"] .gold span, :root[data-light="1"] .coin-pill { color: #b07a00; text-shadow: none; }
+:root[data-light="1"] .gold { border-color: rgba(176, 122, 0, .35); background: rgba(255, 194, 71, .15); }
+:root[data-light="1"] .sigil-card, :root[data-light="1"] .g-card, :root[data-light="1"] .quests, :root[data-light="1"] .task { box-shadow: 0 1px 2px rgba(40, 30, 20, .06), 0 8px 24px -16px rgba(40, 30, 20, .25); }
+:root[data-light="1"] .fam .f-shadow { fill: rgba(0, 0, 0, .15); }
+:root[data-light="1"] .fam-cat { --fbe: #4a4362; }
+:root[data-light="1"] .tod { display: none; }
+:root[data-light="1"] #fx { mix-blend-mode: multiply; opacity: .55; }
+/* Shop tiles for the light skins: a tiny mock-up of each */
+.light-prev { width: 76px; height: 54px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--lp-bg); position: relative; overflow: hidden; box-shadow: 0 6px 16px -10px rgba(0, 0, 0, .5); }
+.light-prev::before { content: ""; position: absolute; left: 8px; top: 8px; width: 24px; height: 24px; border-radius: 50%; border: 3px solid var(--lp-a); }
+.light-prev::after { content: ""; position: absolute; left: 38px; right: 8px; top: 10px; height: 5px; border-radius: 3px; background: var(--lp-t); box-shadow: 0 9px 0 var(--lp-l), 0 18px 0 var(--lp-l), 0 30px 0 var(--lp-b); }
+.lp-aube { --lp-bg: #fffaf6; --lp-a: #c4708f; --lp-t: #3b3047; --lp-l: #e6dad1; --lp-b: #5f9fb3; }
+.lp-atelier { --lp-bg: #fbf8f1; --lp-a: #b4532c; --lp-t: #2a251f; --lp-l: #ddd2bd; --lp-b: #2f5c8a; }
+.lp-tokyo { --lp-bg: #ffffff; --lp-a: #d1007a; --lp-t: #14151b; --lp-l: #d8dbe3; --lp-b: #0093b3; }
+.lp-cartouche { --lp-bg: #d6dfb0; --lp-a: #2c5a2c; --lp-t: #1c331c; --lp-l: #95a764; --lp-b: #7a5a1e; border-radius: 0; }
+.light-acts { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+
 /* Day / night button at the end of the mood line: small and dim until you look at it */
 .mood-foot { display: flex; align-items: center; gap: 8px; }
 .mood-foot .mood-line { flex: 1; min-width: 0; }
@@ -772,6 +827,7 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 .dn-toggle:hover, .dn-toggle:focus-visible { color: var(--accent); border-color: var(--line-2); opacity: 1; }
 .dn-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .dn-toggle[data-mode="day"], .dn-toggle[data-mode="night"] { color: var(--accent); }
+.dn-toggle[data-light="1"] svg { fill: currentColor; fill-opacity: .25; }
 .dn-toggle i { position: absolute; right: -1px; bottom: -1px; font: 700 8px/1 var(--f-mono); font-style: normal; color: var(--mist); background: var(--void); border-radius: 3px; padding: 1px 2px; }
 
 /* =================== Theme transitions (played when the mood changes) =================== */

@@ -263,6 +263,10 @@
       daynight: 'Jour / nuit', dn_auto: 'Auto (nuit de 21h à 6h)', dn_day: 'Toujours jour', dn_night: 'Toujours nuit',
       dn_title_auto: 'Jour / nuit : auto ({now}). Touche pour forcer le jour.', dn_title_day: 'Jour forcé. Touche pour forcer la nuit.', dn_title_night: 'Nuit forcée. Touche pour revenir en auto.',
       dn_now_day: 'jour en ce moment', dn_now_night: 'nuit en ce moment',
+      dn_light: 'Toujours clair', dn_autolight: 'Auto clair (clair le jour, nuit de 21h à 6h)',
+      dn_title_light: 'Mode clair. Touche pour revenir en auto.', dn_title_autolight: 'Auto clair ({now}). Touche pour forcer le jour.',
+      light_premium_hint: 'Premium : un troisième univers, clair, pour chaque humeur (Aube, Atelier, Tokyo midi, Cartouche).',
+      th_light_aube: 'Aube', th_light_atelier: 'Atelier', th_light_tokyo: 'Tokyo midi', th_light_cartouche: 'Cartouche',
     },
     en: {
       class_drained: 'Sanctuary hermit', class_steady: 'Cyber sorcerer', class_fired: 'Netrunner', class_scattered: '8-bit adventurer',
@@ -279,6 +283,10 @@
       daynight: 'Day / night', dn_auto: 'Auto (night from 9pm to 6am)', dn_day: 'Always day', dn_night: 'Always night',
       dn_title_auto: 'Day / night: auto ({now}). Tap to force day.', dn_title_day: 'Day forced. Tap to force night.', dn_title_night: 'Night forced. Tap to go back to auto.',
       dn_now_day: 'day right now', dn_now_night: 'night right now',
+      dn_light: 'Always light', dn_autolight: 'Auto light (light by day, night from 9pm to 6am)',
+      dn_title_light: 'Light mode. Tap to go back to auto.', dn_title_autolight: 'Auto light ({now}). Tap to force day.',
+      light_premium_hint: 'Premium: a third, light world for every mood (Dawn, Studio, Tokyo noon, Cartridge).',
+      th_light_aube: 'Dawn', th_light_atelier: 'Studio', th_light_tokyo: 'Tokyo noon', th_light_cartouche: 'Cartridge',
     },
   });
   ML.defaults(() => ({ dayNight: 'auto' })); // 'auto' (night 21h–6h) | 'day' | 'night'; kept per device (sync.js LOCAL_ONLY)
@@ -287,7 +295,12 @@
   const THEME_DAY = { drained: 'sanctuary', steady: 'observatory', fired: 'netrunner', scattered: 'arcade' };
   const THEME_NIGHT = { drained: 'abyss', steady: 'sorcerer', fired: 'neoncity', scattered: 'fog' };
   const nightByClock = () => { const h = new Date().getHours(); return h >= 21 || h < 6; };
-  const isNight = () => (S.dayNight === 'night' ? true : S.dayNight === 'day' ? false : nightByClock());
+  const isNight = () => (S.dayNight === 'night' ? true : S.dayNight === 'day' || S.dayNight === 'light' ? false : nightByClock());
+  // Light skins (Premium): 'light' = always, 'autolight' = light by day and the night worlds at night
+  const canLight = () => !!(ML.isPremium && ML.isPremium());
+  const isLight = () => canLight() && S.theme === 'auto' && S.section !== 'sport' && (S.dayNight === 'light' || (S.dayNight === 'autolight' && !nightByClock()));
+  const LIGHT_NAME = { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' };
+  ML.isLight = isLight;
   const todaysSessions = () => { const td = today(); return S.sessions.filter(s => dayKey(new Date(s.at)) === td); };
   function comboNow() { let n = 0; const ss = todaysSessions(); for (let i = ss.length - 1; i >= 0 && ss[i].full; i--) n++; return n; }
 
@@ -328,25 +341,33 @@
   function renderDayNight() {
     const b = $('dn-toggle'); if (!b) return;
     b.hidden = S.theme !== 'auto' || S.section === 'sport'; // fixed themes and the Sport arena ignore day / night
-    const m = S.dayNight || 'auto', night = isNight();
-    b.dataset.mode = m;
-    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${night ? MOON : SUN}</svg>${m === 'auto' ? '<i>A</i>' : ''}`;
+    let m = S.dayNight || 'auto'; if (!canLight() && (m === 'light' || m === 'autolight')) m = m === 'light' ? 'day' : 'auto';
+    const night = isNight();
+    b.dataset.mode = m; b.dataset.light = isLight() ? '1' : '';
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${night ? MOON : SUN}</svg>${m === 'auto' || m === 'autolight' ? '<i>A</i>' : ''}`;
     const title = t('dn_title_' + m, { now: t(night ? 'dn_now_night' : 'dn_now_day') });
     b.title = title; b.setAttribute('aria-label', title);
   }
+  // Auto → Day → Night → (Premium) Light → Auto
+  function setDayNight(v) {
+    S.dayNight = v; save(); applyTheme(); renderDayNight();
+    toast(t('daynight') + ' : ' + t('dn_' + v), { ms: 2200 });
+  }
+  ML.setDayNight = setDayNight;
   $('dn-toggle').onclick = () => {
-    S.dayNight = { auto: 'day', day: 'night', night: 'auto' }[S.dayNight] || 'auto';
-    save(); applyTheme(); renderDayNight();
-    toast(t('daynight') + ' : ' + t('dn_' + S.dayNight), { ms: 2200 });
+    const next = { auto: 'day', autolight: 'day', day: 'night', night: canLight() ? 'light' : 'auto', light: 'auto' }[S.dayNight] || 'auto';
+    setDayNight(next);
   };
   let themed = false;
   function applyTheme() {
     renderDayNight();
-    const th = effectiveTheme(), root = document.documentElement;
-    if (root.dataset.theme === th) return;
+    const th = effectiveTheme(), root = document.documentElement, light = isLight() && LIGHT_NAME[th] ? '1' : '';
+    if (root.dataset.theme === th && (root.dataset.light || '') === light) return;
     root.dataset.theme = th;
+    if (light) root.dataset.light = light; else delete root.dataset.light;
     const meta = document.querySelector('meta[name=theme-color]');
-    if (meta) meta.content = { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#120c24', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
+    if (meta) meta.content = light ? { sanctuary: '#f7f1ec', observatory: '#f3eee3', netrunner: '#eceef2', arcade: '#c6d29c' }[th]
+      : { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#120c24', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
     if (themed) playTransition(th);
     themed = true;
     setTimeout(FX.reset, 30);
@@ -360,6 +381,7 @@
     sfx(th === 'netrunner' ? 'level' : 'quest');
   }
   on('mood', () => { applyTheme(); renderBuff(); });
+  on('premium', applyTheme); // a Premium status that arrives after boot unlocks the light skins
   on('session', renderBuff);
   on('render', renderBuff);
   ML.settingsSection({
@@ -367,7 +389,8 @@
     render: () => `<h3>${esc(t('set_look'))}</h3>
       <label class="field"><span>${esc(t('theme'))}</span>${ML.ui.sel('set-theme', ['auto', 'observatory', 'sorcerer', 'sanctuary', 'abyss', 'netrunner', 'neoncity', 'arcade', 'fog'].map(v => [v, t('th_' + v)]), S.theme)}</label>
       <p class="hint">${esc(t('th_hint'))}</p>
-      <label class="field"><span>${esc(t('daynight'))}</span>${ML.ui.sel('set-daynight', ['auto', 'day', 'night'].map(v => [v, t('dn_' + v)]), S.dayNight || 'auto')}</label>
+      <label class="field"><span>${esc(t('daynight'))}</span>${ML.ui.sel('set-daynight', ['auto', 'day', 'night', ...(canLight() ? ['autolight', 'light'] : [])].map(v => [v, t('dn_' + v)]), S.dayNight || 'auto')}</label>
+      ${canLight() ? '' : `<p class="hint">${esc(t('light_premium_hint'))}</p>`}
       ${ML.ui.chk('set-sfx', t('opt_sfx'), S.game.sfx)}`,
     bind: r => {
       r.querySelector('#set-theme').onchange = e => { S.theme = e.target.value; save(); applyTheme(); };
