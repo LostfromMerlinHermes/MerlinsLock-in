@@ -120,7 +120,8 @@
   }
   const burstStyle = () => (S.econ && S.econ.equip && S.econ.equip.burst && S.econ.equip.burst !== 'theme') ? S.econ.equip.burst : theme();
   ML.burst = burst;
-  on('session', s => { burst(burstStyle()); ML.sfx && ML.sfx('session'); });
+  // Washi's theme effect is its ink drop (washi.js); an equipped shop effect still bursts
+  on('session', s => { if (!(ML.washiOn && ML.washiOn() && burstStyle() === theme())) burst(burstStyle()); ML.sfx && ML.sfx('session'); });
   on('task:done', () => { if (!still) { const o = origin(); parts.push(...Array.from({ length: 14 }, () => ({ kind: 'spark', x: o.x, y: o.y, vx: rnd(-3, 3), vy: rnd(-4, 1), size: 2, color: css('--good'), max: 40, life: 0, drag: 0.95, g: 0.1 }))); if (!raf) raf = requestAnimationFrame(step); } });
 
   /* ---------- Floating "+XP" / "+gold" ---------- */

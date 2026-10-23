@@ -446,7 +446,7 @@
     let cx = ctx, lastPaint = 0;
     let still = ML.reducedMotion(); // reduced motion: one static frame, redrawn only on resize / theme change
     const GLYPHS = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>/{}';
-    let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], jellies = [], twinkles = [], petals = [], consts = [], dust = [], embers = [], drawn = [], city = [], shoot = null, sky = null, nextSky = 0, hiGlyph = null, ptr = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
+    let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], jellies = [], twinkles = [], consts = [], dust = [], embers = [], drawn = [], city = [], shoot = null, sky = null, nextSky = 0, hiGlyph = null, ptr = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
     function size() {
       const d = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
       cv.width = W * d; cv.height = H * d; cv.style.width = W + 'px'; cv.style.height = H + 'px'; ctx.setTransform(d, 0, 0, d, 0, 0);
@@ -459,8 +459,6 @@
       jellies = Array.from({ length: Math.max(3, Math.round(W / 320)) }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, s: 14 + Math.random() * 16, v: 0.1 + Math.random() * 0.12, p: Math.random() * 6.28, T: 4000 + Math.random() * 2000, c: i % 2 }));
       // Sanctuary: a few faint stars in the upper sky, each twinkling on its own offset cycle
       twinkles = Array.from({ length: Math.min(24, Math.round(W * H / 40000) + 8) }, () => ({ x: Math.random() * W, y: Math.random() * H * 0.55, r: 0.5 + Math.random() * 0.7, T: 3000 + Math.random() * 4000, p: Math.random() * 6.28 }));
-      // Washi: 6–10 sakura petals falling very slowly, swaying and turning
-      petals = Array.from({ length: W < 600 ? 6 : 9 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: 4 + Math.random() * 3, v: 0.12 + Math.random() * 0.12, p: Math.random() * 6.28, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.01 }));
       // Cyber sorcerer: a few constellations (stars joined by pale lines), each fading in and out on its own 20–32 s cycle
       consts = Array.from({ length: W < 600 ? 3 : 5 }, () => {
         const cx0 = Math.random() * W, cy0 = Math.random() * H, R = 45 + Math.random() * 50, n = 4 + Math.floor(Math.random() * 4);
@@ -615,7 +613,8 @@
       cx.clearRect(0, 0, W, H);
       // Deep focus (step 6, item 61): its opaque scene covers the page, so the decor stops drawing altogether
       const deepEl = $('deep');
-      if (deepEl && !deepEl.hidden) { if (!still) raf = requestAnimationFrame(draw); return; }
+      // (Washi Peint keeps its misty landscape behind the full-screen ink ensō)
+      if (deepEl && !deepEl.hidden && !(ML.washiKeepsDrawing && ML.washiKeepsDrawing())) { if (!still) raf = requestAnimationFrame(draw); return; }
       if (th === 'fog') {
         glow(W * 0.85, H * 0.08, Math.max(W, H) * 0.35, 'rgba(196,56,74,0.9)', 0.14);
         for (const f of fog) {
@@ -638,20 +637,8 @@
         }
         cx.globalAlpha = 1;
       } else if (th === 'sanctuary' && document.documentElement.dataset.light) {
-        // Washi: a handful of sakura petals drifting down (the canvas is multiplied onto the paper)
-        for (const q of petals) {
-          if (mv) {
-            q.y += q.v; q.x += Math.sin(tm / 3200 + q.p) * 0.25 + 0.06; q.rot += q.vr;
-            if (q.y > H + 12) { q.y = -12; q.x = Math.random() * W; } if (q.x > W + 12) q.x = -12;
-          }
-          const s = q.s, flip = still ? 1 : 0.55 + 0.45 * Math.abs(Math.sin(tm / 2600 + q.p)); // the petal turns over as it falls
-          cx.save(); cx.translate(q.x, q.y); cx.rotate(q.rot); cx.scale(1, flip);
-          cx.globalAlpha = 0.7; cx.fillStyle = '#E8B4C0';
-          cx.beginPath(); cx.moveTo(0, -s); cx.quadraticCurveTo(s * 0.95, -s * 0.2, 0, s); cx.quadraticCurveTo(-s * 0.95, -s * 0.2, 0, -s); cx.fill();
-          cx.globalAlpha = 0.35; cx.fillStyle = '#D48A9E'; cx.beginPath(); cx.moveTo(0, -s); cx.lineTo(s * 0.18, -s * 0.72); cx.lineTo(-s * 0.18, -s * 0.72); cx.fill(); // the notch
-          cx.restore();
-        }
-        cx.globalAlpha = 1;
+        // Washi: the ink scene (mountains in the mist, plum branches, ensō, birds, petals) lives in washi.js
+        if (ML.washiDraw) ML.washiDraw(cx, W, H, slow, still, now);
       } else if (th === 'sanctuary') {
         // Moonlight, a few faint twinkling stars, and fireflies that wander slowly
         glow(W * 0.12, H * 0.06, Math.max(W, H) * 0.4, 'rgba(160,200,255,1)', 0.08);

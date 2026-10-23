@@ -26,16 +26,19 @@
   const snapKey = () => 'mli-snaps:' + ML.storageKey();
   const readSnaps = () => { try { return JSON.parse(localStorage.getItem(snapKey())) || []; } catch (e) { return []; } };
   const meaningful = d => d && ((d.sessions && d.sessions.length) || (d.tasks && d.tasks.some(x => !x.sample)) || (+d.xp > 0) || (d.notes && d.notes.pages && d.notes.pages.length));
+  // the key + day today's daily point was confirmed for: after that, saves skip the full stringify + parse of every point
+  let dailyFor = '';
   function snapshot(reason = 'daily') {
+    if (reason === 'daily' && dailyFor === snapKey() + '|' + ML.today()) return;
     if (!meaningful(S)) return;
     if (JSON.stringify(S).length > 600000) return; // very large data: keep the space for the live copy
     let list = readSnaps();
-    if (reason === 'daily' && list.some(s => s.reason === 'daily' && s.day === ML.today())) return;
+    if (reason === 'daily' && list.some(s => s.reason === 'daily' && s.day === ML.today())) { dailyFor = snapKey() + '|' + ML.today(); return; }
     list.push({ at: Date.now(), day: ML.today(), reason, data: JSON.parse(JSON.stringify(S)) });
     const keep = (r, n) => list.filter(s => s.reason === r).slice(-n);
     list = [...keep('daily', 3), ...keep('start-check', 2), ...list.filter(s => !['daily', 'start-check'].includes(s.reason)).slice(-2)].sort((a, b) => a.at - b.at);
     for (let i = 0; i < 4; i++) { // if storage is full, drop the oldest point and retry
-      try { localStorage.setItem(snapKey(), JSON.stringify(list)); return; } catch (e) { if (list.length <= 1) return; list.shift(); }
+      try { localStorage.setItem(snapKey(), JSON.stringify(list)); if (list.some(s => s.reason === 'daily' && s.day === ML.today())) dailyFor = snapKey() + '|' + ML.today(); return; } catch (e) { if (list.length <= 1) return; list.shift(); }
     }
   }
   ML.snapshot = snapshot;

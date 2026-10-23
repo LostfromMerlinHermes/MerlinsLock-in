@@ -136,7 +136,7 @@
     setTimeout(() => ML.floater && ML.floater('+' + g + ' ◈', 'gold'), 250);
   });
   function renderGold() { const el = $('gold-chip'); if (el) { el.innerHTML = `<span>◈</span><b>${S.econ.gold.toLocaleString(ML.locale())}</b>`; el.title = t('gold_n', { n: S.econ.gold }); } }
-  $('gold-chip').onclick = () => { migrate(); ownerGifts(); grantCostumes(false); renderShop(); ML.openOverlay('shop'); };
+  $('gold-chip').onclick = () => { migrate(); ownerGifts(); grantCostumes(false); renderShop(); ML.openOverlay('shop'); spy(); };
   ML.openShop = () => $('gold-chip').click();
 
   /* ---------- Cosmetics: hats (header logo), seal rings (timer), bursts (juice.js reads equip.burst) ---------- */
@@ -287,7 +287,22 @@
       <div class="shop-grid seq-grid">${seqTile('none', -1)}${(ML.COSTUMES || []).map(seqTile).join('')}</div>
       ${lightSection()}
       ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('burst', 'cat_bursts')}${section('skin', 'cat_skins')}`;
+    if (!$('shop').hidden) spy();
   }
+  // The category row lights the section being read (the last heading that scrolled past the pinned header)
+  const sheet = $('shop-body').parentElement;
+  function spy() {
+    const top = sheet.getBoundingClientRect().top + 120; let cur = null;
+    const hs = [...$('shop-body').querySelectorAll('.shop-h')];
+    for (const h of hs) { if (h.getBoundingClientRect().top <= top) cur = h.id.slice(5); else break; }
+    if (hs.length && sheet.scrollTop + sheet.clientHeight >= sheet.scrollHeight - 4) cur = hs[hs.length - 1].id.slice(5); // the last section is too short to reach the top
+    $('shop-body').querySelectorAll('[data-shopgo]').forEach(b => {
+      const on = b.dataset.shopgo === (cur || 'seq'); if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+      // keep the lit chip in view (scrollLeft, not scrollIntoView, which would cut the sheet's own smooth scroll short)
+      if (on) { const n = b.parentElement; if (b.offsetLeft < n.scrollLeft + 20 || b.offsetLeft + b.offsetWidth > n.scrollLeft + n.clientWidth - 28) n.scrollLeft = b.offsetLeft - 40; }
+    });
+  }
+  sheet.addEventListener('scroll', spy, { passive: true });
   $('shop-body').addEventListener('click', e => {
     const E = S.econ, b = e.target.closest('button'); if (!b) return;
     if (b.dataset.light) { if (ML.isPremium && ML.isPremium() && ML.setDayNight) { ML.setDayNight(b.dataset.light); renderShop(); } return; }

@@ -117,6 +117,8 @@ window.ML = (() => {
   // Write now if a save is waiting (used before syncing, so a change made a split second earlier is never skipped)
   function flushSave() { if (saveT) saveNow(); }
   addEventListener('pagehide', saveNow);
+  // iOS often kills an installed web app in the background without a pagehide: write a pending save on the way out
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushSave(); });
 
   /* ---------- Event bus ---------- */
   const handlers = {};
