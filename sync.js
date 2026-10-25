@@ -20,6 +20,8 @@
       acc_delete: 'Supprimer mon compte', acc_deleted: 'Compte supprimé. Toutes tes données en ligne ont été effacées.', del_missing: 'La suppression de compte n’est pas encore activée sur le serveur. Contacte l’éditeur.',
       acc_conflict: '(copie de conflit)', acc_stale: 'Synchro impossible depuis un moment : tes changements restent sur cet appareil et partiront dès que la connexion au compte revient.',
       acc_guard: 'Synchro : une des deux copies avait perdu presque tout son contenu. Les deux ont été fusionnées pour ne rien perdre.',
+      acc_danger: 'Compte : actions définitives',
+      acc_relogin: 'Ta connexion au compte a expiré. Tes données sont sur cet appareil : reconnecte-toi pour les synchroniser.',
       acc_synced: 'Synchronisé', acc_sync_err: 'Synchro impossible pour l’instant. On réessaie bientôt.', acc_wipe: 'Effacer mes données du cloud', acc_wiped: 'Données du cloud effacées.',
       import_h: 'Importer la progression de cet appareil ?', import_p: 'Cet appareil a déjà des tâches, de l’XP et des sessions sans compte. Tu peux les mettre dans ton compte.',
       import_yes: 'Importer dans mon compte', import_no: 'Commencer à zéro',
@@ -38,6 +40,8 @@
       acc_delete: 'Delete my account', acc_deleted: 'Account deleted. All your online data was erased.', del_missing: 'Account deletion is not enabled on the server yet. Contact the publisher.',
       acc_conflict: '(conflict copy)', acc_stale: "Sync hasn't worked for a while: your changes stay on this device and will go up as soon as the account connection is back.",
       acc_guard: 'Sync: one of the two copies had lost almost everything. Both were merged so nothing is lost.',
+      acc_danger: 'Account: permanent actions',
+      acc_relogin: 'Your account sign-in expired. Your data is on this device: sign in again to sync it.',
       acc_synced: 'Synced', acc_sync_err: "Can't sync right now. Retrying soon.", acc_wipe: 'Delete my cloud data', acc_wiped: 'Cloud data deleted.',
       import_h: "Import this device's progress?", import_p: 'This device already has tasks, XP and sessions without an account. You can move them into your account.',
       import_yes: 'Import into my account', import_no: 'Start fresh',
@@ -90,17 +94,23 @@
     if (m.includes('email') && m.includes('invalid')) return t('err_email');
     return t('err_generic', { msg: e.message });
   }
-  let sess = null, remember = true;
+  let sess = null, remember = true, refreshing = null;
   async function token(force) {
     if (!sess) throw new Error('signed out');
     if (force || sess.expires_at - 60 < Date.now() / 1000) {
-      const d = await api('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: sess.refresh_token } });
-      const was = sess.user && sess.user.premium;
-      sess = norm(d); user = sess.user; writeSession(sess, remember);
-      if (was !== user.premium) emit('premium', user.premium);
+      // one refresh at a time: the launch refresh may still be running when the first sync asks for a token
+      refreshing = refreshing || api('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: sess.refresh_token } }).then(d => {
+        const was = sess && sess.user && sess.user.premium;
+        sess = norm(d); user = sess.user; writeSession(sess, remember);
+        if (was !== user.premium) emit('premium', user.premium);
+      }).finally(() => { refreshing = null; });
+      await refreshing;
     }
     return sess.access_token;
   }
+  // Only these mean the saved session is no longer valid. A network failure, a paused or busy server (5xx, 540)
+  // or a rate limit (429) keeps it: signing out then made people think their data was gone.
+  const sessionDead = e => !e.net && (e.status === 400 || e.status === 401 || e.status === 403);
   function useSession(s, rem) {
     sess = s; remember = rem; user = s.user;
     writeSession(s, rem);
@@ -416,8 +426,17 @@
     const found = readSession();
     if (found) {
       sess = found.s; remember = found.remember; user = sess.user;
-      try { await token(true); } // refreshing at launch also picks up a new Premium status
-      catch (e) { if (!e.net) { writeSession(null); sess = null; user = null; } } // offline: keep the cached session
+      // Refreshing at launch also picks up a new Premium status, but the app never waits more than 2 s for it
+      // (a weak network held the whole page empty): past that it opens with the saved session and the refresh
+      // finishes in the background.
+      const refresh = token(true).then(() => 'ok', e => e);
+      const r = await Promise.race([refresh, new Promise(res => setTimeout(() => res('slow'), 2000))]);
+      if (r !== 'ok' && r !== 'slow' && sessionDead(r)) { writeSession(null); sess = null; user = null; }
+      if (r === 'slow') refresh.then(e => {
+        if (e === 'ok' || !sessionDead(e)) return;
+        writeSession(null); // the session turned out to be dead after the app opened: offer to sign in again
+        toast(t('acc_relogin'), { ms: 15000, action: { label: t('acc_login'), fn: () => location.reload() } });
+      });
       if (user) { useSession(sess, remember); return 'user'; }
     }
     try { if (localStorage.getItem(GUEST_FLAG) === '1') return 'guest'; } catch (e) {}
@@ -452,9 +471,7 @@
     render: () => `<h3>${esc(t('set_account'))}</h3>${user
       ? `<p class="hint">${esc(t('acc_signed', { email: user.email }))}</p><p class="hint" id="acc-status"></p>
          <div class="backup-btns"><button type="button" class="small" id="acc-sync">${esc(t('acc_sync_now'))}</button>
-         <button type="button" class="small ghost" id="acc-logout">${esc(t('acc_logout'))}</button>
-         <button type="button" class="small ghost danger" id="acc-wipe">${esc(t('acc_wipe'))}</button>
-         <button type="button" class="small ghost danger" id="acc-delete">${esc(t('acc_delete'))}</button></div>`
+         <button type="button" class="small ghost" id="acc-logout">${esc(t('acc_logout'))}</button></div>`
       : `<p class="hint">${esc(t('acc_guest'))}</p><button type="button" class="small primary" id="acc-login">${esc(t('acc_login'))}</button>`}`,
     bind: r => {
       renderStatus();
@@ -474,5 +491,12 @@
       });
       if (r.querySelector('#acc-login')) r.querySelector('#acc-login').onclick = () => { try { localStorage.removeItem(GUEST_FLAG); } catch (e) {} location.reload(); };
     },
+  });
+  // The irreversible account actions live in Settings → Advanced (bound by the account section above: r is the whole sheet)
+  ML.settingsSection({
+    order: 95, group: 'advanced',
+    render: () => !user ? '' : `<h3>${esc(t('acc_danger'))}</h3>
+      <div class="backup-btns"><button type="button" class="small ghost danger" id="acc-wipe">${esc(t('acc_wipe'))}</button>
+      <button type="button" class="small ghost danger" id="acc-delete">${esc(t('acc_delete'))}</button></div>`,
   });
 })();

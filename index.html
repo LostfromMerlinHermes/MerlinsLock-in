@@ -55,7 +55,8 @@
     </div>
   </header>
 
-  <div class="section-switch" role="group" aria-label="Section">
+  <!-- Sport is set aside since 3.25 (sport.js / sport-data.js stay in the repo, not loaded): only Work is left, so no switch -->
+  <div class="section-switch" role="group" aria-label="Section" hidden>
     <button type="button" id="sec-work" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v14H4zM13 5h7v14h-7zM6.5 9h2M15.5 9h2"/></svg><span data-i18n="sec_work">Travail</span></button>
     <button type="button" id="sec-sport" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4M6 8v8M18 8v8M21 10v4M6 12h12"/></svg><span data-i18n="sec_sport">Sport</span></button>
   </div>
@@ -220,15 +221,6 @@
   </div>
 </div>
 
-<div class="overlay" id="checkin" hidden>
-  <div class="sheet center" role="dialog" aria-modal="true" aria-labelledby="ci-h">
-    <h2 id="ci-h" data-i18n="checkin_h"></h2>
-    <p data-i18n="checkin_p"></p>
-    <div class="ci-grid" id="ci-grid"></div>
-    <button type="button" class="link" id="ci-skip" data-i18n="skip_today"></button>
-  </div>
-</div>
-
 <div class="overlay" id="settings" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="set-h">
     <div class="sheet-head">
@@ -304,10 +296,9 @@
 <script src="study.js"></script>
 <script src="rooms.js"></script>
 <script src="notehelp.js"></script>
-<script src="sport-data.js"></script>
-<script src="sport.js"></script>
 <script src="juice.js"></script>
 <script src="washi.js"></script>
+<script src="energy.js"></script>
 <script src="sfx.js"></script>
 <script src="focusplus.js"></script>
 <script src="economy.js"></script>

@@ -292,7 +292,7 @@
 
   /* ---------- 58–60. Settings ---------- */
   ML.settingsSection({
-    order: 17,
+    order: 24, // right after the mixer (23): both sound sections together
     render: () => `<h3>${esc(t('set_sound2'))}</h3>
       <label class="d-slider"><span>${esc(t('fx_vol'))}</span><input type="range" id="sx-fx" min="0" max="1" step="0.05" value="${S.soundfx.vol}"></label>
       <label class="d-slider"><span>${esc(t('amb_vol'))}</span><input type="range" id="sx-amb" min="0" max="1" step="0.05" value="${S.audio ? S.audio.master : 0.7}"></label>

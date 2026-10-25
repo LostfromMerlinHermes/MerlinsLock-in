@@ -153,6 +153,7 @@
 
   on('timer', () => { if (R().code && me()) presence().catch(() => {}); });
   on('started', () => { if (R().code && me()) { pull(); schedule(); } });
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && R().code) { pull(); schedule(); } });
+  // (S.room is only there once the state has loaded: the login screen comes before)
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && R() && R().code) { pull(); schedule(); } });
   ML.Rooms = { html, bind };
 })();

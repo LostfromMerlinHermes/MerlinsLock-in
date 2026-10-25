@@ -109,21 +109,8 @@
   $('mood-chips').addEventListener('click', e => { const b = e.target.closest('[data-mood]'); if (b && b.dataset.mood !== S.mood) setMood(b.dataset.mood); });
 
   ML.setMood = setMood;
-  function showCheckin() {
-    if (ML.welcomeWillShow && ML.welcomeWillShow()) return; // the welcome screen (juice.js) asks the mood itself
-    // Character-select screen: each mood is a class with its own stats and XP buff
-    const INTENSITY = { drained: 25, steady: 55, fired: 100, scattered: 40 };
-    const stat = (label, v) => `<span class="ci-stat"><span>${esc(label)}</span><i><b style="width:${Math.min(100, v).toFixed(0)}%"></b></i></span>`;
-    $('ci-grid').innerHTML = Object.entries(MOODS).map(([k, M]) =>
-      `<button type="button" class="ci-btn ci-${k}" data-mood="${k}" style="--mood-c:${M.color}">
-        <span class="ci-top">${ML.svgIcon(M.icon)}<span><strong>${esc(t('mood_' + k))}</strong><em>${esc(t('class_' + k))}</em></span></span>
-        ${stat(t('stat_focus'), M.focus / 90 * 100)}${stat(t('stat_rest'), M.brk / 15 * 100)}${stat(t('stat_intensity'), INTENSITY[k])}
-        <span class="ci-buff">✦ <b>${esc(t('buff_' + k))}</b> · ${esc(t('buff_' + k + '_d'))}</span>
-        <span class="ci-meta">${fmtMins(M.focus)} focus · ${fmtMins(M.brk)} ${esc(t('break_lc'))} · ${esc(t('sort_' + M.sort))}</span></button>`).join('');
-    openOverlay('checkin');
-  }
-  $('ci-grid').addEventListener('click', e => { const b = e.target.closest('[data-mood]'); if (!b) return; closeOverlay('checkin'); setMood(b.dataset.mood); });
-  $('ci-skip').onclick = () => { S.moodDay = today(); save(); closeOverlay('checkin'); };
+  // The energy picker (energy.js) asks the day's mood; this opens it to change it (Settings, midnight)
+  const showCheckin = () => ML.energyPicker && ML.energyPicker.open({ cancellable: true });
   ML.showCheckin = showCheckin;
 
   /* ---------- Overlays ---------- */
@@ -134,7 +121,7 @@
   function closeOverlay(id) { $(id).hidden = true; }
   document.addEventListener('click', e => {
     const c = e.target.closest('[data-close]'); if (c) closeOverlay(c.dataset.close);
-    if (e.target.classList && e.target.classList.contains('overlay') && e.target.id !== 'checkin') closeOverlay(e.target.id);
+    if (e.target.classList && e.target.classList.contains('overlay')) closeOverlay(e.target.id);
   });
   ML.openOverlay = openOverlay; ML.closeOverlay = closeOverlay;
 
@@ -831,15 +818,26 @@
   ML.renderGrimoire = renderGrimoire;
 
   /* ---------- Settings sheet ---------- */
-  // Each module adds its own section: ML.settingsSection({ order, render: () => html, bind: root => {} })
+  // Each module adds its own section: ML.settingsSection({ order, group?, render: () => html, bind: root => {} }).
+  // group 'advanced' goes in a folded "Advanced" block (recovery, backups, account deletion…), 'info' at the very end:
+  // the everyday settings come first and the technical ones stop crowding them.
   const sections = [];
   ML.settingsSection = s => sections.push(s);
+  ML.addStrings({ fr: { set_advanced: 'Avancé', set_advanced_hint: 'Sauvegardes, récupération et actions sensibles du compte.' }, en: { set_advanced: 'Advanced', set_advanced_hint: 'Backups, recovery and sensitive account actions.' } });
+  let advOpen = false;
   function renderSettings() {
-    const body = $('settings-body');
-    body.innerHTML = sections.sort((a, b) => a.order - b.order).map(s => `<section class="set-sec">${s.render()}</section>`).join('');
+    const body = $('settings-body'), sorted = sections.sort((a, b) => a.order - b.order);
+    const html = list => list.map(s => s.render()).filter(Boolean).map(h => `<section class="set-sec">${h}</section>`).join('');
+    const adv = sorted.filter(s => s.group === 'advanced');
+    body.innerHTML = html(sorted.filter(s => !s.group))
+      + (adv.length ? `<details class="set-adv" id="set-adv" ${advOpen ? 'open' : ''}><summary>${esc(t('set_advanced'))}<small>${esc(t('set_advanced_hint'))}</small></summary>${html(adv)}</details>` : '')
+      + html(sorted.filter(s => s.group === 'info'));
+    const d = $('set-adv'); if (d) d.addEventListener('toggle', () => { advOpen = d.open; emit('settings:advanced', d.open); });
     sections.forEach(s => s.bind && s.bind(body));
   }
   ML.renderSettings = renderSettings;
+  // Sport is set aside (3.25): a device that was left on it reopens on Work
+  on('loaded', () => { if (S.section === 'sport') S.section = 'work'; });
   $('settings-btn').onclick = () => { renderSettings(); openOverlay('settings'); };
 
   const sel = (id, opts, cur) => `<select id="${id}">${opts.map(([v, l]) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
@@ -900,7 +898,7 @@
     },
   });
   ML.settingsSection({
-    order: 90,
+    order: 90, group: 'advanced',
     render: () => `<h3>${esc(t('backup'))}</h3>
       <p class="hint">${esc(t('backup_hint'))}</p>
       <div class="backup-btns">
@@ -956,11 +954,11 @@
     openOverlay('help');
   }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { ['help', 'settings'].forEach(id => { if (!$(id).hidden) closeOverlay(id); }); if (!$('checkin').hidden) $('ci-skip').click(); return; }
+    if (e.key === 'Escape') { ['help', 'settings'].forEach(id => { if (!$(id).hidden) closeOverlay(id); }); return; }
     const tg = e.target;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (ML.isTyping(e) || (tg && tg.tagName === 'BUTTON' && e.key === ' ')) return;
-    if (!$('checkin').hidden || !$('settings').hidden) return;
+    if (!$('settings').hidden) return;
     const k = e.key.toLowerCase();
     if (e.key === ' ') { e.preventDefault(); toggleTimer(); }
     else if (k === 'n') { e.preventDefault(); setTab('plan'); $('new-title').focus(); }
@@ -1027,7 +1025,7 @@
     setTab(S.tab);
     renderAll();
     if (running()) { if (remainingNow() <= 0) complete(); else loop(); }
-    if (S.moodDay !== today()) showCheckin();
+    // at launch, energy.js asks the day's energy (or runs the first-launch flow) once the app has started
     setInterval(() => { if (dayCheck()) { renderAll(); if (S.moodDay !== today()) showCheckin(); } emit('minute'); }, 30000);
   };
 })();

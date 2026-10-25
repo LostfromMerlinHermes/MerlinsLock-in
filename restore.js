@@ -95,11 +95,14 @@
   }
 
   ML.settingsSection({
-    order: 6,
+    order: 92, group: 'advanced',
     render: () => `<h3>${esc(t('set_restore'))}</h3><p class="hint">${esc(t('rs_hint'))}</p>
       <p class="hint">${esc(t('rs_current', { line: summary(S) }))}</p><div id="rs-list">${listHtml()}</div>`,
     bind: r => {
-      found = null; scan();
+      // the copies are looked up (cloud included) only once the Advanced block is open
+      found = null;
+      const adv = r.querySelector('#set-adv');
+      if (!adv || adv.open) scan(); else adv.addEventListener('toggle', () => { if (adv.open && !found) scan(); });
       const box = r.querySelector('#rs-list');
       let armed = null;
       box.addEventListener('click', e => {

@@ -346,11 +346,19 @@
     el.title = t('buff_' + m + '_d');
   }
 
+  // previewMood: the energy picker (energy.js) shows another mood's world while you browse, without choosing it
+  let previewMood = null;
+  const themeOf = m => (S.theme !== 'auto' ? S.theme : (isNight() ? THEME_NIGHT : THEME_DAY)[m] || 'sorcerer');
   function effectiveTheme() {
     if (S.section === 'sport') return 'arena'; // the Sport section has its own look
-    if (S.theme !== 'auto') return S.theme;
-    return (isNight() ? THEME_NIGHT : THEME_DAY)[S.mood] || 'sorcerer';
+    return themeOf(previewMood || S.mood);
   }
+  ML.previewMood = m => { previewMood = m || null; applyTheme(); };
+  // The name of the world a mood leads to right now (day / night / light skin), e.g. "Netrunner"
+  ML.worldName = m => {
+    const th = themeOf(m);
+    return (isLight() && LIGHT_NAME[th] ? t('th_light_' + LIGHT_NAME[th]) : t('th_' + th)).replace(/\s*\(.*\)$/, '');
+  };
   // (old Salle blanche, now unused: CSS keeps .deco-meta hidden) fixed technical metadata on the page edge, decorative and still
   // (it only changes when the minute does). Shown by CSS for that theme on wide screens only.
   const decoMeta = document.createElement('div');
@@ -406,7 +414,7 @@
     const el = $('theme-fx'); if (!el || ML.reducedMotion()) return;
     el.dataset.fx = th; el.classList.remove('play'); void el.offsetWidth; el.classList.add('play');
     clearTimeout(fxT); fxT = setTimeout(() => el.classList.remove('play'), 1100);
-    sfx(th === 'netrunner' ? 'level' : 'quest');
+    if (!previewMood) sfx(th === 'netrunner' ? 'level' : 'quest'); // browsing the energy picker stays quiet
   }
   on('mood', () => { applyTheme(); renderBuff(); });
   // Netrunner: one short RGB glitch on the digits when a focus session starts (CSS .glitch-in, cut by reduced motion)

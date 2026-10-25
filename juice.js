@@ -174,7 +174,7 @@
     });
   };
   document.addEventListener('click', e => {
-    const b = e.target.closest('button.primary, .mood-chip, .chip-btn, .tabs button, .presets button, .ci-btn');
+    const b = e.target.closest('button.primary, .mood-chip, .chip-btn, .tabs button, .presets button, .ep-seg button');
     if (b && S.game && S.game.sfx) ML.sfxTheme('click');
   }, true);
   on('abandon', () => ML.sfx && ML.sfx('abandon'));
@@ -401,53 +401,32 @@
     hud.innerHTML = `<span>⚔ ${esc(t('boss_fight'))}</span><i><b style="width:${(hp / B.max * 100).toFixed(1)}%"></b></i><small>${Math.ceil(hp)}/${B.max} PV</small>`;
   });
 
-  /* ---------- Welcome screen (once a day) ----------
-     The "press start" title and the mood check-in are one screen: on the first opening of the day it also asks
-     the mood (4 buttons + "same as yesterday"), so you're in after a single tap. Keys: 1–4 pick, Enter keeps. */
-  ML.addStrings({
-    fr: { ts_mood_q: 'Comment va ton mana ?', ts_same: 'Comme hier : {mood}', ts_keys: '1–4 pour choisir · Entrée pour garder' },
-    en: { ts_mood_q: 'How is your mana today?', ts_same: 'Same as yesterday: {mood}', ts_keys: '1–4 to pick · Enter to keep' },
-  });
+  /* ---------- Title screen (once a day) ----------
+     The "press start" title. On a day whose energy isn't chosen yet, the energy picker (energy.js) opens
+     instead and counts as today's welcome, so this only shows when the energy was already set today. */
   const welcomeDue = () => !!(S.juice && S.juice.title && S.juice.titleDay !== today());
-  let booted = false; // only the launch's check-in is folded into the welcome; a new day at midnight still opens the check-in
-  ML.welcomeWillShow = () => !booted && welcomeDue();
   function showTitle() {
     const s = ML.seqInfo(), st = ML.streaks(), Q = S.game.quests, evN = ML.eventsOn ? ML.eventsOn(today()).length : 0;
-    const touch = matchMedia('(pointer: coarse)').matches, askMood = S.moodDay !== today(), M = ML.MOODS || {};
-    const moods = askMood ? `<div class="ts-mood">
-        <p class="ts-q">${esc(t('ts_mood_q'))}</p>
-        <div class="ts-moods">${Object.keys(M).map((k, i) => `<button type="button" class="ts-mbtn" data-tsmood="${k}" style="--mood-c:${M[k].color}">${ML.svgIcon(M[k].icon)}<b>${esc(t('mood_' + k))}</b><small>${esc(t('buff_' + k))}</small><kbd>${i + 1}</kbd></button>`).join('')}</div>
-        <button type="button" class="primary ts-same" data-tsmood="${S.mood}">▶ ${esc(t('ts_same', { mood: t('mood_' + S.mood) }))}</button>
-        ${touch ? '' : `<p class="ts-keys">${esc(t('ts_keys'))}</p>`}</div>` : `<p class="ts-press">▶ ${esc(touch ? t('press_start_touch') : t('press_start'))}</p>`;
+    const touch = matchMedia('(pointer: coarse)').matches;
     $('ts-inner').innerHTML = `
       <div class="ts-logo">${document.querySelector('.logo').outerHTML}</div>
       <h1 class="ts-title">Merlins<span>LockIN</span></h1>
       <p class="ts-class">${esc(t('ts_back'))} <b>${esc(t('class_' + S.mood))}</b> · ${esc(t('sequence'))} ${s.num} ${esc(s.name)}</p>
       <div class="ts-stats"><span>${esc(t('ts_streak', { n: st.cur }))}</span><span>${esc(t('ts_quests', { n: Q && Q.day === today() ? Q.claimed.length : 0 }))}</span><span>${esc(t('ts_events', { n: evN }))}</span></div>
-      ${moods}`;
+      <p class="ts-press">▶ ${esc(touch ? t('press_start_touch') : t('press_start'))}</p>`;
     const el = $('title-screen');
-    el.hidden = false; el.classList.toggle('asks', askMood);
-    const close = mood => {
+    el.hidden = false;
+    const close = () => {
       el.classList.add('out'); S.juice.titleDay = today(); save();
       emit('gesture'); ML.sfx && ML.sfx('level');
-      if (mood) { if (mood !== S.mood) ML.setMood(mood); else { S.moodDay = today(); save(); ML.renderAll(); } }
       setTimeout(() => { el.hidden = true; el.classList.remove('out'); }, 450);
       removeEventListener('keydown', onKey, true);
     };
-    const keys = Object.keys(M);
-    const onKey = e => {
-      if (!askMood) { e.preventDefault(); e.stopPropagation(); close(); return; }
-      const n = +e.key;
-      if (n >= 1 && n <= keys.length) { e.preventDefault(); e.stopPropagation(); close(keys[n - 1]); }
-      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); close(S.mood); }
-    };
-    el.onclick = e => {
-      if (!askMood) { close(); return; }
-      const b = e.target.closest('[data-tsmood]'); if (b) close(b.dataset.tsmood); // with the mood question, only a choice closes it
-    };
+    const onKey = e => { e.preventDefault(); e.stopPropagation(); close(); };
+    el.onclick = close;
     addEventListener('keydown', onKey, true);
   }
-  on('started', () => { if (welcomeDue()) showTitle(); booted = true; applyTod(); });
+  on('started', () => { if (welcomeDue() && S.moodDay === today() && S.onboarded) showTitle(); applyTod(); });
 
   /* ---------- Time-of-day light ---------- */
   function applyTod() {

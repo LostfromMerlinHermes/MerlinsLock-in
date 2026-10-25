@@ -239,7 +239,7 @@
   const tier = p => (p <= 150 ? 'common' : p <= 300 ? 'rare' : p <= 500 ? 'epic' : 'legendary');
   const coin = (n, short) => `<span class="coin-pill ${short ? 'short' : ''}"><i>◈</i>${n.toLocaleString(ML.locale())}</span>`;
   let justBought = null;
-  const NAV = [['seq', 'cat_seq'], ['light', 'cat_light'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['burst', 'cat_bursts'], ['skin', 'cat_skins']];
+  const NAV = [['seq', 'cat_seq'], ['light', 'cat_light'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['burst', 'cat_bursts']]; // (character skins went with the Sport section, set aside in 3.25)
   // Light skins (Premium, not bought with gold): one per mood, switched on from here or the sun / moon button
   const LIGHTS = [['drained', 'aube'], ['steady', 'atelier'], ['fired', 'tokyo'], ['scattered', 'cartouche']];
   function lightSection() {
@@ -286,7 +286,7 @@
       <h3 class="shop-h" id="shop-seq">${esc(t('cat_seq'))}</h3><p class="hint">${esc(t('seq_hint'))}</p>
       <div class="shop-grid seq-grid">${seqTile('none', -1)}${(ML.COSTUMES || []).map(seqTile).join('')}</div>
       ${lightSection()}
-      ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('burst', 'cat_bursts')}${section('skin', 'cat_skins')}`;
+      ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('burst', 'cat_bursts')}`;
     if (!$('shop').hidden) spy();
   }
   // The category row lights the section being read (the last heading that scrolled past the pinned header)

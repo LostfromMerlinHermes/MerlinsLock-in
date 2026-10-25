@@ -161,7 +161,7 @@
   document.addEventListener('click', e => { const b = e.target.closest('[data-legal]'); if (b && !b.closest('#legal')) openLegal(b.dataset.legal); });
 
   ML.settingsSection({
-    order: 99,
+    order: 99, group: 'info',
     render: () => `<h3>${esc(t('legal_about'))}</h3><p class="hint">${esc(t('legal_about_p'))}</p><p class="legal-links">${ML.legalLinks()}</p>`,
   });
 })();
