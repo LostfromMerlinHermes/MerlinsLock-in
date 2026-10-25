@@ -23,6 +23,8 @@
       acc_danger: 'Compte : actions définitives',
       acc_relogin: 'Ta connexion au compte a expiré. Tes données sont sur cet appareil : reconnecte-toi pour les synchroniser.',
       acc_synced: 'Synchronisé', acc_sync_err: 'Synchro impossible pour l’instant. On réessaie bientôt.', acc_wipe: 'Effacer mes données du cloud', acc_wiped: 'Données du cloud effacées.',
+      sy_ok: 'Synchronisé · {t}', sy_run: 'Synchronisation…', sy_off: 'Hors ligne · gardé sur cet appareil', sy_err: 'Synchro en échec · gardé sur cet appareil',
+      sy_remote: 'Mis à jour depuis ton autre appareil',
       import_h: 'Importer la progression de cet appareil ?', import_p: 'Cet appareil a déjà des tâches, de l’XP et des sessions sans compte. Tu peux les mettre dans ton compte.',
       import_yes: 'Importer dans mon compte', import_no: 'Commencer à zéro',
     },
@@ -43,6 +45,8 @@
       acc_danger: 'Account: permanent actions',
       acc_relogin: 'Your account sign-in expired. Your data is on this device: sign in again to sync it.',
       acc_synced: 'Synced', acc_sync_err: "Can't sync right now. Retrying soon.", acc_wipe: 'Delete my cloud data', acc_wiped: 'Cloud data deleted.',
+      sy_ok: 'Synced · {t}', sy_run: 'Syncing…', sy_off: 'Offline · saved on this device', sy_err: 'Sync failed · saved on this device',
+      sy_remote: 'Updated from your other device',
       import_h: "Import this device's progress?", import_p: 'This device already has tasks, XP and sessions without an account. You can move them into your account.',
       import_yes: 'Import into my account', import_no: 'Start fresh',
     },
@@ -53,6 +57,7 @@
   const BASE = (CFG.supabaseUrl || '').replace(/\/$/, '');
   const SESS = 'mli-auth', GUEST_FLAG = 'mli-guest';
   let user = null, lastSync = null, pushT = null, applying = 0, freshLocal = false; // freshLocal: this device had no data for this account yet
+  let pushing = 0; // debounced pushes in flight (for the sync indicator)
 
   /* ---------- Session storage: localStorage with "Remember me", sessionStorage without ---------- */
   function readSession() {
@@ -221,12 +226,13 @@
     }
     if (keepalive) return;
     remoteAt = data._savedAt; setBase(data);
-    lastSync = Date.now(); renderStatus();
+    lastSync = Date.now(); renderStatus(); syncUi.done(null);
   }
   function syncNow(initial) {
     if (!user) return Promise.resolve(false);
     if (syncing) return syncing;
-    syncing = doSync(initial).finally(() => { syncing = null; });
+    syncing = doSync(initial).finally(() => { syncing = null; syncUi.render(); });
+    syncUi.render();
     return syncing;
   }
   async function doSync(initial) {
@@ -266,22 +272,24 @@
         else {
           const localChanged = !base || S._savedAt !== base._savedAt, remoteChanged = !base || rAt !== base._savedAt;
           if (!remoteChanged) { if (localChanged) await push(false, true); }
-          else if (!localChanged) { applyData(rd); setBase(rd); }
+          else if (!localChanged) { applyData(rd); setBase(rd); syncUi.remote(); }
           else {
             const merged = merge3(base || undefined, JSON.parse(JSON.stringify(S)), rd, !!base && (S._savedAt || 0) > rAt, '');
             rescueNotes(base, S, rd, merged);
             merged._savedAt = Date.now();
             applyData(merged);
             await push(false, true);
+            syncUi.remote();
           }
         }
         lastSync = Date.now();
       }
       freshLocal = false;
       try { localStorage.setItem('mli-sync-ok:' + user.id, String(Date.now())); } catch (e) {}
-      renderStatus();
+      renderStatus(); syncUi.done(null);
       return true;
     } catch (e) {
+      syncUi.done(e);
       // Tell the user once if the account hasn't synced for a day (e.g. the Supabase project is paused)
       let okAt = 0; try { okAt = +localStorage.getItem('mli-sync-ok:' + user.id) || 0; } catch (e2) {}
       if (okAt && Date.now() - okAt > 864e5 && !staleWarned) { staleWarned = true; toast(t('acc_stale'), { ms: 9000 }); }
@@ -303,7 +311,7 @@
   on('saved', () => {
     if (!user || applying) return;
     clearTimeout(pushT);
-    pushT = setTimeout(() => push().catch(() => {}), 4000);
+    pushT = setTimeout(() => { pushing++; syncUi.render(); push().catch(e => syncUi.done(e)).finally(() => { pushing--; syncUi.render(); }); }, 4000);
   });
   addEventListener('pagehide', () => { if (user && pushT && ready) push(true).catch(() => {}); });
   document.addEventListener('visibilitychange', () => {
@@ -463,6 +471,62 @@
   }
   const cloudCopy = async () => { if (!user) return null; const r = await pull(); return r ? r.data : null; };
   ML.auth = { boot, afterLoad, get user() { return user; }, enabled: ENABLED, syncNow, merge3, rest, forcePush, cloudCopy };
+
+  /* ---------- Sync indicator: a cloud in the header (signed in only) ----------
+     ok (check) / run (syncing) / off (no network) / err (server); a tap shows the last sync time and "Sync now".
+     A sync that brought another device's changes shows a short bubble at the top. */
+  function makeSyncUi() {
+    let err = null, popEl = null, flashT = null;
+    const CLOUD = '<path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 9.3 4.4 4.4 0 0 0 7 18z"/>';
+    const MARK = { ok: '<path class="sy-m" d="M9.6 13.6l1.9 1.9 3.4-3.6"/>', run: '<path class="sy-m" d="M14.8 12.2a3 3 0 0 1-5.3 1.7M9.2 13a3 3 0 0 1 5.3-1.7"/>', off: '<path d="M4 4l16 16"/>' };
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'ghost icon-only sync-btn'; btn.id = 'sync-btn'; btn.hidden = true;
+    const anchor = $('settings-btn'); if (anchor) anchor.before(btn);
+    const offline = () => navigator.onLine === false;
+    const state = () => (syncing || pushing ? 'run' : err ? (err.net || offline() ? 'off' : 'err') : offline() ? 'off' : lastSync ? 'ok' : 'run');
+    const hm = ts => new Date(ts).toLocaleTimeString(ML.locale(), { hour: '2-digit', minute: '2-digit' });
+    const label = s => (s === 'ok' ? t('sy_ok', { t: hm(lastSync) }) : t('sy_' + s));
+    function render() {
+      btn.hidden = !user;
+      if (!user) { closePop(); return; }
+      const s = state();
+      if (btn.dataset.sync !== s) { btn.dataset.sync = s; btn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${CLOUD}${MARK[s] || MARK.off}</svg>`; }
+      btn.title = label(s); btn.setAttribute('aria-label', label(s));
+      if (popEl) fillPop();
+    }
+    function fillPop() {
+      const s = state();
+      popEl.innerHTML = `<b>${esc(label(s))}</b><small>${esc(user.email || '')}</small>
+        <button type="button" class="small" data-sy="now"${s === 'run' ? ' disabled' : ''}>${esc(t('acc_sync_now'))}</button>`;
+    }
+    const outside = e => { if (popEl && !popEl.contains(e.target) && !btn.contains(e.target)) closePop(); };
+    const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); closePop(); } };
+    function openPop() {
+      popEl = document.createElement('div'); popEl.className = 'sync-pop'; popEl.setAttribute('role', 'dialog');
+      const r = btn.getBoundingClientRect();
+      popEl.style.top = Math.round(r.bottom + 8) + 'px'; popEl.style.right = Math.max(8, Math.round(innerWidth - r.right)) + 'px';
+      document.body.appendChild(popEl); fillPop();
+      popEl.addEventListener('click', e => { if (e.target.closest('[data-sy="now"]')) { err = null; syncNow(false); } });
+      addEventListener('click', outside, true); addEventListener('keydown', onKey, true); addEventListener('scroll', closePop, true);
+    }
+    function closePop() {
+      if (!popEl) return;
+      popEl.remove(); popEl = null;
+      removeEventListener('click', outside, true); removeEventListener('keydown', onKey, true); removeEventListener('scroll', closePop, true);
+    }
+    btn.onclick = () => (popEl ? closePop() : openPop());
+    function remote() {
+      let el = $('sync-flash');
+      if (!el) { el = document.createElement('div'); el.id = 'sync-flash'; el.className = 'sync-flash'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+      el.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>${esc(t('sy_remote'))}`;
+      el.classList.add('on'); clearTimeout(flashT); flashT = setTimeout(() => el.classList.remove('on'), 3000);
+    }
+    addEventListener('online', () => { err = null; render(); if (user) syncNow(false); });
+    addEventListener('offline', render);
+    on('render', render);
+    return { render, remote, done: e => { err = e || null; render(); } };
+  }
+  const syncUi = makeSyncUi();
 
   /* ---------- Settings: account section ---------- */
   function renderStatus() { const el = $('acc-status'); if (el) el.textContent = t('acc_last', { when: lastSync ? new Date(lastSync).toLocaleTimeString(ML.locale(), { hour: '2-digit', minute: '2-digit' }) : t('acc_never') }); }

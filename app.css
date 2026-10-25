@@ -1291,6 +1291,20 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 .theme-fx[data-fx="fog"].play { animation: tfx-fog 1.1s ease-out forwards; }
 @keyframes tfx-fog { 0% { opacity: 1; transform: translateX(-30%); } 100% { opacity: 0; transform: translateX(30%); } }
 
+/* =================== Sync indicator (sync.js): header cloud, its popover, the "updated" bubble =================== */
+.sync-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.sync-btn[data-sync=ok] { color: var(--mist); }
+.sync-btn[data-sync=ok] .sy-m { stroke: var(--good); }
+.sync-btn[data-sync=run] .sy-m { stroke: var(--accent); transform-box: fill-box; transform-origin: center; animation: sy-spin 1.1s linear infinite; }
+.sync-btn[data-sync=off], .sync-btn[data-sync=err] { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 55%, transparent); }
+@keyframes sy-spin { to { rotate: 360deg; } }
+.sync-pop { position: fixed; z-index: 45; display: grid; gap: 8px; width: min(260px, calc(100vw - 16px)); padding: 12px 14px; font-size: 13px; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+.sync-pop small { color: var(--mist); overflow-wrap: anywhere; }
+.sync-flash { position: fixed; z-index: 59; left: 50%; top: calc(12px + env(safe-area-inset-top, 0px)); translate: -50% -8px; opacity: 0; pointer-events: none; display: flex; align-items: center; gap: 6px; padding: 7px 13px; white-space: nowrap; font-size: 12.5px; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 99px; box-shadow: 0 6px 20px rgba(0, 0, 0, .3); transition: opacity .25s, translate .25s; }
+.sync-flash.on { opacity: 1; translate: -50% 0; }
+.sync-flash svg { width: 15px; height: 15px; fill: none; stroke: var(--good); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (pointer: coarse) { html.mnav-on #float-btn { display: none; } } /* the floating mini timer doesn't exist on phones: room for the cloud */
+
 /* =================== Accounts: login screen =================== */
 .auth-screen { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; overflow-y: auto;
   background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--accent) 18%, var(--void)), var(--void) 70%);
