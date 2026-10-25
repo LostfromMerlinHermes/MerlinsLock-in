@@ -314,7 +314,10 @@
   const isNight = () => (S.dayNight === 'night' ? true : S.dayNight === 'day' || S.dayNight === 'light' ? false : nightByClock());
   // Light skins (Premium): 'light' = always, 'autolight' = light by day and the night worlds at night
   const canLight = () => !!(ML.isPremium && ML.isPremium());
-  const isLight = () => canLight() && S.theme === 'auto' && S.section !== 'sport' && (S.dayNight === 'light' || (S.dayNight === 'autolight' && !nightByClock()));
+  // "Try 1 minute" in the Shop: a light world shown for a while without Premium (trialUntil = end time)
+  let trialUntil = 0;
+  const trying = () => Date.now() < trialUntil;
+  const isLight = () => S.section !== 'sport' && (trying() || (canLight() && S.theme === 'auto' && (S.dayNight === 'light' || (S.dayNight === 'autolight' && !nightByClock()))));
   const LIGHT_NAME = { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' };
   ML.isLight = isLight;
   const todaysSessions = () => { const td = today(); return S.sessions.filter(s => dayKey(new Date(s.at)) === td); };
@@ -354,6 +357,13 @@
     return themeOf(previewMood || S.mood);
   }
   ML.previewMood = m => { previewMood = m || null; applyTheme(); };
+  let trialT = null;
+  ML.tryWorld = (mood, ms = 60000) => {
+    clearTimeout(trialT); trialUntil = Date.now() + ms; previewMood = mood === S.mood ? null : mood; applyTheme();
+    trialT = setTimeout(ML.endTrial, ms);
+  };
+  ML.endTrial = () => { clearTimeout(trialT); if (!trialUntil) return; trialUntil = 0; previewMood = null; applyTheme(); ML.emit('trial:end'); };
+  ML.trying = trying;
   // The name of the world a mood leads to right now (day / night / light skin), e.g. "Netrunner"
   ML.worldName = m => {
     const th = themeOf(m);
@@ -454,7 +464,7 @@
     let cx = ctx, lastPaint = 0;
     let still = ML.reducedMotion(); // reduced motion: one static frame, redrawn only on resize / theme change
     const GLYPHS = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>/{}';
-    let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], jellies = [], twinkles = [], consts = [], dust = [], embers = [], drawn = [], city = [], shoot = null, sky = null, nextSky = 0, hiGlyph = null, ptr = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
+    let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], jellies = [], twinkles = [], consts = [], embers = [], drawn = [], city = [], shoot = null, sky = null, nextSky = 0, hiGlyph = null, ptr = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
     function size() {
       const d = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
       cv.width = W * d; cv.height = H * d; cv.style.width = W + 'px'; cv.style.height = H + 'px'; ctx.setTransform(d, 0, 0, d, 0, 0);
@@ -474,8 +484,6 @@
         const edges = pts.slice(1).map((_, i) => [i, i + 1]); if (n > 4) edges.push([1, n - 1]);
         return { pts, edges, T: 20000 + Math.random() * 12000, p: Math.random() * 6.28 };
       });
-      // Codex: golden dust motes drifting inside a slanted beam of light (u = position across the beam, 0–1)
-      dust = Array.from({ length: W < 600 ? 14 : 24 }, () => ({ u: Math.random(), y: Math.random() * H, r: 0.6 + Math.random() * 1.1, v: 0.04 + Math.random() * 0.08, p: Math.random() * 6.28 }));
       // Gray fog: slow embers rising from two candles at the edges
       embers = Array.from({ length: 10 }, (_, i) => ({ side: i % 2, x: 0, y: H + Math.random() * H * 0.4, v: 0.15 + Math.random() * 0.2, p: Math.random() * 6.28, r: 0.7 + Math.random() * 0.8 }));
       // Neon city skyline: buildings with a few lit windows, drawn in front of the striped sun
@@ -674,18 +682,8 @@
           cx.globalAlpha = 0.9 * pulse; cx.fillStyle = colors[0]; cx.fillRect(f.x - 1, f.y - 1, 2, 2); cx.globalAlpha = 1;
         }
       } else if (th === 'observatory' && document.documentElement.dataset.light) {
-        // Codex: a slanted beam of warm light from the top right, with golden dust drifting slowly inside it
-        // (the canvas is multiplied onto the parchment, so the beam reads as a warm band, the motes as gold specks)
-        const bx0 = W * 0.78, bw = Math.min(260, W * 0.35), slant = H * 0.45;
-        const bg = cx.createLinearGradient(bx0, 0, bx0 - slant, H); bg.addColorStop(0, 'rgba(214,170,90,.16)'); bg.addColorStop(1, 'rgba(214,170,90,0)');
-        cx.fillStyle = bg; cx.beginPath(); cx.moveTo(bx0, 0); cx.lineTo(bx0 + bw, 0); cx.lineTo(bx0 + bw - slant, H); cx.lineTo(bx0 - slant, H); cx.closePath(); cx.fill();
-        for (const d of dust) {
-          if (mv) { d.y += d.v; d.u += Math.sin(tm / 5000 + d.p) * 0.0006; if (d.y > H) { d.y = 0; d.u = Math.random(); } }
-          const x = bx0 + d.u * bw - slant * (d.y / H);
-          cx.globalAlpha = (0.35 + 0.4 * (still ? 0.5 : (Math.sin(tm / 2100 + d.p) + 1) / 2)) * (1 - d.y / H * 0.7);
-          cx.fillStyle = '#A8842F'; cx.beginPath(); cx.arc(x, d.y, d.r, 0, 6.29); cx.fill();
-        }
-        cx.globalAlpha = 1;
+        // Codex: the old Victorian city in the mist (river, clock tower, gas lamps, smoke on a pause) lives in codex.js
+        if (ML.codexDraw) ML.codexDraw(cx, W, H, slow, still, now);
       } else if (th === 'observatory') {
         // Warm sun, slow light shafts, golden dust, and a brass orrery turning in the corner
         glow(W * 0.92, H * 0.02, Math.max(W, H) * 0.5, 'rgba(255,200,120,1)', 0.12);

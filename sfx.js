@@ -176,7 +176,8 @@
       const ding = (f, at = 0, d = 1, v = 0.04) => bell(f, at, d, v, [1, 2.4, 3.9]);
       return {
         click: () => scratch(0, 0.04, 0.04), lock: () => seal(), task: () => scratch(), sub: () => scratch(0, 0.12),
-        quest: () => { scratch(0, 0.15); ding(1320, 0.18, 0.8); }, session: () => { page(); ding(392, 0.3, 2, 0.06); }, breakEnd: () => page(), mood: () => page(),
+        // session end: three strokes of the clock-tower bell (the city's bell rings on screen at the same time)
+        quest: () => { scratch(0, 0.15); ding(1320, 0.18, 0.8); }, session: () => { [0, 1.15, 2.3].forEach(at => bell(196, at, 2.6, 0.06, [0.5, 1, 1.19, 1.5, 2, 2.61])); }, breakEnd: () => page(), mood: () => page(),
         park: () => scratch(0, 0.1), level: () => { page(); seal(0.35); ding(523, 0.5, 1.6, 0.05); }, ach: () => { scratch(0, 0.12); ding(1046, 0.15, 0.9); }, buy: () => seal(0, 0.12),
         abandon: () => seal(0, 0.1),
       };

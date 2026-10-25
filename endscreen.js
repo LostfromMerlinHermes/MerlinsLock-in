@@ -51,6 +51,7 @@
           <button type="button" data-end="more">${esc(t('end_more'))}</button>
           <button type="button" data-end="next" ${next ? '' : 'disabled'}><span>${esc(t(next ? 'end_nexttask' : 'end_nexttask_none'))}</span>${next ? `<small>${esc(ML.titleOf(next))}</small>` : ''}</button>
         </div></div>
+      ${ML.endExtras ? ML.endExtras(s) : ''}
       <button type="button" class="link end-later" data-end="later">${esc(t('end_later'))}</button>`;
   }
 

@@ -35,7 +35,16 @@
       burst_sakura: 'Pétales de sakura', burst_sakura_d: 'Une pluie de fleurs de cerisier, très zen.',
       pot_midas: 'Potion de Midas', pot_midas_d: 'Double l’or gagné sur tes 100 prochains XP.', midas_on: 'Midas actif : encore {n} XP en or double',
       elixir_on: 'Élixir actif : +50 % sur la prochaine session', elixir_used: 'Élixir', seal_used: 'Un Sceau de série a protégé ta série d’hier.', in_stock: 'En stock : {n}',
-      cat_light: 'Thèmes clairs', cat_seq: 'Costumes de Séquence', seq_hint: 'Chaque Séquence atteinte débloque un costume pour ton familier. Il est à toi pour toujours.', seq_reach: 'Atteins la Séquence {n}',
+      cat_light: 'Thèmes clairs', cat_worlds: 'Mondes', w_light_h: 'Mondes clairs', w_light_p: 'Un troisième monde pour chaque énergie. Touche « Aperçu » pour le découvrir.',
+      w_free_h: 'Mondes inclus', w_free_p: 'Un monde de jour et un monde de nuit pour chaque énergie, offerts.', w_preview: 'Aperçu', w_new: 'Nouveau',
+      w_try: 'Essayer 1 minute', w_unlock: 'Débloquer avec Premium', w_use: 'Utiliser les mondes clairs', w_soon: 'Premium arrive bientôt.', w_trying: 'Aperçu : {w} · 1 min', w_stop: 'Arrêter', w_trial_end: 'Fin de l’aperçu.',
+      wt_aube: 'Encre, montagnes et brume', wt_atelier: 'La vieille ville dans la brume', wt_tokyo: 'La ville d’encre et de néons rouges', wt_cartouche: 'Pixels, collines et nuages',
+      wf_aube_1: 'Un paysage à l’encre qui se voile pendant le focus', wf_aube_2: 'Des branches de prunier qui fleurissent en pause', wf_aube_3: 'Une goutte d’encre à chaque fin de session',
+      wf_atelier_1: 'Le fleuve, le ciel qui suit l’heure et les saisons', wf_atelier_2: 'Une fenêtre s’allume à chaque session du jour', wf_atelier_3: 'La Gazette du soir : ta journée en une',
+      wf_tokyo_1: 'Une ville qui s’allume avec tes tâches et tes sessions', wf_tokyo_2: 'Un chronographe à la place du minuteur', wf_tokyo_3: 'Des quêtes qui passent comme des affiches',
+      wf_cartouche_1: 'Un monde en pixels qui défile doucement', wf_cartouche_2: 'Un petit marcheur qui somnole pendant le focus', wf_cartouche_3: 'Une carte par tâche quand tu es dispersé',
+      wm_atelier_1: 'Focus : la brume monte', wm_atelier_2: 'Pause : la ville respire', wm_atelier_3: 'Fin : la cloche sonne',
+      cat_seq: 'Costumes de Séquence', seq_hint: 'Chaque Séquence atteinte débloque un costume pour ton familier. Il est à toi pour toujours.', seq_reach: 'Atteins la Séquence {n}',
       cs_none: 'Sans costume', cs_none_d: 'Ton familier au naturel.', cs_won: 'Costume débloqué : {name}', unequip: 'Retirer',
       cs_seer_d: 'Foulard pourpre, pièces d’or et troisième œil.', cs_clown_d: 'Fraise, nez rouge et chapeau pointu.', cs_magician_d: 'Haut-de-forme, nœud papillon et cape.',
       cs_faceless_d: 'Un masque lisse. Qui est vraiment derrière ?', cs_marionettist_d: 'Une croix de bois et des fils invisibles.', cs_bizarro_d: 'Diadème d’orbes et filaments violets.',
@@ -71,7 +80,16 @@
       burst_sakura: 'Sakura petals', burst_sakura_d: 'A shower of cherry blossoms, very zen.',
       pot_midas: 'Midas potion', pot_midas_d: 'Doubles the gold earned on your next 100 XP.', midas_on: 'Midas active: {n} more XP at double gold',
       elixir_on: 'Elixir active: +50% on the next session', elixir_used: 'Elixir', seal_used: 'A Streak seal protected yesterday’s streak.', in_stock: 'In stock: {n}',
-      cat_light: 'Light themes', cat_seq: 'Sequence costumes', seq_hint: 'Every Sequence you reach unlocks a costume for your familiar. It’s yours forever.', seq_reach: 'Reach Sequence {n}',
+      cat_light: 'Light themes', cat_worlds: 'Worlds', w_light_h: 'Light worlds', w_light_p: 'A third world for every energy. Tap “Preview” to see it.',
+      w_free_h: 'Included worlds', w_free_p: 'A day world and a night world for every energy, free.', w_preview: 'Preview', w_new: 'New',
+      w_try: 'Try for 1 minute', w_unlock: 'Unlock with Premium', w_use: 'Use the light worlds', w_soon: 'Premium is coming soon.', w_trying: 'Preview: {w} · 1 min', w_stop: 'Stop', w_trial_end: 'Preview over.',
+      wt_aube: 'Ink, mountains and mist', wt_atelier: 'The old city in the mist', wt_tokyo: 'The city of ink and red neon', wt_cartouche: 'Pixels, hills and clouds',
+      wf_aube_1: 'An ink landscape that veils itself during focus', wf_aube_2: 'Plum branches that blossom on a pause', wf_aube_3: 'A drop of ink at every session’s end',
+      wf_atelier_1: 'The river, a sky that follows the hour and the seasons', wf_atelier_2: 'A window lights up for every session of the day', wf_atelier_3: 'The Evening Gazette: your day on the front page',
+      wf_tokyo_1: 'A city that lights up with your tasks and sessions', wf_tokyo_2: 'A chronograph instead of the timer', wf_tokyo_3: 'Quests that pass by like posters',
+      wf_cartouche_1: 'A pixel world scrolling gently by', wf_cartouche_2: 'A little walker who dozes during focus', wf_cartouche_3: 'One card per task when you’re scattered',
+      wm_atelier_1: 'Focus: the fog rises', wm_atelier_2: 'Pause: the city breathes', wm_atelier_3: 'End: the bell rings',
+      cat_seq: 'Sequence costumes', seq_hint: 'Every Sequence you reach unlocks a costume for your familiar. It’s yours forever.', seq_reach: 'Reach Sequence {n}',
       cs_none: 'No costume', cs_none_d: 'Your familiar as it is.', cs_won: 'Costume unlocked: {name}', unequip: 'Remove',
       cs_seer_d: 'Purple headscarf, gold coins and a third eye.', cs_clown_d: 'Ruff, red nose and pointy hat.', cs_magician_d: 'Top hat, bow tie and cape.',
       cs_faceless_d: 'A smooth mask. Who is really behind it?', cs_marionettist_d: 'A wooden cross and invisible strings.', cs_bizarro_d: 'A circlet of orbs and violet tendrils.',
@@ -239,7 +257,7 @@
   const tier = p => (p <= 150 ? 'common' : p <= 300 ? 'rare' : p <= 500 ? 'epic' : 'legendary');
   const coin = (n, short) => `<span class="coin-pill ${short ? 'short' : ''}"><i>◈</i>${n.toLocaleString(ML.locale())}</span>`;
   let justBought = null;
-  const NAV = [['seq', 'cat_seq'], ['light', 'cat_light'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['burst', 'cat_bursts']]; // (character skins went with the Sport section, set aside in 3.25)
+  const NAV = [['worlds', 'cat_worlds'], ['seq', 'cat_seq'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['burst', 'cat_bursts']]; // (character skins went with the Sport section, set aside in 3.25)
   // Light skins (Premium, not bought with gold): one per mood, switched on from here or the sun / moon button
   const LIGHTS = [['drained', 'aube'], ['steady', 'atelier'], ['fired', 'tokyo'], ['scattered', 'cartouche']];
   function lightSection() {
@@ -248,11 +266,49 @@
         <button type="button" class="small ${dn === 'autolight' ? 'primary' : ''}" data-light="autolight">${esc(t('dn_autolight'))}</button>
         <button type="button" class="small ${dn === 'light' ? 'primary' : ''}" data-light="light">${esc(t('dn_light'))}</button>
         ${dn === 'light' || dn === 'autolight' ? `<button type="button" class="small ghost" data-light="auto">${esc(t('dn_auto'))}</button>` : ''}</div>`
-      : `<div class="light-acts"><button type="button" class="small" disabled>${esc(t('premium_only'))}</button></div>`;
-    return `<h3 class="shop-h" id="shop-light">${esc(t('cat_light'))}<span class="prem-badge">Premium</span></h3><p class="hint">${esc(t('light_premium_hint'))}</p>${acts}
-      <div class="shop-grid">${LIGHTS.map(([m, k]) => `<div class="shop-item t-legendary ${prem ? '' : 'poor'}"><div class="shop-prev"><span class="light-prev lp-${k}"></span></div>
-        <b>${esc(t('th_light_' + k))}</b><small>${esc(t('mood_' + m))}</small></div>`).join('')}</div>`;
+      : '';
+    // Each light world shows a real picture of it (world-<key>.jpg, at the app's root; the drawn mini-card stays
+    // underneath in case the picture can't load, e.g. in the artifact); "Preview" opens its sheet
+    return `<h3 class="shop-h" id="shop-worlds">${esc(t('w_light_h'))}<span class="prem-badge">Premium</span></h3><p class="hint">${esc(t('w_light_p'))}</p>${acts}
+      <div class="world-grid">${LIGHTS.map(([m, k]) => `<div class="world-card">
+        <button type="button" class="world-pic" data-world="${k}" aria-label="${esc(t('w_preview') + ' · ' + t('th_light_' + k))}"><span class="light-prev lp-${k}"></span><img src="world-${k}.jpg" alt="" loading="lazy">
+          ${k === 'atelier' ? `<span class="world-new">${esc(t('w_new'))}</span>` : ''}${prem ? '' : '<span class="world-lock">🔒 Premium</span>'}</button>
+        <b>${esc(t('th_light_' + k))}</b><small>${esc(t('mood_' + m))} · ${esc(t('wt_' + k))}</small>
+        <button type="button" class="small" data-world="${k}">${esc(t('w_preview'))}</button></div>`).join('')}</div>
+      <h3 class="shop-sub">${esc(t('w_free_h'))}</h3><p class="hint">${esc(t('w_free_p'))}</p>
+      <div class="world-free">${FREE.map(([m, k]) => `<span><img src="world-${k}.jpg" alt="" loading="lazy"><small>${esc(t('th_' + k))}</small></span>`).join('')}</div>`;
   }
+  const FREE = [['drained', 'sanctuary'], ['steady', 'observatory'], ['fired', 'netrunner'], ['scattered', 'arcade']];
+  // The world sheet: big picture, its moments (when we have them), what it brings, and Try / Unlock (or Use)
+  const MOMENTS = { atelier: ['focus', 'pause', 'fin'] };
+  const wsh = document.createElement('div');
+  wsh.className = 'overlay world-ov'; wsh.id = 'world'; wsh.hidden = true;
+  document.body.appendChild(wsh);
+  function openWorld(k) {
+    const prem = ML.isPremium && ML.isPremium(), name = t('th_light_' + k), mom = MOMENTS[k];
+    wsh.innerHTML = `<div class="sheet world-sheet" role="dialog" aria-modal="true" aria-labelledby="world-h">
+      <div class="sheet-head"><h2 id="world-h">${esc(name)} · ${esc(t('wt_' + k))}</h2><button type="button" class="ghost icon-only" data-close="world" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="world-hero"><span class="light-prev lp-${k}"></span><img src="world-${k}.jpg" alt=""></div>
+      ${mom ? `<div class="world-moments">${mom.map((m, i) => `<figure><img src="world-${k}-${m}.jpg" alt="" loading="lazy"><figcaption>${esc(t('wm_' + k + '_' + (i + 1)))}</figcaption></figure>`).join('')}</div>` : ''}
+      <ul class="world-feats">${[1, 2, 3].map(i => `<li>${esc(t('wf_' + k + '_' + i))}</li>`).join('')}</ul>
+      <div class="world-cta">${prem ? `<button type="button" class="primary" data-wuse="${k}">${esc(t('w_use'))}</button>`
+        : `<button type="button" data-wtry="${k}">${esc(t('w_try'))}</button><button type="button" class="primary" data-wunlock="1">${esc(t('w_unlock'))}</button>`}</div></div>`;
+    wsh.querySelectorAll('img').forEach(i => i.addEventListener('error', () => i.remove()));
+    ML.openOverlay('world');
+  }
+  wsh.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.wtry) {
+      const m = LIGHTS.find(([, k]) => k === b.dataset.wtry)[0];
+      ML.closeOverlay('world'); ML.closeOverlay('shop');
+      ML.tryWorld(m, 60000);
+      toast(t('w_trying', { w: t('th_light_' + b.dataset.wtry) }), { ms: 60000, key: 'trial', action: { label: t('w_stop'), fn: () => ML.endTrial() } });
+    } else if (b.dataset.wuse) {
+      if (S.dayNight !== 'light' && S.dayNight !== 'autolight' && ML.setDayNight) ML.setDayNight('autolight');
+      ML.closeOverlay('world'); renderShop();
+    } else if (b.dataset.wunlock) toast(t('w_soon'));
+  });
+  on('trial:end', () => toast(t('w_trial_end'), { key: 'trial', ms: 2500 }));
   function renderShop() {
     const E = S.econ;
     const section = (cat, title) => `<h3 class="shop-h" id="shop-${cat}">${esc(t(title))}</h3><div class="shop-grid">${Object.entries(CATALOG[cat]).map(([k, price]) => {
@@ -283,10 +339,11 @@
     $('shop-body').innerHTML = `
       <div class="shop-top"><div class="shop-gold"><span>◈</span><b>${E.gold.toLocaleString(ML.locale())}</b></div><p class="hint">${esc(t('shop_hint'))}</p></div>
       <nav class="shop-nav chips">${NAV.map(([c, l]) => `<button type="button" class="chip-btn" data-shopgo="${c}">${esc(t(l))}</button>`).join('')}</nav>
+      ${lightSection()}
       <h3 class="shop-h" id="shop-seq">${esc(t('cat_seq'))}</h3><p class="hint">${esc(t('seq_hint'))}</p>
       <div class="shop-grid seq-grid">${seqTile('none', -1)}${(ML.COSTUMES || []).map(seqTile).join('')}</div>
-      ${lightSection()}
       ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('burst', 'cat_bursts')}`;
+    $('shop-body').querySelectorAll('.world-pic img, .world-free img').forEach(i => i.addEventListener('error', () => i.remove()));
     if (!$('shop').hidden) spy();
   }
   // The category row lights the section being read (the last heading that scrolled past the pinned header)
@@ -297,7 +354,7 @@
     for (const h of hs) { if (h.getBoundingClientRect().top <= top) cur = h.id.slice(5); else break; }
     if (hs.length && sheet.scrollTop + sheet.clientHeight >= sheet.scrollHeight - 4) cur = hs[hs.length - 1].id.slice(5); // the last section is too short to reach the top
     $('shop-body').querySelectorAll('[data-shopgo]').forEach(b => {
-      const on = b.dataset.shopgo === (cur || 'seq'); if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+      const on = b.dataset.shopgo === (cur || 'worlds'); if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
       // keep the lit chip in view (scrollLeft, not scrollIntoView, which would cut the sheet's own smooth scroll short)
       if (on) { const n = b.parentElement; if (b.offsetLeft < n.scrollLeft + 20 || b.offsetLeft + b.offsetWidth > n.scrollLeft + n.clientWidth - 28) n.scrollLeft = b.offsetLeft - 40; }
     });
@@ -306,6 +363,7 @@
   $('shop-body').addEventListener('click', e => {
     const E = S.econ, b = e.target.closest('button'); if (!b) return;
     if (b.dataset.light) { if (ML.isPremium && ML.isPremium() && ML.setDayNight) { ML.setDayNight(b.dataset.light); renderShop(); } return; }
+    if (b.dataset.world) { openWorld(b.dataset.world); return; }
     if (b.dataset.shopgo) { const h = $('shop-' + b.dataset.shopgo); if (h) h.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     justBought = null;
     if (b.dataset.buy) {

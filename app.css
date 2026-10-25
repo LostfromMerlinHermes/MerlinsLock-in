@@ -1058,6 +1058,28 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-light="1"][data-theme="observatory"] .rar-legendary .chip.rar { border-color: var(--r-legendary); background: color-mix(in srgb, var(--r-legendary) 10%, transparent); }
 :root[data-light="1"][data-theme="observatory"] .chip.sample { color: var(--mist); border-color: var(--line-2); }
 :root[data-light="1"][data-theme="observatory"] .q-bar b, :root[data-light="1"][data-theme="observatory"] .seq-bar b { background: var(--accent); }
+/* 7. The old city (codex.js) is painted as it is (not multiplied) and stays at full strength in focus: its own fog
+   calms it. The timer card lets it show through. */
+:root[data-light="1"][data-theme="observatory"] #fx, :root[data-light="1"][data-theme="observatory"][data-timer="running"] #fx { mix-blend-mode: normal; opacity: 1; }
+:root[data-light="1"][data-theme="observatory"] .sigil-card { background-color: rgba(242, 232, 210, .6); }
+:root[data-light="1"][data-theme="observatory"] .ring-wrap::after { content: ""; position: absolute; inset: 2.5%; z-index: -2; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(244, 236, 220, .94) 55%, rgba(244, 236, 220, .82) 100%); }
+
+/* The evening Gazette (codex.js): today's recap as an old newspaper front page */
+.gz-sheet { position: relative; width: min(100%, 460px); padding: 16px 18px 14px; color: #2B2116; background: #F1E8D3; border: 1px solid #B8A27A; border-radius: 4px; font-family: "Cormorant Garamond", Georgia, serif; }
+.gz-meta, .gz-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font: 500 10px var(--f-body); letter-spacing: .06em; text-transform: uppercase; color: #6A5A44; }
+.gz-meta { padding: 0 46px 5px 0; border-bottom: 1px solid #2B2116; }
+.gz-title { margin: 8px 0 2px; text-align: center; font: 700 clamp(22px, 7vw, 30px) "Cinzel", serif; letter-spacing: .05em; color: #2B2116; text-transform: none; }
+.gz-sheet .gz-tag { margin: 0; padding-bottom: 7px; text-align: center; font-size: 13px; font-style: italic; color: #5E5040; border-bottom: 3px double #2B2116; }
+.gz-sheet .gz-head { margin: 10px 0 8px; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700; font-size: clamp(20px, 6vw, 25px); line-height: 1.1; color: #2B2116; }
+.gz-cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; font: 400 12px/1.45 var(--f-body); color: #3A2E22; }
+.gz-cols > div:first-child { padding-right: 12px; border-right: 1px solid #B8A27A; }
+.gz-sheet .gz-cols p { margin: 0 0 6px; color: #3A2E22; font-size: 12px; }
+.gz-cols b { font: 700 14px "Cormorant Garamond", serif; color: #2B2116; }
+.gz-cols svg { display: block; width: 100%; height: auto; border: 1px solid #B8A27A; margin-bottom: 6px; }
+.gz-foot { margin-top: 8px; padding-top: 6px; border-top: 1px solid #2B2116; text-transform: none; letter-spacing: 0; font-size: 11.5px; }
+.gz-foot .link { color: #6B4A12; }
+.gz-x { position: absolute; top: 6px; right: 6px; }
+.end-gazette { justify-self: center; font-family: "Cinzel", serif; letter-spacing: .04em; }
 /* ---------- Estampe (Fired up, light, Premium; ex Salle blanche): an ink-drawn megacity in the rain (3.23) ----------
    Paper, black ink and one red. The city is drawn on the #fx canvas (game.js): a setting sun, neon columns that
    light up as you finish tasks, screens with the day's numbers, drones, searchlights, a monorail at the end of a
@@ -1253,6 +1275,31 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 .lp-tokyo { --lp-bg: #F7F5EF; --lp-a: #E3001B; --lp-t: #111111; --lp-l: #E4E1D8; --lp-b: #111111; border-radius: 0; box-shadow: 3px 3px 0 #111111; }
 .lp-cartouche { --lp-bg: #d6dfb0; --lp-a: #2c5a2c; --lp-t: #1c331c; --lp-l: #95a764; --lp-b: #7a5a1e; border-radius: 0; }
 .light-acts { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+/* Shop → Worlds (economy.js): real pictures of each world (world-*.jpg), the drawn mini-card underneath as a fallback */
+.world-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.world-card { display: grid; gap: 4px; align-content: start; padding: 0 0 10px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--panel); overflow: hidden; }
+.world-card > b, .world-card > small, .world-card > button:not(.world-pic) { margin: 0 10px; }
+.world-card > b { font-size: 15px; } .world-card > small { color: var(--mist); font-size: 11.5px; line-height: 1.35; }
+.world-card > button:not(.world-pic) { margin-top: 4px; }
+.world-pic { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 5; padding: 0; border: 0; border-radius: 0; background: var(--panel-2); overflow: hidden; }
+.world-pic img, .world-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.world-lock, .world-new { position: absolute; top: 8px; padding: 3px 8px; border-radius: 99px; font-size: 10.5px; letter-spacing: .06em; }
+.world-lock { right: 8px; color: #F6EEDA; background: rgba(30, 22, 14, .78); }
+.world-new { left: 8px; bottom: 8px; top: auto; color: #F6EEDA; background: #7E1F1F; }
+.shop-sub { margin: 14px 0 2px; font-size: 14px; }
+.world-free { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.world-free span { display: grid; gap: 4px; justify-items: center; text-align: center; }
+.world-free img { width: 100%; aspect-ratio: 1; border-radius: 50%; object-fit: cover; border: 1px solid var(--line-2); }
+.world-free small { font-size: 11px; color: var(--mist); }
+.world-sheet { width: min(100%, 460px); }
+.world-hero { position: relative; display: grid; place-items: center; height: min(36vh, 320px); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line-2); background: var(--panel-2); }
+.world-moments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.world-moments figure { margin: 0; display: grid; gap: 4px; text-align: center; }
+.world-moments img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 10px; border: 1px solid var(--line-2); }
+.world-moments figcaption { font-size: 11px; color: var(--mist); line-height: 1.3; }
+.world-feats { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; }
+.world-cta { display: grid; gap: 8px; }
+.world-cta button { min-height: 46px; }
 
 /* Day / night button at the end of the mood line: small and dim until you look at it */
 .mood-foot { display: flex; align-items: center; gap: 8px; }
