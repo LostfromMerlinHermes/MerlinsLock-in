@@ -625,7 +625,7 @@
         toast(t(early ? 'session_xp' : 'session_xp_full', { m: fmtMins(elapsed), xp }) + (bonus && bonus.xp > 0 ? ' · ✦ ' + bonus.label : ''));
         emit('session', session);
       } else toast(t('session_ended'));
-      if (S.chime && !early) emit('chime');
+      if (S.chime && !early && !(elapsed > 0 && ML.worldEndSound && ML.worldEndSound())) emit('chime'); // the world's own end sound replaces it
       setMode('break', longBreak ? S.longBreak : null);
       if (longBreak) toast(t('long_break', { m: S.longBreak }));
       if (S.parked.length) toast(tn('parked_waiting', S.parked.length));
@@ -1004,7 +1004,7 @@
 
   /* ---------- Render + day change ---------- */
   function renderAll() {
-    renderSeq(); renderMood(); renderTasks(); renderParked(); renderLog(); renderPresets(); renderRating(); renderTimer();
+    renderSeq(); renderMood(); ML.keepInputs($('tasks'), renderTasks); renderParked(); renderLog(); renderPresets(); renderRating(); renderTimer();
     if (S.tab === 'grim') renderGrimoire();
     emit('render');
   }

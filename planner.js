@@ -329,8 +329,10 @@
       emit('chime');
       ML.notify('MerlinsLockIN', t('block_now', { title: blockTitle(b) }));
     });
-    if (S.tab === 'day') render();
+    if (S.tab === 'day') bgRender();
   }
+  // Background re-renders (minute ticks, syncs) keep the new-block form and the journal as the user left them
+  const bgRender = () => ML.keepInputs($('planner'), render);
   on('session', s => {
     const b = S.activeBlock && S.blocks.find(x => x.id === S.activeBlock);
     if (b) { b.actual = (b.actual || 0) + s.mins; if (s.full) b.done = true; S.activeBlock = null; emit('block:done', b); }
@@ -339,7 +341,7 @@
   on('minute', checkBlocks);
   on('started', checkBlocks);
   on('newday', () => { S.planner.date = null; const cutoff = addDays(today(), -90); S.blocks = S.blocks.filter(b => b.date >= cutoff); S.blockNotified = {}; });
-  on('render', () => { if (S.tab === 'day') render(); });
+  on('render', () => { if (S.tab === 'day') bgRender(); });
   on('started', () => { if (!(S.planner.startH >= 4)) { S.planner.startH = 7; save(); } }); // 3.11 allowed 0: auto-plan would start at midnight
   on('tab', name => { if (name === 'day') { render.scrolled = false; render(); } });
   ML.plannerGoto = k => { S.planner.date = k === today() ? null : k; render.scrolled = false; ML.setTab('day'); };

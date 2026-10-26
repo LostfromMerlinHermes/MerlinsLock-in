@@ -304,7 +304,8 @@
       ML.tryWorld(m, 60000);
       toast(t('w_trying', { w: t('th_light_' + b.dataset.wtry) }), { ms: 60000, key: 'trial', action: { label: t('w_stop'), fn: () => ML.endTrial() } });
     } else if (b.dataset.wuse) {
-      if (S.dayNight !== 'light' && S.dayNight !== 'autolight' && ML.setDayNight) ML.setDayNight('autolight');
+      const m = (LIGHTS.find(x => x[1] === b.dataset.wuse) || [])[0]; // this world for its own energy only
+      if (m && ML.setWorld) ML.setWorld(m, { w: 'light', clock: (ML.worldPick(m) || {}).clock });
       ML.closeOverlay('world'); renderShop();
     } else if (b.dataset.wunlock) toast(t('w_soon'));
   });

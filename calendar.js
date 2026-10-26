@@ -327,7 +327,7 @@
     } catch (e) { toast(t('backup_file_fail')); }
   }
 
-  on('render', () => { if (S.tab === 'cal') render(); });
+  on('render', () => { if (S.tab === 'cal') ML.keepInputs($('calendar'), render); }); // a sync must not wipe the event being typed
   on('tab', name => { if (name === 'cal') render(); });
   on('minute', checkReminders);
   on('started', () => { checkReminders(); scheduleReminders(); });

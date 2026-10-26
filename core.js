@@ -25,11 +25,52 @@ window.ML = (() => {
   const fmtMins = m => { m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + 'h' + (m % 60 ? pad2(m % 60) : '') : m + 'min'; };
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const svgIcon = inner => `<svg viewBox="0 0 24 24" aria-hidden="true">${inner}</svg>`;
-  // True when a key event belongs to text entry, so single-letter shortcuts must ignore it
+  // True when a key event belongs to text entry, so single-letter shortcuts must ignore it.
+  // Also true for 1.5 s after typing if the field lost focus (a re-render took it away): those keys were meant for the text.
+  const FIELD = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
+  let typedAt = 0;
+  document.addEventListener('input', e => { if (e.target && e.target.closest && e.target.closest(FIELD)) typedAt = Date.now(); }, true);
   const isTyping = e => {
     if (e.isComposing || e.keyCode === 229) return true;
     const el = e.target, act = document.activeElement;
-    return [el, act].some(n => n && n.nodeType === 1 && (n.isContentEditable || !!n.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')));
+    if ([el, act].some(n => n && n.nodeType === 1 && (n.isContentEditable || !!n.closest(FIELD)))) return true;
+    return Date.now() - typedAt < 1500 && (!act || act === document.body);
+  };
+  // Re-rendering a container with innerHTML wipes what the user is typing in it. keepInputs runs the re-render,
+  // then puts back form fields the user changed (only those: values that come from the state are left alone),
+  // the focus and the caret. Use it for background re-renders (the 'render' event, minute ticks), not after an action.
+  const keepInputs = (root, fn) => {
+    if (!root) return fn();
+    const forms = r => [...r.querySelectorAll('form')];
+    const keyOf = (el, r) => {
+      const name = el.name || el.id; if (!name) return null;
+      const f = el.form; if (!f || !r.contains(f)) return el.id ? '#' + el.id : null;
+      const owner = f.closest('[data-id]');
+      const fk = f.id || f.className + ':' + (f.dataset.id || (owner && owner.dataset.id) || forms(r).indexOf(f));
+      return fk + '|' + name + (el.type === 'radio' ? '=' + el.value : '');
+    };
+    const dirty = el => el.type === 'checkbox' || el.type === 'radio' ? el.checked !== el.defaultChecked
+      : el.tagName === 'SELECT' ? [...el.options].some(o => o.selected !== o.defaultSelected)
+      : el.value !== el.defaultValue;
+    const saved = [];
+    forms(root).forEach(f => [...f.elements].forEach(el => {
+      if (!el.name || /^(submit|button|file|hidden)$/.test(el.type) || !dirty(el)) return;
+      const k = keyOf(el, root); if (k) saved.push([k, el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value]);
+    }));
+    const act = document.activeElement, hasFocus = act && act !== document.body && root.contains(act) && act.matches(FIELD);
+    const focus = hasFocus && { k: keyOf(act, root), s: act.selectionStart, e: act.selectionEnd, top: act.scrollTop };
+    const out = fn();
+    const find = k => [...root.querySelectorAll('input, textarea, select')].find(el => keyOf(el, root) === k);
+    saved.forEach(([k, v]) => { const el = find(k); if (!el) return; if (typeof v === 'boolean') el.checked = v; else el.value = v; });
+    if (focus && focus.k && document.activeElement !== act) {
+      const el = find(focus.k);
+      if (el) {
+        el.focus({ preventScroll: true });
+        try { if (focus.s != null) el.setSelectionRange(focus.s, focus.e); } catch (err) {} // not every input type has a caret
+        el.scrollTop = focus.top;
+      }
+    }
+    return out;
   };
 
   /* ---------- Translations ---------- */
@@ -195,7 +236,7 @@ window.ML = (() => {
   const setReducedMotion = on => { try { if (on) localStorage.setItem('mli-motion', 'reduce'); else localStorage.removeItem('mli-motion'); } catch (e) {} onMotion(); };
 
   return {
-    $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, reducedMotion, setReducedMotion, motionPref, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon, isTyping,
+    $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, reducedMotion, setReducedMotion, motionPref, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon, isTyping, keepInputs,
     addStrings, t, tn, locale, applyI18n,
     defaults: fn => defaultFns.push(fn), load, loadState: () => loadState, replaceState, save, saveNow, flushSave, savePending: () => !!saveT,
     on, emit, toast, armedButton, bgSend,

@@ -250,19 +250,52 @@ h1 span { color: var(--accent); text-shadow: 0 0 18px var(--glow); }
 
 /* ---------- Sound deck ---------- */
 .deck { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 10px; }
-.deck-head { display: flex; gap: 10px; align-items: center; }
-.deck-play { width: 40px; height: 40px; padding: 0; display: grid; place-items: center; border-radius: 50%; flex: none; }
+.deck-play {width: 40px; height: 40px; padding: 0; display: grid; place-items: center; border-radius: 50%; flex: none; }
 .deck-play svg { width: 16px; height: 16px; fill: currentColor; }
 .deck-play.on { background: var(--accent-2); color: var(--ink); border-color: var(--accent-2); box-shadow: 0 0 16px -4px var(--accent-2); }
-.deck-now { display: grid; min-width: 0; flex: 1; }
-.deck-now b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.deck-now small { font-size: 11.5px; color: var(--mist); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .eq { display: inline-flex; gap: 2px; align-items: flex-end; height: 9px; margin-left: 6px; }
 .eq b { width: 2px; background: var(--accent-2); animation: eq 1s ease-in-out infinite; }
 .eq b:nth-child(2) { animation-delay: .2s; } .eq b:nth-child(3) { animation-delay: .4s; }
 @keyframes eq { 0%, 100% { height: 3px; } 50% { height: 9px; } }
-.deck-body { display: grid; gap: 12px; }
 .d-row { display: grid; gap: 6px; }
+/* Mini player (3.30): the world's tile, what plays, play/stop, open the Sound screen */
+.snd-mini { display: grid; grid-template-columns: 44px minmax(0, 1fr) 40px 40px; gap: 10px; align-items: center; }
+.snd-mini .snd-art, .snd-world .snd-art { position: relative; display: block; width: 44px; height: 44px; padding: 0; overflow: hidden; border-radius: min(var(--radius), 10px); border: 1px solid var(--line-2); background: var(--panel-2); }
+.snd-art > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.snd-now { display: grid; min-width: 0; padding: 0; text-align: left; border: 0; background: none; box-shadow: none; color: var(--text); font-weight: 400; }
+.snd-now b { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snd-now small { font-size: 11.5px; color: var(--mist); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snd-up svg, .snd-sheet .sheet-head svg, .snd-mix .icon-btn svg, .d-mine .icon-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* The Sound screen */
+.snd-sheet { display: grid; gap: 18px; }
+.snd-world { display: grid; grid-template-columns: 64px minmax(0, 1fr) 48px; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--panel-2); }
+.snd-world.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.snd-world .snd-art { width: 64px; height: 64px; }
+.snd-wt { display: grid; min-width: 0; }
+.snd-wt b { font-family: var(--f-display); font-size: 16px; }
+.snd-wt small { font-size: 12px; color: var(--mist); }
+.snd-world .deck-play { width: 48px; height: 48px; background: var(--accent); color: var(--ink); border-color: var(--accent); }
+.snd-sec { display: grid; gap: 8px; }
+.snd-lab { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.snd-mixes { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+.snd-mix { display: flex; min-width: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.snd-mix > button:first-child { flex: 1; min-width: 0; display: grid; padding: 8px 10px; text-align: left; border: 0; background: none; box-shadow: none; color: var(--text); font-weight: 400; }
+.snd-mix b { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snd-mix small { font-size: 11px; color: var(--mist); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snd-mix .icon-btn { flex: none; align-self: stretch; padding: 0 8px; border: 0; border-left: 1px solid var(--line); background: none; color: var(--mist); }
+.snd-fams { display: grid; grid-template-columns: repeat(auto-fill, minmax(66px, 1fr)); gap: 6px; }
+.snd-fam { display: grid; justify-items: center; gap: 4px; padding: 9px 4px 7px; font-size: 11.5px; font-weight: 500; color: var(--mist); background: var(--panel); border-color: var(--line); }
+.snd-fam svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.snd-fam.has { color: var(--accent); }
+.snd-fam[aria-pressed=true] { color: var(--text); border-color: var(--accent); background: var(--soft); box-shadow: inset 0 -2px 0 var(--accent); }
+.snd-genres { display: grid; gap: 5px; }
+.snd-genre { display: grid; justify-items: start; gap: 1px; padding: 9px 12px; text-align: left; font-weight: 400; color: var(--text); background: var(--panel); border-color: var(--line); }
+.snd-genre b { font-size: 13.5px; font-weight: 600; }
+.snd-genre small { font-size: 11.5px; color: var(--mist); }
+.snd-genre[aria-pressed=true] { border-color: var(--accent); background: var(--soft); box-shadow: inset 3px 0 0 var(--accent); }
+.snd-adv { border-top: 1px solid var(--line); padding-top: 10px; }
+.snd-adv summary { cursor: pointer; font-size: 13px; color: var(--mist); }
+.snd-adv-in { display: grid; gap: 12px; margin-top: 12px; }
 .chip-btn { padding: 5px 9px; font-size: 12px; font-weight: 500; color: var(--mist); background: var(--panel); border-color: var(--line); }
 .chip-btn[aria-pressed=true] { color: var(--text); border-color: var(--accent); background: var(--soft); }
 .nat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
@@ -279,7 +312,6 @@ h1 span { color: var(--accent); text-shadow: 0 0 18px var(--glow); }
 .preset { display: inline-flex; align-items: center; }
 .preset-form { display: flex; gap: 6px; }
 .preset-form input { flex: 1; padding: 5px 9px; font-size: 12px; }
-.d-suggest { margin: 0; font-size: 12px; color: var(--mist); }
 .opts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--mist); }
 .opt { display: flex; gap: 6px; align-items: center; cursor: pointer; font-size: 12.5px; }
 
@@ -1183,7 +1215,7 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-light="1"][data-theme="netrunner"] .buff b { color: var(--accent); }
 :root[data-light="1"][data-theme="netrunner"] .pl-now { background: var(--hot); box-shadow: none; } :root[data-light="1"][data-theme="netrunner"] .pl-now::before { background: var(--hot); }
 :root[data-light="1"][data-theme="netrunner"] input[type=text], :root[data-light="1"][data-theme="netrunner"] input[type=number], :root[data-light="1"][data-theme="netrunner"] select { border-radius: 0; border: 2px solid var(--text); }
-:root[data-light="1"][data-theme="netrunner"] .top-actions .icon-only, :root[data-light="1"][data-theme="netrunner"] .dn-toggle { background: var(--panel); border: 2px solid var(--text); color: var(--text); }
+:root[data-light="1"][data-theme="netrunner"] .top-actions .icon-only, :root[data-light="1"][data-theme="netrunner"] .world-btn { background: var(--panel); border: 2px solid var(--text); color: var(--text); }
 /* the status strip (juice.js): the day's numbers on an ink band at the top */
 .netstrip { display: none; }
 :root[data-light="1"][data-theme="netrunner"] .netstrip { display: flex; gap: 20px; align-items: center; padding: 7px 14px; background: var(--text); color: #fff; font: 500 11px/1 var(--f-mono); letter-spacing: .08em;
@@ -1301,15 +1333,41 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 .world-cta { display: grid; gap: 8px; }
 .world-cta button { min-height: 46px; }
 
-/* Day / night button at the end of the mood line: small and dim until you look at it */
 .mood-foot { display: flex; align-items: center; gap: 8px; }
 .mood-foot .mood-line { flex: 1; min-width: 0; }
-.dn-toggle { position: relative; flex: none; width: 26px; height: 26px; padding: 0; display: grid; place-items: center; border: 1px solid transparent; border-radius: 50%; background: transparent; color: var(--dim); opacity: .8; transition: color .2s, border-color .2s, opacity .2s; }
-.dn-toggle:hover, .dn-toggle:focus-visible { color: var(--accent); border-color: var(--line-2); opacity: 1; }
-.dn-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.dn-toggle[data-mode="day"], .dn-toggle[data-mode="night"] { color: var(--accent); }
-.dn-toggle[data-light="1"] svg { fill: currentColor; fill-opacity: .25; }
-.dn-toggle i { position: absolute; right: -1px; bottom: -1px; font: 700 8px/1 var(--f-mono); font-style: normal; color: var(--mist); background: var(--void); border-radius: 3px; padding: 1px 2px; }
+
+/* World choice (3.29, worlds.js): header button, the sheet, and the tiles shared with the energy picker */
+.world-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 3px 8px 3px 4px; font-size: 13px; color: var(--text); border: 1px solid var(--line); }
+.world-btn:hover, .world-btn:focus-visible { border-color: var(--accent); }
+.world-sw { flex: none; width: 26px; height: 26px; border-radius: min(var(--radius), 7px); overflow: hidden; border: 1px solid var(--line-2); }
+.world-sw svg { display: block; width: 100%; height: 100%; }
+.world-nm { max-width: 11ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.world-car { width: 14px; height: 14px; fill: none; stroke: var(--mist); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.wtiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.wtile { display: grid; gap: 5px; padding: 0; min-height: 0; border: 0; background: none; color: var(--mist); font-size: 12.5px; text-align: center; box-shadow: none; }
+.wtile-art { position: relative; display: block; aspect-ratio: 1; border-radius: min(var(--radius), 12px); overflow: hidden; border: 1px solid var(--line-2); }
+.wtile .wtile-art > svg, .world-btn .world-sw > svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; stroke: none; } /* beat the generic button svg size */
+.world-sw { position: relative; }
+.wtile[aria-pressed="true"] { color: var(--text); font-weight: 600; }
+.wtile[aria-pressed="true"] .wtile-art { outline: 3px solid var(--accent); outline-offset: 2px; }
+.wtile.locked .wtile-art svg { opacity: .7; }
+.wtile-lock { position: absolute; top: 5px; right: 5px; font: 600 9px/1 var(--f-mono); font-style: normal; letter-spacing: .04em; padding: 3px 6px; border-radius: 99px; background: rgba(0, 0, 0, .66); color: #fff; }
+.wtile-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wsheet { display: grid; gap: 14px; }
+.wmodes { display: grid; gap: 6px; }
+.wmodes button { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 12px; text-align: left; font-size: 13.5px; color: var(--text); border: 1px solid var(--line); background: var(--panel); }
+.wmodes button i, .ep-clock i { flex: none; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--mist); }
+.wmodes button[aria-checked="true"] { border-color: var(--accent); }
+.wmodes button[aria-checked="true"] i { border-color: var(--accent); background: radial-gradient(var(--accent) 40%, transparent 46%); }
+.ep-worlds { display: grid; gap: 8px; }
+.ep-worlds .wtile-art { aspect-ratio: 16 / 10; }
+.ep-clock { display: flex; align-items: center; gap: 9px; min-height: 36px; padding: 4px 2px; border: 0; background: none; box-shadow: none; color: var(--mist); font-size: 12.5px; text-align: left; }
+.ep-clock i { width: 30px; height: 17px; border-radius: 99px; position: relative; border-width: 1px; border-color: var(--line-2); background: var(--panel-2); }
+.ep-clock i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--mist); transition: transform .2s; }
+.ep-clock[aria-checked="true"] i { background: color-mix(in srgb, var(--accent) 35%, var(--panel-2)); border-color: var(--accent); }
+.ep-clock[aria-checked="true"] i::after { transform: translateX(13px); background: var(--accent); }
+html.mnav-on .world-nm, html.mnav-on .world-car { display: none; }
+html.mnav-on .world-btn { justify-content: center; }
 
 /* =================== Theme transitions (played when the mood changes) =================== */
 .theme-fx[data-fx="observatory"] { background: radial-gradient(circle at 92% 0%, rgba(255, 210, 140, .55), transparent 60%); }
@@ -1458,7 +1516,10 @@ html.ep-on .mnav, html.ep-on .mnav-run { visibility: hidden; }
 /* Energy pill: on phones and the side panel it replaces the four mood buttons and the buff chip; "Change" opens the picker */
 .ep-pill { display: none; }
 html.mnav-on .moodbar { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
-html.mnav-on .mood-chips, html.mnav-on .mood-line, html.mnav-on #buff-chip { display: none; }
+html.mnav-on .mood-chips, html.mnav-on .mood-foot, html.mnav-on #buff-chip { display: none; }
+/* the World button (worlds.js) sits beside the pill here: a square with the world's tile */
+html.mnav-on .moodbar .world-btn { min-height: 58px; min-width: 58px; padding: 8px; background: var(--panel-2); }
+html.mnav-on .moodbar .world-sw { width: 40px; height: 40px; }
 html.mnav-on .ep-pill { display: flex; align-items: center; gap: 12px; min-width: 0; min-height: 58px; padding: 8px 12px; text-align: left; font-weight: 400; color: var(--text); background: var(--panel-2); border-color: var(--line); }
 .ep-pill .ep-ico { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .ep-pill .ep-ico svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -2031,12 +2092,6 @@ html.mnav-on .shop-top { padding: 10px 12px; } html.mnav-on .shop-gold { font-si
 :root[data-theme="netrunner"] .nb-body { font-family: var(--f-mono); font-size: 14px; }
 :root[data-theme="sanctuary"] .nb-body, :root[data-theme="fog"] .nb-body { font-size: 16px; }
 
-/* Mixer families: a row of families, the open one shows its genres / ambiences underneath */
-.fam-row .fam-chip { font-weight: 600; }
-.fam-row .fam-chip.has { border-color: var(--accent); color: var(--accent); }
-.fam-row .fam-chip.open { background: var(--soft); box-shadow: inset 0 -2px 0 var(--accent); }
-.fam-items { margin-top: 6px; padding: 6px; border-left: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 5%, transparent); border-radius: 0 var(--radius) var(--radius) 0; }
-.fam-row + .nat-grid { margin-top: 6px; }
 
 /* Continuous frequency row in the mixer */
 .d-tone .tone-hz { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--mist); }
@@ -2264,9 +2319,8 @@ html.mnav-on .small, html.mnav-on .chip-btn, html.mnav-on .tray-chip, html.mnav-
 html.mnav-on .seg-toggle button { min-height: 40px; }
 html.mnav-on select, html.mnav-on input[type=text], html.mnav-on input[type=number], html.mnav-on input[type=date], html.mnav-on input[type=time], html.mnav-on input[type=email], html.mnav-on input[type=password] { min-height: 42px; }
 html.mnav-on .check { width: 26px; height: 26px; position: relative; border-radius: 6px; }
-html.mnav-on .check::before, html.mnav-on .dn-toggle::after, html.mnav-on .seq::after { content: ""; position: absolute; inset: -9px; } /* hit area */
+html.mnav-on .check::before, html.mnav-on .seq::after { content: ""; position: absolute; inset: -9px; } /* hit area */
 html.mnav-on .icon-btn { min-width: 40px; min-height: 40px; display: inline-grid; place-items: center; }
-html.mnav-on .dn-toggle { width: 36px; height: 36px; }
 html.mnav-on .seq { position: relative; padding: 4px 0; }
 html.mnav-on #fam-name, html.mnav-on .tool { min-height: 40px; min-width: 40px; }
 html.mnav-on .toast { bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }

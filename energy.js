@@ -14,6 +14,7 @@
       ob_intro: 'Le minuteur, l’ordre des tâches et le décor suivent ton énergie.', ob_task_h: 'Tu travailles sur quoi ?', ob_task_p: 'Une tâche suffit pour commencer.',
       ob_sugg: 'Réviser|Projet perso|Lire 20 pages|Ranger mes mails', ob_next: 'Suivant', ob_skip: 'Passer',
       ob_go_h: 'Première session', ob_go_p: 'À la fin : de l’XP et un étage de plus à ta tour.', ob_later: 'Plus tard', ob_step: 'Étape {n} sur 3',
+      ep_world: 'Monde', ep_clock: 'Suivre l’heure ({night} après 21 h)',
     },
     en: {
       ep_title: 'Energy today', ep_yday: 'Yesterday', ep_now: 'Current', ep_choose: 'Choose', ep_close: 'Close', ep_prev: 'Previous energy', ep_next: 'Next energy',
@@ -22,6 +23,7 @@
       ob_intro: 'The timer, task order and look follow your energy.', ob_task_h: 'What are you working on?', ob_task_p: 'One task is enough to start.',
       ob_sugg: 'Revise|Side project|Read 20 pages|Clear my inbox', ob_next: 'Next', ob_skip: 'Skip',
       ob_go_h: 'First session', ob_go_p: 'At the end: XP and a new tower floor.', ob_later: 'Later', ob_step: 'Step {n} of 3',
+      ep_world: 'World', ep_clock: 'Follow the hour ({night} after 9 pm)',
     },
   });
   ML.defaults(() => ({ onboarded: false }));
@@ -81,6 +83,9 @@
         <div class="ep-chips"><span>${esc(t('ep_mins', { m: focusOf(k) }))}</span><span>${esc(t('ep_sort_' + k))}</span><span>${esc(t('ep_buff', { b: t('buff_' + k) }))}</span></div>
         <div class="ep-seg" role="radiogroup" aria-label="${esc(t('ep_label'))}">${KEYS().map((m, i) =>
           `<button type="button" role="radio" aria-checked="${m === k}" data-ep-mood="${m}" style="--mood-c:${ML.MOODS[m].color}">${svgIcon(ML.MOODS[m].icon)}<span>${esc(t('mood_' + m))}</span><kbd>${i + 1}</kbd></button>`).join('')}</div>
+        ${ML.worldTiles && !ML.worldsFixed() ? `<div class="ep-worlds"><span class="label">${esc(t('ep_world'))}</span>
+          <div class="wtiles">${ML.worldTiles(k, st.wp.w, 'data-ep-world')}</div>
+          <button type="button" class="ep-clock" role="switch" aria-checked="${st.wp.clock}" data-ep="clock"><i></i>${esc(t('ep_clock', ML.worldClockText(k, st.wp.w)))}</button></div>` : ''}
         <button type="button" class="primary ep-go" data-ep="choose">${esc(t('ep_choose'))}</button>
       </div></div>`;
   }
@@ -111,6 +116,7 @@
     if (st) return;
     // fresh: today's energy isn't set yet, so the current one is yesterday's
     st = { pick: S.mood in ML.MOODS ? S.mood : 'steady', cancellable: !!opts.cancellable, onboard: !!opts.onboard, fresh: S.moodDay !== today(), step: 1, taskId: null, title: '' };
+    st.wp = pickOf(st.pick);
     document.documentElement.classList.add('ep-on');
     el.hidden = false; el.classList.remove('out');
     render();
@@ -126,10 +132,19 @@
   }
   ML.energyPicker = { open, close };
 
+  // The saved world of an energy (a light world without Premium falls back to the day one)
+  const pickOf = k => { const p = ML.worldPick ? ML.worldPick(k) : { w: 'day', clock: true }; if (p.w === 'light' && ML.worldsFor(k)[2].locked) p.w = 'day'; return p; };
   function pick(k) {
     if (!st || !(k in ML.MOODS) || k === st.pick) return;
-    st.pick = k;
+    st.pick = k; st.wp = pickOf(k);
     if (ML.previewMood) ML.previewMood(k === S.mood ? null : k);
+    renderPick();
+  }
+  // Browsing the worlds of the energy shown: the real world switches behind, saved only on Choose
+  function pickWorld(w) {
+    if (w === 'light' && ML.worldsFor(st.pick)[2].locked) { ML.toast(t('wb_locked', { w: ML.worldsFor(st.pick)[2].name }), { key: 'daynight' }); return; }
+    if (w) st.wp.w = w; else st.wp.clock = !st.wp.clock;
+    ML.previewMood(st.pick === S.mood ? null : st.pick, Object.assign({}, st.wp));
     renderPick();
   }
   const step = d => { const ks = KEYS(); pick(ks[(ks.indexOf(st.pick) + d + ks.length) % ks.length]); };
@@ -137,6 +152,7 @@
   function choose() {
     const k = st.pick;
     ML.previewMood && ML.previewMood(null);
+    if (ML.setWorld && !ML.worldsFixed()) ML.setWorld(k, st.wp, true);
     if (k !== S.mood) ML.setMood(k); else { S.moodDay = today(); ML.renderAll(); }
     if (S.juice) S.juice.titleDay = today(); // the daily title screen would only repeat this
     save(); ML.emit('gesture');
@@ -162,9 +178,10 @@
   el.addEventListener('click', e => {
     if (!st) return;
     const m = e.target.closest('[data-ep-mood]'); if (m) return pick(m.dataset.epMood);
+    const w = e.target.closest('[data-ep-world]'); if (w) return pickWorld(w.dataset.epWorld);
     const s = e.target.closest('[data-ep-sugg]'); if (s) { const i = $('ep-task'); if (i) { i.value = s.dataset.epSugg; i.focus(); } return; }
     const a = e.target.closest('[data-ep]'); if (!a) return;
-    ({ close, prev: () => step(-1), next: () => step(1), choose, 'task-next': saveTask, 'task-skip': () => { $('ep-task').value = ''; saveTask(); },
+    ({ close, prev: () => step(-1), next: () => step(1), choose, clock: () => pickWorld(null), 'task-next': saveTask, 'task-skip': () => { $('ep-task').value = ''; saveTask(); },
       go: () => finish(true), later: () => finish(false) })[a.dataset.ep]?.();
   });
   el.addEventListener('submit', e => { e.preventDefault(); if (st && st.step === 2) saveTask(); });

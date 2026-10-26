@@ -270,14 +270,12 @@
       buff_ready: 'prêt', buff_combo: 'Combo ×{n}', buff_streak: '+{n} %', buff_nopause: 'sans pause +25 %', buff_short: 'courtes +20 %',
       park_bonus: 'Ancrage : +5 XP',
       th_auto: 'Auto (selon l’humeur)', th_sorcerer: 'Cyber sorcier', th_fog: 'Brouillard gris (Tarot)', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuaire', th_arcade: 'Arcade 8-bit',
-      th_hint: 'Auto : chaque humeur a un univers de jour et un de nuit. Épuisé → Sanctuaire / Abysses, Stable → Observatoire / Cyber sorcier, À fond → Netrunner / Ville néon, Dispersé → Arcade 8-bit / Brouillard gris.',
+      th_hint: 'Auto : chaque énergie a trois mondes, à choisir avec le bouton Monde en haut ou au choix de l’énergie.',
       th_observatory: 'Observatoire', th_abyss: 'Abysses', th_neoncity: 'Ville néon',
-      daynight: 'Jour / nuit', dn_auto: 'Auto (nuit de 21h à 6h)', dn_day: 'Toujours le monde de jour', dn_night: 'Toujours le monde de nuit',
-      dn_title_auto: 'Jour / nuit : auto ({now}). Touche pour forcer le monde de jour.', dn_title_day: 'Monde de jour forcé. Touche pour le monde de nuit.', dn_title_night: 'Monde de nuit forcé. Touche pour la suite.',
       dn_t_auto: 'Auto', dn_t_autolight: 'Auto clair', dn_t_day: 'Monde de jour', dn_t_night: 'Monde de nuit', dn_t_light: 'Clair',
-      dn_now_day: 'jour en ce moment', dn_now_night: 'nuit en ce moment',
       dn_light: 'Toujours clair', dn_autolight: 'Auto clair (clair le jour, nuit de 21h à 6h)',
-      dn_title_light: 'Mode clair. Touche pour revenir en auto.', dn_title_autolight: 'Auto clair ({now}). Touche pour forcer le jour.',
+      wb_btn: 'Monde : {w}. Changer', wb_h: 'Monde · {mood}', wb_always: 'Toujours ce monde', wb_clock: 'Suivre l’heure : {day} le jour, {night} après 21 h',
+      wb_kept: 'Retenu pour {mood}. Les autres énergies gardent leur choix.', wb_toast: 'Monde : {w}', wb_locked: '{w} fait partie de Premium.', wb_try: 'Essayer 1 min', wb_premium: 'Premium',
       light_premium_hint: 'Premium : un troisième univers, clair, pour chaque humeur (Washi, Codex, Estampe, Cartouche).',
       th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Estampe', th_light_cartouche: 'Cartouche',
       ink_focus: 'Focus auj. {t}', ink_streak: 'Série {n} j', ink_quests: 'Quêtes {n}/{m}', ink_next: 'Prochain bloc {t}',
@@ -292,34 +290,47 @@
       buff_ready: 'ready', buff_combo: 'Combo ×{n}', buff_streak: '+{n}%', buff_nopause: 'no pause +25%', buff_short: 'short +20%',
       park_bonus: 'Anchor: +5 XP',
       th_auto: 'Auto (by mood)', th_sorcerer: 'Cyber sorcerer', th_fog: 'Gray fog (Tarot)', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuary', th_arcade: '8-bit arcade',
-      th_hint: 'Auto: every mood has a day world and a night world. Drained → Sanctuary / Abyss, Steady → Observatory / Cyber sorcerer, Fired up → Netrunner / Neon city, Scattered → 8-bit arcade / Gray fog.',
+      th_hint: 'Auto: every energy has three worlds, chosen with the World button at the top or when you pick your energy.',
       th_observatory: 'Observatory', th_abyss: 'Abyss', th_neoncity: 'Neon city',
-      daynight: 'Day / night', dn_auto: 'Auto (night from 9pm to 6am)', dn_day: 'Always the day world', dn_night: 'Always the night world',
-      dn_title_auto: 'Day / night: auto ({now}). Tap to force the day world.', dn_title_day: 'Day world forced. Tap for the night world.', dn_title_night: 'Night world forced. Tap for what’s next.',
       dn_t_auto: 'Auto', dn_t_autolight: 'Auto light', dn_t_day: 'Day world', dn_t_night: 'Night world', dn_t_light: 'Light',
-      dn_now_day: 'day right now', dn_now_night: 'night right now',
       dn_light: 'Always light', dn_autolight: 'Auto light (light by day, night from 9pm to 6am)',
-      dn_title_light: 'Light mode. Tap to go back to auto.', dn_title_autolight: 'Auto light ({now}). Tap to force day.',
+      wb_btn: 'World: {w}. Change', wb_h: 'World · {mood}', wb_always: 'Always this world', wb_clock: 'Follow the hour: {day} by day, {night} after 9 pm',
+      wb_kept: 'Saved for {mood}. Other energies keep their own.', wb_toast: 'World: {w}', wb_locked: '{w} is part of Premium.', wb_try: 'Try 1 min', wb_premium: 'Premium',
       light_premium_hint: 'Premium: a third, light world for every mood (Washi, Codex, Print, Cartridge).',
       th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Print', th_light_cartouche: 'Cartridge',
       ink_focus: 'Focus today {t}', ink_streak: 'Streak {n} d', ink_quests: 'Quests {n}/{m}', ink_next: 'Next block {t}',
     },
   });
-  ML.defaults(() => ({ dayNight: 'auto' })); // 'auto' (night 21h–6h) | 'day' | 'night'; kept per device (sync.js LOCAL_ONLY)
+  // dayNight: the old single switch for every energy ('auto' | 'day' | 'night' | 'light' | 'autolight'), per device;
+  // it is now only the fallback for an energy with no world chosen yet. worlds: { mood: { w: 'day'|'night'|'light', clock } }
+  ML.defaults(() => ({ dayNight: 'auto', worlds: {} }));
 
-  // Each mood has a day world and a night world (Auto theme only)
+  // Each energy has three worlds: a day one, a night one and a light one (Premium). Auto theme only.
   const THEME_DAY = { drained: 'sanctuary', steady: 'observatory', fired: 'netrunner', scattered: 'arcade' };
   const THEME_NIGHT = { drained: 'abyss', steady: 'sorcerer', fired: 'neoncity', scattered: 'fog' };
   const nightByClock = () => { const h = new Date().getHours(); return h >= 21 || h < 6; };
-  const isNight = () => (S.dayNight === 'night' ? true : S.dayNight === 'day' || S.dayNight === 'light' ? false : nightByClock());
-  // Light skins (Premium): 'light' = always, 'autolight' = light by day and the night worlds at night
+  const LEGACY = { auto: { w: 'day', clock: true }, day: { w: 'day', clock: false }, night: { w: 'night', clock: false }, light: { w: 'light', clock: false }, autolight: { w: 'light', clock: true } };
   const canLight = () => !!(ML.isPremium && ML.isPremium());
   // "Try 1 minute" in the Shop: a light world shown for a while without Premium (trialUntil = end time)
   let trialUntil = 0;
   const trying = () => Date.now() < trialUntil;
-  const isLight = () => S.section !== 'sport' && (trying() || (canLight() && S.theme === 'auto' && (S.dayNight === 'light' || (S.dayNight === 'autolight' && !nightByClock()))));
+  // previewMood / previewPick: the energy picker shows another energy or world while you browse, without choosing it
+  let previewMood = null, previewPick = null;
+  const storedPick = m => (S.worlds && S.worlds[m]) || LEGACY[S.dayNight] || LEGACY.auto;
+  const pickFor = m => (previewPick && m === (previewMood || S.mood) ? previewPick : storedPick(m));
+  // "Follow the hour": the night world from 21:00 to 6:00, the chosen one (or the day one) otherwise
+  const nightOf = p => (p.clock ? nightByClock() : p.w === 'night');
   const LIGHT_NAME = { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' };
+  // The world a pick leads to: { th: data-theme, light }; light needs Premium (or the Shop trial of that energy)
+  function worldOf(m, p) {
+    const night = nightOf(p), th = S.theme !== 'auto' ? S.theme : (night ? THEME_NIGHT : THEME_DAY)[m] || 'sorcerer';
+    const trial = trying() && m === (previewMood || S.mood);
+    const light = S.section !== 'sport' && !!LIGHT_NAME[th] && (trial || (S.theme === 'auto' && canLight() && p.w === 'light' && !night));
+    return { th, light };
+  }
+  const isLight = () => worldOf(previewMood || S.mood, pickFor(previewMood || S.mood)).light;
   ML.isLight = isLight;
+  const nameOf = w => (w.light ? t('th_light_' + LIGHT_NAME[w.th]) : t('th_' + w.th)).replace(/\s*\(.*\)$/, '');
   const todaysSessions = () => { const td = today(); return S.sessions.filter(s => dayKey(new Date(s.at)) === td); };
   function comboNow() { let n = 0; const ss = todaysSessions(); for (let i = ss.length - 1; i >= 0 && ss[i].full; i--) n++; return n; }
 
@@ -349,26 +360,37 @@
     el.title = t('buff_' + m + '_d');
   }
 
-  // previewMood: the energy picker (energy.js) shows another mood's world while you browse, without choosing it
-  let previewMood = null;
-  const themeOf = m => (S.theme !== 'auto' ? S.theme : (isNight() ? THEME_NIGHT : THEME_DAY)[m] || 'sorcerer');
+  const themeOf = m => worldOf(m, pickFor(m)).th;
   function effectiveTheme() {
     if (S.section === 'sport') return 'arena'; // the Sport section has its own look
     return themeOf(previewMood || S.mood);
   }
-  ML.previewMood = m => { previewMood = m || null; applyTheme(); };
+  // m: the energy to show (null = the current one); pick: a world to show for it instead of its saved one
+  ML.previewMood = (m, pick) => { previewMood = m || null; previewPick = pick || null; applyTheme(); };
+  // The three worlds of an energy, for the pickers (energy.js, worlds.js): key = tile id, w = what setWorld stores
+  ML.worldsFor = m => [
+    { w: 'day', th: THEME_DAY[m] }, { w: 'night', th: THEME_NIGHT[m] }, { w: 'light', th: THEME_DAY[m], light: true, locked: !canLight() },
+  ].map(x => Object.assign(x, { key: x.light ? LIGHT_NAME[x.th] : x.th, name: nameOf({ th: x.th, light: !!x.light }) }));
+  ML.worldPick = m => Object.assign({}, storedPick(m));
+  ML.worldNow = m => worldOf(m, pickFor(m)); // { th, light } shown for that energy right now
+  ML.worldNameOf = nameOf;
+  ML.worldsFixed = () => S.theme !== 'auto'; // a fixed theme in Settings: no world choice
+  ML.setWorld = (m, p, quiet) => {
+    if (p.w === 'light' && !canLight()) return false;
+    S.worlds = Object.assign({}, S.worlds, { [m]: { w: p.w, clock: !!p.clock } }); save();
+    if (m === S.mood) { applyTheme(); if (!quiet) toast(t('wb_toast', { w: nameOf(worldOf(m, S.worlds[m])) }), { ms: 2200, key: 'daynight' }); }
+    ML.emit('world');
+    return true;
+  };
   let trialT = null;
   ML.tryWorld = (mood, ms = 60000) => {
-    clearTimeout(trialT); trialUntil = Date.now() + ms; previewMood = mood === S.mood ? null : mood; applyTheme();
+    clearTimeout(trialT); trialUntil = Date.now() + ms; previewMood = mood === S.mood ? null : mood; previewPick = { w: 'light', clock: false }; applyTheme();
     trialT = setTimeout(ML.endTrial, ms);
   };
-  ML.endTrial = () => { clearTimeout(trialT); if (!trialUntil) return; trialUntil = 0; previewMood = null; applyTheme(); ML.emit('trial:end'); };
+  ML.endTrial = () => { clearTimeout(trialT); if (!trialUntil) return; trialUntil = 0; previewMood = null; previewPick = null; applyTheme(); ML.emit('trial:end'); };
   ML.trying = trying;
   // The name of the world a mood leads to right now (day / night / light skin), e.g. "Netrunner"
-  ML.worldName = m => {
-    const th = themeOf(m);
-    return (isLight() && LIGHT_NAME[th] ? t('th_light_' + LIGHT_NAME[th]) : t('th_' + th)).replace(/\s*\(.*\)$/, '');
-  };
+  ML.worldName = m => nameOf(worldOf(m, pickFor(m)));
   // (old Salle blanche, now unused: CSS keeps .deco-meta hidden) fixed technical metadata on the page edge, decorative and still
   // (it only changes when the minute does). Shown by CSS for that theme on wide screens only.
   const decoMeta = document.createElement('div');
@@ -377,36 +399,17 @@
   const BARCODE = '<svg viewBox="0 0 64 14" width="64" height="14">' + [2, 1, 1, 3, 1, 2, 2, 1, 3, 1, 1, 2, 1, 1, 3, 2, 1, 1, 2, 3, 1, 1, 2, 1].reduce((a, w, i) => { if (i % 2 === 0) a.s += `<rect x="${a.x}" width="${w}" height="14"/>`; a.x += w; return a; }, { s: '', x: 0 }).s + '</svg>';
   const renderDecoMeta = () => { const d = new Date(); decoMeta.innerHTML = `<span>SYS//ONLINE</span><span>NODE 07</span><span>${ML.pad2(d.getHours())}:${ML.pad2(d.getMinutes())}</span>${BARCODE}`; };
   renderDecoMeta(); on('minute', renderDecoMeta);
-  // The small sun / moon button at the end of the mood line: Auto → Day → Night → Auto
-  const SUN = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>';
-  const MOON = '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>';
-  function renderDayNight() {
-    const b = $('dn-toggle'); if (!b) return;
-    b.hidden = S.theme !== 'auto' || S.section === 'sport'; // fixed themes and the Sport arena ignore day / night
-    let m = S.dayNight || 'auto'; if (!canLight() && (m === 'light' || m === 'autolight')) m = m === 'light' ? 'day' : 'auto';
-    const night = isNight();
-    b.dataset.mode = m; b.dataset.light = isLight() ? '1' : '';
-    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${night ? MOON : SUN}</svg>${m === 'auto' || m === 'autolight' ? '<i>A</i>' : ''}`;
-    const title = t('dn_title_' + m, { now: t(night ? 'dn_now_night' : 'dn_now_day') });
-    b.title = title; b.setAttribute('aria-label', title);
-  }
-  // Auto → Day → Night → (Premium) Light → Auto
-  // The toast names the mode *and* the theme you now see ("Night world · Neon city"), and replaces the previous
-  // one (key) — queued toasts used to lag behind fast taps and showed the label of an earlier state.
+  // The same world mode for every energy at once (Shop: "light worlds"); the per-energy choice is ML.setWorld
   function setDayNight(v) {
-    S.dayNight = v; save(); applyTheme(); renderDayNight();
-    const root = document.documentElement, th = root.dataset.theme;
-    const name = root.dataset.light ? t('th_light_' + LIGHT_NAME[th]) : t('th_' + th);
-    toast(t('dn_t_' + v) + ' · ' + name, { ms: 2200, key: 'daynight' });
+    S.dayNight = v;
+    S.worlds = Object.fromEntries(Object.keys(THEME_DAY).map(m => [m, Object.assign({}, LEGACY[v] || LEGACY.auto)]));
+    save(); applyTheme(); ML.emit('world');
+    toast(t('dn_t_' + v) + ' · ' + nameOf(worldOf(S.mood, storedPick(S.mood))), { ms: 2200, key: 'daynight' });
   }
   ML.setDayNight = setDayNight;
-  $('dn-toggle').onclick = () => {
-    const next = { auto: 'day', autolight: 'day', day: 'night', night: canLight() ? 'light' : 'auto', light: 'auto' }[S.dayNight] || 'auto';
-    setDayNight(next);
-  };
+  on('minute', applyTheme); // "follow the hour" turns at 21:00 and 6:00
   let themed = false;
   function applyTheme() {
-    renderDayNight();
     const th = effectiveTheme(), root = document.documentElement, light = isLight() && LIGHT_NAME[th] ? '1' : '';
     if (root.dataset.theme === th && (root.dataset.light || '') === light) return;
     root.dataset.theme = th;
@@ -445,12 +448,10 @@
     render: () => `<h3>${esc(t('set_look'))}</h3>
       <label class="field"><span>${esc(t('theme'))}</span>${ML.ui.sel('set-theme', ['auto', 'observatory', 'sorcerer', 'sanctuary', 'abyss', 'netrunner', 'neoncity', 'arcade', 'fog'].map(v => [v, t('th_' + v)]), S.theme)}</label>
       <p class="hint">${esc(t('th_hint'))}</p>
-      <label class="field"><span>${esc(t('daynight'))}</span>${ML.ui.sel('set-daynight', ['auto', 'day', 'night', ...(canLight() ? ['autolight', 'light'] : [])].map(v => [v, t('dn_' + v)]), S.dayNight || 'auto')}</label>
       ${canLight() ? '' : `<p class="hint">${esc(t('light_premium_hint'))}</p>`}
       ${ML.ui.chk('set-sfx', t('opt_sfx'), S.game.sfx)}`,
     bind: r => {
-      r.querySelector('#set-theme').onchange = e => { S.theme = e.target.value; save(); applyTheme(); };
-      r.querySelector('#set-daynight').onchange = e => { S.dayNight = e.target.value; save(); applyTheme(); };
+      r.querySelector('#set-theme').onchange = e => { S.theme = e.target.value; save(); applyTheme(); ML.emit('world'); };
       r.querySelector('#set-sfx').onchange = e => { S.game.sfx = e.target.checked; save(); };
     },
   });

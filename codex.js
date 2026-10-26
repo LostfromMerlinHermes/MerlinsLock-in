@@ -234,9 +234,10 @@
       [[0, 0], [12, -6], [-10, -10], [22, 4]].forEach(([dx, dy], i) => birds(cx, perch.x + (dx + tt * (140 + i * 20)) * u, perch.y + (dy - tt * (90 + i * 15)) * u, 5 * u, now, i));
     }
     // the bell: rings drawn around the belfry for a few seconds after a session
-    if (ended && !still || (still && fresh)) {
-      const tt = Math.min(1, (now - endT0) / 3000); cx.strokeStyle = '#8E7D60'; cx.lineWidth = 1.1 * u;
-      [0, .33, .66].forEach(o => { const q = (tt + o) % 1, r = (16 + q * 30) * u; cx.globalAlpha = (1 - q) * .75; cx.beginPath(); cx.arc(tower.x, tower.top + 30 * u, r, Math.PI * 1.15, Math.PI * 1.85); cx.stroke(); });
+    const ringing = endT0 && now - endT0 < 6500; // as long as the chime and the two strokes (sfx.js)
+    if (ringing && !still || (still && fresh)) {
+      const tt = ((now - endT0) / 2000) % 1; cx.strokeStyle = '#8E7D60'; cx.lineWidth = 1.1 * u;
+      [0, .33, .66].forEach(o => { const q = (tt + o) % 1, r = (16 + q * 30) * u; cx.globalAlpha = (1 - q) * .75 * (still ? 1 : Math.min(1, (6500 - (now - endT0)) / 1200)); cx.beginPath(); cx.arc(tower.x, tower.top + 30 * u, r, Math.PI * 1.15, Math.PI * 1.85); cx.stroke(); });
       cx.globalAlpha = 1;
     }
 

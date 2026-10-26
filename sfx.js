@@ -174,10 +174,14 @@
       const seal = (at = 0, v = 0.18) => { tone('sine', 90, at, 0.18, v, { to: 55 }); noise(at, 0.12, 0.08, { type: 'lowpass', f: 400 }); };
       const page = (at = 0) => noise(at, 0.35, 0.1, { f: 900, to: 3500, q: 0.8, a: 0.12 });
       const ding = (f, at = 0, d = 1, v = 0.04) => bell(f, at, d, v, [1, 2.4, 3.9]);
+      // a church bell: hum, prime, minor third, fifth, nominal; a short hammer knock gives the attack laptop speakers can carry
+      const tower = (f, at, d, v) => { bell(f, at, d, v, [0.5, 1, 1.2, 1.5, 2, 2.5, 3]); noise(at, 0.05, v * 1.4, { f: 1400, q: 1.5 }); };
       return {
         click: () => scratch(0, 0.04, 0.04), lock: () => seal(), task: () => scratch(), sub: () => scratch(0, 0.12),
-        // session end: three strokes of the clock-tower bell (the city's bell rings on screen at the same time)
-        quest: () => { scratch(0, 0.15); ding(1320, 0.18, 0.8); }, session: () => { [0, 1.15, 2.3].forEach(at => bell(196, at, 2.6, 0.06, [0.5, 1, 1.19, 1.5, 2, 2.61])); }, breakEnd: () => page(), mood: () => page(),
+        // session end: the clock tower's quarter chime (G# F# E B) then two hour strikes; the city's bell rings on screen meanwhile
+        quest: () => { scratch(0, 0.15); ding(1320, 0.18, 0.8); },
+        session: () => { [415.3, 369.99, 329.63, 246.94].forEach((f, i) => tower(f, i * 0.6, i === 3 ? 2.6 : 1.6, 0.1)); [3.3, 4.6].forEach(at => tower(164.81, at, 3.2, 0.13)); },
+        breakEnd: () => page(), mood: () => page(),
         park: () => scratch(0, 0.1), level: () => { page(); seal(0.35); ding(523, 0.5, 1.6, 0.05); }, ach: () => { scratch(0, 0.12); ding(1046, 0.15, 0.9); }, buy: () => seal(0, 0.12),
         abandon: () => seal(0, 0.1),
       };
@@ -250,6 +254,8 @@
     try { fn(); } catch (e) {}
   };
   ML.packName = packName;
+  // True when the world plays its own session-end sound: app.js then skips the generic chime, which used to cover it
+  ML.worldEndSound = () => !!(S.game && S.game.sfx) && !muted() && !!(PACKS[packName()] || {}).session;
 
   /* ---------- 41. Which events make a sound ---------- */
   const play = kind => { if (S.game && S.game.sfx) ML.sfxTheme(kind); };

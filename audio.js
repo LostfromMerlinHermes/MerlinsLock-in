@@ -30,6 +30,15 @@
       sound_tap: 'Le son démarrera avec le minuteur. Appuie sur ▶ pour l’écouter maintenant.',
       tone_on: 'Fréquence continue', tone_pure: 'Ton pur', tone_binaural: 'Binaural (casque)', tone_iso: 'Isochrone (haut-parleur)', tone_vol: 'Volume fréquence',
       tone_hint: '40–42 Hz sont trop graves pour un haut-parleur de téléphone : utilise un casque, ou le mode Isochrone. Effets non prouvés scientifiquement ; baisse le volume si c’est inconfortable.',
+      g_heroic: 'Orchestre héroïque', g_darkchoir: 'Chœurs sombres', g_lofiparts: 'Lo-fi en parties',
+      gd_drone: 'Nappes graves, presque immobiles', gd_atmospheric: 'Nappes claires et clochettes', gd_zen: 'Koto et flûte, sans rythme',
+      gd_piano: 'Piano seul, calme', gd_acoustic: 'Guitare en arpèges', gd_tavern: 'Luth, flûte et tambourin',
+      gd_lofi: 'Boucle douce, les accords changent lentement', gd_lofiparts: 'Lo-fi avec une intro, des parties et des pauses', gd_jazzhop: 'Beat jazzy, flûte ou koto', gd_jazz: 'Balade jazz, balais et contrebasse',
+      gd_electronic: 'Électro régulière', gd_grooves: 'Basse funky et piano électrique', gd_synthwave: 'Synthés années 80, basse qui pulse', gd_chiptune: 'Console 8 bits',
+      gd_heroic: 'Cordes, cuivres, timbales, un thème au cor', gd_darkchoir: 'Nappes, voix lointaines, battement lent', gd_cinematic: 'Nappes, piano, timbales, cloches',
+      gd_mine: 'Tes propres fichiers audio', gd_none: 'Seulement les bruits de fond',
+      snd_title: 'Son', snd_world: 'Ambiance du monde', snd_mixes: 'Mes ambiances', snd_save: 'Enregistrer celle-ci', snd_music: 'Musique', snd_noise: 'Bruits de fond',
+      snd_on_n: '{n} actif(s)', snd_adv: 'Réglages avancés', snd_open: 'Ouvrir le son', snd_no_mix: 'Aucune ambiance enregistrée pour l’instant.', snd_world_on: 'Ambiance du monde',
     },
     en: {
       ambience: 'Ambience', mixer: 'Mixer', play: 'Play', stop: 'Stop', silent: 'Silent',
@@ -56,6 +65,15 @@
       sound_tap: 'Sound will start with the timer. Press ▶ to listen now.',
       tone_on: 'Continuous frequency', tone_pure: 'Pure tone', tone_binaural: 'Binaural (headphones)', tone_iso: 'Isochronic (speaker)', tone_vol: 'Frequency volume',
       tone_hint: '40–42 Hz are too low for a phone speaker: use headphones, or Isochronic mode. Effects are not scientifically proven; lower the volume if it feels uncomfortable.',
+      g_heroic: 'Heroic orchestra', g_darkchoir: 'Dark choir', g_lofiparts: 'Lo-fi in parts',
+      gd_drone: 'Low pads, almost still', gd_atmospheric: 'Bright pads and small bells', gd_zen: 'Koto and flute, no beat',
+      gd_piano: 'Solo piano, calm', gd_acoustic: 'Fingerpicked guitar', gd_tavern: 'Lute, flute and tambourine',
+      gd_lofi: 'Gentle loop, the chords change slowly', gd_lofiparts: 'Lo-fi with an intro, parts and breaks', gd_jazzhop: 'Jazzy beat, flute or koto', gd_jazz: 'Jazz ballad, brushes and upright bass',
+      gd_electronic: 'Steady electronic', gd_grooves: 'Funky bass and electric piano', gd_synthwave: '80s synths, pulsing bass', gd_chiptune: '8-bit console',
+      gd_heroic: 'Strings, brass, timpani, a horn theme', gd_darkchoir: 'Pads, distant voices, a slow heartbeat', gd_cinematic: 'Pads, piano, timpani, bells',
+      gd_mine: 'Your own audio files', gd_none: 'Background sounds only',
+      snd_title: 'Sound', snd_world: 'World ambience', snd_mixes: 'My mixes', snd_save: 'Save this one', snd_music: 'Music', snd_noise: 'Background sounds',
+      snd_on_n: '{n} on', snd_adv: 'Advanced settings', snd_open: 'Open sound', snd_no_mix: 'No saved mix yet.', snd_world_on: 'World ambience',
     },
   });
 
@@ -68,20 +86,24 @@
   };
   // Genres and ambiences are grouped in families: the mixer shows the families, a tap opens one
   const GENRE_FAM = {
-    calm: ['drone', 'atmospheric', 'zen'], keys: ['piano', 'acoustic', 'tavern'], chill: ['lofi', 'jazzhop', 'jazz'],
-    energy: ['electronic', 'grooves', 'synthwave', 'chiptune'], epic: ['cinematic'], mine: ['mine'], none: ['none'],
+    calm: ['drone', 'atmospheric', 'zen'], keys: ['piano', 'acoustic', 'tavern'], chill: ['lofi', 'lofiparts', 'jazzhop', 'jazz'],
+    energy: ['electronic', 'grooves', 'synthwave', 'chiptune'], epic: ['heroic', 'darkchoir', 'cinematic'], mine: ['mine'], none: ['none'],
   };
+  // "World ambience": the music and background sounds that go with each world (theme or light-skin id, see worlds.js)
+  const WORLD_MIX = {
+    sanctuary: { genre: 'zen', nature: { night: 0.4 } }, abyss: { genre: 'drone', nature: { underwater: 0.5 } }, aube: { genre: 'zen', nature: { river: 0.4 } },
+    observatory: { genre: 'tavern', nature: { fire: 0.35 } }, sorcerer: { genre: 'atmospheric', nature: { wind: 0.3 } }, atelier: { genre: 'piano', nature: { rain: 0.35, fire: 0.25 } },
+    netrunner: { genre: 'synthwave', nature: { rain: 0.4 } }, neoncity: { genre: 'electronic', nature: { rain: 0.3 } }, tokyo: { genre: 'lofiparts', nature: { train: 0.3 } },
+    arcade: { genre: 'chiptune', nature: { brown: 0.35 } }, fog: { genre: 'darkchoir', nature: { wind: 0.35 } }, cartouche: { genre: 'chiptune', nature: { forest: 0.4 } },
+  };
+  const LIGHT_KEY = { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' };
+  const worldKey = () => { const w = ML.worldNow ? ML.worldNow(S.mood) : { th: document.documentElement.dataset.theme }; return w.light ? LIGHT_KEY[w.th] : w.th; };
+  const worldMix = () => WORLD_MIX[worldKey()] || WORLD_MIX.sorcerer;
   const GENRES = Object.values(GENRE_FAM).flat();
   const NATURE_FAM = { nature: ['rain', 'thunder', 'wind', 'river', 'royalriver', 'beach', 'forest', 'rainforest', 'night', 'underwater'], places: ['fire', 'cafe', 'train', 'plane', 'bowls'], noise: ['white', 'pink', 'brown'] };
   const NATURE = Object.values(NATURE_FAM).flat();
   const famOf = (fams, k) => Object.keys(fams).find(f => fams[f].includes(k));
   const DEPTH = { off: 0, light: 0.12, medium: 0.25, strong: 0.4 };
-  const MOOD_MIX = {
-    drained: { mode: 'focus', sub: 'light', genre: 'zen', nature: { rain: 0.5 } },
-    steady: { mode: 'focus', sub: 'deep', genre: 'tavern', nature: { fire: 0.35 } },
-    fired: { mode: 'focus', sub: 'motivation', genre: 'synthwave', nature: {} },
-    scattered: { mode: 'focus', sub: 'learning', genre: 'chiptune', nature: { brown: 0.4 } },
-  };
   const BREATHS = { '478': [4, 7, 8, 0], box: [4, 4, 4, 4], calm: [4, 0, 6, 0] };
 
   ML.defaults(() => ({
@@ -129,13 +151,15 @@
       if (!ctx) {
         ctx = new (window.AudioContext || window.webkitAudioContext)();
         out = ctx.destination;
-        master = ctx.createGain(); master.gain.value = 0; master.connect(out);
+        // a gentle compressor keeps the louder genres (orchestra, choir) from peaking
+        const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 3.5; comp.attack.value = 0.01; comp.release.value = 0.25; comp.connect(out);
+        master = ctx.createGain(); master.gain.value = 0; master.connect(comp);
         amGain = ctx.createGain(); amGain.connect(master);
         amLfo = ctx.createOscillator(); amDepth = ctx.createGain(); amDepth.gain.value = 0;
         amLfo.connect(amDepth).connect(amGain.gain); amLfo.start();
         musicTone = ctx.createBiquadFilter(); musicTone.type = 'lowpass'; musicTone.frequency.value = 12000; musicTone.connect(amGain);
         musicBus = ctx.createGain(); musicBus.gain.value = S.audio.musicVol; musicBus.connect(musicTone);
-        const rev = ctx.createConvolver(); rev.buffer = impulse(2.8); revIn = ctx.createGain(); revIn.gain.value = 0.8;
+        const rev = ctx.createConvolver(); rev.buffer = impulse(3.2); revIn = ctx.createGain(); revIn.gain.value = 0.8;
         revIn.connect(rev); rev.connect(master);
         natureBus = ctx.createGain(); natureBus.connect(master);
         const ns = ctx.createGain(); ns.gain.value = 0.12; natureBus.connect(ns); ns.connect(revIn);
@@ -148,7 +172,8 @@
   }
   function impulse(sec) {
     const len = Math.floor(ctx.sampleRate * sec), b = ctx.createBuffer(2, len, ctx.sampleRate);
-    for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+    // slightly low-passed noise: a warmer, less hissy tail than plain white noise
+    for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let lp = 0; for (let i = 0; i < len; i++) { lp = lp * 0.6 + (Math.random() * 2 - 1) * 0.4; d[i] = lp * 1.6 * Math.pow(1 - i / len, 2.4); } }
     return b;
   }
   function noise(type) {
@@ -448,7 +473,48 @@
       osc.start(t0); osc.stop(t0 + 2.1);
       burst(o.dry, { type: 'brown', t0, attack: 0.005, decay: 0.6, peak: 0.25 * vel, filter: 'lowpass', freq: 220 });
     },
+    // String section, held: three detuned saws through a soft low-pass, slow bow attack, late vibrato
+    strings(o, t0, m, len, vel = 0.5, attack = 0.35, cut = 1900) {
+      const f = mtof(m), g = ctx.createGain(), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cut; lp.Q.value = 0.3;
+      const end = t0 + len;
+      [-9, 0, 8].forEach(d => { const os = ctx.createOscillator(); os.type = 'sawtooth'; os.frequency.value = f; os.detune.value = d + rnd(-2, 2); vibrato(os.frequency, f, t0, 0.6, end + 0.8, rnd(4.8, 5.6), 0.004); os.connect(lp); os.start(t0); os.stop(end + 0.9); });
+      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.03 * vel, t0 + attack); g.gain.setValueAtTime(0.03 * vel, end); g.gain.linearRampToValueAtTime(0, end + 0.7);
+      lp.connect(g); g.connect(o.dry); const w = ctx.createGain(); w.gain.value = 0.5; g.connect(w).connect(o.wet);
+    },
+    // Short bowed note (spiccato) for ostinatos
+    spic(o, t0, m, vel = 0.5) { const f = mtof(m); [-6, 6].forEach(d => voice(o, t0, { f, type: 'sawtooth', peak: 0.032 * vel, attack: 0.006, decay: 0.16, cut: 2300, wet: 0.32, detune: d })); },
+    // Brass: the filter opens as the note swells, like a horn section
+    brass(o, t0, m, len, vel = 0.5, bright = 1700) {
+      const f = mtof(m), g = ctx.createGain(), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 1.2;
+      const end = t0 + len;
+      lp.frequency.setValueAtTime(260, t0); lp.frequency.linearRampToValueAtTime(bright, t0 + 0.28); lp.frequency.linearRampToValueAtTime(bright * 0.7, end);
+      [[-5, 'sawtooth'], [4, 'sawtooth'], [0, 'square']].forEach(([d, type]) => { const os = ctx.createOscillator(); os.type = type; os.frequency.value = f; os.detune.value = d; vibrato(os.frequency, f, t0, 0.8, end + 0.6, 5, 0.003); os.connect(lp); os.start(t0); os.stop(end + 0.6); });
+      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.03 * vel, t0 + 0.14); g.gain.setValueAtTime(0.03 * vel, end); g.gain.linearRampToValueAtTime(0, end + 0.45);
+      lp.connect(g); g.connect(o.dry); const w = ctx.createGain(); w.gain.value = 0.45; g.connect(w).connect(o.wet);
+    },
+    // A cymbal swelling into the next part
+    swell(o, t0, len, vel = 0.5) {
+      const s = ctx.createBufferSource(); s.buffer = noise('white'); const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 5200;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.07 * vel, t0 + len); g.gain.linearRampToValueAtTime(0, t0 + len + 0.05);
+      s.connect(hp).connect(g); g.connect(o.dry); const w = ctx.createGain(); w.gain.value = 0.6; g.connect(w).connect(o.wet); s.start(t0, Math.random()); s.stop(t0 + len + 0.1);
+    },
+    // Choir: detuned saws through three vowel formants ("ah" or "oo"), slow attack, vibrato
+    choir(o, t0, m, len, vel = 0.5, vowel = 'ah') {
+      const f = mtof(m), end = t0 + len, mix = ctx.createGain();
+      [-10, -3, 4, 11].forEach(d => { const os = ctx.createOscillator(); os.type = 'sawtooth'; os.frequency.value = f; os.detune.value = d; vibrato(os.frequency, f, t0, 0.9, end + 1.4, rnd(4.6, 5.4), 0.005); os.connect(mix); os.start(t0); os.stop(end + 1.5); });
+      const F = vowel === 'oo' ? [[380, 9, 1], [820, 10, 0.35], [2500, 12, 0.08]] : [[720, 8, 1], [1150, 10, 0.55], [2600, 12, 0.18]];
+      const g = ctx.createGain();
+      F.forEach(([fr, q, gv]) => { const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q; const bg = ctx.createGain(); bg.gain.value = gv; mix.connect(bp).connect(bg).connect(g); });
+      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.16 * vel, t0 + 0.9); g.gain.setValueAtTime(0.16 * vel, end); g.gain.linearRampToValueAtTime(0, end + 1.3);
+      g.connect(o.dry); const w = ctx.createGain(); w.gain.value = 0.7; g.connect(w).connect(o.wet);
+    },
   };
+  // a slow vibrato on a frequency param, fading in after `delay`
+  function vibrato(param, f, t0, delay, end, rate = 5.2, depth = 0.005) {
+    const l = ctx.createOscillator(), g = ctx.createGain(); l.frequency.value = rate;
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(f * depth, t0 + delay);
+    l.connect(g).connect(param); l.start(t0); l.stop(end);
+  }
   const ksCache = {};
   function ksBuffer(m) {
     if (ksCache[m]) return ksCache[m];
@@ -465,6 +531,9 @@
   const SCALES = { minor: [0, 2, 3, 5, 7, 8, 10], major: [0, 2, 4, 5, 7, 9, 11], dorian: [0, 2, 3, 5, 7, 9, 10], pentaMin: [0, 3, 5, 7, 10], pentaMaj: [0, 2, 4, 7, 9] };
   const deg = (root, sc, d) => root + sc[((d % sc.length) + sc.length) % sc.length] + 12 * Math.floor(d / sc.length);
   const chord = (root, sc, d, size = 3) => Array.from({ length: size }, (_, i) => deg(root, sc, d + i * 2));
+  // A new progression that differs from the last one
+  const fresh = (pool, last) => { const c = pool.filter(p => p !== last); return pick(c.length ? c : pool); };
+  const toneTo = hz => { if (ctx) musicTone.frequency.setTargetAtTime(hz, ctx.currentTime, 1.2); };
 
   /* ---------- Genres (each schedules notes on a 16-step grid) ---------- */
   const GEN = {
@@ -510,9 +579,10 @@
         },
       };
     },
+    // A steady loop on purpose (predictable is good for focus), but the chords change every 48 bars (about 2.5 min)
     lofi(p) {
-      const root = pick([50, 52, 53, 55]), prog = pick([[1, 4, 0, 5], [0, 5, 3, 4], [3, 2, 1, 4]]);
-      let hiss = null;
+      const root = pick([50, 52, 53, 55]), POOL = [[1, 4, 0, 5], [0, 5, 3, 4], [3, 2, 1, 4], [0, 3, 1, 4], [5, 3, 0, 4]];
+      let prog = pick(POOL), hiss = null;
       return {
         bpm: 74 + p.int * 12, swing: 0.18, tone: 2300,
         start(oo, t0) {
@@ -522,7 +592,9 @@
         },
         stop() { try { hiss.stop(); } catch (e) {} },
         step(i, t0, spb) {
-          const s = i % 16, bar = Math.floor(i / 16), c = prog[bar % prog.length];
+          const s = i % 16, bar = Math.floor(i / 16);
+          if (s === 0 && bar > 0 && bar % 48 === 0) prog = fresh(POOL, prog);
+          const c = prog[bar % prog.length];
           if (s === 0 || s === 10 || (s === 7 && Math.random() < 0.4)) I.kick(o(), t0, s === 0 ? 0.8 : 0.6);
           if (s === 4 || s === 12) I.snare(o(), t0, 0.5);
           if (s % 2 === 0) I.hat(o(), t0, s % 4 === 0 ? 0.45 : 0.25);
@@ -727,6 +799,84 @@
         },
       };
     },
+    /* Genres with parts: next(prev) returns the following section { name, bars, ... } and step() also gets
+       (sec, bar in section), so the piece moves on instead of looping one progression forever. */
+    // Lo-fi in parts: muffled intro, A, B (other chords, more melody), a break without drums, small fills between parts
+    lofiparts(p) {
+      const root = pick([50, 52, 53, 55]), POOL = [[1, 4, 0, 5], [0, 5, 3, 4], [3, 2, 1, 4], [0, 3, 1, 4], [5, 3, 0, 4], [1, 4, 2, 5]];
+      const order = ['intro', 'A', 'B', 'pause', 'A', 'B'];
+      let last = null, k = -1, mel = 7;
+      return {
+        bpm: 74 + p.int * 12, swing: 0.18, tone: 2400,
+        next() {
+          k = (k + 1) % order.length; const n = order[k], prog = fresh(POOL, last); last = prog;
+          toneTo(n === 'intro' ? 900 : n === 'pause' ? 1600 : n === 'B' ? 3200 : 2400); // the low-pass opens and closes with the parts
+          return { name: n, bars: n === 'intro' || n === 'pause' ? 4 : 8, prog, mel: n === 'B' ? 0.28 : n === 'pause' ? 0.18 : 0.1 };
+        },
+        step(i, t0, spb, sec, bar) {
+          const s = i % 16, c = sec.prog[bar % 4], n = sec.name, lastBar = bar === sec.bars - 1, drums = n === 'A' || n === 'B';
+          if (drums) {
+            if (s === 0 || s === 10 || (s === 7 && Math.random() < 0.4)) I.kick(o(), t0, s === 0 ? 0.8 : 0.6);
+            if (s === 4 || s === 12) I.snare(o(), t0, 0.5);
+            if (lastBar && s >= 13) I.snare(o(), t0, 0.22 + (s - 13) * 0.1);
+            if (s % 2 === 0) I.hat(o(), t0, s % 4 === 0 ? 0.45 : 0.25, lastBar && s === 14);
+          } else if (n === 'intro' && s % 4 === 0 && bar >= 2) I.hat(o(), t0, 0.15);
+          if (s === 0) chord(root, SCALES.major, c, n === 'B' ? 5 : 4).forEach((m, j) => I.epiano(o(), t0 + j * 0.014, m, n === 'pause' ? 0.38 : 0.45, spb * (n === 'pause' ? 15 : 14)));
+          if (n === 'pause' && s === 8 && Math.random() < 0.6) chord(root, SCALES.major, c + 2, 3).forEach((m, j) => I.epiano(o(), t0 + j * 0.02, m + 12, 0.2, spb * 6));
+          if ((s === 0 || s === 10) && n !== 'intro') I.bass(o(), t0, deg(root - 24, SCALES.major, c), spb * 5, n === 'pause' ? 0.45 : 0.6);
+          if (s % 2 === 0 && Math.random() < sec.mel + p.int * 0.05) { mel = clamp(mel + pick([-2, -1, -1, 1, 1, 2]), 3, 11); I.epiano(o(), t0, deg(root + 12, SCALES.pentaMaj, mel), 0.32, spb * pick([2, 3, 4])); }
+        },
+      };
+    },
+    // Heroic orchestra: string ostinato, brass swells, timpani; a horn theme in B; a quiet part between rounds
+    heroic(p) {
+      const root = pick([50, 48, 52]), sc = SCALES.minor;
+      const POOL = [[0, 5, 2, 6], [0, 3, 5, 4], [5, 6, 0, 0], [0, 6, 5, 4], [3, 4, 0, 5], [0, 2, 3, 4]];
+      const order = ['intro', 'A', 'B', 'calm', 'A', 'B'];
+      let last = null, k = -1, hm = 4;
+      return {
+        bpm: 80 + p.int * 8, tone: 7000,
+        next() { k = (k + 1) % order.length; const n = order[k], prog = fresh(POOL, last); last = prog; return { name: n, bars: n === 'intro' || n === 'calm' ? 4 : 8, prog }; },
+        step(i, t0, spb, sec, bar) {
+          const s = i % 16, n = sec.name, c = sec.prog[bar % 4], ch = chord(root, sc, c, 3), lastBar = bar === sec.bars - 1, full = n === 'A' || n === 'B';
+          if (s === 0) I.strings(o(), t0, deg(root - 24, sc, c), spb * 15.5, n === 'calm' ? 0.7 : 1, 0.5, 900);
+          if (s === 0) ch.forEach(m => I.strings(o(), t0, m, spb * 15.5, n === 'intro' || n === 'calm' ? 0.55 : 0.4, 0.6, 1600));
+          if (n !== 'calm' && s % 2 === 0) { const m = [ch[0], ch[2], ch[0] + 12, ch[2]][(s / 2) % 4] - 12; I.spic(o(), t0, m, (n === 'intro' ? 0.35 : 0.7) * (s % 8 === 0 ? 1.15 : 0.9)); }
+          if (full && (s === 0 || s === 8)) I.timpani(o(), t0, deg(root - 24, sc, c) + (s === 8 ? 7 : 0), s === 0 ? 0.6 : 0.4);
+          if (full && s === 0 && bar % 2 === 0) chord(root - 12, sc, c, 3).forEach(m => I.brass(o(), t0 + 0.02, m, spb * 14, n === 'B' ? 0.9 : 0.6));
+          if (n === 'B' && (s === 0 || s === 8 || (s === 12 && Math.random() < 0.4))) {
+            hm = clamp(hm + pick([-1, 1, 1, 2, -2, 0]), 2, 9);
+            const near = [c, c + 2, c + 4, c + 7].reduce((a, b) => Math.abs(b - hm) < Math.abs(a - hm) ? b : a);
+            I.brass(o(), t0, deg(root, sc, s === 0 ? near : hm), spb * (s === 12 ? 3.5 : 7.5), 0.75, 1300);
+          }
+          if (n === 'calm' && s === 8 && bar % 2 === 1) I.brass(o(), t0, deg(root, sc, c + 4), spb * 7, 0.4, 900);
+          if (lastBar && s === 8 && n !== 'calm') I.swell(o(), t0, spb * 8, n === 'B' ? 0.9 : 0.6);
+          if (lastBar && n === 'B' && s >= 12) I.timpani(o(), t0, deg(root - 24, sc, 0), 0.35 + (s - 12) * 0.08);
+        },
+      };
+    },
+    // Dark choir: low pads, distant voices an octave up, a slow heartbeat in the choir part, bells in the quiet part
+    darkchoir(p) {
+      const root = pick([48, 50, 45]), sc = SCALES.minor;
+      const POOL = [[0, 5, 2, 6], [0, 3, 5, 4], [0, 6, 5, 6], [0, 5, 3, 0], [5, 3, 0, 4]];
+      const order = ['pads', 'choir', 'bells', 'choir'];
+      let last = null, k = -1;
+      return {
+        bpm: 60, tone: 6000,
+        next() { k = (k + 1) % order.length; const n = order[k], prog = fresh(POOL, last); last = prog; return { name: n, bars: n === 'bells' ? 4 : 8, prog }; },
+        step(i, t0, spb, sec, bar) {
+          const s = i % 16, n = sec.name, c = sec.prog[Math.floor(bar / 2) % 4]; // one chord every two bars
+          if (s === 0 && bar % 2 === 0) {
+            I.pad(o(), t0, [deg(root - 12, sc, c), deg(root, sc, c + 4)], spb * 31, 0.018, 700, 2.5);
+            if (n !== 'bells') chord(root, sc, c, 3).forEach((m, j) => I.choir(o(), t0 + j * 0.05, m + 12, spb * 30, (n === 'choir' ? 0.7 : 0.45) * 0.75, n === 'choir' ? 'ah' : 'oo'));
+            if (n === 'choir') I.brass(o(), t0, deg(root - 24, sc, c), spb * 30, 0.55, 500);
+          }
+          if (n === 'choir' && (s === 0 || s === 3)) I.kick(o(), t0, s === 0 ? 0.55 : 0.35); // slow heartbeat
+          if (n === 'bells' && s % 4 === 0 && Math.random() < 0.4) I.bell(o(), t0, deg(root + 12, SCALES.pentaMin, Math.floor(rnd(0, 7))), 0.4);
+          if (n === 'pads' && s === 8 && Math.random() < 0.25) I.bell(o(), t0, deg(root + 24, SCALES.pentaMin, Math.floor(rnd(0, 5))), 0.25);
+        },
+      };
+    },
     // Fingerpicked guitar: alternating thumb on root and fifth, fingers rolling the triad on the off-beats,
     // a soft pad underneath and an occasional melody note. Plucks are low-passed so they stay warm.
     acoustic(p) {
@@ -765,12 +915,14 @@
     const bpm = gen.bpm * (params.tempo || 1);
     run.next = ctx.currentTime + 0.15;
     if (gen.start) gen.start(run.out, run.next);
-    const r = run;
+    const r = run, steps = gen.steps || 16;
+    if (gen.next) { r.sec = gen.next(null); r.secBar = 0; } // genres with parts (see lofiparts)
     r.timer = setInterval(() => {
       const spb = 60 / bpm / 4;
       while (r.next < ctx.currentTime + 0.2) {
+        if (gen.next && r.i > 0 && r.i % steps === 0 && ++r.secBar >= r.sec.bars) { r.sec = gen.next(r.sec); r.secBar = 0; }
         const swing = gen.swing && r.i % 2 === 1 ? spb * gen.swing * 2 : 0;
-        try { gen.step(r.i, r.next + swing, spb); } catch (e) { console.error(e); }
+        try { gen.step(r.i, r.next + swing, spb, r.sec, r.secBar); } catch (e) { console.error(e); }
         r.next += spb; r.i++;
       }
     }, 40);
@@ -972,83 +1124,133 @@
   }
   function stopBreath() { breathOn = false; clearTimeout(breathT); }
 
-  /* ---------- Deck UI ---------- */
-  let openGenreFam = null, openNatFam = null; // which family is unfolded in the mixer (null: the current one)
+  /* ---------- Sound UI (3.30): a mini player in the timer card (#sound-deck) and the Sound screen (#sound) ----------
+     The screen reads top to bottom: the world's ambience in one tap, saved mixes, music by family (each genre with
+     one line saying what it is), background sounds, and the rarely used settings folded at the end. No emojis:
+     the family icons are line drawings like the rest of the app. */
+  let openGenreFam = null, openNatFam = null, savingMix = false, advOpen = false; // which family is unfolded (null: the current one)
+  const sheetOv = document.createElement('div');
+  sheetOv.className = 'overlay snd-ov'; sheetOv.id = 'sound'; sheetOv.hidden = true;
+  document.body.appendChild(sheetOv);
   const chipRow = (items, curVal, attr, labelFn, extra = () => '') => items.map(v => `<button type="button" class="chip-btn ${extra(v)}" data-${attr}="${v}" aria-pressed="${v === curVal}">${esc(labelFn(v))}</button>`).join('');
+  const ico = d => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+  const FAM_ICON = {
+    calm: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+    keys: '<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M7.5 5v8M12 5v8M16.5 5v8M7.5 13v6M12 13v6M16.5 13v6"/>',
+    chill: '<path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h2a2.5 2.5 0 0 1 0 5h-2.5M8 3.5c0 1.5 1.5 1.5 1.5 3M12 3.5c0 1.5 1.5 1.5 1.5 3"/>',
+    energy: '<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>',
+    epic: '<path d="M14.5 4.5L20 4l-.5 5.5L9 20l-3-3zM6 17l-2.5 2.5M7.5 13.5l3 3"/>',
+    mine: '<path d="M9 17V6l10-2v11"/><circle cx="6.5" cy="17" r="2.5"/><circle cx="16.5" cy="15" r="2.5"/>',
+    none: '<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',
+  };
+  const PLAY_I = '<path d="M8 5v14l11-7z"/>', STOP_I = '<rect x="6" y="6" width="12" height="12" rx="1"/>';
+  const CHEV_UP = '<path d="M6 15l6-6 6 6"/>', CLOSE_I = '<path d="M6 6l12 12M18 6L6 18"/>';
+  const sameNature = (a, b) => { const ka = Object.keys(a).sort(), kb = Object.keys(b).sort(); return ka.length === kb.length && ka.every((k, i) => k === kb[i]); };
+  const isWorldMix = () => { const A = S.audio, m = worldMix(); return A.music && A.genre === m.genre && sameNature(A.nature, m.nature); };
+  const genreName = g => t('g_' + g);
+  const natList = nat => Object.keys(nat).map(k => t('n_' + k));
+  const artHtml = () => (ML.worldArt ? ML.worldArt(worldKey()) : '');
   function summary() {
-    const cur = current(), A = S.audio;
-    const nat = Object.keys(A.nature).map(k => t('n_' + k));
-    return { main: (cur.genre === 'none' ? t('g_none') : t('g_' + cur.genre)) + ' · ' + t('sub_' + cur.sub), nat: nat.length ? '+ ' + nat.join(', ') : '' };
+    const cur = current(), A = S.audio, nat = natList(A.nature);
+    return { main: cur.genre === 'none' ? t('g_none') : genreName(cur.genre), nat: (nat.length ? '+ ' + nat.join(', ') : '') + (isWorldMix() ? (nat.length ? ' · ' : '') + t('snd_world_on') : '') };
   }
   function renderDeck() {
     const el = $('sound-deck'); if (!el) return;
-    const A = S.audio, sm = summary(), M = MODES[A.mode];
-    const mm = MOOD_MIX[S.mood];
-    const mmLabel = t('sub_' + mm.sub) + ' · ' + t('g_' + mm.genre) + Object.keys(mm.nature).map(k => ' + ' + t('n_' + k)).join('');
-    const isSleep = A.mode === 'sleep' || A.mode === 'nap';
-    const showBreath = A.mode === 'meditate' || A.sub === 'guidedsleep';
-    const focused = document.activeElement && el.contains(document.activeElement) ? document.activeElement.id : null;
-    const curFam = openGenreFam || famOf(GENRE_FAM, A.music ? A.genre : 'none') || 'calm';
-    const curNatFam = openNatFam || famOf(NATURE_FAM, Object.keys(A.nature)[0]) || 'nature';
-    el.innerHTML = `
-      <div class="deck-head">
-        <button type="button" class="deck-play ${playing ? 'on' : ''}" id="d-play" aria-label="${esc(playing ? t('stop') : t('play'))}">
-          ${playing ? '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>'}
-        </button>
-        <div class="deck-now"><span class="label">${esc(t('ambience'))}${playing ? ' <i class="eq"><b></b><b></b><b></b></i>' : ''}</span><b>${esc(sm.main)}</b><small>${esc(sm.nat)}</small></div>
-        <button type="button" class="ghost small" id="d-open" aria-expanded="${A.open}">${esc(t('mixer'))} ${A.open ? '▴' : '▾'}</button>
-      </div>
-      ${A.open ? `<div class="deck-body">
-        <div class="seg-toggle five" role="group">${Object.keys(MODES).map(k => `<button type="button" data-dmode="${k}" aria-pressed="${k === A.mode}">${esc(t('mode_' + k))}</button>`).join('')}</div>
-        <div class="d-row"><span class="label">${esc(t('activity'))}</span><div class="chips">${chipRow(Object.keys(M.subs), A.sub, 'dsub', v => t('sub_' + v))}</div></div>
-        <div class="d-row"><span class="label">${esc(t('genre'))}</span>
-          <div class="chips fam-row">${Object.keys(GENRE_FAM).map(f => `<button type="button" class="chip-btn fam-chip ${f === curFam ? 'open' : ''} ${f === famOf(GENRE_FAM, A.music ? A.genre : 'none') ? 'has' : ''}" data-dgfam="${f}" aria-expanded="${f === curFam}">${esc(t('gf_' + f))}${GENRE_FAM[f].length > 1 ? ' ▾' : ''}</button>`).join('')}</div>
-          ${GENRE_FAM[curFam].length > 1 ? `<div class="chips fam-items">${chipRow(GENRE_FAM[curFam], A.music ? A.genre : 'none', 'dgenre', v => t('g_' + v), v => v === M.subs[A.sub][0] ? 'suggested' : '')}</div>` : ''}</div>
-        ${A.genre === 'mine' ? `<div class="d-mine"><p class="hint">${esc(t('mine_hint'))}</p>
-          <ul>${tracks.length ? tracks.map(tr => `<li><span>${esc(tr.name)}</span><button type="button" class="icon-btn" data-dtrack="${tr.id}" aria-label="${esc(t('delete'))}">✕</button></li>`).join('') : `<li class="none">${esc(t('mine_empty'))}</li>`}</ul>
-          <label class="file-btn small">${esc(t('mine_add'))}<input type="file" id="d-files" accept="audio/*" multiple></label></div>` : ''}
-        <label class="d-slider"><span>${esc(t('music_vol'))}</span><input type="range" id="d-mvol" min="0" max="1" step="0.05" value="${A.musicVol}"></label>
-        <div class="d-row"><span class="label">${esc(t('ambiences'))}</span>
-          <div class="chips fam-row">${Object.keys(NATURE_FAM).map(f => { const n = NATURE_FAM[f].filter(k => k in A.nature).length; return `<button type="button" class="chip-btn fam-chip ${f === curNatFam ? 'open' : ''} ${n ? 'has' : ''}" data-dnfam="${f}" aria-expanded="${f === curNatFam}">${esc(t('nf_' + f))}${n ? ' · ' + n : ''} ▾</button>`; }).join('')}</div>
-          <div class="nat-grid">${NATURE_FAM[curNatFam].filter(k => k !== 'royalriver' || hasHippo()).map(k => `<button type="button" class="nat ${k in A.nature ? 'on' : ''}" data-dnat="${k}" aria-pressed="${k in A.nature}">${esc(t('n_' + k))}</button>`).join('')}</div>
-          ${Object.keys(A.nature).length ? `<div class="nat-vols">${Object.entries(A.nature).map(([k, v]) => `<label class="d-slider"><span>${esc(t('n_' + k))}</span><input type="range" data-dnatv="${k}" min="0.05" max="1" step="0.05" value="${v}"></label>`).join('')}</div>` : ''}
-        </div>
-        <div class="d-row"><span class="label" title="${esc(t('neural_hint'))}">${esc(t('neural'))} ⓘ</span><div class="chips">${chipRow(Object.keys(DEPTH), A.neural, 'dneural', v => t('neural_' + v))}</div></div>
-        <div class="d-row d-tone"><label class="opt"><input type="checkbox" id="d-tone" ${A.tone.on ? 'checked' : ''}> ${esc(t('tone_on'))}</label>
-          ${A.tone.on ? `<div class="chips">${[40, 42, 432, 528].map(h => `<button type="button" class="chip-btn" data-dtone="${h}" aria-pressed="${+A.tone.hz === h}">${h} Hz</button>`).join('')}<label class="tone-hz"><input type="number" id="d-tone-hz" min="1" max="2000" value="${A.tone.hz}"> Hz</label></div>
-            <div class="chips">${chipRow(['pure', 'binaural', 'iso'], A.tone.kind, 'dtonek', v => t('tone_' + v))}</div>
-            <label class="d-slider"><span>${esc(t('tone_vol'))}</span><input type="range" id="d-tone-vol" min="0.05" max="1" step="0.05" value="${A.tone.vol}"></label>
-            <p class="hint">${esc(t('tone_hint'))}</p>` : ''}</div>
-        ${isSleep ? `<div class="d-row d-sleep"><span class="label">${esc(t('sleep_timer'))}</span><div class="chips">
-            ${(A.mode === 'nap' ? [15, 20, 25, 30] : [15, 30, 45, 60, 90]).map(m => `<button type="button" class="chip-btn" data-dsleep="${m}" aria-pressed="${m === (A.mode === 'nap' ? A.napMins : A.sleepMins)}">${m} min</button>`).join('')}
-            <button type="button" class="small primary" id="d-sleep-go">${esc(sleepEnd ? t('stop_sleep') : t('start_sleep'))}</button></div>
-            <span class="mono" id="d-sleep-left"></span></div>` : ''}
-        ${showBreath ? `<div class="d-row d-breath"><span class="label">${esc(t('breath'))}</span>
-            <div class="breath-wrap"><div class="breath-circle" id="d-breath-circle"></div><span id="d-breath-label">${breathOn ? '' : '—'}</span></div>
-            <div class="chips">${chipRow(Object.keys(BREATHS), A.breath, 'dbreath', v => t('breath_' + v))}</div>
-            <div class="chips"><button type="button" class="small ${breathOn ? '' : 'primary'}" id="d-breath-go">${esc(breathOn ? t('breath_stop') : t('breath_start'))}</button>
-            <label class="opt"><input type="checkbox" id="d-voice" ${A.voice ? 'checked' : ''}> ${esc(t('voice'))}</label></div></div>` : ''}
-        <div class="opts">
-          <label class="opt"><input type="checkbox" id="d-auto" ${A.auto ? 'checked' : ''}> ${esc(t('auto_sound'))}</label>
-          <label class="opt"><input type="checkbox" id="d-brk" ${A.breakRelax ? 'checked' : ''}> ${esc(t('break_relax'))}</label>
-        </div>
-        <div class="d-row"><span class="label">${esc(t('presets'))}</span>
-          <div class="chips">${A.presets.map(p => `<span class="preset"><button type="button" class="chip-btn" data-dpreset="${p.id}">${esc(p.name)}</button><button type="button" class="icon-btn" data-dpdel="${p.id}" aria-label="${esc(t('delete'))}">✕</button></span>`).join('')}</div>
-          <form class="preset-form" id="d-pform"><input type="text" id="d-pname" maxlength="30" placeholder="${esc(t('preset_name_ph'))}"><button type="submit" class="small">${esc(t('preset_save'))}</button></form>
-        </div>
-        <p class="d-suggest">${esc(t('suggestion', { mix: mmLabel }))} <button type="button" class="link" id="d-suggest">${esc(t('apply'))}</button></p>
-        <label class="d-slider"><span>${esc(t('master_vol'))}</span><input type="range" id="d-master" min="0" max="1" step="0.05" value="${A.master}"></label>
-      </div>` : ''}`;
-    if (focused && $(focused)) $(focused).focus();
+    const sm = summary();
+    el.innerHTML = `<div class="snd-mini">
+        <button type="button" class="snd-art" data-snd="open" aria-label="${esc(t('snd_open'))}">${artHtml()}</button>
+        <button type="button" class="snd-now" data-snd="open"><b>${esc(sm.main)}${playing ? ' <i class="eq"><b></b><b></b><b></b></i>' : ''}</b><small>${esc(sm.nat || t('ambience'))}</small></button>
+        <button type="button" class="deck-play ${playing ? 'on' : ''}" id="d-play" aria-label="${esc(playing ? t('stop') : t('play'))}">${ico(playing ? STOP_I : PLAY_I)}</button>
+        <button type="button" class="ghost icon-only snd-up" data-snd="open" aria-label="${esc(t('snd_open'))}">${ico(CHEV_UP)}</button>
+      </div>`;
+    if (!sheetOv.hidden) ML.keepInputs(sheetOv, renderSheet);
     updateSleepLabel();
   }
 
-  const deck = $('sound-deck');
-  deck.addEventListener('click', e => {
+  function renderSheet() {
+    const A = S.audio, M = MODES[A.mode], wm = worldMix(), wOn = isWorldMix(), wPlaying = wOn && playing;
+    const isSleep = A.mode === 'sleep' || A.mode === 'nap', showBreath = A.mode === 'meditate' || A.sub === 'guidedsleep';
+    const curG = A.music ? A.genre : 'none';
+    const curFam = openGenreFam || famOf(GENRE_FAM, curG) || 'calm';
+    const curNatFam = openNatFam || famOf(NATURE_FAM, Object.keys(A.nature)[0]) || 'nature';
+    const nOn = Object.keys(A.nature).length;
+    sheetOv.innerHTML = `<div class="sheet snd-sheet" role="dialog" aria-modal="true" aria-labelledby="snd-h">
+      <div class="sheet-head"><h2 id="snd-h">${esc(t('snd_title'))}</h2><button type="button" class="ghost icon-only" data-close="sound" aria-label="${esc(t('close'))}">${ico(CLOSE_I)}</button></div>
+      <div class="snd-world ${wOn ? 'on' : ''}">
+        <span class="snd-art">${artHtml()}</span>
+        <span class="snd-wt"><b>${esc(t('snd_world'))}</b><small>${esc((ML.worldName ? ML.worldName(S.mood) : '') + ' · ' + [genreName(wm.genre), ...natList(wm.nature)].join(' + '))}</small></span>
+        <button type="button" class="deck-play ${wPlaying ? 'on' : ''}" data-snd="world" aria-label="${esc(wPlaying ? t('stop') : t('snd_world'))}">${ico(wPlaying ? STOP_I : PLAY_I)}</button>
+      </div>
+
+      <section class="snd-sec">
+        <div class="snd-lab"><span class="label">${esc(t('snd_mixes'))}</span><button type="button" class="link" data-snd="save">${esc(t('snd_save'))}</button></div>
+        ${savingMix ? `<form class="preset-form" id="d-pform"><input type="text" id="d-pname" maxlength="30" placeholder="${esc(t('preset_name_ph'))}"><button type="submit" class="small primary">${esc(t('preset_save'))}</button></form>` : ''}
+        ${A.presets.length ? `<div class="snd-mixes">${A.presets.map(p => `<span class="snd-mix"><button type="button" data-dpreset="${p.id}"><b>${esc(p.name)}</b><small>${esc([p.music ? genreName(p.genre) : t('g_none'), ...natList(p.nature)].join(' · '))}</small></button><button type="button" class="icon-btn" data-dpdel="${p.id}" aria-label="${esc(t('delete'))}">${ico(CLOSE_I)}</button></span>`).join('')}</div>`
+          : `<p class="hint">${esc(t('snd_no_mix'))}</p>`}
+      </section>
+
+      <section class="snd-sec">
+        <span class="label">${esc(t('snd_music'))}</span>
+        <div class="snd-fams">${Object.keys(GENRE_FAM).map(f => `<button type="button" class="snd-fam ${f === famOf(GENRE_FAM, curG) ? 'has' : ''}" data-dgfam="${f}" aria-pressed="${f === curFam}">${ico(FAM_ICON[f])}<span>${esc(t('gf_' + f))}</span></button>`).join('')}</div>
+        <div class="snd-genres">${GENRE_FAM[curFam].map(g => `<button type="button" class="snd-genre" data-dgenre="${g}" aria-pressed="${g === curG}"><b>${esc(genreName(g))}</b><small>${esc(t('gd_' + g))}</small></button>`).join('')}</div>
+        ${curFam === 'mine' ? `<div class="d-mine"><p class="hint">${esc(t('mine_hint'))}</p>
+          <ul>${tracks.length ? tracks.map(tr => `<li><span>${esc(tr.name)}</span><button type="button" class="icon-btn" data-dtrack="${tr.id}" aria-label="${esc(t('delete'))}">${ico(CLOSE_I)}</button></li>`).join('') : `<li class="none">${esc(t('mine_empty'))}</li>`}</ul>
+          <label class="file-btn small">${esc(t('mine_add'))}<input type="file" id="d-files" accept="audio/*" multiple></label></div>` : ''}
+        <label class="d-slider"><span>${esc(t('music_vol'))}</span><input type="range" id="d-mvol" min="0" max="1" step="0.05" value="${A.musicVol}"></label>
+      </section>
+
+      <section class="snd-sec">
+        <div class="snd-lab"><span class="label">${esc(t('snd_noise'))}</span>${nOn ? `<span class="hint">${esc(t('snd_on_n', { n: nOn }))}</span>` : ''}</div>
+        <div class="chips">${Object.keys(NATURE_FAM).map(f => { const n = NATURE_FAM[f].filter(k => k in A.nature).length; return `<button type="button" class="chip-btn" data-dnfam="${f}" aria-pressed="${f === curNatFam}">${esc(t('nf_' + f))}${n ? ' · ' + n : ''}</button>`; }).join('')}</div>
+        <div class="nat-grid">${NATURE_FAM[curNatFam].filter(k => k !== 'royalriver' || hasHippo()).map(k => `<button type="button" class="nat ${k in A.nature ? 'on' : ''}" data-dnat="${k}" aria-pressed="${k in A.nature}">${esc(t('n_' + k))}</button>`).join('')}</div>
+        ${nOn ? `<div class="nat-vols">${Object.entries(A.nature).map(([k, v]) => `<label class="d-slider"><span>${esc(t('n_' + k))}</span><input type="range" data-dnatv="${k}" min="0.05" max="1" step="0.05" value="${v}"></label>`).join('')}</div>` : ''}
+      </section>
+
+      <details class="snd-adv" id="snd-adv" ${advOpen ? 'open' : ''}><summary>${esc(t('snd_adv'))}</summary>
+        <div class="snd-adv-in">
+          <div class="seg-toggle five" role="group">${Object.keys(MODES).map(k => `<button type="button" data-dmode="${k}" aria-pressed="${k === A.mode}">${esc(t('mode_' + k))}</button>`).join('')}</div>
+          <div class="d-row"><span class="label">${esc(t('activity'))}</span><div class="chips">${chipRow(Object.keys(M.subs), A.sub, 'dsub', v => t('sub_' + v))}</div></div>
+          <div class="d-row"><span class="label" title="${esc(t('neural_hint'))}">${esc(t('neural'))}</span><div class="chips">${chipRow(Object.keys(DEPTH), A.neural, 'dneural', v => t('neural_' + v))}</div><p class="hint">${esc(t('neural_hint'))}</p></div>
+          <div class="d-row d-tone"><label class="opt"><input type="checkbox" id="d-tone" ${A.tone.on ? 'checked' : ''}> ${esc(t('tone_on'))}</label>
+            ${A.tone.on ? `<div class="chips">${[40, 42, 432, 528].map(h => `<button type="button" class="chip-btn" data-dtone="${h}" aria-pressed="${+A.tone.hz === h}">${h} Hz</button>`).join('')}<label class="tone-hz"><input type="number" id="d-tone-hz" min="1" max="2000" value="${A.tone.hz}"> Hz</label></div>
+              <div class="chips">${chipRow(['pure', 'binaural', 'iso'], A.tone.kind, 'dtonek', v => t('tone_' + v))}</div>
+              <label class="d-slider"><span>${esc(t('tone_vol'))}</span><input type="range" id="d-tone-vol" min="0.05" max="1" step="0.05" value="${A.tone.vol}"></label>
+              <p class="hint">${esc(t('tone_hint'))}</p>` : ''}</div>
+          ${isSleep ? `<div class="d-row d-sleep"><span class="label">${esc(t('sleep_timer'))}</span><div class="chips">
+              ${(A.mode === 'nap' ? [15, 20, 25, 30] : [15, 30, 45, 60, 90]).map(m => `<button type="button" class="chip-btn" data-dsleep="${m}" aria-pressed="${m === (A.mode === 'nap' ? A.napMins : A.sleepMins)}">${m} min</button>`).join('')}
+              <button type="button" class="small primary" id="d-sleep-go">${esc(sleepEnd ? t('stop_sleep') : t('start_sleep'))}</button></div>
+              <span class="mono" id="d-sleep-left"></span></div>` : ''}
+          ${showBreath ? `<div class="d-row d-breath"><span class="label">${esc(t('breath'))}</span>
+              <div class="breath-wrap"><div class="breath-circle" id="d-breath-circle"></div><span id="d-breath-label">${breathOn ? '' : '—'}</span></div>
+              <div class="chips">${chipRow(Object.keys(BREATHS), A.breath, 'dbreath', v => t('breath_' + v))}</div>
+              <div class="chips"><button type="button" class="small ${breathOn ? '' : 'primary'}" id="d-breath-go">${esc(breathOn ? t('breath_stop') : t('breath_start'))}</button>
+              <label class="opt"><input type="checkbox" id="d-voice" ${A.voice ? 'checked' : ''}> ${esc(t('voice'))}</label></div></div>` : ''}
+          <div class="opts">
+            <label class="opt"><input type="checkbox" id="d-auto" ${A.auto ? 'checked' : ''}> ${esc(t('auto_sound'))}</label>
+            <label class="opt"><input type="checkbox" id="d-brk" ${A.breakRelax ? 'checked' : ''}> ${esc(t('break_relax'))}</label>
+          </div>
+          <label class="d-slider"><span>${esc(t('master_vol'))}</span><input type="range" id="d-master" min="0" max="1" step="0.05" value="${A.master}"></label>
+        </div></details>
+    </div>`;
+  }
+  function openSheet() { savingMix = false; renderSheet(); ML.openOverlay('sound'); }
+  ML.openSound = openSheet;
+  sheetOv.addEventListener('toggle', e => { if (e.target.id === 'snd-adv') advOpen = e.target.open; }, true);
+
+  function onClick(e) {
     const A = S.audio, b = e.target.closest('button'); if (!b) return;
     ensure();
     if (b.id === 'd-play') { if (playing) { userStopped = true; stopAll(); } else { userStopped = false; override = null; play(); } return; }
-    if (b.id === 'd-open') { A.open = !A.open; save(); renderDeck(); return; }
+    const sa = b.dataset.snd;
+    if (sa === 'open') { openSheet(); return; }
+    if (sa === 'save') { savingMix = !savingMix; renderSheet(); if (savingMix) setTimeout(() => { const i = $('d-pname'); if (i) i.focus(); }, 30); return; }
+    if (sa === 'world') {
+      if (isWorldMix() && playing) { userStopped = true; stopAll(); return; }
+      const m = worldMix();
+      if (A.mode !== 'focus') { A.mode = 'focus'; A.sub = Object.keys(MODES.focus.subs)[0]; }
+      Object.assign(A, { music: true, genre: m.genre, nature: Object.assign({}, m.nature) });
+      openGenreFam = null; openNatFam = null; save(); userStopped = false; override = null; play(); return;
+    }
     if (b.dataset.dgfam) {
       const f = b.dataset.dgfam;
       if (GENRE_FAM[f].length === 1) { const g = GENRE_FAM[f][0]; openGenreFam = f; if (g === 'none') A.music = false; else { A.music = true; A.genre = g; } if (g === 'mine') loadTracks().then(renderDeck); save(); refresh(); return; }
@@ -1069,17 +1271,17 @@
     else if (b.dataset.dpreset) {
       const p = A.presets.find(x => x.id === b.dataset.dpreset); if (!p) return;
       Object.assign(A, { mode: p.mode, sub: p.sub, genre: p.genre, music: p.music, nature: Object.assign({}, p.nature), neural: p.neural });
+      openGenreFam = null; openNatFam = null;
       toast(t('preset_applied', { name: p.name }));
     }
     else if (b.dataset.dpdel) A.presets = A.presets.filter(x => x.id !== b.dataset.dpdel);
-    else if (b.id === 'd-suggest') { const m = MOOD_MIX[S.mood]; Object.assign(A, { mode: m.mode, sub: m.sub, genre: m.genre, music: true, nature: Object.assign({}, m.nature) }); }
     else if (b.dataset.dtrack) { DB.del(b.dataset.dtrack).then(loadTracks).then(renderDeck); return; }
     else return;
     save();
-    if (!playing && (b.dataset.dnat || b.dataset.dgenre || b.dataset.dsub || b.dataset.dpreset || b.id === 'd-suggest') && A.auto && !(ML.running() && S.mode === 'focus')) toast(t('sound_tap'));
+    if (!playing && (b.dataset.dnat || b.dataset.dgenre || b.dataset.dsub || b.dataset.dpreset) && A.auto && !(ML.running() && S.mode === 'focus')) toast(t('sound_tap'));
     refresh();
-  });
-  deck.addEventListener('input', e => {
+  }
+  function onInput(e) {
     const A = S.audio, el = e.target;
     if (el.id === 'd-mvol') A.musicVol = +el.value;
     else if (el.id === 'd-master') A.master = +el.value;
@@ -1087,8 +1289,8 @@
     else if (el.dataset.dnatv) A.nature[el.dataset.dnatv] = +el.value;
     else return;
     save(); applyLevels(); syncTone(); if (el.dataset.dnatv) syncNature();
-  });
-  deck.addEventListener('change', e => {
+  }
+  function onChange(e) {
     const A = S.audio, el = e.target;
     if (el.id === 'd-tone') { A.tone.on = el.checked; save(); if (A.tone.on && !playing) toast(t('sound_tap')); refresh(); return; }
     if (el.id === 'd-tone-hz') { A.tone.hz = clamp(Math.round(+el.value) || 40, 1, 2000); save(); refresh(); return; }
@@ -1101,14 +1303,19 @@
       return;
     } else return;
     save();
-  });
-  deck.addEventListener('submit', e => {
+  }
+  function onSubmit(e) {
     e.preventDefault();
-    const name = ($('d-pname').value || '').trim(); if (!name) return;
+    const name = ($('d-pname') && $('d-pname').value || '').trim(); if (!name) return;
     const A = S.audio;
     A.presets.push({ id: ML.uid(), name, mode: A.mode, sub: A.sub, genre: A.genre, music: A.music, nature: Object.assign({}, A.nature), neural: A.neural });
-    save(); renderDeck(); toast(t('preset_saved', { name }));
+    savingMix = false; save(); renderDeck(); toast(t('preset_saved', { name }));
+  }
+  [$('sound-deck'), sheetOv].forEach(el => {
+    el.addEventListener('click', onClick); el.addEventListener('input', onInput);
+    el.addEventListener('change', onChange); el.addEventListener('submit', onSubmit);
   });
+  on('world', () => renderDeck());
 
   /* ---------- Settings: sound test + diagnostic (helps debug phones) ---------- */
   ML.addStrings({

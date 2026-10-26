@@ -65,10 +65,20 @@
   function close() { ov.hidden = true; cur = null; }
   ML.endScreen = { open, close };
 
-  // 'session' fires inside complete(), before the switch to break: open once complete() has finished
+  // 'session' fires inside complete(), before the switch to break. The sheet waits for the world's ending to play
+  // (Codex's bell and pigeons, Washi's ink drop, the bursts) instead of covering it; a hidden tab gets it on return.
+  let waitT = 0;
   on('session', session => {
     if (!session || session.mins < 1) return;
-    setTimeout(() => open(session, session.xp || 0), 0);
+    clearTimeout(waitT);
+    const scene = (ML.codexOn && ML.codexOn()) || (ML.washiOn && ML.washiOn());
+    const wait = ML.reducedMotion() ? 600 : scene ? 4200 : 1800;
+    const go = () => {
+      if (ML.running() && S.mode === 'focus') return; // already started something else
+      if (document.visibilityState === 'hidden') { document.addEventListener('visibilitychange', go, { once: true }); return; }
+      open(session, session.xp || 0);
+    };
+    waitT = setTimeout(go, document.visibilityState === 'hidden' ? 0 : wait);
   });
 
   ov.addEventListener('click', e => {
