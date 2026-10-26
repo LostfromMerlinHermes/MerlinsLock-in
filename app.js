@@ -170,11 +170,11 @@
           ${extra.html || ''}
           <span class="chip t-dur">${task.spent ? fmtMins(task.spent) + ' / ' : ''}${fmtMins(task.mins)}</span>
           <span class="chip p-${task.pri}">${esc(t('pri_' + task.pri))}</span>
-          ${dueChip(task)}
+          <span class="t-extra">${dueChip(task)}
           ${task.repeat ? `<span class="chip" title="${esc(t('repeat_' + task.repeat))}">↻ ${esc(t('repeat_' + task.repeat))}</span>` : ''}
           ${subs.length ? `<button type="button" class="chip subs-chip" data-act="subs" aria-expanded="${open}">☰ ${subDone}/${subs.length}</button>` : task.done ? '' : `<button type="button" class="chip subs-chip ghosty" data-act="subs" aria-expanded="${open}">+ ${esc(t('step'))}</button>`}
           ${task.notes ? `<span class="chip" title="${esc(task.notes)}">✎</span>` : ''}
-          ${task.sample ? `<span class="chip sample">${esc(t('example'))}</span>` : ''}
+          ${task.sample ? `<span class="chip sample">${esc(t('example'))}</span>` : ''}</span>
         </div>
         ${subs.length ? `<div class="sub-prog" title="${subDone}/${subs.length}"><b style="width:${(subDone / subs.length * 100).toFixed(1)}%"></b></div>` : ''}
         ${open ? `<ul class="subs">${subs.map(s => `<li class="${s.done ? 'done' : ''}"><label><input type="checkbox" data-sub="${s.id}" ${s.done ? 'checked' : ''}><i class="sub-box" aria-hidden="true"></i><span>${esc(s.text)}</span>${!s.done && !s.xpGiven && !task.done && !task.sample ? `<small class="sub-xp">+${stepXp}</small>` : ''}</label></li>`).join('')}</ul>

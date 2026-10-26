@@ -67,7 +67,7 @@
   ML.taskXp = task => RXP[rarity(task)];
   ML.taskBadges = task => {
     const r = rarity(task);
-    return { cls: 'rar-' + r + (isBoss(task) ? ' boss' : ''), html: `${isBoss(task) ? '<span class="chip boss-chip">⚔ Boss</span>' : ''}<span class="chip rar">${esc(t('r_' + r))} · ${RXP[r]} XP</span>` };
+    return { cls: 'rar-' + r + (isBoss(task) ? ' boss' : ''), html: `${isBoss(task) ? '<span class="chip boss-chip">⚔ Boss</span>' : ''}<span class="chip rar"><b class="rar-n">${esc(t('r_' + r))}</b><i class="rar-sep"> · </i><b class="rar-xp">${RXP[r]} XP</b></span>` };
   };
   ML.taskEditExtras = task => `<label class="opt boss-opt"><input type="checkbox" name="boss" ${isBoss(task) ? 'checked' : ''}> ${esc(t('boss_set'))}</label>`;
   on('task:edit-save', ({ task, form }) => {
@@ -464,7 +464,7 @@
     const NOP = new Proxy(function () {}, { get: () => NOP, apply: () => NOP, set: () => true });
     let cx = ctx, lastPaint = 0;
     let still = ML.reducedMotion(); // reduced motion: one static frame, redrawn only on resize / theme change
-    const GLYPHS = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>/{}';
+    const GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモラリルレロワン0123456789ABCDEF<>/{}';
     let W = 0, H = 0, parts = [], fog = [], flies = [], stars = [], drops = [], jellies = [], twinkles = [], consts = [], embers = [], drawn = [], city = [], shoot = null, sky = null, nextSky = 0, hiGlyph = null, ptr = null, colors = ['#a678ff', '#3ee8e0'], glitch = 0, raf = null;
     function size() {
       const d = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
@@ -473,7 +473,7 @@
       fog = Array.from({ length: 7 }, () => ({ x: Math.random() * W, y: Math.random() * H, r: (0.35 + Math.random() * 0.4) * Math.max(W, H), v: (Math.random() - 0.5) * 0.15, a: 0.04 + Math.random() * 0.05 }));
       flies = Array.from({ length: Math.round(W * H / 26000) + 6 }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: 0, vy: 0, p: Math.random() * 6.28, s: 0.6 + Math.random() * 0.8 }));
       stars = Array.from({ length: Math.round(W * H / 9000) }, () => ({ x: Math.floor(Math.random() * W / 4) * 4, y: Math.floor(Math.random() * H / 4) * 4, s: Math.random() < 0.15 ? 4 : 2, p: Math.floor(Math.random() * 8) }));
-      drops = Array.from({ length: Math.max(6, Math.round(W / 70)) }, () => ({ x: Math.floor(Math.random() * W / 14) * 14, y: Math.random() * H, v: 0.6 + Math.random() * 1.4, n: 4 + Math.floor(Math.random() * 10) }));
+      drops = Array.from({ length: Math.max(8, Math.round(W / 55)) }, () => ({ x: Math.floor(Math.random() * W / 14) * 14, y: Math.random() * H, v: 0.6 + Math.random() * 1.4, n: 4 + Math.floor(Math.random() * 10), z: Math.floor(Math.random() * 3) }));
       // each jellyfish beats on its own 4–6 s cycle (T, ms)
       jellies = Array.from({ length: Math.max(3, Math.round(W / 320)) }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, s: 14 + Math.random() * 16, v: 0.1 + Math.random() * 0.12, p: Math.random() * 6.28, T: 4000 + Math.random() * 2000, c: i % 2 }));
       // Sanctuary: a few faint stars in the upper sky, each twinkling on its own offset cycle
@@ -522,6 +522,73 @@
       const pts = Array.from({ length: n }, (_, i) => [x0 + Math.cos(i * 1.3 + Math.random()) * (30 + Math.random() * 50), y0 + Math.sin(i * 1.3 + Math.random()) * (20 + Math.random() * 35)]);
       drawn.push({ pts, t0: performance.now() }); if (drawn.length > 3) drawn.shift();
     };
+    /* ---------- Netrunner (Fired up, dark): the megatower city (3.32) ----------
+       Chosen by the user from proposals/netrunner-villes.png (A) plus the katakana signs of B. Three depths with haze
+       between them (far blocks and a gold-lit arcology pyramid, stepped mid towers with light bands, near megatowers with
+       wings, a cut crown, cyan / magenta light seams and an antenna), painted once per size into an offscreen canvas.
+       Live: antenna lights blink, the vertical katakana signs glow and change a glyph now and then, one sign buzzes at
+       rest, a slow scan line crosses at rest. The katakana data rain (three depths) runs in front of the city. */
+    let net = null, netKey = '', netSigns = [], netBeacons = [], scanY = -1;
+    const KATA = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモラリルレロワン';
+    function netBuild() {
+      const c = document.createElement('canvas'), d = Math.min(2, devicePixelRatio || 1);
+      c.width = W * d; c.height = H * d; const b = c.getContext('2d'); b.setTransform(d, 0, 0, d, 0, 0);
+      let seed = 1337; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      const haze = (y, h, rgb, a) => { const g = b.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, `rgba(${rgb},0)`); g.addColorStop(1, `rgba(${rgb},${a})`); b.fillStyle = g; b.fillRect(0, y, W, h); };
+      // heights follow the screen; on phones the timer card is see-through, so the city stays low and quiet under the dial
+      const small = W < 700, u = Math.max(0.6, Math.min(1.4, H / 900)) * (small ? 0.55 : 1);
+      const sk = b.createLinearGradient(0, H * 0.3, 0, H); sk.addColorStop(0, 'rgba(26,15,58,0)'); sk.addColorStop(1, 'rgba(26,15,58,.55)'); b.fillStyle = sk; b.fillRect(0, 0, W, H);
+      // far blocks and the arcology
+      b.fillStyle = '#17163a'; for (let x = 0; x < W;) { const w = (30 + r() * 60) * u, h = (130 + r() * 140) * u; b.fillRect(x, H - h, w - 4, h); x += w; }
+      const ax = W * (0.62 + r() * 0.2), ah = 420 * u, aw = 200 * u;
+      b.fillStyle = '#211c4c'; b.beginPath(); b.moveTo(ax - aw, H); b.lineTo(ax - 26 * u, H - ah); b.lineTo(ax + 26 * u, H - ah); b.lineTo(ax + aw, H); b.fill();
+      b.strokeStyle = 'rgba(255,190,120,.3)'; b.lineWidth = 1.2; for (let y = H - ah + 26 * u; y < H; y += 24 * u) { const k = (y - (H - ah)) / ah; b.beginPath(); b.moveTo(ax - 26 * u - (aw - 26 * u) * k, y); b.lineTo(ax + 26 * u + (aw - 26 * u) * k, y); b.stroke(); }
+      haze(H - 330 * u, 330 * u, '40,24,90', 0.5);
+      // mid towers: stepped tops, horizontal light bands
+      for (let x = -20; x < W;) {
+        const w = (60 + r() * 90) * u, h = (150 + r() * 170) * u, y = H - h; b.fillStyle = '#0d0e28';
+        b.fillRect(x, y, w, h); b.fillRect(x + w * 0.15, y - 28 * u, w * 0.7, 28 * u); b.fillRect(x + w * 0.35, y - 56 * u, w * 0.3, 28 * u);
+        for (let yy = y + 18; yy < H; yy += (14 + Math.floor(r() * 3) * 8) * u) if (r() < 0.42) { b.fillStyle = r() < 0.2 ? 'rgba(255,43,214,.32)' : 'rgba(0,240,255,.2)'; b.fillRect(x + 6, yy, (w - 12) * (0.3 + r() * 0.7), 2); }
+        if (r() < (small ? 0.12 : 0.35)) netSigns.push({ x: x + w * (0.1 + r() * 0.6), y: y + 30 * u + r() * 80 * u, h: (70 + r() * 40) * u, c: r() < 0.5 ? '#ff2bd6' : '#00f0ff', g: Array.from({ length: 4 }, () => KATA[Math.floor(r() * KATA.length)]), p: r() * 6, far: true });
+        x += w + 8 * u;
+      }
+      haze(H - 200 * u, 200 * u, '30,16,70', 0.45);
+      // near megatowers: wings, a cut crown, light seams, an antenna (its light blinks live)
+      const n = Math.max(2, Math.round(W / 520));
+      for (let i = 0; i < n; i++) {
+        const w = (100 + r() * 50) * u, h = (380 + r() * 170) * u, x = (i + 0.15 + r() * 0.6) * W / n - w / 2, y = H - h;
+        b.fillStyle = '#05050d';
+        b.fillRect(x - 26 * u, y + h * 0.35, w + 52 * u, h * 0.65); b.fillRect(x - 12 * u, y + h * 0.15, w + 24 * u, h * 0.85); b.fillRect(x, y, w, h);
+        b.beginPath(); b.moveTo(x + 6, y); b.lineTo(x + w * 0.3, y - 46 * u); b.lineTo(x + w * 0.7, y - 46 * u); b.lineTo(x + w - 6, y); b.fill();
+        b.fillRect(x + w * 0.42, y - 116 * u, 3, 72 * u);
+        b.fillStyle = 'rgba(0,240,255,.22)'; b.fillRect(x - 12 * u, y + h * 0.15, w + 24 * u, 2); b.fillRect(x - 26 * u, y + h * 0.35, w + 52 * u, 2);
+        b.save(); b.globalAlpha = 0.65; b.shadowBlur = 8; b.shadowColor = '#00f0ff'; b.fillStyle = '#00f0ff'; b.fillRect(x + w * 0.25, y + 20, 2, h - 20); b.shadowColor = '#ff2bd6'; b.fillStyle = '#ff2bd6'; b.fillRect(x + w * 0.75, y + 60 * u, 2, h - 60 * u); b.restore();
+        for (let k = 0; k < 16; k++) { b.fillStyle = `rgba(0,240,255,${0.12 + r() * 0.3})`; b.fillRect(x + 8 + r() * (w - 16), y + 30 + r() * (h - 40), 4, 6); }
+        netBeacons.push({ x: x + w * 0.42 + 1.5, y: y - 116 * u, p: r() * 6 });
+        if (!small) netSigns.push({ x: x - 24 * u + (r() < 0.5 ? 0 : w + 24 * u), y: y + h * (0.4 + r() * 0.2), h: (96 + r() * 40) * u, c: r() < 0.5 ? '#ff2bd6' : '#00f0ff', g: Array.from({ length: 5 }, () => KATA[Math.floor(r() * KATA.length)]), p: r() * 6 });
+      }
+      haze(H - 90 * u, 90 * u, '20,10,50', 0.6);
+      net = c; netKey = W + 'x' + H;
+    }
+    function netDraw(tm, rest, now) {
+      if (W < 1 || H < 1) return; // not sized yet (a zero-size canvas would throw in drawImage and stop the loop)
+      if (!net || netKey !== W + 'x' + H) { netSigns = []; netBeacons = []; netBuild(); }
+      cx.drawImage(net, 0, 0, W, H);
+      // vertical katakana signs: a frame, the glyphs; one buzzes now and then at rest; a glyph changes every few seconds
+      cx.font = '600 13px "JetBrains Mono", monospace'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+      netSigns.forEach((s, i) => {
+        const buzz = rest && !still && Math.sin(tm * 0.0013 + s.p) > 0.985, a = (s.far ? 0.55 : 0.9) * (buzz ? 0.25 : 1);
+        if (!still && Math.random() < 0.0015) s.g[Math.floor(Math.random() * s.g.length)] = KATA[Math.floor(Math.random() * KATA.length)];
+        cx.globalAlpha = a; cx.strokeStyle = s.c; cx.lineWidth = 1.5; cx.shadowColor = s.c; cx.shadowBlur = 10; cx.strokeRect(s.x, s.y, 20, s.h); cx.shadowBlur = 0;
+        cx.fillStyle = s.c; const step = s.h / (s.g.length + 1); s.g.forEach((g, k) => cx.fillText(g, s.x + 10, s.y + step * (k + 1)));
+      });
+      cx.textAlign = 'start'; cx.textBaseline = 'alphabetic';
+      // antenna lights: a slow blink
+      netBeacons.forEach(bc => { const on = still ? 1 : (Math.sin(tm * 0.003 + bc.p) > 0.2 ? 1 : 0.15); glow(bc.x, bc.y, 12, '#ff4b4b', 0.5 * on); cx.globalAlpha = on; cx.fillStyle = '#ff6b6b'; cx.fillRect(bc.x - 2, bc.y - 2, 4, 4); });
+      // rest only: a faint scan line crosses the screen every ~14 s
+      if (rest && !still) { scanY = ((tm % 14000) / 14000) * (H + 60) - 30; cx.globalAlpha = 0.06; cx.fillStyle = '#00f0ff'; cx.fillRect(0, scanY, W, 18); cx.globalAlpha = 0.14; cx.fillRect(0, scanY + 8, W, 1.5); }
+      cx.globalAlpha = 1;
+    }
     /* ---------- Estampe (ex Salle blanche): the ink city (Fired up, light) ----------
        A static ink drawing cached per screen size (paper, a setting sun, three rows of towers, a monorail viaduct),
        then live parts each frame: red windows and neon columns that light up with today's progress, screens with
@@ -778,19 +845,21 @@
       } else {
         const square = th === 'netrunner';
         if (square) {
-          // Sparse data rain behind everything
-          cx.font = '12px "JetBrains Mono", monospace';
+          netDraw(tm, rest, now);
+          // Katakana data rain in front of the city, in three depths (size, brightness and speed per drop)
           // Rest only: now and then one glyph of the rain lights up in magenta for a moment
           if (rest && (!hiGlyph || now - hiGlyph.t0 > 900) && Math.random() < 0.004) hiGlyph = { d: drops[Math.floor(Math.random() * drops.length)], i: 1 + Math.floor(Math.random() * 3), t0: now };
           if (hiGlyph && (!rest || now - hiGlyph.t0 > 900)) hiGlyph = null;
           for (const d of drops) {
-            if (mv) { d.y += d.v; if (d.y - d.n * 14 > H) { d.y = -10; d.x = Math.floor(Math.random() * W / 14) * 14; } }
+            const z = d.z, fs = [10, 12, 15][z], sp = fs + 2, za = [0.6, 1, 1.35][z];
+            cx.font = fs + 'px "JetBrains Mono", monospace';
+            if (mv) { d.y += d.v * [0.6, 1, 1.5][z]; if (d.y - d.n * sp > H) { d.y = -10; d.x = Math.floor(Math.random() * W / 14) * 14; } }
             for (let i = 0; i < d.n; i++) {
               // the head glyph used to be near-white at 50 %: a lone bright digit in a gap read like a stray UI label
               const lit = hiGlyph && hiGlyph.d === d && hiGlyph.i === i;
-              cx.globalAlpha = lit ? 0.55 * Math.sin(Math.min(1, (now - hiGlyph.t0) / 900) * Math.PI) : (1 - i / d.n) * (i === 0 ? 0.3 : 0.14);
+              cx.globalAlpha = lit ? 0.55 * Math.sin(Math.min(1, (now - hiGlyph.t0) / 900) * Math.PI) : (1 - i / d.n) * (i === 0 ? 0.3 : 0.14) * za;
               cx.fillStyle = lit ? '#ff2bd6' : colors[0];
-              cx.fillText(GLYPHS[(Math.floor(d.y / 14) + i * 7 + d.x) % GLYPHS.length], d.x, d.y - i * 14);
+              cx.fillText(GLYPHS[(Math.floor(d.y / sp) + i * 7 + d.x) % GLYPHS.length], d.x, d.y - i * sp);
             }
           }
           cx.globalAlpha = 1;
