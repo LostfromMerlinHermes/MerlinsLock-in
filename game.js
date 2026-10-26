@@ -296,8 +296,8 @@
       dn_light: 'Always light', dn_autolight: 'Auto light (light by day, night from 9pm to 6am)',
       wb_btn: 'World: {w}. Change', wb_h: 'World · {mood}', wb_always: 'Always this world', wb_clock: 'Follow the hour: {day} by day, {night} after 9 pm',
       wb_kept: 'Saved for {mood}. Other energies keep their own.', wb_toast: 'World: {w}', wb_locked: '{w} is part of Premium.', wb_try: 'Try 1 min', wb_premium: 'Premium',
-      light_premium_hint: 'Premium: a third, light world for every mood (Washi, Codex, Print, Cartridge).',
-      th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Print', th_light_cartouche: 'Cartridge',
+      light_premium_hint: 'Premium: a third, light world for every mood (Washi, Codex, Estampe, Cartridge).',
+      th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Estampe', th_light_cartouche: 'Cartridge',
       ink_focus: 'Focus today {t}', ink_streak: 'Streak {n} d', ink_quests: 'Quests {n}/{m}', ink_next: 'Next block {t}',
     },
   });

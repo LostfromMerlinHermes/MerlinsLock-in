@@ -71,7 +71,7 @@
   on('session', session => {
     if (!session || session.mins < 1) return;
     clearTimeout(waitT);
-    const scene = (ML.codexOn && ML.codexOn()) || (ML.washiOn && ML.washiOn());
+    const scene = (ML.codexOn && ML.codexOn()) || (ML.washiOn && ML.washiOn()) || (ML.deepScene && ML.deepScene());
     const wait = ML.reducedMotion() ? 600 : scene ? 4200 : 1800;
     const go = () => {
       if (ML.running() && S.mode === 'focus') return; // already started something else

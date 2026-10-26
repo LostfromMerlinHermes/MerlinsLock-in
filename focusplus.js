@@ -41,8 +41,56 @@
   $('distract-btn').onclick = distracted;
   on('render', renderDistract);
 
-  /* ---------- Deep focus ---------- */
-  let deepOn = false;
+  /* ---------- Deep focus ----------
+     Two worlds have their own full screen (3.31), and the classic dial stays one tap away (S.deepStyle[world] = 'classic'):
+     - Netrunner: "terminal" — big digits with a magenta offset, one block per minute with the four quarters marked,
+       a live session log on the left and today's tasks as a file list on the right; a short glitch at each quarter.
+     - Estampe: "proof" (l'épreuve) — the time printed in two plates, the red one slightly off register and lining up
+       as the session goes on; printer's marks around; a ruler the red fills; a PAUSE rubber stamp; a seal at the end,
+       when the ink city appears. Chosen by the user from proposals/pleinecran-fired2.png (D) and estampe-epreuve.png. */
+  ML.addStrings({
+    fr: {
+      dp_style: 'Style du plein écran', dp_classic: 'Classique', dp_terminal: 'Terminal', dp_proof: 'Épreuve',
+      nt_log: '// JOURNAL', nt_today: '// AUJOURD’HUI', nt_next: 'SUIVANTE >', nt_min: '{n} / {m} MIN', nt_none: '(aucune tâche)',
+      lg_start: 'début', lg_q: 'quart {n}/4 ok', lg_park: 'pensée parquée', lg_distr: 'décroché ({n})', lg_pause: 'pause', lg_resume: 'reprise', lg_done: 'session terminée', lg_break: 'pause en cours',
+      pf_focus: 'FOCUS · N° {n}', pf_paused: 'EN PAUSE', pf_done: 'SESSION IMPRIMÉE', pf_stamp: 'PAUSE', pf_streak: 'SÉRIE {n} J', pf_proof: 'ÉPREUVE N° {n} · {d}', pf_next: 'ensuite : {t}',
+    },
+    en: {
+      dp_style: 'Full-screen style', dp_classic: 'Classic', dp_terminal: 'Terminal', dp_proof: 'Proof',
+      nt_log: '// LOG', nt_today: '// TODAY', nt_next: 'NEXT >', nt_min: '{n} / {m} MIN', nt_none: '(no task)',
+      lg_start: 'start', lg_q: 'quarter {n}/4 ok', lg_park: 'thought parked', lg_distr: 'distracted ({n})', lg_pause: 'paused', lg_resume: 'resumed', lg_done: 'session complete', lg_break: 'break running',
+      pf_focus: 'FOCUS · NO. {n}', pf_paused: 'PAUSED', pf_done: 'SESSION PRINTED', pf_stamp: 'PAUSE', pf_streak: 'STREAK {n} D', pf_proof: 'PROOF NO. {n} · {d}', pf_next: 'next: {t}',
+    },
+  });
+  ML.defaults(() => ({ deepStyle: {} }));
+  const WORLD_STYLE = { netrunner: 'terminal', tokyo: 'proof' };
+  const worldKey = () => { const r = document.documentElement, th = r.dataset.theme; return r.dataset.light ? { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' }[th] : th; };
+  const styleNow = () => { const k = worldKey(), sp = WORLD_STYLE[k]; return sp && (S.deepStyle || {})[k] !== 'classic' ? sp : 'classic'; };
+  const hm = d => ML.pad2(d.getHours()) + ':' + ML.pad2(d.getMinutes());
+  const todaysSessions = () => { const td = today(); return S.sessions.filter(s => dayKey(new Date(s.at)) === td); };
+
+  let deepOn = false, built = '', doneUntil = 0;
+  // the session log of the terminal: lines added by what happens during the session, reset when a focus starts
+  let log = [], lastQ = 0, wasRun = false, wasMode = null;
+  const addLog = (txt, hot) => { log.push({ at: hm(new Date()), txt, hot }); if (log.length > 9) log = log.slice(-9); if (deepOn && built === 'terminal') renderLog(); };
+  on('timer', () => {
+    const run = ML.running();
+    if (run && S.mode === 'focus' && (wasMode !== 'focus' || !wasRun)) {
+      if (S.remaining >= S.total - 2 || wasMode !== 'focus') { log = []; lastQ = 0; addLog(t('lg_start')); } else addLog(t('lg_resume'));
+    } else if (!run && wasRun && S.mode === 'focus' && S.remaining > 0) addLog(t('lg_pause'));
+    else if (run && S.mode === 'break' && wasMode === 'focus') addLog(t('lg_break'));
+    wasRun = run; wasMode = S.mode;
+  });
+  on('parked', () => addLog(t('lg_park')));
+  on('distracted', () => addLog(t('lg_distr', { n: S.curDistr }), true));
+  on('session', s => {
+    if (!s || s.mins < 1) return;
+    addLog(t('lg_done') + (s.xp ? ' · +' + s.xp + ' XP' : ''), true);
+    doneUntil = Date.now() + 4200; // the world's ending plays in full screen before the end sheet (endscreen.js waits)
+    if (deepOn) { renderDeep(true); setTimeout(() => renderDeep(true), 4300); }
+  });
+  ML.deepScene = () => deepOn && styleNow() !== 'classic';
+
   // Controls fade out after a few seconds without moving, so only the clock is left on screen
   let idleT = null;
   function wake() {
@@ -52,7 +100,7 @@
   }
   ['pointermove', 'pointerdown', 'keydown'].forEach(ev => $('deep').addEventListener(ev, wake));
   function openDeep() {
-    deepOn = true; $('deep').hidden = false; renderDeep(true); wake();
+    deepOn = true; built = ''; $('deep').hidden = false; renderDeep(true); wake();
     document.documentElement.classList.add('deep-on');
     const el = $('deep');
     try { if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {}); } catch (e) {}
@@ -64,55 +112,160 @@
   }
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && deepOn && $('deep').hidden) deepOn = false; });
   const RING = 2 * Math.PI * 140;
+  const X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+  // top bar shared by every style: state, the style switch (when the world has its own screen), close
+  function topHtml() {
+    const sp = WORLD_STYLE[worldKey()], cur = styleNow();
+    const sw = sp ? `<div class="dp-style seg-toggle" role="group" aria-label="${esc(t('dp_style'))}"><button type="button" data-dpstyle="classic" aria-pressed="${cur === 'classic'}">${esc(t('dp_classic'))}</button><button type="button" data-dpstyle="${sp}" aria-pressed="${cur === sp}">${esc(t('dp_' + sp))}</button></div>` : '';
+    return `<div class="deep-top deep-ui"><span class="state" id="dp-state"></span>${sw}<button type="button" class="ghost icon-only" id="dp-close" aria-label="${esc(t('close'))}">${X}</button></div>`;
+  }
+  function dockHtml() {
+    return `<div class="deep-dock deep-ui">
+      <div class="deep-btns">
+        <button type="button" class="primary" id="dp-toggle"></button>
+        <button type="button" id="dp-distract">${esc(t('distracted'))} <span id="dp-dn"></span></button>
+        <button type="button" id="dp-finish">${esc(t('finish'))}</button>
+      </div>
+      <form class="park" id="dp-park" autocomplete="off"><input type="text" maxlength="140" placeholder="${esc(t('park_ph'))}" id="dp-park-in"><button type="submit">${esc(t('park'))}</button></form>
+      <p class="hint">${esc(t('deep_exit'))}</p>
+    </div>`;
+  }
+  function classicHtml(task) {
+    return `<div class="deep-aura" aria-hidden="true"><i></i><i></i><i></i></div>${topHtml()}
+      <div class="deep-center">
+        <div class="deep-dial">
+          <svg viewBox="0 0 320 320" aria-hidden="true"><circle class="dd-track" cx="160" cy="160" r="140"/><circle class="dd-arc" id="dp-arc" cx="160" cy="160" r="140" stroke-dasharray="${RING}"/></svg>
+          <div class="deep-clock" id="dp-clock" role="timer"></div>
+        </div>
+        <div class="deep-task" id="dp-task"></div>
+        ${task && task.subs && task.subs.length ? `<ul class="deep-subs">${task.subs.map(s => `<li><label><input type="checkbox" data-dsub="${s.id}" ${s.done ? 'checked' : ''}> <span>${esc(s.text)}</span></label></li>`).join('')}</ul>` : ''}
+      </div>${dockHtml()}`;
+  }
+  // Netrunner terminal
+  const blocksOf = () => Math.max(5, Math.min(60, Math.round(S.total / 60)));
+  function terminalHtml() {
+    const n = blocksOf();
+    return `${topHtml()}
+      <div class="nt">
+        <section class="nt-side nt-log"><h4>${esc(t('nt_log'))}</h4><ol id="nt-log"></ol></section>
+        <div class="nt-main">
+          <p class="nt-head">SESSION // <span id="nt-task"></span></p>
+          <div class="nt-clock" id="nt-clock" role="timer"></div>
+          <div class="nt-bar" id="nt-bar" style="--n:${n}">${Array.from({ length: n }, (_, i) => `<i${i && i % Math.round(n / 4) === 0 ? ' class="q"' : ''}></i>`).join('')}</div>
+          <div class="nt-qs"><span>Q1</span><span>Q2</span><span>Q3</span><span>Q4</span></div>
+          <p class="nt-min" id="nt-min"></p>
+        </div>
+        <section class="nt-side nt-files"><h4>${esc(t('nt_today'))}</h4><ul id="nt-files"></ul></section>
+      </div>
+      <p class="nt-next" id="nt-next"></p>${dockHtml()}`;
+  }
+  const fileName = s => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_|_$/g, '').slice(0, 24);
+  function renderLog() {
+    const el = $('nt-log'); if (!el) return;
+    el.innerHTML = log.map(l => `<li class="${l.hot ? 'hot' : ''}">${esc(l.at)} ${esc(l.txt)}</li>`).join('') + '<li class="cur">' + esc(hm(new Date())) + ' _</li>';
+  }
+  function renderFiles() {
+    const el = $('nt-files'); if (!el) return;
+    const td = today(), done = S.tasks.filter(x => x.done && x.doneAt && dayKey(new Date(x.doneAt)) === td);
+    const open = ML.orderedOpen().filter(x => !x.done);
+    const rows = [...done.map(x => ['ok', x]), ...open.map(x => [x.id === S.activeId ? 'cur' : '', x])].slice(0, 7);
+    el.innerHTML = rows.length ? rows.map(([k, x]) => `<li class="${k}">${k === 'ok' ? '[OK]' : k === 'cur' ? '[&gt;&gt;]' : '[&nbsp;&nbsp;]'} ${esc(fileName(ML.titleOf(x)))}</li>`).join('') : `<li>${esc(t('nt_none'))}</li>`;
+  }
+  // Estampe proof
+  function proofHtml() {
+    const mins = Math.round(S.total / 60), step = mins <= 30 ? 1 : 5, lab = mins <= 60 ? 5 : 15;
+    const ticks = []; for (let i = 0; i <= mins; i += step) ticks.push(i);
+    if (ticks[ticks.length - 1] !== mins) ticks.push(mins);
+    const q = [1, 2, 3].map(k => Math.round(mins * k / 4));
+    return `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="pf-rough"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2"/></filter>
+        <filter id="pf-tex"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="1" seed="2" result="n"/><feComponentTransfer in="n" result="m"><feFuncA type="discrete" tableValues="0 1 1 1 1"/></feComponentTransfer><feComposite in="SourceGraphic" in2="m" operator="in"/></filter></svg>
+      <div class="pf-marks" aria-hidden="true"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i><b class="l"></b><b class="r"></b></div>
+      ${topHtml()}
+      <div class="pf">
+        <header class="pf-head"><span id="pf-label"></span><span id="pf-meta"></span></header>
+        <div class="pf-time" role="timer"><span class="pf-plate red" id="pf-red" aria-hidden="true"></span><span class="pf-plate ink" id="pf-ink"></span>
+          <span class="pf-stamp" id="pf-stamp" aria-hidden="true">${esc(t('pf_stamp'))}</span>
+          <span class="pf-seal" id="pf-seal" aria-hidden="true"><b></b><small>MIN</small></span></div>
+        <div class="pf-task"><b id="pf-task"></b><small id="pf-next"></small></div>
+        <div class="pf-foot">
+          <div class="pf-city" id="pf-city" aria-hidden="true"></div>
+          <div class="pf-ruler" aria-hidden="true">${ticks.map(i => `<i style="left:${(i / mins * 100).toFixed(3)}%" class="${q.includes(i) || i === 0 || i === mins ? 'big' : ''}">${i % lab === 0 ? `<span>${i}</span>` : ''}</i>`).join('')}<b id="pf-fill"></b><em id="pf-mark"></em></div>
+          <div class="pf-colophon"><span class="pf-swatch"><i></i><i></i><i></i><i></i><i></i><i></i></span><span id="pf-proof"></span></div>
+        </div>
+      </div>${dockHtml()}`;
+  }
+  function cityHtml() { // a row of ink towers with a few red windows: the reward at the end of a print
+    let x = 0, s = 1, out = ''; const r = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    while (x < 100) { const w = 1.4 + r() * 3, h = 18 + r() * r() * 82; out += `<i style="left:${x}%;width:${w - .3}%;height:${h}%">${r() < .6 ? `<u style="top:${10 + r() * 60}%"></u>` : ''}</i>`; x += w; }
+    return out;
+  }
+  const clockParts = rem => { const c = MiniView.fmtClock(rem), i = c.lastIndexOf(':'); return `<i>${c.slice(0, i)}</i><i class="c">:</i><i>${c.slice(i + 1)}</i>`; };
+
   function renderDeep(full) {
     if (!deepOn) return;
-    const task = S.tasks.find(x => x.id === S.activeId);
-    const rem = ML.remainingNow(), frac = Math.max(0, rem) / S.total;
-    if (full || !$('dp-clock')) {
-      $('deep-inner').innerHTML = `
-        <div class="deep-aura" aria-hidden="true"><i></i><i></i><i></i></div>
-        <div class="deep-top deep-ui"><span class="state" id="dp-state"></span><button type="button" class="ghost icon-only" id="dp-close" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-        <div class="deep-center">
-          <div class="deep-dial">
-            <svg viewBox="0 0 320 320" aria-hidden="true"><circle class="dd-track" cx="160" cy="160" r="140"/><circle class="dd-arc" id="dp-arc" cx="160" cy="160" r="140" stroke-dasharray="${RING}"/></svg>
-            <div class="deep-clock" id="dp-clock" role="timer"></div>
-          </div>
-          <div class="deep-task" id="dp-task"></div>
-          ${task && task.subs && task.subs.length ? `<ul class="deep-subs">${task.subs.map(s => `<li><label><input type="checkbox" data-dsub="${s.id}" ${s.done ? 'checked' : ''}> <span>${esc(s.text)}</span></label></li>`).join('')}</ul>` : ''}
-        </div>
-        <div class="deep-dock deep-ui">
-          <div class="deep-btns">
-            <button type="button" class="primary" id="dp-toggle"></button>
-            <button type="button" id="dp-distract">⚡ ${esc(t('distracted'))} <span id="dp-dn"></span></button>
-            <button type="button" id="dp-finish">${esc(t('finish'))}</button>
-          </div>
-          <form class="park" id="dp-park" autocomplete="off"><input type="text" maxlength="140" placeholder="${esc(t('park_ph'))}" id="dp-park-in"><button type="submit">${esc(t('park'))}</button></form>
-          <p class="hint">${esc(t('deep_exit'))}</p>
-        </div>`;
+    const task = S.tasks.find(x => x.id === S.activeId), style = styleNow();
+    const rem = ML.remainingNow(), frac = Math.max(0, rem) / S.total, run = ML.running(), done = Date.now() < doneUntil;
+    const deep = $('deep');
+    if (full || built !== style || !$('dp-toggle')) {
+      $('deep-inner').innerHTML = style === 'terminal' ? terminalHtml() : style === 'proof' ? proofHtml() : classicHtml(task);
+      built = style; deep.dataset.style = style;
       $('dp-close').onclick = closeDeep;
       $('dp-toggle').onclick = () => ML.toggleTimer();
       $('dp-distract').onclick = distracted;
       $('dp-finish').onclick = () => $('skip').click();
       $('dp-park').onsubmit = e => { e.preventDefault(); const v = $('dp-park-in').value.trim(); if (!v) return; $('park-input').value = v; $('park-form').requestSubmit(); $('dp-park-in').value = ''; };
+      $('deep-inner').onclick = e => { const b = e.target.closest('[data-dpstyle]'); if (!b) return; S.deepStyle = Object.assign({}, S.deepStyle, { [worldKey()]: b.dataset.dpstyle }); save(); renderDeep(true); };
       $('deep-inner').onchange = e => {
         const cb = e.target.closest('[data-dsub]'); if (!cb || !task) return;
         const sub = task.subs.find(s => s.id === cb.dataset.dsub); if (sub) { ML.setSubDone(task, sub, cb.checked); ML.renderAll(); renderDeep(true); }
       };
+      if (style === 'terminal') { renderLog(); renderFiles(); }
+      if (style === 'proof' && done) $('pf-city').innerHTML = cityHtml();
     }
-    $('dp-clock').textContent = MiniView.fmtClock(rem);
     $('dp-state').textContent = $('state').textContent;
-    $('dp-task').textContent = S.mode === 'break' ? $('c-task').textContent : (ML.activeTitle() || t('free_focus'));
-    $('dp-arc').style.strokeDashoffset = (RING * (1 - frac)).toFixed(1);
-    $('deep').classList.toggle('paused', !ML.running());
-    if (!ML.running()) $('deep').classList.remove('idle');
+    deep.classList.toggle('paused', !run && !done);
+    deep.classList.toggle('done', done);
+    if (!run) deep.classList.remove('idle');
     $('dp-toggle').textContent = $('start').textContent;
     $('dp-dn').textContent = S.curDistr ? '(' + S.curDistr + ')' : '';
+    const title = S.mode === 'break' ? $('c-task').textContent : (ML.activeTitle() || t('free_focus'));
+    const nextTask = ML.orderedOpen().find(x => !x.done && x.id !== S.activeId);
+    if (style === 'classic') {
+      $('dp-clock').textContent = MiniView.fmtClock(rem);
+      $('dp-task').textContent = title;
+      $('dp-arc').style.strokeDashoffset = (RING * (1 - frac)).toFixed(1);
+    } else if (style === 'terminal') {
+      const c = MiniView.fmtClock(done ? 0 : rem), el = $('nt-clock'); el.textContent = c; el.dataset.t = c;
+      $('nt-task').textContent = title.toUpperCase();
+      const n = blocksOf(), gone = done ? n : Math.floor((1 - frac) * n);
+      [...$('nt-bar').children].forEach((b, i) => { b.className = (i && i % Math.round(n / 4) === 0 ? 'q ' : '') + (i < gone ? 'on' : i === gone && run ? 'now' : ''); });
+      $('nt-min').textContent = t('nt_min', { n: Math.round((S.total - Math.max(0, rem)) / 60), m: Math.round(S.total / 60) });
+      $('nt-next').textContent = nextTask ? t('nt_next') + ' ' + ML.titleOf(nextTask).toUpperCase() + (S.curDistr ? ' · ' + t('lg_distr', { n: S.curDistr }).toUpperCase() : '') : '';
+      // a quarter passed: log it and glitch the digits once
+      const qn = S.mode === 'focus' ? Math.floor((1 - frac) * 4 + 1e-6) : 0;
+      if (run && qn > lastQ && qn < 4) { lastQ = qn; addLog(t('lg_q', { n: qn }), qn === 2); if (!ML.reducedMotion()) { el.classList.remove('glitch-in'); void el.offsetWidth; el.classList.add('glitch-in'); setTimeout(() => el.classList.remove('glitch-in'), 260); } }
+    } else {
+      const ink = $('pf-ink'), red = $('pf-red'), parts = clockParts(done ? 0 : rem);
+      if (ink.dataset.c !== parts) { ink.innerHTML = parts; red.innerHTML = parts; ink.dataset.c = parts; }
+      const prog = done ? 1 : 1 - frac, off = done ? 0 : (1 - prog) * 0.02 + 0.006; // em: the red plate lines up as the session goes on
+      red.style.translate = `${off}em ${off * .6}em`;
+      const n = todaysSessions().length + (done ? 0 : 1);
+      $('pf-label').textContent = done ? t('pf_done') : !run && S.mode === 'focus' && rem < S.total ? t('pf_paused') : S.mode === 'break' ? $('state').textContent.toUpperCase() : t('pf_focus', { n });
+      $('pf-meta').textContent = hm(new Date()) + ' · ' + t('pf_streak', { n: ML.streaks().cur });
+      $('pf-task').textContent = title.toUpperCase();
+      $('pf-next').textContent = nextTask ? t('pf_next', { t: ML.titleOf(nextTask) }) : '';
+      $('pf-fill').style.width = (prog * 100).toFixed(2) + '%'; $('pf-mark').style.left = (prog * 100).toFixed(2) + '%';
+      $('pf-proof').textContent = t('pf_proof', { n, d: new Date().toLocaleDateString(ML.locale(), { day: '2-digit', month: '2-digit', year: 'numeric' }) });
+      const last = todaysSessions().slice(-1)[0]; if (done && last) $('pf-seal').querySelector('b').textContent = last.mins;
+    }
   }
   $('deep-btn').onclick = openDeep;
   on('tick', () => renderDeep(false));
   on('timer', () => renderDeep(true));
+  on('mood', () => renderDeep(true)); on('world', () => renderDeep(true));
+  on('task:done', () => { if (built === 'terminal') renderFiles(); });
   ML.openDeep = openDeep;
-
   // Shortcut D for Deep focus; Esc closes Deep focus, the shop and the review
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { if (deepOn) closeDeep(); ['shop', 'review'].forEach(id => { if (!$(id).hidden) $(id).hidden = true; }); return; }
