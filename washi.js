@@ -297,7 +297,26 @@
   let fog = 0, ensoA = 0, last = 0, endT0 = 0;
   const timerState = () => root.dataset.timer || 'idle'; // idle | running | break | paused
   const progress = () => { const tot = S.total || 1, rem = ML.remainingNow ? ML.remainingNow() : tot; return Math.max(0, Math.min(1, 1 - Math.max(0, rem) / tot)); };
+  // A soft paper-coloured blob, drawn once: each mist band is this sprite stretched (8 gradients per frame were slow)
+  let mistImg = null;
+  function mistSprite() {
+    if (mistImg) return mistImg;
+    const [c, g] = mk(64, 64, 1), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, `rgba(${PAPER_RGB},1)`); gr.addColorStop(.5, `rgba(${PAPER_RGB},.5)`); gr.addColorStop(1, `rgba(${PAPER_RGB},0)`);
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return (mistImg = c);
+  }
+  // Where the dial is, read at most 4 times a second (reading it each frame forced a layout on every frame)
+  let ringBox = null, rectAt = 0;
+  function ringRect(now) {
+    if (now - rectAt < 250 && rectAt) return ringBox;
+    rectAt = now;
+    const ring = $('sigil-card').classList.contains('compact') ? null : document.querySelector('#sigil-card .ring-wrap');
+    const r = ring && ring.getBoundingClientRect();
+    return (ringBox = r && r.width ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null);
+  }
+  addEventListener('scroll', () => { rectAt = 0; }, { passive: true, capture: true });
   ML.washiDraw = (cx, w, h, slow, still, now) => {
+    if (typeof cx === 'function') return; // a skipped frame (game.js paints at ~30 fps): nothing to compute either
     ensureScene(w, h);
     const dt = Math.min(100, last ? now - last : 16) * (still ? 0 : 1); last = now;
     const lv = level(), st = timerState(), focusing = st === 'running' || (st === 'paused' && S.mode === 'focus'), col = ink();
@@ -307,12 +326,12 @@
       // mist: drifting bands, then the veil that swallows the landscape during focus (it lifts on a pause)
       const fogT = st === 'running' ? 1 : st === 'paused' ? .35 : st === 'break' ? .05 : lv === 'peint' ? .08 : .12;
       fog = still ? fogT : fog + (fogT - fog) * Math.min(1, dt / 2600);
+      const spr = mistSprite();
       for (const m of mists) {
         if (!still) { m.x += m.v * dt / 33 * (1 + fog * .6) * (slow || .3); if (m.x - m.rx > W) m.x = -m.rx; if (m.x + m.rx < 0) m.x = W + m.rx; }
-        cx.save(); cx.translate(m.x, m.y); cx.scale(1, m.k);
-        const gr = cx.createRadialGradient(0, 0, 0, 0, 0, m.rx); gr.addColorStop(0, `rgba(${PAPER_RGB},${m.a * (.45 + .55 * fog)})`); gr.addColorStop(1, `rgba(${PAPER_RGB},0)`);
-        cx.fillStyle = gr; cx.beginPath(); cx.arc(0, 0, m.rx, 0, 6.29); cx.fill(); cx.restore();
+        cx.globalAlpha = m.a * (.45 + .55 * fog); cx.drawImage(spr, m.x - m.rx, m.y - m.rx * m.k, m.rx * 2, m.rx * 2 * m.k);
       }
+      cx.globalAlpha = 1;
       cx.fillStyle = `rgba(${PAPER_RGB},${fog * .72})`; cx.fillRect(0, 0, W, H);
     }
     // plum branches grow from their corner on a pause or a break, blossom, then fade when focus comes back
@@ -334,10 +353,9 @@
       const want = deep ? 0 : ended ? .2 : st === 'running' && S.mode === 'focus' ? .17 : st === 'paused' && S.mode === 'focus' ? .1 : 0;
       ensoA = still || deep ? want : ensoA + (want - ensoA) * Math.min(1, dt / (want ? 900 : 2200)); // gone at once behind Deep focus
       const p = ended ? Math.min(1, .85 + (now - endT0) / 1500) : progress();
-      const ring = $('sigil-card').classList.contains('compact') ? null : document.querySelector('#sigil-card .ring-wrap');
-      const r = ring && ring.getBoundingClientRect();
-      if (ensoA > .005 && p > 0 && r && r.width) {
-        const ccx = r.left + r.width / 2, ccy = r.top + r.height / 2, a0 = -1.81;
+      const r = ensoA > .005 && p > 0 ? ringRect(now) : null;
+      if (r) {
+        const ccx = r.x, ccy = r.y, a0 = -1.81;
         cx.save(); cx.beginPath(); cx.moveTo(ccx, ccy); cx.arc(ccx, ccy, ensoR * 1.1, a0, a0 + Math.PI * 1.96 * p); cx.closePath(); cx.clip();
         cx.globalAlpha = Math.min(1, ensoA / .2) * .55; cx.drawImage(ensoImg, ccx - ensoR, ccy - ensoR, ensoR * 2, ensoR * 2); cx.restore();
       }
@@ -370,18 +388,19 @@
   ML.washiKeepsDrawing = () => isOn() && level() === 'peint';
 
   /* ---------- Deep focus: the ink ensō (Peint) ---------- */
-  let deepImg = null, deepImgR = 0;
+  let deepImg = null, deepImgR = 0, deepKey = '', deepAt = 0, deepBox = null;
   function deepInk(now, still) {
     const dial = document.querySelector('#deep .deep-dial'); if (!dial) return;
     let c = dial.querySelector('canvas.dd-ink');
-    if (!c) { c = document.createElement('canvas'); c.className = 'dd-ink'; c.setAttribute('aria-hidden', 'true'); dial.prepend(c); }
-    const box = dial.getBoundingClientRect(), S2 = Math.round(box.width * 1.3), d = Math.min(2, devicePixelRatio || 1);
+    if (!c) { c = document.createElement('canvas'); c.className = 'dd-ink'; c.setAttribute('aria-hidden', 'true'); dial.prepend(c); deepKey = ''; }
+    if (!deepBox || now - deepAt > 500) { deepAt = now; deepBox = dial.getBoundingClientRect(); }
+    const box = deepBox, S2 = Math.round(box.width * 1.3), d = Math.min(2, devicePixelRatio || 1);
     if (!S2) return;
+    const p = progress(), key = [S2, ink(), Math.round(p * 1000)].join('|'); if (key === deepKey) return; deepKey = key; // redrawn only when it moves
     if (c.width !== Math.round(S2 * d)) { c.width = c.height = Math.round(S2 * d); }
     const g = c.getContext('2d'); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, S2, S2);
     const Rr = box.width * .46, ccx = S2 / 2, a0 = -Math.PI / 2 - .1;
     if (!deepImg || deepImgR !== Math.round(Rr) || deepImg.dataset.ink !== ink()) { deepImg = dryRing(Rr * 2.2, Rr * 2.2, ink(), 29, { th: .07, span: Math.PI * 1.95, a0, dry: .75, alpha: [.55, .45] }); deepImg.dataset.ink = ink(); deepImgR = Math.round(Rr); }
-    const p = progress();
     g.globalAlpha = .07; g.drawImage(deepImg, ccx - Rr * 1.1, ccx - Rr * 1.1, Rr * 2.2, Rr * 2.2); // the guide: where the brush will go
     g.save(); g.beginPath(); g.moveTo(ccx, ccx); g.arc(ccx, ccx, Rr * 1.3, a0 - .05, a0 + Math.PI * 1.97 * p); g.closePath(); g.clip();
     g.globalAlpha = .9; g.drawImage(deepImg, ccx - Rr * 1.1, ccx - Rr * 1.1, Rr * 2.2, Rr * 2.2); g.restore(); g.globalAlpha = 1;
@@ -417,27 +436,95 @@
   }
   on('session', () => { if (!isOn()) return; endT0 = performance.now(); dropInk(); });
 
+  /* ---------- The settings, in a corner (3.36): the same two menus, right after the World button ---------- */
+  // Wide screens: in the header beside « Washi ▾ ». Phones / side panel: the World button sits beside the energy
+  // pill, and this takes its own row under them. Only while Washi is shown (it replaces the Settings section).
+  const set = document.createElement('div');
+  set.className = 'washi-set'; set.id = 'washi-set'; set.hidden = true; set.setAttribute('role', 'group');
+  const short = k => t(k).split(' (')[0];
+  function renderSet() {
+    const wb = $('world-btn'), show = isOn() && !!wb && !wb.hidden, brand = document.querySelector('.top > .brand');
+    if (root.classList.contains('mnav-on') && brand) { if (brand.nextElementSibling !== set) brand.after(set); } // phones: top-right, on the title's line
+    else if (wb && wb.nextElementSibling !== set) wb.after(set);
+    set.hidden = !show; if (!show) return;
+    const key = [level(), W_().ink, S.lang].join('|'); if (set.dataset.key === key) return; set.dataset.key = key;
+    const opt = (vals, cur, pre) => vals.map(v => `<option value="${v}"${v === cur ? ' selected' : ''}>${esc(short(pre + v))}</option>`).join('');
+    set.setAttribute('aria-label', t('set_washi'));
+    set.innerHTML = `<label class="ws-sel"><select id="ws-level" aria-label="${esc(t('washi_level'))}">${opt(['sobre', 'encre', 'peint'], level(), 'wl_')}</select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></label>
+      <label class="ws-sel"><i style="background:${ink()}"></i><select id="ws-ink" aria-label="${esc(t('washi_ink'))}">${opt(['indigo', 'sumi', 'mousse', 'prune'], W_().ink || 'indigo', 'wi_')}</select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></label>`;
+  }
+  set.addEventListener('change', e => {
+    const k = e.target.id === 'ws-level' ? 'level' : e.target.id === 'ws-ink' ? 'ink' : null; if (!k) return;
+    S.washi = Object.assign({}, W_(), { [k]: e.target.value }); save(); sync();
+  });
+
+  /* ---------- The incense (3.36): bottom-right, beside the seal, it burns down with the focus session ---------- */
+  // A celadon tripod bowl (tinted by the ink), fine sand, a stick that shortens with the session's progress, a glowing
+  // ember, a curl of ash and two strands of smoke. At rest a fresh stick with its red tip; paused: the ember dims, no smoke.
+  // It sits under the app (z 0, like #fx), so it never covers a card. Encré and Peint only.
+  const inc = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  inc.id = 'washi-incense'; inc.setAttribute('viewBox', '0 -60 80 260'); inc.setAttribute('aria-hidden', 'true');
+  inc.innerHTML = `<defs>
+      <linearGradient id="wi-glaze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".55" stop-color="#fff" stop-opacity=".2"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient>
+      <radialGradient id="wi-hi" cx=".32" cy=".25" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <linearGradient id="wi-sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ece7dc"/><stop offset="1" stop-color="#cfc8b8"/></linearGradient>
+      <linearGradient id="wi-stick" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4a3226"/><stop offset=".5" stop-color="#7a5440"/><stop offset="1" stop-color="#4a3226"/></linearGradient>
+      <radialGradient id="wi-ember"><stop offset="0" stop-color="#fff1d6"/><stop offset=".3" stop-color="#ff9a5c"/><stop offset=".7" stop-color="#d9452a" stop-opacity=".5"/><stop offset="1" stop-color="#d9452a" stop-opacity="0"/></radialGradient>
+      <linearGradient id="wi-fade" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff"/><stop offset=".7" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <mask id="wi-mask" maskUnits="userSpaceOnUse" x="-40" y="-60" width="160" height="260"><rect class="wi-mrect" x="-40" y="-60" width="160" height="150" fill="url(#wi-fade)"/></mask>
+      <filter id="wi-soft" x="-100%" y="-20%" width="300%" height="140%"><feGaussianBlur stdDeviation="1.1"/></filter>
+      <filter id="wi-soft2" x="-100%" y="-20%" width="300%" height="140%"><feGaussianBlur stdDeviation="2.4"/></filter>
+    </defs>
+    <g class="wi-smoke" mask="url(#wi-mask)"><g class="wi-sm">
+      <path d="M40 124 C35 110 46 96 40 82 C35 68 46 54 40 40 C35 26 46 12 40 -2 C35 -16 46 -30 40 -44 C35 -58 46 -72 40 -86" fill="none" stroke="#8d97a3" stroke-width="1.6" opacity=".7" filter="url(#wi-soft)"/>
+      <path d="M44 116 C50 102 39 88 45 74 C51 60 39 46 45 32 C51 18 39 4 45 -10 C51 -24 39 -38 45 -52 C51 -66 39 -80 45 -94" fill="none" stroke="#a7b0ba" stroke-width="3.5" opacity=".35" filter="url(#wi-soft2)"/>
+    </g></g>
+    <ellipse cx="40" cy="197" rx="30" ry="3.5" class="wi-ink" opacity=".14"/>
+    <g class="wi-ink" opacity=".75"><rect x="17" y="187" width="5" height="8" rx="2"/><rect x="58" y="187" width="5" height="8" rx="2"/><rect x="37.5" y="189" width="5" height="7" rx="2"/></g>
+    <path d="M8 162 Q8 192 40 192 Q72 192 72 162 Z" class="wi-glaze"/>
+    <path d="M8 162 Q8 192 40 192 Q72 192 72 162 Z" fill="url(#wi-glaze)"/>
+    <path d="M8 162 Q8 192 40 192 Q72 192 72 162 Z" fill="url(#wi-hi)"/>
+    <g fill="none" class="wi-crack" stroke-width=".5" opacity=".45"><path d="M18 170 l6 6 l-2 7"/><path d="M50 168 l-4 8 l5 6"/><path d="M60 174 l5 4"/><path d="M30 180 l8 2"/></g>
+    <ellipse cx="40" cy="162" rx="32" ry="6.5" class="wi-rim"/>
+    <ellipse cx="40" cy="162.5" rx="27" ry="4.6" fill="url(#wi-sand)"/>
+    <g fill="#bdb6a6"><circle cx="30" cy="162" r=".7"/><circle cx="47" cy="163.5" r=".6"/><circle cx="52" cy="161.5" r=".5"/><circle cx="25" cy="163" r=".5"/></g>
+    <rect class="wi-stick" x="38.6" y="30" width="2.8" height="133" rx="1.2" fill="url(#wi-stick)"/>
+    <rect class="wi-tip" x="38.4" y="28" width="3.2" height="10" rx="1.4" fill="#8a3a2a"/>
+    <path class="wi-ash" d="M40 0 q-1 -4 .8 -8" stroke="#a9a397" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <circle class="wi-ember" cx="40.6" cy="0" r="5" fill="url(#wi-ember)"/>
+    <g class="wi-fallen" fill="#c9c3b6"><circle cx="31" cy="162" r="1"/><circle cx="47" cy="163" r=".9"/><path d="M34 161 q3 -2 5 0" stroke="#bdb6a6" stroke-width="1" fill="none"/></g>`;
+  const q = s => inc.querySelector(s);
+  let incKey = '', roomy = null;
+  // only where the page has a margin wide enough beside the cards (it would be hidden behind them otherwise)
+  const hasRoom = () => { if (roomy === null) { const a = document.querySelector('.app'), r = a && a.getBoundingClientRect(); roomy = !!r && innerWidth - r.right >= 72; } return roomy; };
+  addEventListener('resize', () => { roomy = null; incKey = ''; setTimeout(renderIncense, 100); });
+  function renderIncense() {
+    const show = isOn() && level() !== 'sobre' && hasRoom();
+    if (show && !inc.isConnected) { const fx = $('fx'); if (fx) fx.after(inc); else document.body.prepend(inc); }
+    inc.style.display = show ? '' : 'none'; if (!show) { incKey = ''; return; }
+    const st = timerState(), focus = S.mode === 'focus' && (st === 'running' || st === 'paused'), p = focus ? progress() : 0;
+    const top = 30 + Math.round(p * 118 * 4) / 4, key = [st, focus, top, ink()].join('|'); if (key === incKey) return; incKey = key;
+    inc.dataset.state = !focus ? 'rest' : st; // rest | running | paused (CSS: smoke and ember)
+    inc.style.setProperty('--wi-ink', ink()); inc.style.setProperty('--wi-glaze', mix(ink(), '#B8D2C2', .28));
+    const stick = q('.wi-stick'); stick.setAttribute('y', top); stick.setAttribute('height', 163 - top);
+    q('.wi-ash').setAttribute('d', `M40 ${top} q-1 -4 .8 -8`);
+    q('.wi-ember').setAttribute('cy', top - 7);
+    q('.wi-smoke').setAttribute('transform', `translate(0 ${top - 92})`);
+  }
+  on('tick', renderIncense);
+  on('timer', renderIncense);
+  on('minute', renderIncense);
+
   /* ---------- Keeping the page in step ---------- */
   // (the scene rebuilds itself when the size, level or ink changes: ensureScene compares a key)
   function sync() {
     if (root.dataset.washiLevel !== level()) root.dataset.washiLevel = level();
     if (root.dataset.washiInk !== (W_().ink || 'indigo')) root.dataset.washiInk = W_().ink || 'indigo';
     if (isOn()) paintUi(); else if (uiKey) clearUi();
+    renderSet(); renderIncense();
   }
   new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-light'] });
   on('started', sync);
   on('render', sync); // a sync from another device may have changed the settings
-  addEventListener('resize', () => { sceneKey = ''; });
-
-  ML.settingsSection({
-    order: 16,
-    render: () => !(ML.isPremium && ML.isPremium()) ? '' : `<h3>${esc(t('set_washi'))}</h3><p class="hint">${esc(t('washi_hint'))}</p>
-      <label class="field"><span>${esc(t('washi_level'))}</span>${ML.ui.sel('set-washi-level', ['sobre', 'encre', 'peint'].map(v => [v, t('wl_' + v)]), level())}</label>
-      <label class="field"><span>${esc(t('washi_ink'))}</span>${ML.ui.sel('set-washi-ink', ['indigo', 'sumi', 'mousse', 'prune'].map(v => [v, t('wi_' + v)]), W_().ink || 'indigo')}</label>`,
-    bind: r => {
-      const lv = r.querySelector('#set-washi-level'), ik = r.querySelector('#set-washi-ink'); if (!lv) return;
-      lv.onchange = e => { S.washi = Object.assign({}, W_(), { level: e.target.value }); save(); sync(); };
-      ik.onchange = e => { S.washi = Object.assign({}, W_(), { ink: e.target.value }); save(); sync(); };
-    },
-  });
+  addEventListener('resize', () => { sceneKey = ''; rectAt = 0; setTimeout(renderSet, 80); }); // after worlds.js has moved the World button
 })();

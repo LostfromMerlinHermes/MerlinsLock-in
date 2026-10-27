@@ -1154,6 +1154,43 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root.deep-on[data-light="1"][data-theme="sanctuary"][data-washi-level="peint"] .mnav-run { opacity: 0; pointer-events: none; }
 :root[data-light="1"][data-theme="sanctuary"][data-washi-level="peint"] .deep-aura, :root[data-light="1"][data-theme="sanctuary"][data-washi-level="peint"] .deep-dial svg { display: none; }
 .deep-dial canvas.dd-ink { position: absolute; left: 50%; top: 50%; width: 130%; height: 130%; translate: -50% -50%; pointer-events: none; }
+/* Washi's two settings (3.36, washi.js): a quiet capsule right after the World button in the header; on phones and the
+   side panel the World button sits beside the energy pill, and this takes its own row under them */
+.washi-set { display: inline-flex; align-items: center; gap: 2px; min-height: 34px; padding: 2px 4px 2px 2px; border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--panel) 80%, transparent); font-size: 13px; }
+.washi-set[hidden] { display: none; }
+.washi-set .ws-sel { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 22px 0 10px; border-radius: 999px; cursor: pointer; }
+.washi-set .ws-sel:hover, .washi-set .ws-sel:focus-within { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.washi-set .ws-sel + .ws-sel { box-shadow: inset 1px 0 0 var(--line); border-radius: 0 999px 999px 0; }
+.washi-set select { appearance: none; -webkit-appearance: none; min-height: 0; padding: 0; border: 0; background: none; font: inherit; color: var(--text); cursor: pointer; }
+.washi-set select:focus-visible { outline: none; }
+.washi-set .ws-sel:has(select:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+.washi-set .ws-sel svg { position: absolute; right: 6px; width: 12px; height: 12px; fill: none; stroke: var(--mist); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.washi-set .ws-sel i { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 2px color-mix(in srgb, var(--panel) 70%, transparent); }
+/* phones / side panel: top-right on the title's line, the ink shown as its dot only (the menu still names it) */
+html.mnav-on .top:has(> .washi-set) { position: relative; }
+html.mnav-on .top > .washi-set { position: absolute; top: 8px; right: 0; }
+html.mnav-on .washi-set .ws-sel { min-height: 40px; padding: 0 18px 0 9px; }
+html.mnav-on .washi-set .ws-sel svg { right: 4px; }
+html.mnav-on .washi-set #ws-ink { width: 12px; color: transparent; }
+html.mnav-on .washi-set #ws-ink option { color: var(--text); }
+/* The incense (3.36, washi.js): bottom-right beside the seal, under the app like the landscape (it never covers a card).
+   Fresh stick with a red tip at rest; while the focus runs the ember glows and two strands of smoke rise; paused they stop. */
+#washi-incense { position: fixed; z-index: 0; right: calc(max(34px, 3.5vw) - 23px); bottom: calc(max(40px, 7vh) + 22px); width: 46px; height: 150px; overflow: visible; pointer-events: none; }
+html.mnav-on #washi-incense { display: none; }
+#washi-incense .wi-ink { fill: var(--wi-ink); }
+#washi-incense .wi-glaze { fill: var(--wi-glaze); }
+#washi-incense .wi-crack { stroke: var(--wi-ink); }
+#washi-incense .wi-rim { fill: color-mix(in srgb, var(--wi-glaze) 72%, #fff); stroke: color-mix(in srgb, var(--wi-glaze) 60%, var(--wi-ink)); stroke-width: 1; }
+#washi-incense .wi-smoke, #washi-incense .wi-ember, #washi-incense .wi-ash, #washi-incense .wi-fallen { transition: opacity 1.4s ease; }
+#washi-incense[data-state="rest"] :is(.wi-smoke, .wi-ember, .wi-ash, .wi-fallen) { opacity: 0; }
+#washi-incense:not([data-state="rest"]) .wi-tip { opacity: 0; }
+#washi-incense[data-state="paused"] .wi-smoke { opacity: 0; }
+#washi-incense[data-state="paused"] .wi-ember { opacity: .3; }
+#washi-incense .wi-sm { animation: wi-rise 9s linear infinite; }
+#washi-incense .wi-ember { animation: wi-glow 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+#washi-incense:not([data-state="running"]) :is(.wi-sm, .wi-ember) { animation-play-state: paused; }
+@keyframes wi-rise { to { transform: translateY(-42px); } }
+@keyframes wi-glow { 50% { scale: .82; } }
 :root[data-light="1"][data-theme="sanctuary"][data-washi-level="peint"] .deep-clock { font-family: "Ma Shan Zheng", var(--f-display); font-weight: 400; letter-spacing: .02em; text-shadow: none; color: var(--text); }
 /* ---------- Codex (Steady, light, Premium): a Victorian magician's grimoire on aged parchment ----------
    Sepia ink, engraved gold (decor and borders only), a wax seal on LOCK IN, an astrolabe for a timer, tasks as a ledger. */

@@ -55,7 +55,7 @@
   function place() {
     const narrow = document.documentElement.classList.contains('mnav-on'), pill = $('ep-pill'), before = $('install-btn');
     if (narrow && pill) { if (btn.previousElementSibling !== pill) pill.after(btn); }
-    else if (before && btn.nextElementSibling !== before) before.parentNode.insertBefore(btn, before);
+    else if (before && btn.parentNode !== before.parentNode) before.parentNode.insertBefore(btn, before); // (Washi's settings may follow it)
   }
   place();
   addEventListener('resize', () => setTimeout(place, 50));
