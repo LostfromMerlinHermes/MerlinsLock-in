@@ -138,6 +138,9 @@
       sort === 'short' ? (a.mins - b.mins) || (PRI[a.pri] - PRI[b.pri])
       : sort === 'hard' ? (PRI[a.pri] - PRI[b.pri]) || (b.mins - a.mins)
       : (PRI[a.pri] - PRI[b.pri]) || (a.mins - b.mins));
+    const day = S.plan && S.plan.day && S.plan.day.date === today() ? S.plan.day.id : null; // the task of the day (plan.js) comes next
+    const di = day ? open.findIndex(x => x.id === day) : -1;
+    if (di > 0) open.unshift(open.splice(di, 1)[0]);
     const ai = open.findIndex(x => x.id === S.activeId);
     if (ai > 0) open.unshift(open.splice(ai, 1)[0]);
     return open;
@@ -159,7 +162,9 @@
     const open = expanded.has(task.id) || (active && subs.length && !task.done);
     const stepXp = Math.max(2, Math.round(ML.taskXp(task) / 10));
     const extra = ML.taskBadges ? ML.taskBadges(task) : '';
-    return `<li class="task ${task.done ? 'done' : ''} ${active ? 'active' : ''} ${isNext && !active ? 'next' : ''} ${extra.cls || ''}" data-id="${task.id}">
+    const pinned = !!(S.plan && S.plan.day && S.plan.day.id === task.id && S.plan.day.date === today());
+    return `<li class="task ${task.done ? 'done' : ''} ${active ? 'active' : ''} ${isNext && !active ? 'next' : ''} ${pinned ? 'pinned' : ''} ${extra.cls || ''}" data-id="${task.id}">
+      ${task.done ? '' : `<span class="t-grip" title="${esc(t('pl_drag'))}" aria-hidden="true"><i></i><i></i></span>`}
       <button type="button" class="check" data-act="toggle" aria-label="${esc(task.done ? t('mark_undone') : t('mark_done'))}">
         <svg viewBox="0 0 12 12"><path d="M2 6.5 L5 9 L10 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
@@ -170,7 +175,7 @@
           ${extra.html || ''}
           <span class="chip t-dur">${task.spent ? fmtMins(task.spent) + ' / ' : ''}${fmtMins(task.mins)}</span>
           <span class="chip p-${task.pri}">${esc(t('pri_' + task.pri))}</span>
-          <span class="t-extra">${dueChip(task)}
+          <span class="t-extra">${task.project && ML.projChip ? ML.projChip(task.project) : ''}${dueChip(task)}
           ${task.repeat ? `<span class="chip" title="${esc(t('repeat_' + task.repeat))}">↻ ${esc(t('repeat_' + task.repeat))}</span>` : ''}
           ${subs.length ? `<button type="button" class="chip subs-chip" data-act="subs" aria-expanded="${open}">☰ ${subDone}/${subs.length}</button>` : task.done ? '' : `<button type="button" class="chip subs-chip ghosty" data-act="subs" aria-expanded="${open}">+ ${esc(t('step'))}</button>`}
           ${task.notes ? `<span class="chip" title="${esc(task.notes)}">✎</span>` : ''}
@@ -181,7 +186,8 @@
           ${task.done ? '' : `<form class="sub-add" autocomplete="off"><input type="text" maxlength="100" placeholder="${esc(t('add_subtask_ph'))}" aria-label="${esc(t('add_subtask_ph'))}"><button type="submit" class="small">+</button></form>`}` : ''}
       </div>
       <div class="t-actions">
-        ${task.done ? '' : `<button type="button" class="${active ? 'is-active' : ''}" data-act="focus">${esc(active ? t('focusing') : t('lock_in'))}</button>`}
+        ${task.done ? '' : `<button type="button" class="icon-btn t-pin ${pinned ? 'on' : ''}" data-act="pin" aria-pressed="${pinned}" aria-label="${esc(t(pinned ? 'pl_unpin' : 'pl_pin'))}" title="${esc(t(pinned ? 'pl_unpin' : 'pl_pin'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button>
+        <button type="button" class="${active ? 'is-active' : ''}" data-act="focus">${esc(active ? t('focusing') : t('lock_in'))}</button>`}
         <button type="button" class="icon-btn" data-act="del" aria-label="${esc(t('delete'))}">✕</button>
       </div>
     </li>`;
@@ -195,6 +201,7 @@
         <label><span>${esc(t('duration'))}</span><select name="mins">${minsOpts.map(m => `<option value="${m}" ${m === task.mins ? 'selected' : ''}>${fmtMins(m)}</option>`).join('')}</select></label>
         <label><span>${esc(t('priority'))}</span><select name="pri">${['high', 'med', 'low'].map(p => `<option value="${p}" ${p === task.pri ? 'selected' : ''}>${esc(t('pri_' + p))}</option>`).join('')}</select></label>
         <label><span>${esc(t('due'))}</span><input type="date" name="due" value="${esc(task.due || '')}"></label>
+        <label><span>${esc(t('pl_project'))}</span><input type="text" name="project" maxlength="40" list="pl-projects" value="${esc(task.project || '')}"><datalist id="pl-projects">${(ML.planProjects ? ML.planProjects() : []).map(p => `<option value="${esc(p)}">`).join('')}</datalist></label>
         <label><span>${esc(t('repeat'))}</span><select name="repeat">${['', 'daily', 'weekdays', 'weekly'].map(r => `<option value="${r}" ${r === (task.repeat || '') ? 'selected' : ''}>${esc(r ? t('repeat_' + r) : t('repeat_none'))}</option>`).join('')}</select></label>
       </div>
       <div class="t-edit-subs">
@@ -232,6 +239,8 @@
     const ul = $('tasks');
     if (!S.tasks.length) {
       ul.innerHTML = `<li class="empty">${esc(t('no_tasks'))}</li>`;
+    } else if (!(M.single && !S.showAll) && ML.planRender) {
+      ML.planRender(ul, open, done, taskHtml, editingId); // plan.js: groups, sorting, table (3.35)
     } else {
       const shown = M.single && !S.showAll ? open.slice(0, 1) : open;
       if (editingId && !shown.some(x => x.id === editingId) && open.some(x => x.id === editingId)) shown.push(open.find(x => x.id === editingId));
@@ -243,11 +252,14 @@
       ul.innerHTML = html;
     }
     cardFx(ul, M.single && !S.showAll ? ul.querySelector(':scope > .task:not(.editing)') : null);
-    $('sort-note').innerHTML = S.tasks.length ? t('sorted_for', { mood: `<b>${esc(t('mood_' + S.mood))}</b>`, sort: esc(t('sort_' + M.sort)) }) + (M.single ? ' ' + esc(t('only_next')) : '') : '';
+    $('sort-note').innerHTML = S.tasks.length && (M.single || !ML.planRender) ? t('sorted_for', { mood: `<b>${esc(t('mood_' + S.mood))}</b>`, sort: esc(t('sort_' + M.sort)) }) + (M.single ? ' ' + esc(t('only_next')) : '') : '';
     $('foot-note').textContent = S.tasks.length ? t('open_planned', { n: open.length, m: fmtMins(open.reduce((a, x) => a + x.mins, 0)) }) : '';
     const ed = ul.querySelector('.t-edit input[name=title]');
     if (ed && document.activeElement === document.body) ed.focus();
+    emit('tasks:render');
   }
+  ML.renderTasks = renderTasks;
+  ML.editTask = id => { editingId = id; renderTasks(); }; // plan.js: a title tapped in the table opens the edit form in the list
   // Ticking a step earns a little XP once (a tenth of the task's XP, at least 2); the last step finishes the task.
   // Unticking a step of a finished task reopens it (its XP is not given twice).
   function setSubDone(task, sub, done) {
@@ -355,6 +367,7 @@
     task.title = String(fd.get('title')).trim() || task.title;
     task.mins = +fd.get('mins'); task.pri = fd.get('pri');
     task.due = fd.get('due') || null;
+    task.project = String(fd.get('project') || '').trim() || null;
     task.repeat = fd.get('repeat') || '';
     if (task.repeat === 'weekly') task.wd = new Date().getDay();
     task.notes = String(fd.get('notes') || '').trim();
@@ -366,11 +379,15 @@
   });
   $('add-form').addEventListener('submit', e => {
     e.preventDefault();
-    const title = $('new-title').value.trim(); if (!title) return;
+    const raw = $('new-title').value.trim(); if (!raw) return;
+    // one-line quick add (plan.js): "Réviser maths 45m demain ! #Partiels" fills duration, date, priority and project
+    const q = ML.parseQuick ? ML.parseQuick(raw) : {};
     S.tasks = S.tasks.filter(x => !x.sample);
-    const task = { id: uid(), title, mins: +$('new-mins').value, pri: $('new-pri').value, done: false, created: Date.now() };
+    const task = { id: uid(), title: q.title || raw, mins: q.mins || +$('new-mins').value, pri: q.pri || $('new-pri').value, done: false, created: Date.now() };
+    if (q.due) task.due = q.due;
+    const proj = q.project || (S.plan && S.plan.proj) || null; if (proj) task.project = proj;
     S.tasks.push(task);
-    $('new-title').value = ''; save(); renderAll();
+    $('new-title').value = ''; emit('quick:clear'); save(); renderAll();
     emit('task:added', task); // juice.js slides it in from the field
   });
   $('clear-done').onclick = () => { S.tasks = S.tasks.filter(x => !x.done || x.repeat); save(); renderAll(); };

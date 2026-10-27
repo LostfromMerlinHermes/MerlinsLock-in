@@ -28,9 +28,15 @@
   const keyOfNow = m => { const w = ML.worldNow(m); return w.light ? { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' }[w.th] : w.th; };
 
   // The three tiles of an energy; `sel` is the chosen w ('day' | 'night' | 'light'). attr names the click data attribute.
-  ML.worldTiles = (m, sel, attr) => ML.worldsFor(m).map(x =>
-    `<button type="button" class="wtile ${x.locked ? 'locked' : ''}" ${attr}="${x.w}" aria-pressed="${x.w === sel}" aria-label="${esc(x.name + (x.locked ? ' · ' + t('wb_premium') : ''))}">
-      <span class="wtile-art">${art(x.key)}${x.locked ? `<i class="wtile-lock">${esc(t('wb_premium'))}</i>` : ''}</span><span class="wtile-n">${esc(x.name)}</span></button>`).join('');
+  // With "follow the hour" the world on screen can be another one than the chosen tile (the night one after 21:00): it gets a "Now" tag.
+  ML.worldTiles = (m, sel, attr) => {
+    const now = keyOfNow(m), ws = ML.worldsFor(m), selKey = (ws.find(x => x.w === sel) || {}).key;
+    return ws.map(x => {
+      const shown = x.key === now && now !== selKey;
+      return `<button type="button" class="wtile ${x.locked ? 'locked' : ''} ${shown ? 'now' : ''}" ${attr}="${x.w}" aria-pressed="${x.w === sel}" aria-label="${esc(x.name + (x.locked ? ' · ' + t('wb_premium') : '') + (shown ? ' · ' + t('wb_now') : ''))}">
+      <span class="wtile-art">${art(x.key)}${x.locked ? `<i class="wtile-lock">${esc(t('wb_premium'))}</i>` : ''}${shown ? `<i class="wtile-now">${esc(t('wb_now'))}</i>` : ''}</span><span class="wtile-n">${esc(x.name)}</span></button>`;
+    }).join('');
+  };
   // A locked (Premium) tile: say so and offer the 1-minute trial instead of choosing it
   ML.worldLocked = m => {
     const x = ML.worldsFor(m).find(y => y.w === 'light');

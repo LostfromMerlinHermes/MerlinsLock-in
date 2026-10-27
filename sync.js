@@ -10,9 +10,12 @@
       auth_login: 'Se connecter', auth_signup: 'Créer un compte', auth_email: 'Adresse e-mail', auth_pw: 'Mot de passe', auth_pw_new: 'Nouveau mot de passe',
       auth_remember: 'Se souvenir de moi', auth_show: 'Afficher', auth_forgot: 'Mot de passe oublié ?', auth_guest: 'Continuer sans compte',
       auth_guest_d: 'Tes données restent seulement sur cet appareil.', auth_tagline: 'Connecte-toi pour retrouver ta progression sur tous tes appareils.',
-      auth_sent: 'E-mail envoyé. Ouvre le lien reçu pour choisir un nouveau mot de passe.', auth_confirm: 'Compte créé. Ouvre l’e-mail de confirmation, puis connecte-toi.',
+      auth_sent: 'E-mail envoyé. Ouvre le lien reçu pour choisir un nouveau mot de passe.', auth_confirm: 'Presque fini : ouvre l’e-mail envoyé à {email} et touche le lien. Tu reviendras ici, déjà connecté. Pense à regarder dans les spams.',
+      auth_confirm_ext: 'Presque fini : ouvre l’e-mail envoyé à {email} et touche le lien. Il ouvre l’app web ; ensuite, connecte-toi ici avec le même e-mail et mot de passe.',
+      auth_resend: 'Renvoyer l’e-mail de confirmation', auth_resent: 'E-mail renvoyé. Il peut mettre une minute à arriver, et finir dans les spams.',
+      auth_confirmed: 'Adresse confirmée. Bienvenue dans MerlinsLockIN.', auth_link_bad: 'Ce lien a expiré ou a déjà servi. Connecte-toi, ou renvoie l’e-mail de confirmation.',
       auth_reset_h: 'Choisis un nouveau mot de passe', auth_reset_ok: 'Mot de passe changé. Tu es connecté.', auth_wait: 'Un instant…',
-      err_creds: 'E-mail ou mot de passe incorrect.', err_exists: 'Un compte existe déjà avec cet e-mail. Connecte-toi.', err_pw: 'Le mot de passe doit faire au moins 6 caractères.',
+      err_creds: 'E-mail ou mot de passe incorrect.', auth_no_account: 'Pas encore de compte ? Crée-le avec cet e-mail',err_exists: 'Un compte existe déjà avec cet e-mail. Connecte-toi.', err_pw: 'Le mot de passe doit faire au moins 6 caractères.',
       err_net: 'Connexion impossible. Vérifie ta connexion internet.', err_rate: 'Trop de tentatives. Réessaie dans quelques minutes.', err_confirm: 'Confirme d’abord ton adresse avec l’e-mail reçu.',
       err_email: 'Entre une adresse e-mail valide.', err_generic: 'Erreur : {msg}',
       set_account: 'Compte', acc_signed: 'Connecté : {email}', acc_guest: 'Tu utilises l’app sans compte : tes données restent sur cet appareil.',
@@ -32,9 +35,12 @@
       auth_login: 'Sign in', auth_signup: 'Create account', auth_email: 'Email address', auth_pw: 'Password', auth_pw_new: 'New password',
       auth_remember: 'Remember me', auth_show: 'Show', auth_forgot: 'Forgot password?', auth_guest: 'Continue without an account',
       auth_guest_d: 'Your data stays on this device only.', auth_tagline: 'Sign in to find your progress on all your devices.',
-      auth_sent: 'Email sent. Open the link to choose a new password.', auth_confirm: 'Account created. Open the confirmation email, then sign in.',
+      auth_sent: 'Email sent. Open the link to choose a new password.', auth_confirm: 'Almost done: open the email sent to {email} and tap the link. You will come back here, already signed in. Check your spam folder too.',
+      auth_confirm_ext: 'Almost done: open the email sent to {email} and tap the link. It opens the web app; then sign in here with the same email and password.',
+      auth_resend: 'Send the confirmation email again', auth_resent: 'Email sent again. It can take a minute, and may land in spam.',
+      auth_confirmed: 'Address confirmed. Welcome to MerlinsLockIN.', auth_link_bad: 'This link has expired or was already used. Sign in, or send the confirmation email again.',
       auth_reset_h: 'Choose a new password', auth_reset_ok: 'Password changed. You are signed in.', auth_wait: 'One moment…',
-      err_creds: 'Wrong email or password.', err_exists: 'An account already exists with this email. Sign in instead.', err_pw: 'The password needs at least 6 characters.',
+      err_creds: 'Wrong email or password.', auth_no_account: 'No account yet? Create one with this email',err_exists: 'An account already exists with this email. Sign in instead.', err_pw: 'The password needs at least 6 characters.',
       err_net: "Can't connect. Check your internet connection.", err_rate: 'Too many attempts. Try again in a few minutes.', err_confirm: 'Confirm your address first with the email you received.',
       err_email: 'Enter a valid email address.', err_generic: 'Error: {msg}',
       set_account: 'Account', acc_signed: 'Signed in: {email}', acc_guest: "You're using the app without an account: your data stays on this device.",
@@ -329,11 +335,17 @@
     return el;
   }
   const logoHtml = () => document.querySelector('.logo') ? document.querySelector('.logo').outerHTML : '';
-  function showAuth() {
+  // Where email links (confirmation, password reset) bring people back: this page on the web app, else the web app
+  // itself (the extension and localhost can't be opened from an email). The URL must be in Supabase's Redirect URLs.
+  const backUrl = () => (location.protocol === 'https:' && !ML.IS_EXT ? location.href.split('#')[0] : (CFG.appUrl || location.href.split('#')[0]));
+  // first: { msg, err, extra } shown when the screen opens (e.g. an expired email link)
+  function showAuth(first) {
     return new Promise(resolve => {
       const el = overlay();
       let mode = 'login';
-      const draw = (msg, isErr) => {
+      // extra: 'signup' after a refused sign-in, a link to create the account with the same email (people tried "Sign in"
+      // to sign up); 'resend' when the address still needs confirming, a button to send the confirmation email again
+      const draw = (msg, isErr, extra) => {
         el.innerHTML = `<div class="auth-box" role="dialog" aria-modal="true" aria-labelledby="auth-h">
           <div class="auth-logo">${logoHtml()}</div>
           <h1 id="auth-h">Merlins<span>LockIN</span></h1>
@@ -348,6 +360,8 @@
             <label class="opt"><input type="checkbox" name="remember" checked> ${esc(t('auth_remember'))}</label>
             ${mode === 'signup' ? `<label class="opt consent"><input type="checkbox" name="terms"> <span>${t('consent', { terms: `<button type="button" class="link" data-legal="terms">${esc(t('consent_terms'))}</button>`, privacy: `<button type="button" class="link" data-legal="privacy">${esc(t('consent_privacy'))}</button>` })}</span></label>` : ''}
             <p class="auth-msg ${isErr ? 'err' : ''}" role="alert">${msg ? esc(msg) : ''}</p>
+            ${extra === 'signup' ? `<button type="button" class="link auth-offer" id="auth-to-signup">${esc(t('auth_no_account'))}</button>` : ''}
+            ${extra === 'resend' ? `<button type="button" class="link auth-offer" id="auth-resend">${esc(t('auth_resend'))}</button>` : ''}
             <button type="submit" class="primary">${esc(mode === 'login' ? t('auth_login') : t('auth_signup'))}</button>
             ${mode === 'login' ? `<button type="button" class="link" id="auth-forgot">${esc(t('auth_forgot'))}</button>` : ''}
           </form>
@@ -360,12 +374,21 @@
         setTimeout(() => f.email.focus(), 30);
         el.querySelectorAll('[data-am]').forEach(b => b.onclick = () => { mode = b.dataset.am; draw(); });
         $('auth-show').onclick = () => { f.pw.type = f.pw.type === 'password' ? 'text' : 'password'; };
+        if ($('auth-to-signup')) $('auth-to-signup').onclick = () => { const em = f.email.value; mode = 'signup'; draw(); $('auth-form').email.value = em; setTimeout(() => $('auth-form').pw.focus(), 60); }; // after draw's own focus on the email
+        if ($('auth-resend')) $('auth-resend').onclick = async () => {
+          const email = f.email.value.trim();
+          if (!/^\S+@\S+\.\S+$/.test(email)) { draw(t('err_email'), true, 'resend'); return; }
+          try { await api('/auth/v1/resend?redirect_to=' + encodeURIComponent(backUrl()), { method: 'POST', body: { type: 'signup', email } }); draw(t('auth_resent'), false, 'resend'); }
+          catch (e) { draw(errText(e), true, 'resend'); }
+          $('auth-form').email.value = email;
+        };
         $('auth-guest').onclick = () => { try { localStorage.setItem(GUEST_FLAG, '1'); } catch (e) {} el.hidden = true; resolve('guest'); };
         if ($('auth-forgot')) $('auth-forgot').onclick = async () => {
           const email = f.email.value.trim();
           if (!/^\S+@\S+\.\S+$/.test(email)) { draw(t('err_email'), true); return; }
-          try { await api('/auth/v1/recover?redirect_to=' + encodeURIComponent(location.href.split('#')[0]), { method: 'POST', body: { email } }); draw(t('auth_sent')); }
+          try { await api('/auth/v1/recover?redirect_to=' + encodeURIComponent(backUrl()), { method: 'POST', body: { email } }); draw(t('auth_sent')); }
           catch (e) { draw(errText(e), true); }
+          $('auth-form').email.value = email;
         };
         f.onsubmit = async e => {
           e.preventDefault();
@@ -377,16 +400,19 @@
           try {
             const d = mode === 'login'
               ? await api('/auth/v1/token?grant_type=password', { method: 'POST', body: { email, password: pw } })
-              : await api('/auth/v1/signup', { method: 'POST', body: { email, password: pw, data: { terms_version: ML.LEGAL_VERSION, terms_accepted_at: new Date().toISOString() } } });
-            if (!d || !d.access_token) { mode = 'login'; draw(t('auth_confirm')); $('auth-form').email.value = email; return; }
+              : await api('/auth/v1/signup?redirect_to=' + encodeURIComponent(backUrl()), { method: 'POST', body: { email, password: pw, data: { terms_version: ML.LEGAL_VERSION, terms_accepted_at: new Date().toISOString() } } });
+            if (!d || !d.access_token) { // the address must be confirmed first: say where the link leads, offer to send it again
+              mode = 'login'; draw(t(location.protocol === 'https:' && !ML.IS_EXT ? 'auth_confirm' : 'auth_confirm_ext', { email }), false, 'resend'); $('auth-form').email.value = email; return;
+            }
             useSession(norm(d), rem);
             el.hidden = true; resolve('user');
           } catch (err) {
-            draw(errText(err), true); $('auth-form').email.value = email;
+            const msg = errText(err);
+            draw(msg, true, mode === 'login' && msg === t('err_creds') ? 'signup' : msg === t('err_confirm') ? 'resend' : null); $('auth-form').email.value = email;
           }
         };
       };
-      draw();
+      if (first) draw(first.msg, first.err, first.extra); else draw();
     });
   }
   // Password reset link from the email lands here with a recovery session in the URL hash
@@ -428,8 +454,15 @@
         const u = await api('/auth/v1/user', { token: d.access_token });
         d.user = u;
         if (hash.get('type') === 'recovery') return await showReset(d);
-        useSession(norm(d), true); return 'user'; // email confirmation link
+        useSession(norm(d), true); // email confirmation link: signed in straight away, welcomed once the app is up
+        on('started', () => toast(t('auth_confirmed'), { ms: 6000 }));
+        return 'user';
       } catch (e) {}
+    }
+    // An email link that expired or was already used comes back with an error instead of a session
+    if (hash.get('error_code') || hash.get('error_description')) {
+      history.replaceState(null, '', location.pathname + location.search);
+      return await showAuth({ msg: t('auth_link_bad'), err: true, extra: 'resend' });
     }
     const found = readSession();
     if (found) {

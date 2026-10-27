@@ -4,6 +4,9 @@
 window.MLI_CONFIG = {
   supabaseUrl: 'https://jwftgajswyjasmnsjigd.supabase.co',
   supabaseKey: 'sb_publishable_ah5OWrKxgIKqDulBK66DbA_NPjfBDye',
+  // The web app: email links (account confirmation, password reset) open it when they can't come back to the current page
+  // (extension, localhost). It must be listed in Supabase → Authentication → URL Configuration → Redirect URLs.
+  appUrl: 'https://lostfrommerlinhermes.github.io/MerlinsLock-in/',
   // Shown in the privacy policy, terms and legal notice (legal.js)
   contactEmail: 'merlinslockin@gmail.com',
   // Supabase project region: eu-central-1

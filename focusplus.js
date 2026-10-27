@@ -47,23 +47,30 @@
        a live session log on the left and today's tasks as a file list on the right; a short glitch at each quarter.
      - Estampe: "proof" (l'épreuve) — the time printed in two plates, the red one slightly off register and lining up
        as the session goes on; printer's marks around; a ruler the red fills; a PAUSE rubber stamp; a seal at the end,
-       when the ink city appears. Chosen by the user from proposals/pleinecran-fired2.png (D) and estampe-epreuve.png. */
+       when the ink city appears. Chosen by the user from proposals/pleinecran-fired2.png (D) and estampe-epreuve.png.
+     - Codex: "folio" (3.33) — an evening page of an old book: double gold rules and engraved corners, the folio (session
+       number), the task and the date in Roman numerals, the time huge in shaded Victorian gold letters, a gold rule cut in
+       quarters I–IV, the city at the bottom with one gas lamp lit per quarter and the mist rising with the session; at the
+       end a gold medal (the clock tower, one window lit per session today) and the minutes in Roman numerals.
+       Chosen by the user from proposals/pleinecran-codex3.png (C + D). */
   ML.addStrings({
     fr: {
       dp_style: 'Style du plein écran', dp_classic: 'Classique', dp_terminal: 'Terminal', dp_proof: 'Épreuve',
       nt_log: '// JOURNAL', nt_today: '// AUJOURD’HUI', nt_next: 'SUIVANTE >', nt_min: '{n} / {m} MIN', nt_none: '(aucune tâche)',
       lg_start: 'début', lg_q: 'quart {n}/4 ok', lg_park: 'pensée parquée', lg_distr: 'décroché ({n})', lg_pause: 'pause', lg_resume: 'reprise', lg_done: 'session terminée', lg_break: 'pause en cours',
       pf_focus: 'FOCUS · N° {n}', pf_paused: 'EN PAUSE', pf_done: 'SESSION IMPRIMÉE', pf_stamp: 'PAUSE', pf_streak: 'SÉRIE {n} J', pf_proof: 'ÉPREUVE N° {n} · {d}', pf_next: 'ensuite : {t}',
+      dp_folio: 'Folio', fo_folio: 'FOLIO {n}', fo_paused: 'EN PAUSE', fo_streak: 'SÉRIE · {n} JOURS', fo_tower: 'TOUR · {n} ÉTAGES', fo_mins: '{n} MINUTES', fo_next: 'Ensuite : {t}',
     },
     en: {
       dp_style: 'Full-screen style', dp_classic: 'Classic', dp_terminal: 'Terminal', dp_proof: 'Proof',
       nt_log: '// LOG', nt_today: '// TODAY', nt_next: 'NEXT >', nt_min: '{n} / {m} MIN', nt_none: '(no task)',
       lg_start: 'start', lg_q: 'quarter {n}/4 ok', lg_park: 'thought parked', lg_distr: 'distracted ({n})', lg_pause: 'paused', lg_resume: 'resumed', lg_done: 'session complete', lg_break: 'break running',
       pf_focus: 'FOCUS · NO. {n}', pf_paused: 'PAUSED', pf_done: 'SESSION PRINTED', pf_stamp: 'PAUSE', pf_streak: 'STREAK {n} D', pf_proof: 'PROOF NO. {n} · {d}', pf_next: 'next: {t}',
+      dp_folio: 'Folio', fo_folio: 'FOLIO {n}', fo_paused: 'PAUSED', fo_streak: 'STREAK · {n} DAYS', fo_tower: 'TOWER · {n} FLOORS', fo_mins: '{n} MINUTES', fo_next: 'Next: {t}',
     },
   });
   ML.defaults(() => ({ deepStyle: {} }));
-  const WORLD_STYLE = { netrunner: 'terminal', tokyo: 'proof' };
+  const WORLD_STYLE = { netrunner: 'terminal', tokyo: 'proof', atelier: 'folio' };
   const worldKey = () => { const r = document.documentElement, th = r.dataset.theme; return r.dataset.light ? { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' }[th] : th; };
   const styleNow = () => { const k = worldKey(), sp = WORLD_STYLE[k]; return sp && (S.deepStyle || {})[k] !== 'classic' ? sp : 'classic'; };
   const hm = d => ML.pad2(d.getHours()) + ':' + ML.pad2(d.getMinutes());
@@ -200,6 +207,42 @@
     while (x < 100) { const w = 1.4 + r() * 3, h = 18 + r() * r() * 82; out += `<i style="left:${x}%;width:${w - .3}%;height:${h}%">${r() < .6 ? `<u style="top:${10 + r() * 60}%"></u>` : ''}</i>`; x += w; }
     return out;
   }
+  // Codex folio
+  const roman = n => { n = Math.floor(n); if (n <= 0 || n > 3999) return String(n); let s = ''; [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']].forEach(([v, r]) => { while (n >= v) { s += r; n -= v; } }); return s; };
+  const FO_CORNER = '<svg viewBox="0 0 60 60" aria-hidden="true"><path d="M1 60V21a20 20 0 0 1 20-20h39"/><path d="M9 60V25a16 16 0 0 1 16-16h35" opacity=".55"/><path d="M20 12l7 7-7 7-7-7z" class="f"/></svg>';
+  // the clock tower in a gold medal: one window lit per session today (up to 8)
+  function medalSvg(lit) {
+    const W = [[-104, 46], [-90, 70], [-112, 86], [56, 40], [72, 62], [58, 86], [108, 58], [-6, -2]];
+    return `<svg viewBox="-160 -160 320 320" aria-hidden="true"><defs><clipPath id="fo-mc"><circle r="132"/></clipPath></defs>
+      <circle r="152" class="ring"/><circle r="140" class="ring2"/>
+      <g clip-path="url(#fo-mc)"><rect x="-140" y="-140" width="280" height="280" class="sky"/><rect x="-140" y="40" width="280" height="100" class="mist"/>
+        <g class="bld"><rect x="-130" y="30" width="60" height="110"/><path d="M-62 140V10l16-18 16 18v130z"/><path d="M-22 140V-56h44v196z"/><path d="M-28 -56l28-52 28 52z"/><rect x="-2" y="-128" width="4" height="22"/><rect x="40" y="20" width="50" height="120"/><rect x="96" y="40" width="40" height="100"/></g>
+        <circle cy="-26" r="13" class="face"/>
+        <g class="win">${W.map(([x, y], i) => `<rect x="${x}" y="${y}" width="6" height="8"${i < lit ? ' class="on"' : ''}/>`).join('')}</g></g></svg>`;
+  }
+  function folioHtml() {
+    const lamps = [12, 37, 63, 88];
+    return `<div class="fo-frame" aria-hidden="true"><i class="tl">${FO_CORNER}</i><i class="tr">${FO_CORNER}</i><i class="bl">${FO_CORNER}</i><i class="br">${FO_CORNER}</i></div>
+      <div class="fo-city" aria-hidden="true"><svg viewBox="0 0 1000 120" preserveAspectRatio="xMidYMax slice"><g>
+        <rect x="20" y="50" width="90" height="70"/><path d="M120 120V40l22-26 22 26v80z"/><rect x="176" y="58" width="70" height="62"/><rect x="258" y="70" width="60" height="50"/>
+        <path d="M470 120V20h60v100z"/><path d="M462 20l38-46 38 46z"/><circle cx="500" cy="44" r="11" class="face"/>
+        <rect x="560" y="48" width="80" height="72"/><rect x="652" y="62" width="60" height="58"/><path d="M730 120V36l20-24 20 24v84z"/><rect x="790" y="54" width="190" height="66"/></g></svg>
+        ${lamps.map((x, i) => `<b class="fo-lamp" style="left:${x}%" data-q="${i + 1}"></b>`).join('')}<div class="fo-mist" id="fo-mist"></div></div>
+      ${topHtml()}
+      <div class="fo">
+        <header class="fo-head"><span id="fo-folio"></span><b id="fo-task"></b><span id="fo-date"></span></header>
+        <span class="fo-side l" id="fo-streak"></span><span class="fo-side r" id="fo-tower"></span>
+        <div class="fo-time" role="timer">
+          <svg class="fo-digits" id="fo-time" viewBox="0 0 700 240" aria-hidden="true"><defs><linearGradient id="fo-gold" x1="0" y1="0" x2="0" y2="1"><stop offset=".05" stop-color="#f1d892"/><stop offset=".55" stop-color="#C9A048"/><stop offset="1" stop-color="#8f6a24"/></linearGradient></defs>
+            <text class="sh" x="8" y="8"></text><text class="ol" x="4" y="4"></text><text class="gd"></text><text class="hi" x="-1.5" y="-1.5"></text></svg>
+          <span class="fo-sr" id="fo-time-sr"></span>
+          <span class="fo-medal" id="fo-medal" aria-hidden="true"></span>
+        </div>
+        <div class="fo-rule" aria-hidden="true"><b id="fo-fill"></b><em id="fo-mark"></em>${[0, 1, 2, 3, 4].map(i => `<i style="left:${i * 25}%"></i>`).join('')}${['I', 'II', 'III', 'IV'].map((r, i) => `<span style="left:${i * 25 + 12.5}%">${r}</span>`).join('')}</div>
+        <p class="fo-next" id="fo-next"></p>
+      </div>${dockHtml()}`;
+  }
+
   const clockParts = rem => { const c = MiniView.fmtClock(rem), i = c.lastIndexOf(':'); return `<i>${c.slice(0, i)}</i><i class="c">:</i><i>${c.slice(i + 1)}</i>`; };
 
   function renderDeep(full) {
@@ -208,7 +251,7 @@
     const rem = ML.remainingNow(), frac = Math.max(0, rem) / S.total, run = ML.running(), done = Date.now() < doneUntil;
     const deep = $('deep');
     if (full || built !== style || !$('dp-toggle')) {
-      $('deep-inner').innerHTML = style === 'terminal' ? terminalHtml() : style === 'proof' ? proofHtml() : classicHtml(task);
+      $('deep-inner').innerHTML = style === 'terminal' ? terminalHtml() : style === 'proof' ? proofHtml() : style === 'folio' ? folioHtml() : classicHtml(task);
       built = style; deep.dataset.style = style;
       $('dp-close').onclick = closeDeep;
       $('dp-toggle').onclick = () => ML.toggleTimer();
@@ -222,6 +265,7 @@
       };
       if (style === 'terminal') { renderLog(); renderFiles(); }
       if (style === 'proof' && done) $('pf-city').innerHTML = cityHtml();
+      if (style === 'folio' && done) $('fo-medal').innerHTML = medalSvg(todaysSessions().length);
     }
     $('dp-state').textContent = $('state').textContent;
     deep.classList.toggle('paused', !run && !done);
@@ -245,6 +289,29 @@
       // a quarter passed: log it and glitch the digits once
       const qn = S.mode === 'focus' ? Math.floor((1 - frac) * 4 + 1e-6) : 0;
       if (run && qn > lastQ && qn < 4) { lastQ = qn; addLog(t('lg_q', { n: qn }), qn === 2); if (!ML.reducedMotion()) { el.classList.remove('glitch-in'); void el.offsetWidth; el.classList.add('glitch-in'); setTimeout(() => el.classList.remove('glitch-in'), 260); } }
+    } else if (style === 'folio') {
+      const c = MiniView.fmtClock(done ? 0 : rem), el = $('fo-time');
+      if (el.dataset.c !== c) {
+        el.dataset.c = c; $('fo-time-sr').textContent = c;
+        el.querySelectorAll('text').forEach(s => { s.textContent = c; });
+        if (el.dataset.len !== String(c.length)) { // fit the box to the text once per length, so the digits don't jitter
+          const b = el.querySelector('.gd').getBBox();
+          if (b.width) { el.dataset.len = c.length; el.setAttribute('viewBox', `${(b.x - 6).toFixed(0)} ${(b.y - 4).toFixed(0)} ${(b.width + 22).toFixed(0)} ${(b.height + 14).toFixed(0)}`); }
+        }
+      }
+      const prog = done ? 1 : S.mode === 'focus' ? 1 - frac : 0, n = todaysSessions().length + (done ? 0 : 1), d = new Date();
+      $('fo-folio').textContent = !run && !done && S.mode === 'focus' && rem < S.total ? t('fo_paused') : S.mode === 'break' ? $('state').textContent.toUpperCase() : t('fo_folio', { n: roman(n) });
+      $('fo-task').textContent = title.toUpperCase();
+      $('fo-date').textContent = roman(d.getDate()) + ' · ' + roman(d.getMonth() + 1);
+      $('fo-streak').textContent = t('fo_streak', { n: roman(ML.streaks().cur) });
+      $('fo-tower').textContent = t('fo_tower', { n: roman((S.tower && S.tower.floors) || 0) });
+      $('fo-fill').style.width = (prog * 100).toFixed(2) + '%'; $('fo-mark').style.left = (prog * 100).toFixed(2) + '%';
+      $('fo-mist').style.opacity = (0.25 + prog * 0.75).toFixed(3); // the mist rises over the city as the session goes on
+      const q = Math.floor(prog * 4 + 1e-6);
+      deep.querySelectorAll('.fo-lamp').forEach(l => l.classList.toggle('on', +l.dataset.q <= q));
+      $('fo-next').textContent = nextTask && !done ? t('fo_next', { t: ML.titleOf(nextTask) }) : '';
+      const last = todaysSessions().slice(-1)[0];
+      if (done && last) $('fo-next').textContent = t('fo_mins', { n: roman(last.mins) });
     } else {
       const ink = $('pf-ink'), red = $('pf-red'), parts = clockParts(done ? 0 : rem);
       if (ink.dataset.c !== parts) { ink.innerHTML = parts; red.innerHTML = parts; ink.dataset.c = parts; }
