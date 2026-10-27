@@ -67,19 +67,23 @@
 
   // 'session' fires inside complete(), before the switch to break. The sheet waits for the world's ending to play
   // (Codex's bell and pigeons, Washi's ink drop, the bursts) instead of covering it; a hidden tab gets it on return.
-  let waitT = 0;
+  let waitT = 0, pending = null;
   on('session', session => {
     if (!session || session.mins < 1) return;
     clearTimeout(waitT);
     const scene = (ML.codexOn && ML.codexOn()) || (ML.washiOn && ML.washiOn()) || (ML.deepScene && ML.deepScene());
-    const wait = ML.reducedMotion() ? 600 : scene ? 4200 : 1800;
+    const sceneMs = ML.deepSceneMs ? ML.deepSceneMs() : 0; // a full-screen ending's own length (Cartouche's board waits for Continue)
+    const wait = ML.reducedMotion() ? 600 : sceneMs || (scene ? 4200 : 1800);
     const go = () => {
+      pending = null;
       if (ML.running() && S.mode === 'focus') return; // already started something else
       if (document.visibilityState === 'hidden') { document.addEventListener('visibilitychange', go, { once: true }); return; }
       open(session, session.xp || 0);
     };
+    pending = go;
     waitT = setTimeout(go, document.visibilityState === 'hidden' ? 0 : wait);
   });
+  ML.endNow = () => { if (pending) { clearTimeout(waitT); pending(); } };
 
   ov.addEventListener('click', e => {
     if (e.target === ov) { close(); return; } // tap outside = later

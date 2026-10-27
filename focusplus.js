@@ -70,7 +70,9 @@
     },
   });
   ML.defaults(() => ({ deepStyle: {} }));
-  const WORLD_STYLE = { netrunner: 'terminal', tokyo: 'proof', atelier: 'folio' };
+  // Cartouche's "quest" (3.37) lives in cartouche.js, registered in ML.deepStyles: { html(top, dock), built(), render(ctx), doneMs(), over() }
+  const WORLD_STYLE = { netrunner: 'terminal', tokyo: 'proof', atelier: 'folio', cartouche: 'quest' };
+  const ext = s => (ML.deepStyles || {})[s];
   const worldKey = () => { const r = document.documentElement, th = r.dataset.theme; return r.dataset.light ? { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' }[th] : th; };
   const styleNow = () => { const k = worldKey(), sp = WORLD_STYLE[k]; return sp && (S.deepStyle || {})[k] !== 'classic' ? sp : 'classic'; };
   const hm = d => ML.pad2(d.getHours()) + ':' + ML.pad2(d.getMinutes());
@@ -93,10 +95,17 @@
   on('session', s => {
     if (!s || s.mins < 1) return;
     addLog(t('lg_done') + (s.xp ? ' · +' + s.xp + ' XP' : ''), true);
-    doneUntil = Date.now() + 4200; // the world's ending plays in full screen before the end sheet (endscreen.js waits)
-    if (deepOn) { renderDeep(true); setTimeout(() => renderDeep(true), 4300); }
+    const ms = sceneMs();
+    doneUntil = Date.now() + ms; // the world's ending plays in full screen before the end sheet (endscreen.js waits)
+    if (deepOn) { renderDeep(true); clearTimeout(doneT); doneT = setTimeout(() => { const x = ext(styleNow()); if (x && x.over) x.over(); renderDeep(true); }, ms + 100); }
   });
+  let doneT = null;
+  const sceneMs = () => { const x = ext(styleNow()); return x && x.doneMs ? x.doneMs() : 4200; };
   ML.deepScene = () => deepOn && styleNow() !== 'classic';
+  ML.deepSceneMs = () => ML.deepScene() ? sceneMs() : 0;
+  ML.deepStyleNow = () => deepOn ? styleNow() : null;
+  // a world's ending can be cut short (Cartouche's Continue): back to the timer, and the end sheet opens now
+  ML.deepEndNow = () => { doneUntil = 0; clearTimeout(doneT); renderDeep(true); if (ML.endNow) ML.endNow(); };
 
   // Controls fade out after a few seconds without moving, so only the clock is left on screen
   let idleT = null;
@@ -113,6 +122,7 @@
     try { if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {}); } catch (e) {}
   }
   function closeDeep() {
+    const x = ext(styleNow()); if (x && x.over && Date.now() < doneUntil) x.over();
     deepOn = false; $('deep').hidden = true; clearTimeout(idleT);
     document.documentElement.classList.remove('deep-on');
     try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
@@ -251,7 +261,7 @@
     const rem = ML.remainingNow(), frac = Math.max(0, rem) / S.total, run = ML.running(), done = Date.now() < doneUntil;
     const deep = $('deep');
     if (full || built !== style || !$('dp-toggle')) {
-      $('deep-inner').innerHTML = style === 'terminal' ? terminalHtml() : style === 'proof' ? proofHtml() : style === 'folio' ? folioHtml() : classicHtml(task);
+      $('deep-inner').innerHTML = ext(style) ? ext(style).html(topHtml(), dockHtml()) : style === 'terminal' ? terminalHtml() : style === 'proof' ? proofHtml() : style === 'folio' ? folioHtml() : classicHtml(task);
       built = style; deep.dataset.style = style;
       $('dp-close').onclick = closeDeep;
       $('dp-toggle').onclick = () => ML.toggleTimer();
@@ -266,6 +276,7 @@
       if (style === 'terminal') { renderLog(); renderFiles(); }
       if (style === 'proof' && done) $('pf-city').innerHTML = cityHtml();
       if (style === 'folio' && done) $('fo-medal').innerHTML = medalSvg(todaysSessions().length);
+      if (ext(style) && ext(style).built) ext(style).built();
     }
     $('dp-state').textContent = $('state').textContent;
     deep.classList.toggle('paused', !run && !done);
@@ -275,7 +286,8 @@
     $('dp-dn').textContent = S.curDistr ? '(' + S.curDistr + ')' : '';
     const title = S.mode === 'break' ? $('c-task').textContent : (ML.activeTitle() || t('free_focus'));
     const nextTask = ML.orderedOpen().find(x => !x.done && x.id !== S.activeId);
-    if (style === 'classic') {
+    if (ext(style)) ext(style).render({ rem, frac, run, done, title, nextTask, deep });
+    else if (style === 'classic') {
       $('dp-clock').textContent = MiniView.fmtClock(rem);
       $('dp-task').textContent = title;
       $('dp-arc').style.strokeDashoffset = (RING * (1 - frac)).toFixed(1);
