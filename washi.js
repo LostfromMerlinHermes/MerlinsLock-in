@@ -15,12 +15,12 @@
     fr: {
       set_washi: 'Washi', washi_hint: 'Le monde clair d’Épuisé : la brume monte pendant le focus, le prunier fleurit pendant les pauses.',
       washi_level: 'Intensité', wl_sobre: 'Sobre (papier et encre)', wl_encre: 'Encré (pinceau et brume)', wl_peint: 'Peint (paysage, prunier, ensō)',
-      washi_ink: 'Encre', wi_sumi: 'Sumi (noir)', wi_indigo: 'Indigo', wi_mousse: 'Mousse (vert)', wi_prune: 'Prune',
+      washi_incense: 'Encens', washi_ink: 'Encre', wi_sumi: 'Sumi (noir)', wi_indigo: 'Indigo', wi_mousse: 'Mousse (vert)', wi_prune: 'Prune',
     },
     en: {
       set_washi: 'Washi', washi_hint: 'Drained’s light world: the mist rises during focus, the plum tree blossoms on a pause.',
       washi_level: 'Intensity', wl_sobre: 'Plain (paper and ink)', wl_encre: 'Inked (brush and mist)', wl_peint: 'Painted (landscape, plum tree, ensō)',
-      washi_ink: 'Ink', wi_sumi: 'Sumi (black)', wi_indigo: 'Indigo', wi_mousse: 'Moss (green)', wi_prune: 'Plum',
+      washi_incense: 'Incense', washi_ink: 'Ink', wi_sumi: 'Sumi (black)', wi_indigo: 'Indigo', wi_mousse: 'Moss (green)', wi_prune: 'Plum',
     },
   });
   ML.defaults(() => ({ washi: { level: 'peint', ink: 'indigo' } }));
@@ -252,7 +252,9 @@
     // A reaches in from the top-right corner across the top of the page, B (Peint) climbs from the bottom-left:
     // both stay in the margins, around the panels
     const col = ink(), Smin = Math.min(W, H), sc = W < 700 ? .8 : 1;
-    const specs = [{ x: W + 10, y: H * .03, ang: 2.85, len: Math.min(W * .42, Smin * .75), wid: 22 * sc, seed: 3 }];
+    // (3.38.1) A starts on the right edge below the header: from the top corner its flowers grew between the header buttons
+    const top = Math.max(H * .3, (document.querySelector('.moodbar') || { getBoundingClientRect: () => ({ bottom: 0 }) }).getBoundingClientRect().bottom + 30);
+    const specs = [{ x: W + 10, y: top, ang: 2.95, len: Math.min(W * .42, Smin * .75), wid: 22 * sc, seed: 3 }];
     if (level() === 'peint') specs.push({ x: -10, y: H + 10, ang: -1.3, len: Smin * .44, wid: 18 * sc, seed: 8 });
     for (const sp of specs) {
       const [c, g] = mk(W, H, DPR), R = rng(sp.seed), blooms = [];
@@ -270,6 +272,14 @@
     for (let k = 0; k < 7; k++) { const a = k * .9 + .3, l = r * (.38 + (k % 2) * .12); g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * l, Math.sin(a) * l); g.stroke(); g.beginPath(); g.arc(Math.cos(a) * l, Math.sin(a) * l, .7, 0, 6.29); g.fill(); }
     g.fillStyle = '#C2405E'; g.beginPath(); g.arc(0, 0, r * .16, 0, 6.29); g.fill();
     g.restore();
+  }
+  // flowers drawn once per size and opening stage, then stamped (rotated) wherever they sit on the branches
+  let bloomCache = new Map();
+  function drawBloom(g, f, open, alpha) {
+    const st = Math.round(open * 6), rr = Math.round(f.r * 2) / 2, key = rr + '|' + st + '|' + (f.bud ? 1 : 0);
+    let s = bloomCache.get(key);
+    if (!s) { const n = Math.ceil(rr * 2.6 + 4), [c, cg] = mk(n, n, DPR); blossom(cg, { x: n / 2, y: n / 2, r: rr, rot: 0, bud: f.bud }, st / 6, 1); s = { c, n }; bloomCache.set(key, s); }
+    g.save(); g.globalAlpha = alpha; g.translate(f.x, f.y); g.rotate(f.rot); g.drawImage(s.c, -s.n / 2, -s.n / 2, s.n, s.n); g.restore();
   }
   function buildEnso() {
     ensoImg = null; if (level() !== 'peint') return;
@@ -290,7 +300,7 @@
     const key = [w, h, level(), ink(), root.classList.contains('mnav-on')].join('|');
     if (key === sceneKey) return; sceneKey = key;
     W = w; H = h; DPR = Math.min(2, devicePixelRatio || 1);
-    buildLand(); buildBranches(); buildEnso(); seedMist(); petals = []; flock = null;
+    bloomCache = new Map(); buildLand(); buildBranches(); buildEnso(); seedMist(); petals = []; flock = null;
   }
 
   /* ---------- Frame (called by game.js's FX loop when Washi is on) ---------- */
@@ -298,7 +308,9 @@
   const timerState = () => root.dataset.timer || 'idle'; // idle | running | break | paused
   const progress = () => { const tot = S.total || 1, rem = ML.remainingNow ? ML.remainingNow() : tot; return Math.max(0, Math.min(1, 1 - Math.max(0, rem) / tot)); };
   // A soft paper-coloured blob, drawn once: each mist band is this sprite stretched (8 gradients per frame were slow)
-  let mistImg = null;
+  let mistImg = null, mistC = null, mistG = null;
+  // Washi paints 20 times a second at rest and 10 during a focus (the mist barely moves), instead of game.js's 30
+  ML.fxGap = th => th === 'sanctuary' && isOn() ? (root.dataset.timer === 'running' ? 100 : 50) : 0;
   function mistSprite() {
     if (mistImg) return mistImg;
     const [c, g] = mk(64, 64, 1), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
@@ -326,13 +338,17 @@
       // mist: drifting bands, then the veil that swallows the landscape during focus (it lifts on a pause)
       const fogT = st === 'running' ? 1 : st === 'paused' ? .35 : st === 'break' ? .05 : lv === 'peint' ? .08 : .12;
       fog = still ? fogT : fog + (fogT - fog) * Math.min(1, dt / 2600);
-      const spr = mistSprite();
+      // (3.38.1) the bands and the veil are painted into a quarter-size layer, then laid over in one go: soft mist
+      // needs no detail, and ten full-screen blends a frame were what made Washi lag on laptops
+      const spr = mistSprite(), mw = Math.ceil(W / 4), mh = Math.ceil(H / 4);
+      if (!mistC || mistC.width !== mw || mistC.height !== mh) { mistC = document.createElement('canvas'); mistC.width = mw; mistC.height = mh; mistG = mistC.getContext('2d'); }
+      mistG.setTransform(.25, 0, 0, .25, 0, 0); mistG.clearRect(0, 0, W, H);
       for (const m of mists) {
         if (!still) { m.x += m.v * dt / 33 * (1 + fog * .6) * (slow || .3); if (m.x - m.rx > W) m.x = -m.rx; if (m.x + m.rx < 0) m.x = W + m.rx; }
-        cx.globalAlpha = m.a * (.45 + .55 * fog); cx.drawImage(spr, m.x - m.rx, m.y - m.rx * m.k, m.rx * 2, m.rx * 2 * m.k);
+        mistG.globalAlpha = m.a * (.45 + .55 * fog); mistG.drawImage(spr, m.x - m.rx, m.y - m.rx * m.k, m.rx * 2, m.rx * 2 * m.k);
       }
-      cx.globalAlpha = 1;
-      cx.fillStyle = `rgba(${PAPER_RGB},${fog * .72})`; cx.fillRect(0, 0, W, H);
+      mistG.globalAlpha = 1; mistG.fillStyle = `rgba(${PAPER_RGB},${fog * .72})`; mistG.fillRect(0, 0, W, H);
+      cx.drawImage(mistC, 0, 0, W, H);
     }
     // plum branches grow from their corner on a pause or a break, blossom, then fade when focus comes back
     const showBr = (st === 'paused' || st === 'break') && !deep;
@@ -340,12 +356,16 @@
       b.a = still ? (showBr ? 1 : 0) : b.a + ((showBr ? 1 : 0) - b.a) * Math.min(1, dt / (showBr ? 500 : 1400));
       if (showBr) b.rev = still ? b.maxD : Math.min(b.maxD, b.rev + dt * b.maxD / 4200);
       if (b.a < .01) { if (!showBr) { b.rev = 0; b.blooms.forEach(x => { x.p = 0; }); } continue; }
-      cx.save(); cx.globalAlpha = b.a; cx.beginPath(); cx.arc(b.x, b.y, Math.max(1, b.rev), 0, 6.29); cx.clip(); cx.drawImage(b.c, 0, 0, W, H); cx.restore();
-      for (const f of b.blooms) {
-        if (b.rev > f.d + 18) f.p = still ? 1 : Math.min(1, f.p + dt / 900);
-        if (f.p > 0) blossom(cx, f, ease(f.p), b.a * Math.min(1, f.p * 2));
-        if (showBr && !still && f.p >= 1 && !f.bud && Math.random() < .00035 * dt && petals.length < 26) petals.push(petal(f.x, f.y));
+      let open = b.rev >= b.maxD;
+      for (const f of b.blooms) { if (b.rev > f.d + 18) f.p = still ? 1 : Math.min(1, f.p + dt / 900); if (f.p < 1) open = false; }
+      if (open) { // fully grown and in bloom: one picture, painted once (3.38.1; redrawing every flower each frame made pauses lag)
+        if (!b.done) { const [c, g] = mk(W, H, DPR); g.drawImage(b.c, 0, 0, W, H); b.blooms.forEach(f => drawBloom(g, f, 1, 1)); b.done = c; }
+        cx.globalAlpha = b.a; cx.drawImage(b.done, 0, 0, W, H); cx.globalAlpha = 1;
+      } else {
+        cx.save(); cx.globalAlpha = b.a; cx.beginPath(); cx.arc(b.x, b.y, Math.max(1, b.rev), 0, 6.29); cx.clip(); cx.drawImage(b.c, 0, 0, W, H); cx.restore();
+        for (const f of b.blooms) if (f.p > 0) drawBloom(cx, f, ease(f.p), b.a * Math.min(1, f.p * 2));
       }
+      if (showBr && !still) for (const f of b.blooms) if (f.p >= 1 && !f.bud && Math.random() < .00035 * dt && petals.length < 26) petals.push(petal(f.x, f.y));
     }
     // the ensō, painted around the timer as the focus goes by (Peint), closed at the session's end
     if (ensoImg) {
@@ -447,12 +467,17 @@
     if (root.classList.contains('mnav-on') && brand) { if (brand.nextElementSibling !== set) brand.after(set); } // phones: top-right, on the title's line
     else if (wb && wb.nextElementSibling !== set) wb.after(set);
     set.hidden = !show; if (!show) return;
-    const key = [level(), W_().ink, S.lang].join('|'); if (set.dataset.key === key) return; set.dataset.key = key;
+    const incOn = W_().incense !== false, key = [level(), W_().ink, S.lang, incOn].join('|'); if (set.dataset.key === key) return; set.dataset.key = key;
     const opt = (vals, cur, pre) => vals.map(v => `<option value="${v}"${v === cur ? ' selected' : ''}>${esc(short(pre + v))}</option>`).join('');
     set.setAttribute('aria-label', t('set_washi'));
     set.innerHTML = `<label class="ws-sel"><select id="ws-level" aria-label="${esc(t('washi_level'))}">${opt(['sobre', 'encre', 'peint'], level(), 'wl_')}</select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></label>
-      <label class="ws-sel"><i style="background:${ink()}"></i><select id="ws-ink" aria-label="${esc(t('washi_ink'))}">${opt(['indigo', 'sumi', 'mousse', 'prune'], W_().ink || 'indigo', 'wi_')}</select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></label>`;
+      <label class="ws-sel"><i style="background:${ink()}"></i><select id="ws-ink" aria-label="${esc(t('washi_ink'))}">${opt(['indigo', 'sumi', 'mousse', 'prune'], W_().ink || 'indigo', 'wi_')}</select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></label>
+      ${level() !== 'sobre' ? `<button type="button" class="ws-inc" id="ws-inc" aria-pressed="${incOn}" title="${esc(t('washi_incense'))}" aria-label="${esc(t('washi_incense'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V5M10.6 4.4c-.6-1.6 1.6-2.2 1-3.6"/><path d="M5 15h14l-1.4 4.2a2 2 0 0 1-1.9 1.3H8.3a2 2 0 0 1-1.9-1.3Z"/></svg></button>` : ''}`;
   }
+  set.addEventListener('click', e => { // the incense on / off
+    if (!e.target.closest('#ws-inc')) return;
+    S.washi = Object.assign({}, W_(), { incense: W_().incense === false }); save(); sync();
+  });
   set.addEventListener('change', e => {
     const k = e.target.id === 'ws-level' ? 'level' : e.target.id === 'ws-ink' ? 'ink' : null; if (!k) return;
     S.washi = Object.assign({}, W_(), { [k]: e.target.value }); save(); sync();
@@ -499,7 +524,7 @@
   const hasRoom = () => { if (roomy === null) { const a = document.querySelector('.app'), r = a && a.getBoundingClientRect(); roomy = !!r && innerWidth - r.right >= 72; } return roomy; };
   addEventListener('resize', () => { roomy = null; incKey = ''; setTimeout(renderIncense, 100); });
   function renderIncense() {
-    const show = isOn() && level() !== 'sobre' && hasRoom();
+    const show = isOn() && level() !== 'sobre' && W_().incense !== false && hasRoom();
     if (show && !inc.isConnected) { const fx = $('fx'); if (fx) fx.after(inc); else document.body.prepend(inc); }
     inc.style.display = show ? '' : 'none'; if (!show) { incKey = ''; return; }
     const st = timerState(), focus = S.mode === 'focus' && (st === 'running' || st === 'paused'), p = focus ? progress() : 0;

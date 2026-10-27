@@ -84,7 +84,7 @@
         <div class="ep-seg" role="radiogroup" aria-label="${esc(t('ep_label'))}">${KEYS().map((m, i) =>
           `<button type="button" role="radio" aria-checked="${m === k}" data-ep-mood="${m}" style="--mood-c:${ML.MOODS[m].color}">${svgIcon(ML.MOODS[m].icon)}<span>${esc(t('mood_' + m))}</span><kbd>${i + 1}</kbd></button>`).join('')}</div>
         ${ML.worldTiles && !ML.worldsFixed() ? `<div class="ep-worlds"><span class="label">${esc(t('ep_world'))}</span>
-          <div class="wtiles">${ML.worldTiles(k, st.wp.w, 'data-ep-world')}</div>
+          <div class="wtiles">${ML.worldTiles(k, ML.worldSel(st.wp), 'data-ep-world')}</div>
           <button type="button" class="ep-clock" role="switch" aria-checked="${st.wp.clock}" data-ep="clock"><i></i>${esc(t('ep_clock', ML.worldClockText(k, st.wp.w)))}</button></div>` : ''}
         <button type="button" class="primary ep-go" data-ep="choose">${esc(t('ep_choose'))}</button>
       </div></div>`;
@@ -143,7 +143,7 @@
   // Browsing the worlds of the energy shown: the real world switches behind, saved only on Choose
   function pickWorld(w) {
     if (w === 'light' && ML.worldsFor(st.pick)[2].locked) { ML.toast(t('wb_locked', { w: ML.worldsFor(st.pick)[2].name }), { key: 'daynight' }); return; }
-    if (w) st.wp.w = w; else st.wp.clock = !st.wp.clock;
+    if (w) st.wp = ML.withWorld(st.wp, w); else st.wp = { w: st.wp.w, clock: !st.wp.clock };
     ML.previewMood(st.pick === S.mood ? null : st.pick, Object.assign({}, st.wp));
     renderPick();
   }

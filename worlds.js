@@ -79,7 +79,7 @@
     const c = ML.worldClockText(m, p.w), mood = t('mood_' + m);
     ov.innerHTML = `<div class="sheet wsheet" role="dialog" aria-modal="true" aria-labelledby="wsheet-h">
       <div class="sheet-head"><h2 id="wsheet-h">${esc(t('wb_h', { mood }))}</h2><button type="button" class="ghost icon-only" data-close="worlds" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-      <div class="wtiles">${ML.worldTiles(m, p.w, 'data-wpick')}</div>
+      <div class="wtiles">${ML.worldTiles(m, ML.worldSel(p), 'data-wpick')}</div>
       <div class="wmodes" role="radiogroup">
         <button type="button" role="radio" aria-checked="${!p.clock}" data-wclock="0"><i></i>${esc(t('wb_always'))}</button>
         <button type="button" role="radio" aria-checked="${!!p.clock}" data-wclock="1"><i></i>${esc(t('wb_clock', c))}</button>
@@ -93,7 +93,7 @@
     const m = S.mood, p = ML.worldPick(m);
     if (b.dataset.wpick) {
       if (b.classList.contains('locked')) { ML.worldLocked(m); return; }
-      ML.setWorld(m, { w: b.dataset.wpick, clock: p.clock }); renderSheet();
+      ML.setWorld(m, ML.withWorld(p, b.dataset.wpick)); renderSheet(); // with "follow the hour" on, it shows until the hour turns
     } else if (b.dataset.wclock) { ML.setWorld(m, { w: p.w === 'light' && ML.worldsFor(m)[2].locked ? 'day' : p.w, clock: b.dataset.wclock === '1' }); renderSheet(); }
   });
 

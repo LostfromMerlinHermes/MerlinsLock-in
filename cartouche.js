@@ -9,9 +9,12 @@
 //   stage, stars, the details counted up, what the session earned, Continue → the usual end sheet).
 // - In the task list: ticking a step by hand pops a pixel coin and sparkles.
 // focusplus.js draws the shell (top bar, dock) and calls ML.deepStyles.quest.
+// 3.38: the timer is a pixel pocket stopwatch (crown, pushers, a dark bezel 10–60, one tick a minute, a red marker), and
+// the background a living pixel landscape (castle, windmill, village, river and bridge, sheep; day / evening / night by
+// the hour), or the calmer old overworld: S.cartouche.level 'plein' | 'calme', picked in a corner pill like Washi's.
 (() => {
   'use strict';
-  const { S, $, on, t, esc } = ML;
+  const { S, $, on, t, esc, save } = ML;
 
   ML.addStrings({
     fr: {
@@ -19,12 +22,14 @@
       qs_saved: 'PARTIE SAUVEGARDÉE', qs_saved_l: '+{m} min · {o} session · jour {d}', qs_clear: 'NIVEAU TERMINÉ', qs_stage: '{o} SESSION',
       qs_focus: 'Focus', qs_steps: 'Cases', qs_pauses: 'Pauses', qs_distr: 'Distractions', qs_streak: 'Série', qs_days: '{n} jours',
       qs_xp: '+{n} XP', qs_gold: '+{n} OR', qs_floor: '+{n} ÉTAGE', qs_floors: '+{n} ÉTAGES', qs_go: 'CONTINUER', qs_free: 'Focus libre',
+      cx_set: 'Cartouche', cx_level: 'Décor', cx_plein: 'Complet', cx_calme: 'Calme',
     },
     en: {
       dp_quest: 'Quest', qs_day: 'DAY {n}', qs_sub: 'SESSION {n} · {a} / {b}', qs_paused: 'PAUSED', qs_mins: 'MINUTES',
       qs_saved: 'GAME SAVED', qs_saved_l: '+{m} min · session {o} · day {d}', qs_clear: 'LEVEL CLEAR', qs_stage: 'SESSION {o}',
       qs_focus: 'Focus', qs_steps: 'Stones', qs_pauses: 'Pauses', qs_distr: 'Distractions', qs_streak: 'Streak', qs_days: '{n} days',
       qs_xp: '+{n} XP', qs_gold: '+{n} GOLD', qs_floor: '+{n} FLOOR', qs_floors: '+{n} FLOORS', qs_go: 'CONTINUE', qs_free: 'Free focus',
+      cx_set: 'Cartouche', cx_level: 'Scenery', cx_plein: 'Full', cx_calme: 'Calm',
     },
   });
 
@@ -318,4 +323,166 @@
     document.body.appendChild(fx);
     setTimeout(() => fx.remove(), 1100);
   }, true);
+
+  /* ---------- Settings: the scenery, full or calm (a corner pill, like Washi's) ---------- */
+  ML.defaults(() => ({ cartouche: { level: 'plein' } }));
+  const level = () => (S.cartouche && S.cartouche.level) || 'plein';
+  const set = document.createElement('div');
+  set.className = 'washi-set'; set.id = 'cart-set'; set.hidden = true; set.setAttribute('role', 'group'); // (same look as Washi's pill)
+  function renderSet() {
+    const wb = $('world-btn'), show = isOn() && !!wb && !wb.hidden, brand = document.querySelector('.top > .brand');
+    if (root.classList.contains('mnav-on') && brand) { if (brand.nextElementSibling !== set) brand.after(set); }
+    else if (wb && wb.nextElementSibling !== set) wb.after(set);
+    set.hidden = !show; if (!show) return;
+    const key = level() + '|' + S.lang; if (set.dataset.key === key) return; set.dataset.key = key;
+    set.setAttribute('aria-label', t('cx_set'));
+    set.innerHTML = `<label class="ws-sel"><select id="cx-level" aria-label="${esc(t('cx_level'))}">${['plein', 'calme'].map(v => `<option value="${v}"${v === level() ? ' selected' : ''}>${esc(t('cx_' + v))}</option>`).join('')}</select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></label>`;
+  }
+  set.addEventListener('change', e => { if (e.target.id !== 'cx-level') return; S.cartouche = Object.assign({}, S.cartouche, { level: e.target.value }); save(); sync(); });
+
+  /* ---------- The pocket stopwatch (both levels) ---------- */
+  // painted pixel by pixel at 160×160 into an <img> in .ring-wrap (an image, so the energy picker's clone of the dial keeps it)
+  const DS = 160, dcv = document.createElement('canvas'); dcv.width = dcv.height = DS;
+  const dial = document.createElement('img'); dial.className = 'cx-dial'; dial.alt = ''; dial.setAttribute('aria-hidden', 'true');
+  let dialKey = '';
+  function paintDial(prog) {
+    const g = dcv.getContext('2d'), C = PAL, cx = 80, cy = 84;
+    const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
+    const ring = (r0, r1, col) => { for (let y = -r1; y <= r1; y++) for (let x = -r1; x <= r1; x++) { const d = Math.hypot(x, y); if (d >= r0 && d < r1) R(cx + x, cy + y, 1, 1, col(d)); } };
+    const at = (a, r) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r], ang = f => -Math.PI / 2 + f * Math.PI * 2;
+    const DIG = { 0: ['111', '101', '101', '101', '111'], 1: ['010', '110', '010', '010', '111'], 2: ['111', '001', '111', '100', '111'], 3: ['111', '001', '111', '001', '111'], 4: ['101', '101', '111', '001', '001'], 5: ['111', '100', '111', '001', '111'], 6: ['111', '100', '111', '101', '111'] };
+    const num = (s, x0, y0, c) => { let x = x0 - (s.length * 4 - 1) / 2; for (const ch of s) { DIG[ch].forEach((row, j) => [...row].forEach((b, i) => { if (b === '1') R(x + i, y0 + j, 1, 1, c); })); x += 4; } };
+    g.clearRect(0, 0, DS, DS);
+    R(74, 4, 12, 7, C[1]); R(72, 4, 16, 2, C[0]); R(77, 11, 6, 5, C[0]); // crown and stem
+    [-1, 1].forEach(s => { const [x, y] = at(-Math.PI / 2 + s * .78, 72); R(x - 4, y - 4, 8, 8, C[0]); R(x - 3, y - 3, 6, 6, C[1]); }); // pushers
+    ring(58, 70, d => d > 68 || d < 60 ? C[0] : C[1]);
+    ring(0, 58, () => C[4]);
+    for (let m = 0; m < 60; m++) { const a = ang(m / 60), big = m % 5 === 0, lit = m / 60 < prog; for (let r = big ? 49 : 52; r < 57; r++) { const [x, y] = at(a, r); R(x, y, big ? 2 : 1, big ? 2 : 1, lit ? C[2] : big ? C[0] : C[1]); } }
+    [0, 10, 20, 30, 40, 50].forEach(n => { const [x, y] = at(ang(n / 60), 64); num(String(n || 60), x, y - 2, C[4]); });
+    if (prog > 0) { const [px, py] = at(ang(prog), 46); R(px - 2, py - 2, 5, 5, C.r); const [qx, qy] = at(ang(prog), 50); R(qx - 1, qy - 1, 3, 3, C.r); }
+    return dcv.toDataURL();
+  }
+  function renderDial() {
+    const wrap = document.querySelector('#sigil-card .ring-wrap'); if (!wrap) return;
+    if (!isOn()) { if (dial.isConnected) dial.remove(); dialKey = ''; return; }
+    if (dial.parentNode !== wrap) wrap.prepend(dial);
+    const tot = S.total || 1, rem = ML.remainingNow ? ML.remainingNow() : tot, started = rem < tot - .5 || ML.running();
+    const prog = started ? Math.max(0, Math.min(1, 1 - Math.max(0, rem) / tot)) : 0, key = Math.round(prog * 240);
+    if (key === dialKey) return; dialKey = key; dial.src = paintDial(prog);
+  }
+  on('tick', renderDial); on('timer', renderDial); on('render', renderDial);
+
+  /* ---------- The living landscape (level 'plein') ---------- */
+  // Painted at a quarter of the screen size (a third on phones) and scaled up with crisp pixels. The still parts are
+  // painted once per size / time of day into `base`; each frame (8 a second, 3 while a focus runs) adds what moves:
+  // clouds, the windmill, chimney smoke, the castle flag, glints on the river, birds now and then, sheep, fireflies at night.
+  const scv = document.createElement('canvas'); scv.id = 'cx-scene'; scv.setAttribute('aria-hidden', 'true');
+  let base = null, baseKey = '', SW = 0, SH = 0, K = 4, vt = 0, lastF = 0, raf = null, L = null;
+  const dayPart = () => { const h = new Date().getHours(); return h >= 21 || h < 6 ? 'night' : h >= 18 || h < 7 ? 'evening' : 'day'; };
+  const COL = {
+    day: { sky: ['#BCD38B', '#C6DA98', '#D0E1A6', '#D9E8B4', '#E1EDC1'], far: '#A9C27E', far2: '#98B66A', snow: '#EEF3DC', hill: '#93B160', mid: '#8FB05A', ground: '#9DBB62', water: '#A9CBA8', glint: '#E3EDC8', wall: '#E3EDC8', cloud: '#EDF3D6', cloudO: '#BCD38B', smoke: '#E9EFD6', road: '#E9EFCF', tree: '#8BAC0F', shade: '#306230' },
+    evening: { sky: ['#D9B77E', '#E2C48A', '#E9D198', '#EEDCA8', '#F1E5BA'], far: '#B9A57A', far2: '#A99B6E', snow: '#F4EBCF', hill: '#A3A26C', mid: '#9DA864', ground: '#A9AE6A', water: '#C9C38F', glint: '#F6EBCB', wall: '#EFE6C8', cloud: '#F6EBCB', cloudO: '#DCC28E', smoke: '#F2E6C8', road: '#EFE4C2', tree: '#7E9A3A', shade: '#3E5A28' },
+    night: { sky: ['#16301F', '#1B3726', '#213F2D', '#284735', '#30503D'], far: '#2C4A38', far2: '#244231', snow: '#4F6E5A', hill: '#244231', mid: '#21402E', ground: '#1F3B2B', water: '#2D5446', glint: '#4F7D6A', wall: '#4D6A55', cloud: '#3B5A47', cloudO: '#2F4E3C', smoke: '#4F6E5A', road: '#4D6A55', tree: '#1C3A28', shade: '#0F380F' },
+  };
+  function layout() { // where things stand, in scene pixels: the castle, the windmill and the village keep to the side margins
+    const W = SW, H = SH, narrow = W < 200;
+    return { W, H, sun: [W * .8, H * .13], ridge: H * .5, castle: [Math.max(14, W * .07), H * .38], mill: [W * (narrow ? .86 : .93), H * .5],
+      village: [W * (narrow ? .62 : .82), H * .66], river: H * .7, bridge: [W * (narrow ? .7 : .86), H * .76], ground: H * .87, sheep: [W * .05, H * .92] };
+  }
+  function paintBase(mode) {
+    const W = SW, H = SH, P = COL[mode], c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d'), R = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+    let sd = 11; const rnd = () => (sd = (sd * 9301 + 49297) % 233280) / 233280;
+    L = layout();
+    // the sky in bands, dithered where they meet
+    const bh = Math.ceil(H * .1); P.sky.forEach((col, i) => R(0, i * bh, W, i === P.sky.length - 1 ? H : bh, col));
+    for (let i = 1; i < P.sky.length; i++) { g.fillStyle = P.sky[i - 1]; for (let y = i * bh; y < i * bh + 4; y++) for (let x = y % 2; x < W; x += (y - i * bh) < 2 ? 2 : 4) g.fillRect(x, y, 1, 1); }
+    const disc = (cx, cy, r, col) => { for (let y = -r; y <= r; y++) { const w = Math.floor(Math.sqrt(r * r - y * y)); R(cx - w, cy + y, w * 2 + 1, 1, col); } };
+    const [sx, sy] = L.sun;
+    if (mode === 'day') { disc(sx, sy, 11, '#F2E3A0'); disc(sx, sy, 9, '#F7EDB8'); }
+    if (mode === 'evening') { disc(sx, sy + H * .2, 14, '#F0B060'); disc(sx, sy + H * .2, 11, '#F6C57A'); R(sx - 18, sy + H * .2 + 4, 36, 1, P.sky[3]); R(sx - 20, sy + H * .2 + 8, 40, 1, P.sky[3]); }
+    if (mode === 'night') { disc(sx, sy, 9, '#E9EFD2'); disc(sx + 4, sy - 3, 8, P.sky[0]); for (let k = 0; k < W * H / 1400; k++) R(rnd() * W, rnd() * H * .42, 1, 1, rnd() < .2 ? '#F2F6E4' : '#9DB79A'); }
+    // far mountains with snow, then a lower range
+    const ridge = (b, amp, fq, ph, col, snow) => { for (let x = 0; x < W; x++) { const h = b - Math.abs(Math.sin(x * fq + ph)) * amp - Math.sin(x * fq * 2.7 + ph) * amp * .25; R(x, h, 1, H, col); if (snow && h < b - amp * .72) R(x, h, 1, 2, snow); } };
+    ridge(L.ridge, H * .13, .021, .4, P.far, P.snow); ridge(L.ridge + H * .05, H * .07, .034, 2.1, P.far2, null);
+    // the castle on its hill, its road
+    const [cx, cy] = L.castle, k0 = mode === 'night' ? PAL[0] : PAL[1];
+    for (let i = -46; i <= 46; i++) R(cx + 18 + i, cy + 48 - Math.round(Math.sqrt(2116 - i * i) * .3), 1, H, P.hill);
+    R(cx, cy + 10, 36, 24, k0); R(cx - 6, cy, 10, 34, k0); R(cx + 32, cy, 10, 34, k0); R(cx + 13, cy - 10, 10, 20, k0);
+    [[-6, -2], [-2, -2], [2, -2], [32, -2], [36, -2], [40, -2], [13, -12], [17, -12], [21, -12]].forEach(([a, b]) => R(cx + a, cy + b, 2, 2, k0));
+    R(cx + 14, cy + 22, 8, 12, PAL[0]); const win = mode === 'day' ? PAL[0] : PAL.y; R(cx - 3, cy + 8, 2, 3, win); R(cx + 36, cy + 8, 2, 3, win); R(cx + 17, cy - 4, 2, 3, win);
+    R(cx + 17, cy - 22, 1, 12, PAL[0]);
+    for (let i = 0; i < 160; i++) { const p = i / 160, x = cx + 10 + Math.sin(p * 9) * 22 + p * 6, y = H - p * (H - cy - 36); R(x, y, 6 - p * 3, 2, P.road); }
+    // middle hills, the windmill's tower, the village
+    for (let x = 0; x < W; x++) R(x, L.village[1] + 6 - Math.sin(x * .018 + 1.2) * 10, 1, H, P.mid);
+    const [mx, my] = L.mill; for (let j = 0; j < 30; j++) R(mx - 4 - j / 6, my + j, 8 + j / 3, 1, k0); R(mx - 5, my - 4, 10, 4, PAL[0]); R(mx - 1, my + 20, 3, 10, PAL[0]); if (mode !== 'day') R(mx - 1, my + 8, 2, 3, PAL.y);
+    const [vx, vy] = L.village;
+    [[-18, 6, 12, 8], [0, 0, 14, 10], [22, -4, 16, 12], [46, 2, 12, 9]].forEach(([dx, dy, w, h]) => { const x = vx + dx, y = vy + dy; R(x, y, w, h, P.wall);
+      for (let j = 0; j < w / 2 + 2; j++) R(x - 2 + j, y - j, w + 4 - j * 2, 1, PAL[1]); R(x + w / 2 - 1, y + h - 5, 3, 5, PAL[0]);
+      R(x + 2, y + 3, 2, 2, mode === 'day' ? PAL[1] : PAL.y); R(x + w - 4, y + 3, 2, 2, mode === 'day' ? PAL[1] : PAL.y); R(x + w - 5, y - w / 2 + 1, 2, 5, PAL[0]); });
+    // the river and its stone bridge
+    for (let y = Math.round(L.river); y < H; y++) { const p = (y - L.river) / (H - L.river), x = W - p * W * .42 + Math.sin(p * 4) * 20, w = 18 + p * 34; R(x - w / 2, y, w, 1, P.water); }
+    const [bx, by] = L.bridge; R(bx, by, 44, 4, PAL[1]); R(bx, by + 4, 4, 10, PAL[1]); R(bx + 40, by + 4, 4, 10, PAL[1]);
+    for (let i = 0; i < 36; i++) R(bx + 4 + i, by + 4, 1, Math.round(9 - Math.sin(i / 36 * Math.PI) * 9), PAL[1]); for (let i = 0; i < 44; i += 4) R(bx + i, by - 2, 2, 2, PAL[1]);
+    // the foreground: ground, trees, a fence, flowers, grass
+    R(0, L.ground, W, H, P.ground);
+    const tree = (x, y, s) => { R(x + 5 * s, y + 9 * s, 2 * s, 5 * s, PAL[0]); [[3, 0, 6], [1, 1, 10], [0, 2, 12], [0, 3, 12], [0, 4, 12], [1, 5, 10], [0, 6, 12], [1, 7, 10], [3, 8, 6]].forEach(([dx, dy, w]) => R(x + dx * s, y + dy * s, w * s, s, P.tree)); [[2, 2], [7, 4], [4, 6], [9, 6]].forEach(([dx, dy]) => R(x + dx * s, y + dy * s, s, s, P.shade)); };
+    [[2, L.ground - 40, 3], [W * .06, L.ground - 26, 2], [W - 40, L.ground - 36, 3], [W * .9, L.ground - 22, 2]].forEach(([x, y, s]) => tree(x, y, s));
+    for (let i = 0; i < 8; i++) R(W * .12 + i * 10, L.ground + 8, 2, 10, PAL[1]); R(W * .12 - 2, L.ground + 11, 76, 2, PAL[1]); R(W * .12 - 2, L.ground + 15, 76, 1, PAL[1]);
+    for (let k = 0; k < W / 10; k++) { const x = rnd() * W, y = L.ground + 3 + rnd() * (H - L.ground - 4); R(x, y, 1, 2, mode === 'night' ? PAL[0] : PAL[1]); R(x + 2, y + 1, 1, 1, mode === 'night' ? PAL[0] : PAL[1]); }
+    if (mode !== 'night') for (let k = 0; k < W / 30; k++) R(rnd() * W, L.ground + 6 + rnd() * (H - L.ground - 8), 2, 2, rnd() < .5 ? PAL.r : PAL.y);
+    return c;
+  }
+  function frame(now) {
+    raf = null;
+    if (!scv.isConnected || document.hidden) return;
+    const still = ML.reducedMotion(), focus = root.dataset.timer === 'running';
+    if (!still && now - lastF < (focus ? 330 : 125)) { raf = requestAnimationFrame(frame); return; }
+    vt += still ? 0 : Math.min(400, now - (lastF || now)) * (focus ? .3 : 1); lastF = now;
+    const mode = dayPart(), k = window.innerWidth < 700 ? 3 : 4, w = Math.ceil(innerWidth / k), h = Math.ceil(innerHeight / k);
+    if (w !== SW || h !== SH || k !== K) { SW = w; SH = h; K = k; scv.width = w; scv.height = h; baseKey = ''; }
+    if (baseKey !== mode + w + 'x' + h) { base = paintBase(mode); baseKey = mode + w + 'x' + h; }
+    const g = scv.getContext('2d'), P = COL[mode], R = (x, y, ww, hh, col) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), ww, hh); };
+    g.drawImage(base, 0, 0);
+    const t = vt;
+    // clouds
+    const cloud = (x, y, s) => { [[4, 0, 10], [2, 1, 15], [0, 2, 22], [0, 3, 24]].forEach(([dx, dy, ww]) => R(x + dx * s, y + dy * s, ww * s, s, P.cloud)); R(x, y + 4 * s, 24 * s, s, P.cloudO); };
+    const span = SW + 80, d = t / 900;
+    cloud((SW * .1 + d) % span - 60, SH * .08, 2); cloud((SW * .45 + d * .7) % span - 60, SH * .17, 1); cloud((SW * .7 + d * .8) % span - 60, SH * .05, 1);
+    // windmill blades
+    const [mx, my] = L.mill, a0 = t / 1600, k0 = mode === 'night' ? PAL[0] : PAL[1];
+    for (let b = 0; b < 4; b++) { const a = a0 + b * Math.PI / 2; for (let r = 2; r < 20; r++) { R(mx + Math.cos(a) * r, my + Math.sin(a) * r, 1, 1, k0); if (r > 7 && r % 2) R(mx + Math.cos(a) * r + Math.cos(a + 1.57) * 2, my + Math.sin(a) * r + Math.sin(a + 1.57) * 2, 1, 1, mode === 'night' ? P.cloud : PAL[4]); } }
+    R(mx - 1, my - 1, 3, 3, PAL[0]);
+    // chimney smoke
+    const [vx, vy] = L.village;
+    [[-18, 6, 12], [0, 0, 14], [22, -4, 16], [46, 2, 12]].forEach(([dx, dy, ww], i) => { const x = vx + dx + ww - 5, y = vy + dy - ww / 2 + 1; for (let s = 0; s < 4; s++) { const p = ((t / 900 + s * .25 + i * .3) % 1); R(x + Math.sin(p * 6 + i) * 2, y - 2 - p * 14, p < .7 ? 2 : 1, p < .7 ? 2 : 1, P.smoke); } });
+    // the castle flag
+    const [cx, cy] = L.castle, f = Math.floor(t / 400) % 2; R(cx + 18, cy - 22, 7 - f, 2, PAL.y); R(cx + 18, cy - 20, 5 + f, 2, PAL.y);
+    // glints on the river
+    for (let y = Math.round(L.river); y < SH; y += 1) { if ((y + Math.floor(t / 250)) % 7) continue; const p = (y - L.river) / (SH - L.river), x = SW - p * SW * .42 + Math.sin(p * 4) * 20, ww = 18 + p * 34; R(x - ww / 4 + Math.sin(y + t / 400) * 6, y, ww / 3, 1, P.glint); }
+    // two sheep that graze and take a step now and then
+    if (mode !== 'night') { const [sx, sy] = L.sheep; [0, 1].forEach(i => { const step = Math.floor(t / 3000 + i * 1.7) % 6, x = sx + i * 22 + (step < 3 ? step : 6 - step) * 2, y = sy + i * 3, head = Math.floor(t / 1200 + i) % 3 === 0;
+      R(x, y, 9, 5, '#F2F5E6'); R(x + 1, y - 1, 7, 1, '#F2F5E6'); R(x + 1, y + 5, 1, 2, PAL[0]); R(x + 6, y + 5, 1, 2, PAL[0]); R(x + 8, y + (head ? 2 : 0), 3, 3, PAL[0]); }); }
+    // birds now and then (day, evening) / fireflies (night)
+    if (mode !== 'night') { const cyc = t % 70000; if (cyc < 22000) { const bx = cyc / 22000 * (SW + 60) - 30; [[0, 0], [6, -3], [12, 1], [-6, 3]].forEach(([dx, dy], i) => { const ff = Math.floor(t / 250 + i) % 2, x = bx + dx, y = SH * .22 + dy; R(x, y + ff, 1, 1, PAL[1]); R(x + 1, y + 1, 1, 1, PAL[1]); R(x + 2, y + ff, 1, 1, PAL[1]); }); } }
+    else { let s2 = 5; const r2 = () => (s2 = (s2 * 9301 + 49297) % 233280) / 233280; for (let i = 0; i < 14; i++) { const x = r2() * SW, y = SH * .6 + r2() * SH * .35; if (Math.floor(t / 600 + i) % 3) R(x + Math.sin(t / 2000 + i) * 3, y, 1, 1, '#E8F070'); } }
+    if (!still) raf = requestAnimationFrame(frame);
+  }
+  function renderScene() {
+    const show = isOn() && level() === 'plein';
+    if (show && !scv.isConnected) { const fx = $('fx'); if (fx) fx.after(scv); else document.body.prepend(scv); }
+    if (!show) { if (scv.isConnected) scv.remove(); cancelAnimationFrame(raf); raf = null; return; }
+    if (!raf) { lastF = 0; raf = requestAnimationFrame(frame); }
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) renderScene(); });
+  on('motion', () => { cancelAnimationFrame(raf); raf = null; renderScene(); });
+  on('minute', () => { if (scv.isConnected && ML.reducedMotion()) { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); } }); // a still scene still follows the hour
+  addEventListener('resize', () => { if (scv.isConnected && !raf) raf = requestAnimationFrame(frame); setTimeout(renderSet, 80); });
+
+  function sync() {
+    if (root.dataset.cartLevel !== level()) root.dataset.cartLevel = level();
+    renderSet(); renderDial(); renderScene();
+  }
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-light'] });
+  on('started', sync); on('render', sync); on('world', sync);
 })();

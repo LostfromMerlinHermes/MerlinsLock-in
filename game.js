@@ -318,8 +318,21 @@
   let previewMood = null, previewPick = null;
   const storedPick = m => (S.worlds && S.worlds[m]) || LEGACY[S.dayNight] || LEGACY.auto;
   const pickFor = m => (previewPick && m === (previewMood || S.mood) ? previewPick : storedPick(m));
-  // "Follow the hour": the night world from 21:00 to 6:00, the chosen one (or the day one) otherwise
-  const nightOf = p => (p.clock ? nightByClock() : p.w === 'night');
+  // "Follow the hour": the night world from 21:00 to 6:00, the chosen one (or the day one) otherwise.
+  // A world picked by hand while it's on (3.37.2) is held until the hour next turns: { hold: w, holdUntil }
+  const nextTurn = () => { const n = new Date(), h = n.getHours(); if (h >= 21) n.setDate(n.getDate() + 1); n.setHours(h >= 6 && h < 21 ? 21 : 6, 0, 0, 0); return n.getTime(); };
+  const held = p => (p && p.hold && Date.now() < (p.holdUntil || 0) ? p.hold : null);
+  const nightOf = p => { const h = held(p); if (h) return h === 'night'; return p.clock ? nightByClock() : p.w === 'night'; };
+  // the pick after tapping world w: with "follow the hour" on, w shows now (held) and a day choice (day / light) is kept
+  ML.withWorld = (p, w) => {
+    const q = { w: p.w, clock: !!p.clock };
+    if (!q.clock) { q.w = w; return q; }
+    if (w !== 'night') q.w = w;
+    if ((w === 'night') !== nightByClock()) { q.hold = w; q.holdUntil = nextTurn(); }
+    return q;
+  };
+  // the tile shown as chosen: the world on screen for that pick
+  ML.worldSel = p => held(p) || (p.clock && nightByClock() ? 'night' : p.w === 'night' && p.clock ? 'day' : p.w);
   const LIGHT_NAME = { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' };
   // The world a pick leads to: { th: data-theme, light }; light needs Premium (or the Shop trial of that energy)
   function worldOf(m, p) {
@@ -377,7 +390,7 @@
   ML.worldsFixed = () => S.theme !== 'auto'; // a fixed theme in Settings: no world choice
   ML.setWorld = (m, p, quiet) => {
     if (p.w === 'light' && !canLight()) return false;
-    S.worlds = Object.assign({}, S.worlds, { [m]: { w: p.w, clock: !!p.clock } }); save();
+    S.worlds = Object.assign({}, S.worlds, { [m]: Object.assign({ w: p.w, clock: !!p.clock }, held(p) ? { hold: p.hold, holdUntil: p.holdUntil } : {}) }); save();
     if (m === S.mood) { applyTheme(); if (!quiet) toast(t('wb_toast', { w: nameOf(worldOf(m, S.worlds[m])) }), { ms: 2200, key: 'daynight' }); }
     ML.emit('world');
     return true;
@@ -687,7 +700,7 @@
     function draw(tm) {
       raf = null; // set again below only while animating, so start() / the 'motion' event can restart the loop
       const root = document.documentElement, th = root.dataset.theme || 'sorcerer';
-      const paint = still || !tm || tm - lastPaint >= 31;
+      const paint = still || !tm || tm - lastPaint >= ((ML.fxGap && ML.fxGap(th)) || 31); // a world may paint less often (Washi)
       if (paint) lastPaint = tm;
       const slow = root.classList.contains('t-final') ? 0 : root.dataset.timer === 'running' ? 0.3 : 1;
       if (tm) { vt += lastTm ? Math.min(100, tm - lastTm) * slow : 0; lastTm = tm; tm = vt; }

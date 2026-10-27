@@ -1058,6 +1058,10 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-light="1"][data-theme="sanctuary"] body::before { left: -120px; top: -90px; transform-origin: 20% 20%; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='700' height='560'><filter id='b' x='-30%' y='-30%' width='160%' height='160%'><feTurbulence type='fractalNoise' baseFrequency='.011' numOctaves='3' seed='7'/><feDisplacementMap in='SourceGraphic' scale='130'/><feGaussianBlur stdDeviation='22'/></filter><g filter='url(%23b)' fill='%232E3A8C'><ellipse cx='150' cy='120' rx='190' ry='130' fill-opacity='.055'/><ellipse cx='300' cy='70' rx='90' ry='60' fill-opacity='.04'/></g></svg>"); }
 :root[data-light="1"][data-theme="sanctuary"] body::after { right: -120px; bottom: -90px; transform-origin: 80% 80%; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='700' height='560'><filter id='b' x='-30%' y='-30%' width='160%' height='160%'><feTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='3' seed='3'/><feDisplacementMap in='SourceGraphic' scale='120'/><feGaussianBlur stdDeviation='22'/></filter><g filter='url(%23b)' fill='%232E3A8C'><ellipse cx='520' cy='420' rx='200' ry='140' fill-opacity='.05'/><ellipse cx='380' cy='500' rx='100' ry='55' fill-opacity='.035'/></g></svg>"); animation-delay: -45s; }
 @keyframes ink-spread { to { transform: scale(1.08); } }
+/* 3.38.1: the blots are filtered SVGs; scaling them made Chrome re-raster them (lag). Kept as one layer in Sobre, and
+   still under the painted landscape (Encré / Peint), where the canvas covers most of them anyway */
+:root[data-light="1"][data-theme="sanctuary"] body::before, :root[data-light="1"][data-theme="sanctuary"] body::after { will-change: transform; }
+:root[data-light="1"][data-theme="sanctuary"]:not([data-washi-level="sobre"]) body::before, :root[data-light="1"][data-theme="sanctuary"]:not([data-washi-level="sobre"]) body::after { animation: none; will-change: auto; }
 /* during a session the blots hold where they are */
 :root[data-light="1"][data-theme="sanctuary"][data-timer="running"] body::before, :root[data-light="1"][data-theme="sanctuary"][data-timer="running"] body::after { animation-play-state: paused; }
 :root[data-light="1"][data-theme="sanctuary"] h1 span { text-shadow: none; color: var(--accent); }
@@ -1165,6 +1169,10 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 .washi-set select:focus-visible { outline: none; }
 .washi-set .ws-sel:has(select:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
 .washi-set .ws-sel svg { position: absolute; right: 6px; width: 12px; height: 12px; fill: none; stroke: var(--mist); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.washi-set .ws-inc { display: grid; place-items: center; min-width: 30px; min-height: 28px; margin-left: 2px; padding: 0; border: 0; border-radius: 999px; background: none; box-shadow: inset 1px 0 0 var(--line); color: var(--mist); }
+.washi-set .ws-inc svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.washi-set .ws-inc[aria-pressed="true"] { color: var(--accent); }
+.washi-set .ws-inc[aria-pressed="false"] svg { opacity: .45; }
 .washi-set .ws-sel i { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 2px color-mix(in srgb, var(--panel) 70%, transparent); }
 /* phones / side panel: top-right on the title's line, the ink shown as its dot only (the menu still names it) */
 html.mnav-on .top:has(> .washi-set) { position: relative; }
@@ -1459,6 +1467,14 @@ html.mnav-on #washi-incense { display: none; }
 :root[data-light="1"][data-theme="arcade"] body::after { content: ""; position: fixed; top: 36px; left: 0; width: calc(100% + 660px); height: 102px; z-index: 0; pointer-events: none;
   background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='34' viewBox='0 0 220 34' shape-rendering='crispEdges'><rect x='14' y='8' width='10' height='2' fill='%23F2F7E1'/><rect x='11' y='10' width='18' height='3' fill='%23F2F7E1'/><rect x='18' y='6' width='6' height='2' fill='%23F2F7E1'/><rect x='10' y='13' width='22' height='2' fill='%23F2F7E1'/><rect x='12' y='15' width='18' height='1' fill='%23B9CF8A'/><rect x='124' y='18' width='10' height='2' fill='%23F2F7E1'/><rect x='121' y='20' width='18' height='3' fill='%23F2F7E1'/><rect x='128' y='16' width='6' height='2' fill='%23F2F7E1'/><rect x='120' y='23' width='22' height='2' fill='%23F2F7E1'/><rect x='122' y='25' width='18' height='1' fill='%23B9CF8A'/><rect x='180' y='6' width='10' height='2' fill='%23F2F7E1'/><rect x='177' y='8' width='18' height='3' fill='%23F2F7E1'/><rect x='184' y='4' width='6' height='2' fill='%23F2F7E1'/><rect x='176' y='11' width='22' height='2' fill='%23F2F7E1'/><rect x='178' y='13' width='18' height='1' fill='%23B9CF8A'/></svg>") left top / 660px 102px repeat-x; image-rendering: pixelated; animation: cloud-drift 150s linear infinite; }
 @keyframes cloud-drift { to { transform: translateX(-660px); } }
+/* 3.38 (cartouche.js): a pixel pocket stopwatch instead of the ring (both levels), and with the scenery « Complet » the
+   living landscape canvas #cx-scene instead of the overworld picture and its clouds */
+:root[data-light="1"][data-theme="arcade"] .ring-wrap > .ring { opacity: 0; }
+.cx-dial { position: absolute; left: -4%; top: -6%; width: 108%; height: 108%; image-rendering: pixelated; pointer-events: none; }
+:root[data-light="1"][data-theme="arcade"] .ring-center { z-index: 1; }
+#cx-scene { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; image-rendering: pixelated; }
+:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"] body { background: #D9E8B4; }
+:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"] body::after { display: none; }
 /* the pixel title and clock keep their own size (Press Start 2P is already wide) */
 :root[data-light="1"][data-theme="arcade"] h1, :root[data-light="1"][data-theme="arcade"] .clock, :root[data-light="1"][data-theme="arcade"] .cbar-clock,
 :root[data-light="1"][data-theme="arcade"] .lu-title, :root[data-light="1"][data-theme="arcade"] .deep-clock { font-size-adjust: none; }
@@ -1950,7 +1966,7 @@ html.deep-on body { overflow: hidden; }
   font: 400 clamp(22px, 2.4vw, 32px) / 1.1 "VT323", monospace; text-align: left; }
 .qs-say #qs-say { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qs-say svg { display: block; width: 12px; height: auto; }
-.qs-more { animation: qs-blink 1s steps(1) infinite; }
+.qs-more { opacity: .55; } /* still: blinking, it caught the eye during focus (3.38.1) */
 .qs-more svg { width: 14px; }
 @keyframes qs-blink { 50% { opacity: 0; } }
 .qs-day { justify-self: end; font: 400 14px "Press Start 2P", monospace; color: var(--q1); }
