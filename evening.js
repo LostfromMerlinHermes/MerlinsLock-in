@@ -50,13 +50,11 @@
     const sun = (sx, sy, r, top, bot, a) => { const g = x.createLinearGradient(0, sy - r, 0, sy + r); g.addColorStop(0, rgb(top, a)); g.addColorStop(1, rgb(bot, a)); x.fillStyle = g; x.beginPath(); x.arc(sx, sy, r, 0, 6.29); x.fill(); };
     const M = Math.min(W, H);
     if (w === 'sanctuary') {
-      // a violet evening, a rose-gold band on the horizon, the sun sinking behind soft hills
-      sky([[0, [24, 22, 58], .55 * k], [.55, [60, 40, 90], .55 * k], [.82, [196, 110, 96], .55 * k], [1, [240, 170, 110], .55 * k]]);
-      sun(W * .9, H * (.8 + .16 * k), M * .07, [255, 214, 150], [240, 120, 90], .6 * k);
-      glow(W * .9, H * .9, Math.max(W, H) * .4, [255, 160, 110], .22 * k);
-      x.fillStyle = rgb([16, 18, 40], .85 * k); x.beginPath(); x.moveTo(0, H);
-      for (let i = 0; i <= 24; i++) x.lineTo(W * i / 24, H * (.9 + .035 * Math.sin(i * .9) + .02 * Math.sin(i * 2.3)));
-      x.lineTo(W, H); x.fill();
+      // a violet evening, a rose-gold band on the horizon, the sun sinking behind the moon garden's far shore
+      // (the shore, the water and the willow are drawn by sanctuary.js on #fx, in front of this sky)
+      sky([[0, [24, 22, 58], .55 * k], [.5, [60, 40, 90], .55 * k], [.72, [196, 110, 96], .55 * k], [.8, [240, 170, 110], .55 * k], [1, [240, 170, 110], .2 * k]]);
+      sun(W * .8, H * (.6 + .14 * k), M * .07, [255, 214, 150], [240, 120, 90], .6 * k);
+      glow(W * .8, H * .72, Math.max(W, H) * .4, [255, 160, 110], .22 * k);
     } else if (w === 'observatory') {
       // a copper sky, the sun low on the right, long amber light, the first stars on the left
       sky([[0, [30, 24, 48], .5 * k], [.5, [80, 46, 40], .5 * k], [.85, [200, 110, 60], .5 * k], [1, [235, 150, 80], .5 * k]]);
@@ -100,11 +98,6 @@
     x.fillStyle = g; x.fillRect(0, 0, W, H);
     if (paper) return;
     for (let i = 0; i < 40 + 30 * e; i++) { x.fillStyle = rgb([235, 240, 255], (.2 + .5 * ((i * 37) % 10) / 10) * (.7 + .3 * e)); x.beginPath(); x.arc((i * 613) % W, (i * 271) % (H * .5), .7 + (i % 3) * .4, 0, 6.29); x.fill(); }
-    if (w === 'sanctuary') {
-      x.fillStyle = rgb([10, 12, 30], .9); x.beginPath(); x.moveTo(0, H);
-      for (let i = 0; i <= 24; i++) x.lineTo(W * i / 24, H * (.9 + .035 * Math.sin(i * .9) + .02 * Math.sin(i * 2.3)));
-      x.lineTo(W, H); x.fill();
-    }
   }
   function paintDawn(x, W, H, w, d) {
     const g = x.createLinearGradient(0, 0, 0, H), a = (w === 'washi' ? .4 : .36) * d;

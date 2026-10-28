@@ -743,6 +743,8 @@
         // Washi: the ink scene (mountains in the mist, plum branches, ensō, birds, petals) lives in washi.js
         if (ML.washiDraw) ML.washiDraw(cx, W, H, slow, still, now);
       } else if (th === 'sanctuary') {
+        // The moon garden (willow, shore, bridge, lilies, mist) lives in sanctuary.js; then the stars and fireflies
+        if (ML.sanctuaryDraw) ML.sanctuaryDraw(cx, W, H, slow, still, now, tm);
         // Moonlight, a few faint twinkling stars, and fireflies that wander slowly
         glow(W * 0.12, H * 0.06, Math.max(W, H) * 0.4, 'rgba(160,200,255,1)', 0.08);
         for (const s of twinkles) {

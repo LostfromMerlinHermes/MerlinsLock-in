@@ -1261,6 +1261,35 @@ html.mnav-on #washi-incense { display: none; }
 .ob-q circle { fill: #C9A45C; opacity: .6; }
 .ob-dial.idle :is(.ob-arc, .ob-glow, .ob-tail) { opacity: 0; }
 :root[data-timer="paused"] .ob-dial :is(.ob-arc, .ob-glow) { opacity: .5; }
+/* Sanctuaire's dial (3.42, sanctuary.js): the pond lotus, or the moon chronograph from the shop */
+:root[data-theme="sanctuary"]:not([data-light]) .ring-wrap > .ring { opacity: 0; }
+:root[data-theme="sanctuary"]:not([data-light]) .ring-center { z-index: 1; }
+.sa-dial { position: absolute; left: -6%; top: -6%; width: 112%; height: 112%; overflow: visible; pointer-events: none; }
+.sa-dial.sa-prev { position: static; width: 72px; height: 72px; margin: 0 auto; overflow: hidden; }
+.sl-rim { fill: rgba(11, 22, 34, .35); stroke: rgba(245, 195, 114, .42); stroke-width: 1.2; }
+.sl-rip { fill: none; stroke: rgba(127, 214, 200, .08); }
+.sl-ticks line { stroke: #f5c372; stroke-opacity: .42; stroke-width: 1; transition: stroke .9s; }
+.sl-ticks line.q { stroke-opacity: .9; stroke-width: 2; }
+.sl-ticks line.on { stroke: #7fd6c8; }
+.sl-back path { fill: rgba(127, 214, 200, .07); stroke: rgba(127, 214, 200, .28); stroke-width: .8; }
+.sl-ring { fill: none; stroke: rgba(127, 214, 200, .22); }
+.sl-p { stroke: rgba(245, 195, 114, .7); stroke-width: .9; transition: d 1.2s linear, fill-opacity 1.2s linear; }
+.sl-p.bud { fill: #16283b; stroke: rgba(127, 214, 200, .45); }
+.sl-hl { fill: #fff8ec; transition: d 1.2s linear, opacity 1.2s linear; }
+.sl-rib { fill: none; stroke: #fff3d6; stroke-width: .8; transition: d 1.2s linear, opacity 1.2s linear; }
+.sl-bloom { opacity: 0; transition: opacity 3s ease; }
+.sa-dial.bloom .sl-bloom { opacity: 1; }
+:root[data-timer="paused"] .sa-dial .sl-front { opacity: .65; transition: opacity .6s; }
+.sm-rim { fill: rgba(11, 21, 32, .35); stroke: #1f3246; stroke-width: 2; }
+.sm-in { fill: none; stroke: rgba(245, 195, 114, .3); stroke-width: .8; }
+.sm-ticks line { stroke: #f5c372; stroke-opacity: .4; stroke-width: 1; }
+.sm-ticks line.q { stroke-opacity: .9; stroke-width: 2.2; }
+.sm-num text { fill: #f5c372; fill-opacity: .75; font: 700 13px var(--f-display); text-anchor: middle; }
+.sm-arc { fill: none; stroke: #7fd6c8; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 0 1; transition: stroke-dasharray .9s linear; filter: drop-shadow(0 0 4px rgba(127, 214, 200, .7)); }
+.sm-win { fill: #06101a; stroke: rgba(245, 195, 114, .7); }
+.sm-moon { fill: #f5c372; transition: cx 1.2s linear; } .sm-star { fill: #e7eef5; opacity: .7; }
+.sm-hand { transition: transform .9s linear; } .sm-hand line { stroke: #f5c372; stroke-width: 1.6; stroke-linecap: round; } .sm-hand circle { fill: #f5c372; }
+:root[data-timer="paused"] .sa-dial .sm-arc { opacity: .5; }
 :root[data-light="1"][data-theme="observatory"] .ring-wrap { isolation: isolate; }
 :root[data-light="1"][data-theme="observatory"] .ring-wrap::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background: center / 100% 100% no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><g fill='none' stroke='%23A8842F'><circle cx='120' cy='120' r='115' stroke-width='1.2'/><circle cx='120' cy='120' r='112' stroke-width='.5'/><circle cx='120' cy='120' r='97' stroke-width='.6'/><circle cx='120' cy='120' r='113.5' stroke-width='2.2' stroke-dasharray='.6 5.34' stroke-opacity='.8'/></g><g fill='%235C4632' font-family='Georgia, serif' font-size='8.5' text-anchor='middle' letter-spacing='.5'><text x='120' y='11' dy='3'>XII</text><text x='229' y='123' transform='rotate(90 229 120)'>III</text><text x='120' y='232'>VI</text><text x='11' y='123' transform='rotate(-90 11 120)'>IX</text></g></svg>"); }

@@ -100,8 +100,8 @@
   ML.defaults(() => ({
     econ: {
       gold: 0,
-      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [] },
-      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none' },
+      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus'] },
+      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus' },
       potions: { seal: 0, elixir: 0, scroll: 0 }, elixir: false, frozen: [], lastCheck: null,
     },
   }));
@@ -113,6 +113,7 @@
     familiar: { owl: 0, cat: 300, raven: 300, fox: 400, hippo: 10000 },
     potion: { seal: 150, elixir: 80, scroll: 40, midas: 120 },
     skin: { classic: 0, runic: 350, parchment: 300, gold: 450, ember: 300, holo: 600, astral: 800 },
+    dial: { lotus: 0, moon: 300 }, // world dials (3.42): the Sanctuaire's two dials
   };
   const PREMIUM_ONLY = { skin: ['holo', 'astral'] }; // need a Premium account to buy
   // The app's author (ML.isOwner) gets these for free; everyone else buys them at the catalog price
@@ -123,6 +124,7 @@
     const E = S.econ; if (!E) return;
     if (!E.owned.skin) E.owned.skin = ['classic']; if (!E.equip.skin) E.equip.skin = 'classic';
     if (!Array.isArray(E.owned.costume)) E.owned.costume = []; if (!E.equip.costume) E.equip.costume = 'none';
+    if (!Array.isArray(E.owned.dial)) E.owned.dial = ['lotus']; if (!E.owned.dial.includes('lotus')) E.owned.dial.push('lotus'); if (!E.equip.dial) E.equip.dial = 'lotus';
   }
 
   /* ---------- Sequence costumes: earned by reaching each Sequence, never lost ----------
@@ -249,6 +251,7 @@
     if (cat === 'burst') return `<span class="burst-swatch">${{ theme: '✦', coins: '◈', confetti: '▚', stars: '★', sakura: '❀' }[k]}</span>`;
     if (cat === 'familiar') return ML.familiarSvg ? ML.familiarSvg(k, 'idle') : '';
     if (cat === 'skin') return ML.sportSkinPreview ? ML.sportSkinPreview(k) : '';
+    if (cat === 'dial') return ML.sanctuaryDialSvg ? ML.sanctuaryDialSvg(k) : '';
     return `<span class="burst-swatch">${{ seal: '⛨', elixir: '⚗', scroll: '📜', midas: '♛' }[k]}</span>`;
   };
   const label = (cat, k) => cat === 'familiar' ? t('fam_' + k) : t((cat === 'potion' ? 'pot' : cat) + '_' + k);
@@ -257,7 +260,7 @@
   const tier = p => (p <= 150 ? 'common' : p <= 300 ? 'rare' : p <= 500 ? 'epic' : 'legendary');
   const coin = (n, short) => `<span class="coin-pill ${short ? 'short' : ''}"><i>◈</i>${n.toLocaleString(ML.locale())}</span>`;
   let justBought = null;
-  const NAV = [['worlds', 'cat_worlds'], ['seq', 'cat_seq'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['burst', 'cat_bursts']]; // (character skins went with the Sport section, set aside in 3.25)
+  const NAV = [['worlds', 'cat_worlds'], ['seq', 'cat_seq'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['dial', 'cat_dials'], ['burst', 'cat_bursts']]; // (character skins went with the Sport section, set aside in 3.25)
   // Light skins (Premium, not bought with gold): one per mood, switched on from here or the sun / moon button
   const LIGHTS = [['drained', 'aube'], ['steady', 'atelier'], ['fired', 'tokyo'], ['scattered', 'cartouche']];
   function lightSection() {
@@ -312,7 +315,7 @@
   on('trial:end', () => toast(t('w_trial_end'), { key: 'trial', ms: 2500 }));
   function renderShop() {
     const E = S.econ;
-    const section = (cat, title) => `<h3 class="shop-h" id="shop-${cat}">${esc(t(title))}</h3><div class="shop-grid">${Object.entries(CATALOG[cat]).map(([k, price]) => {
+    const section = (cat, title, hint) => `<h3 class="shop-h" id="shop-${cat}">${esc(t(title))}</h3>${hint ? `<p class="hint">${esc(t(hint))}</p>` : ''}<div class="shop-grid">${Object.entries(CATALOG[cat]).map(([k, price]) => {
       const own = cat !== 'potion' && E.owned[cat].includes(k), eq = cat !== 'potion' && E.equip[cat] === k, short = !own && E.gold < price;
       let btn;
       if (cat === 'potion') btn = `<button type="button" class="small buy" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(price, E.gold < price)}</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" class="small" data-use="elixir">${esc(t('use'))}</button>` : '')
@@ -343,7 +346,7 @@
       ${lightSection()}
       <h3 class="shop-h" id="shop-seq">${esc(t('cat_seq'))}</h3><p class="hint">${esc(t('seq_hint'))}</p>
       <div class="shop-grid seq-grid">${seqTile('none', -1)}${(ML.COSTUMES || []).map(seqTile).join('')}</div>
-      ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('burst', 'cat_bursts')}`;
+      ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('dial', 'cat_dials', 'dial_hint')}${section('burst', 'cat_bursts')}`;
     $('shop-body').querySelectorAll('.world-pic img, .world-free img').forEach(i => i.addEventListener('error', () => i.remove()));
     if (!$('shop').hidden) spy();
   }
