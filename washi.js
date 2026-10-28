@@ -540,6 +540,38 @@
   on('timer', renderIncense);
   on('minute', renderIncense);
 
+  /* ---------- Arriving in Washi (3.38.2): an ink blot draws the landscape, then the sections ---------- */
+  // Chosen from proposals/encre/encre.html (B). The page starts as bare paper; a blot with a ragged edge grows from the
+  // middle over the #fx landscape (and the incense), and a second one, half a beat later, over .app. Played by game.js's
+  // playTransition instead of the overlay; driven frame by frame so the blot stays centred on the screen even though
+  // .app is taller than the window.
+  let blotURL = '', inkRaf = null;
+  function inkBlot() {
+    if (blotURL) return blotURL;
+    const N = 400, c = document.createElement('canvas'); c.width = c.height = N;
+    const g = c.getContext('2d'), R = rng(23); g.fillStyle = '#000'; g.filter = 'blur(1.5px)'; g.beginPath();
+    for (let i = 0; i <= 180; i++) { const a = i / 180 * Math.PI * 2, r = 128 + Math.sin(a * 3 + 1) * 8 + Math.sin(a * 7 + 2) * 5 + Math.sin(a * 13) * 3 + (R() - .5) * 6; const x = N / 2 + Math.cos(a) * r, y = N / 2 + Math.sin(a) * r; if (i) g.lineTo(x, y); else g.moveTo(x, y); }
+    g.fill();
+    for (let k = 0; k < 14; k++) { const a = R() * 6.28, d = 138 + R() * 40; g.beginPath(); g.arc(N / 2 + Math.cos(a) * d, N / 2 + Math.sin(a) * d, 2 + R() * 7, 0, 6.29); g.fill(); }
+    return (blotURL = c.toDataURL());
+  }
+  const easeIO = x => x <= 0 ? 0 : x >= 1 ? 1 : x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+  ML.washiArrive = () => {
+    const app = document.querySelector('.app'); if (!app) return;
+    root.style.setProperty('--ink-blot', `url(${inkBlot()})`);
+    root.style.setProperty('--ink-fx', '0 0 / 0 0'); root.style.setProperty('--ink-app', '0 0 / 0 0');
+    root.classList.add('ink-in'); cancelAnimationFrame(inkRaf);
+    const t0 = performance.now();
+    const step = now => {
+      const W = innerWidth, H = innerHeight, cx = W / 2, cy = H * .42, far = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy)) / .3; // the disc is ~0.64 of the image
+      const k = (d, dur) => easeIO((now - t0 - d) / dur), sa = far * k(0, 1700), sb = far * k(550, 1500), r = app.getBoundingClientRect();
+      root.style.setProperty('--ink-fx', `${(cx - sa / 2).toFixed(1)}px ${(cy - sa / 2).toFixed(1)}px / ${sa.toFixed(1)}px ${sa.toFixed(1)}px`);
+      root.style.setProperty('--ink-app', `${(cx - r.left - sb / 2).toFixed(1)}px ${(cy - r.top - sb / 2).toFixed(1)}px / ${sb.toFixed(1)}px ${sb.toFixed(1)}px`);
+      if (now - t0 < 2100) inkRaf = requestAnimationFrame(step); else root.classList.remove('ink-in');
+    };
+    inkRaf = requestAnimationFrame(step);
+  };
+
   /* ---------- Keeping the page in step ---------- */
   // (the scene rebuilds itself when the size, level or ink changes: ensureScene compares a key)
   function sync() {

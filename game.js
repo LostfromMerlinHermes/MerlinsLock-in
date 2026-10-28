@@ -430,7 +430,7 @@
     const meta = document.querySelector('meta[name=theme-color]');
     if (meta) meta.content = light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#F7F5EF', arcade: '#c6d29c' }[th]
       : { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#120c24', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
-    if (themed) playTransition(th);
+    if (themed) playTransition(light ? LIGHT_NAME[th] : th); // the light worlds have their own (3.38.2): aube, atelier, tokyo, cartouche
     themed = true;
     setTimeout(FX.reset, 30);
   }
@@ -438,8 +438,14 @@
   let fxT = null;
   function playTransition(th) {
     const el = $('theme-fx'); if (!el || ML.reducedMotion()) return;
-    el.dataset.fx = th; el.classList.remove('play'); void el.offsetWidth; el.classList.add('play');
-    clearTimeout(fxT); fxT = setTimeout(() => el.classList.remove('play'), 1100);
+    el.classList.remove('play'); clearTimeout(fxT);
+    // started two frames later: a world's first frame can be heavy (Washi paints its brushes and landscape), and an
+    // animation started before it would be almost over by the time the screen is drawn again
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (th === 'aube' && ML.washiArrive) { ML.washiArrive(); return; } // Washi: its ink draws the world in (washi.js)
+      el.dataset.fx = th; el.classList.remove('play'); void el.offsetWidth; el.classList.add('play');
+      clearTimeout(fxT); fxT = setTimeout(() => el.classList.remove('play'), 1500);
+    }));
     if (!previewMood) sfx(th === 'netrunner' ? 'level' : 'quest'); // browsing the energy picker stays quiet
   }
   on('mood', () => { applyTheme(); renderBuff(); });

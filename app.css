@@ -1245,6 +1245,22 @@ html.mnav-on #washi-incense { display: none; }
   background-position: 3px 3px, right 3px top 3px, left 3px bottom 3px, right 3px bottom 3px, center bottom -80px;
   background-size: auto, auto, auto, auto, 380px 380px; }
 /* 3. Timer: an engraved astrolabe (concentric rings, discreet Roman numerals), fine gold index */
+/* Observatoire's dial in smooth lines (3.39, observatory.js): orbits, a copper arc with a glow, a planet with a comet tail */
+:root[data-theme="observatory"]:not([data-light]) .ring-wrap > .ring { opacity: 0; }
+:root[data-theme="observatory"]:not([data-light]) .ring-center { z-index: 1; }
+.ob-dial { position: absolute; left: -6%; top: -6%; width: 112%; height: 112%; overflow: visible; pointer-events: none; }
+.ob-orbits ellipse { fill: none; stroke: #C9A45C; stroke-width: 1; }
+.ob-orbits circle { fill: #C9A45C; }
+.ob-orbits .ob-o:nth-child(1) { opacity: .55; } .ob-orbits .ob-o:nth-child(2) { opacity: .38; } .ob-orbits .ob-o:nth-child(3) { opacity: .26; }
+.ob-track { fill: none; stroke: rgba(201, 164, 92, .2); stroke-width: 1.5; }
+.ob-arc { fill: none; stroke: url(#ob-g); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 0 1; transition: stroke-dasharray .9s linear; }
+.ob-glow { fill: none; stroke: #e58c52; stroke-width: 13; stroke-linecap: round; opacity: .22; filter: url(#ob-blur); stroke-dasharray: 0 1; transition: stroke-dasharray .9s linear; }
+.ob-tip { transition: transform .9s linear; }
+.ob-tail circle { fill: #fde1c2; }
+.ob-halo { fill: #e58c52; opacity: .2; } .ob-bead { fill: #f6c79c; }
+.ob-q circle { fill: #C9A45C; opacity: .6; }
+.ob-dial.idle :is(.ob-arc, .ob-glow, .ob-tail) { opacity: 0; }
+:root[data-timer="paused"] .ob-dial :is(.ob-arc, .ob-glow) { opacity: .5; }
 :root[data-light="1"][data-theme="observatory"] .ring-wrap { isolation: isolate; }
 :root[data-light="1"][data-theme="observatory"] .ring-wrap::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background: center / 100% 100% no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><g fill='none' stroke='%23A8842F'><circle cx='120' cy='120' r='115' stroke-width='1.2'/><circle cx='120' cy='120' r='112' stroke-width='.5'/><circle cx='120' cy='120' r='97' stroke-width='.6'/><circle cx='120' cy='120' r='113.5' stroke-width='2.2' stroke-dasharray='.6 5.34' stroke-opacity='.8'/></g><g fill='%235C4632' font-family='Georgia, serif' font-size='8.5' text-anchor='middle' letter-spacing='.5'><text x='120' y='11' dy='3'>XII</text><text x='229' y='123' transform='rotate(90 229 120)'>III</text><text x='120' y='232'>VI</text><text x='11' y='123' transform='rotate(-90 11 120)'>IX</text></g></svg>"); }
@@ -1601,6 +1617,22 @@ html.mnav-on .world-btn { justify-content: center; }
 .theme-fx[data-fx="fog"] { background: linear-gradient(90deg, rgba(170, 170, 180, .5), rgba(170, 170, 180, .1)); }
 .theme-fx[data-fx="fog"].play { animation: tfx-fog 1.1s ease-out forwards; }
 @keyframes tfx-fog { 0% { opacity: 1; transform: translateX(-30%); } 100% { opacity: 0; transform: translateX(30%); } }
+/* the light worlds (3.38.2): Washi an ink drop that spreads, Codex a page turning, Estampe the press roller, Cartouche a
+   pixel wipe in its own greens */
+.theme-fx[data-fx="aube"] { background: radial-gradient(circle at 50% 42%, rgba(46, 58, 140, .42) 0, rgba(46, 58, 140, .26) 30%, rgba(46, 58, 140, .1) 60%, rgba(46, 58, 140, .04) 100%); }
+.theme-fx[data-fx="aube"].play { animation: tfx-ink 1.4s cubic-bezier(.2, .7, .3, 1) forwards; }
+@keyframes tfx-ink { 0% { opacity: 1; clip-path: circle(2% at 50% 42%); } 50% { opacity: .85; } 100% { opacity: 0; clip-path: circle(110% at 50% 42%); } }
+/* Washi's arrival (3.38.2, washi.js ML.washiArrive): the landscape, then .app, seen through a growing ink blot */
+html.ink-in #fx, html.ink-in #washi-incense { -webkit-mask: var(--ink-blot) var(--ink-fx) no-repeat; mask: var(--ink-blot) var(--ink-fx) no-repeat; }
+html.ink-in .app { -webkit-mask: var(--ink-blot) var(--ink-app) no-repeat; mask: var(--ink-blot) var(--ink-app) no-repeat; }
+.theme-fx[data-fx="atelier"] { background: linear-gradient(90deg, transparent 0, rgba(60, 40, 15, .22) 46%, #E9DCC0 49.5%, #EFE4CB 70%, rgba(233, 220, 192, .0) 100%); }
+.theme-fx[data-fx="atelier"].play { animation: tfx-page 1.05s cubic-bezier(.5, 0, .3, 1) forwards; }
+@keyframes tfx-page { 0% { opacity: 1; transform: translateX(100%); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(-110%); } }
+.theme-fx[data-fx="tokyo"] { background: linear-gradient(transparent 0 44%, rgba(17, 17, 17, .85) 44% 46%, #E3001B 46% 52%, rgba(227, 0, 27, .25) 52% 60%, transparent 60%); }
+.theme-fx[data-fx="tokyo"].play { animation: tfx-press .9s steps(9) forwards; }
+@keyframes tfx-press { 0% { opacity: 1; transform: translateY(-60%); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(60%); } }
+.theme-fx[data-fx="cartouche"] { background-image: linear-gradient(90deg, #306230 50%, transparent 50%), linear-gradient(#306230 50%, transparent 50%); background-size: 24px 24px; }
+.theme-fx[data-fx="cartouche"].play { animation: tfx-pixel .8s steps(5) forwards; }
 
 /* =================== Sync indicator (sync.js): header cloud, its popover, the "updated" bubble =================== */
 .sync-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
@@ -1658,6 +1690,10 @@ html.mnav-on .world-btn { justify-content: center; }
 .tod[data-tod="day"] { background: linear-gradient(180deg, rgba(255, 255, 255, .035), transparent 50%); }
 .tod[data-tod="dusk"] { background: linear-gradient(0deg, rgba(255, 120, 60, .08), transparent 50%), linear-gradient(180deg, rgba(130, 80, 200, .07), transparent 45%); }
 .tod[data-tod="night"] { background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 20, .35) 100%); }
+/* Evening light (3.40, evening.js): the season's sky under each day world's decor, and the optional eye-comfort filter */
+#dusk { position: fixed; inset: 0; z-index: 0; pointer-events: none; width: 100%; height: 100%; }
+:root[data-dusk] .tod { display: none; }
+#eye-warm { position: fixed; inset: 0; z-index: 9999; pointer-events: none; background: rgb(255, 166, 84); mix-blend-mode: multiply; transition: opacity 2s; }
 .boss-hud { display: grid; gap: 3px; justify-items: center; margin-top: 4px; font-size: 10.5px; color: var(--warn); text-transform: uppercase; letter-spacing: .1em; }
 .boss-hud i { display: block; width: 110px; height: 6px; background: var(--line); overflow: hidden; border-radius: 3px; }
 .boss-hud b { display: block; height: 100%; background: linear-gradient(90deg, var(--warn), #ff9a6b); box-shadow: 0 0 8px var(--warn); transition: width .3s; }
