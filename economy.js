@@ -100,8 +100,8 @@
   ML.defaults(() => ({
     econ: {
       gold: 0,
-      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus'] },
-      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus' },
+      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus', 'diver'] },
+      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus', dialAbyss: 'diver' },
       potions: { seal: 0, elixir: 0, scroll: 0 }, elixir: false, frozen: [], lastCheck: null,
     },
   }));
@@ -113,8 +113,11 @@
     familiar: { owl: 0, cat: 300, raven: 300, fox: 400, hippo: 10000 },
     potion: { seal: 150, elixir: 80, scroll: 40, midas: 120 },
     skin: { classic: 0, runic: 350, parchment: 300, gold: 450, ember: 300, holo: 600, astral: 800 },
-    dial: { lotus: 0, moon: 300 }, // world dials (3.42): the Sanctuaire's two dials
+    dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43)
   };
+  // Each world keeps its own equipped dial: the Sanctuaire's in equip.dial (as before 3.43), the Abysses' in equip.dialAbyss
+  const DIAL_WORLD = { lotus: 'sanctuary', moon: 'sanctuary', diver: 'abyss', nautilus: 'abyss', jelly: 'abyss' };
+  const slotOf = (cat, k) => (cat === 'dial' && DIAL_WORLD[k] === 'abyss' ? 'dialAbyss' : cat);
   const PREMIUM_ONLY = { skin: ['holo', 'astral'] }; // need a Premium account to buy
   // The app's author (ML.isOwner) gets these for free; everyone else buys them at the catalog price
   const OWNER_GIFTS = { familiar: ['hippo'] };
@@ -125,6 +128,7 @@
     if (!E.owned.skin) E.owned.skin = ['classic']; if (!E.equip.skin) E.equip.skin = 'classic';
     if (!Array.isArray(E.owned.costume)) E.owned.costume = []; if (!E.equip.costume) E.equip.costume = 'none';
     if (!Array.isArray(E.owned.dial)) E.owned.dial = ['lotus']; if (!E.owned.dial.includes('lotus')) E.owned.dial.push('lotus'); if (!E.equip.dial) E.equip.dial = 'lotus';
+    if (!E.owned.dial.includes('diver')) E.owned.dial.push('diver'); if (!E.equip.dialAbyss) E.equip.dialAbyss = 'diver';
   }
 
   /* ---------- Sequence costumes: earned by reaching each Sequence, never lost ----------
@@ -251,7 +255,7 @@
     if (cat === 'burst') return `<span class="burst-swatch">${{ theme: '✦', coins: '◈', confetti: '▚', stars: '★', sakura: '❀' }[k]}</span>`;
     if (cat === 'familiar') return ML.familiarSvg ? ML.familiarSvg(k, 'idle') : '';
     if (cat === 'skin') return ML.sportSkinPreview ? ML.sportSkinPreview(k) : '';
-    if (cat === 'dial') return ML.sanctuaryDialSvg ? ML.sanctuaryDialSvg(k) : '';
+    if (cat === 'dial') { const f = DIAL_WORLD[k] === 'abyss' ? ML.abyssDialSvg : ML.sanctuaryDialSvg; return f ? f(k) : ''; }
     return `<span class="burst-swatch">${{ seal: '⛨', elixir: '⚗', scroll: '📜', midas: '♛' }[k]}</span>`;
   };
   const label = (cat, k) => cat === 'familiar' ? t('fam_' + k) : t((cat === 'potion' ? 'pot' : cat) + '_' + k);
@@ -316,7 +320,7 @@
   function renderShop() {
     const E = S.econ;
     const section = (cat, title, hint) => `<h3 class="shop-h" id="shop-${cat}">${esc(t(title))}</h3>${hint ? `<p class="hint">${esc(t(hint))}</p>` : ''}<div class="shop-grid">${Object.entries(CATALOG[cat]).map(([k, price]) => {
-      const own = cat !== 'potion' && E.owned[cat].includes(k), eq = cat !== 'potion' && E.equip[cat] === k, short = !own && E.gold < price;
+      const own = cat !== 'potion' && E.owned[cat].includes(k), eq = cat !== 'potion' && E.equip[slotOf(cat, k)] === k, short = !own && E.gold < price;
       let btn;
       if (cat === 'potion') btn = `<button type="button" class="small buy" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(price, E.gold < price)}</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" class="small" data-use="elixir">${esc(t('use'))}</button>` : '')
         + (k === 'midas' && E.potions.midas > 0 && !(E.midas > 0) ? `<button type="button" class="small" data-use="midas">${esc(t('use'))}</button>` : '');
@@ -376,13 +380,13 @@
       if (E.gold < price) { toast(t('not_enough', { n: price - E.gold })); return; }
       E.gold -= price;
       if (cat === 'potion') E.potions[k] = (E.potions[k] || 0) + 1;
-      else { E.owned[cat].push(k); E.equip[cat] = k; applyCosmetics(); }
+      else { E.owned[cat].push(k); E.equip[slotOf(cat, k)] = k; applyCosmetics(); }
       ML.sfx && ML.sfx('buy'); toast(t('bought', { name: label(cat, k) }));
       justBought = cat + ':' + k; if (ML.burst) ML.burst('coins');
     } else if (b.dataset.equip) {
       const [cat, k] = b.dataset.equip.split(':');
       if (cat === 'costume' ? k !== 'none' && !E.owned.costume.includes(k) : !E.owned[cat].includes(k)) return;
-      E.equip[cat] = k; applyCosmetics();
+      E.equip[slotOf(cat, k)] = k; applyCosmetics();
       if (cat === 'burst' && ML.burst) ML.burst(k === 'theme' ? document.documentElement.dataset.theme : k);
     } else if (b.dataset.use === 'elixir') {
       if (E.potions.elixir < 1) return; E.potions.elixir--; E.elixir = true; toast(t('elixir_on'));

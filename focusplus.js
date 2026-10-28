@@ -71,7 +71,7 @@
   });
   ML.defaults(() => ({ deepStyle: {} }));
   // Cartouche's "quest" (3.37) lives in cartouche.js, registered in ML.deepStyles: { html(top, dock), built(), render(ctx), doneMs(), over() }
-  const WORLD_STYLE = { netrunner: 'terminal', tokyo: 'proof', atelier: 'folio', cartouche: 'quest' };
+  const WORLD_STYLE = { netrunner: 'terminal', tokyo: 'proof', atelier: 'folio', cartouche: 'quest', abyss: 'log', observatory: 'chart' }; // Abysses' dive log (3.44) lives in abyss.js, the Observatoire's star chart (3.46) in observatory.js
   const ext = s => (ML.deepStyles || {})[s];
   const worldKey = () => { const r = document.documentElement, th = r.dataset.theme; return r.dataset.light ? { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' }[th] : th; };
   const styleNow = () => { const k = worldKey(), sp = WORLD_STYLE[k]; return sp && (S.deepStyle || {})[k] !== 'classic' ? sp : 'classic'; };

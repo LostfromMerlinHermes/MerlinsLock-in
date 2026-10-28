@@ -799,13 +799,9 @@
         cx.globalAlpha = 0.25; cx.fillStyle = colors[0]; cx.beginPath(); cx.arc(ox, oy, 6, 0, 6.29); cx.fill();
         cx.globalAlpha = 1;
       } else if (th === 'abyss') {
-        // Deep sea: faint light from the surface, rising bubbles, bioluminescent jellyfish pulsing upward
-        glow(W * 0.5, -H * 0.1, Math.max(W, H) * 0.55, 'rgba(90,200,220,1)', 0.07);
-        for (const q of parts) {
-          if (mv) { q.y -= q.v * 0.7; if (q.y < -4) { q.y = H + 4; q.x = Math.random() * W; } } // small bubbles rising slowly
-          cx.globalAlpha = 0.18; cx.strokeStyle = '#bff6ff'; cx.lineWidth = 0.8;
-          cx.beginPath(); cx.arc(q.x + Math.sin(tm / 1500 + q.p) * 4, q.y, q.r * 1.6, 0, 6.29); cx.stroke();
-        }
+        // The sleeping reef (corals, sea fans, kelp, anemones, the fish school, rays, marine snow) lives in abyss.js
+        // (3.43, it replaced the rising bubbles); the bioluminescent jellyfish pulse upward over it
+        if (ML.abyssDraw) ML.abyssDraw(cx, W, H, slow, still, now, tm, rest);
         for (const j of jellies) {
           // one beat per 4–6 s: a quick contraction of the bell, then a long relaxed glide (pulse 1 = contracted)
           const ph = still ? 0.6 : ((tm / j.T + j.p / 6.283) % 1), pulse = ph < 0.25 ? Math.sin(ph / 0.25 * Math.PI / 2) : Math.pow(1 - (ph - 0.25) / 0.75, 2);

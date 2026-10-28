@@ -827,14 +827,29 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-theme="netrunner"]:not([data-light]) .focus-on { position: absolute; left: 0; right: 0; top: calc(100% + 8px); text-align: center; -webkit-line-clamp: 1; }
 :root[data-theme="netrunner"]:not([data-light]) .presets { grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)); gap: 4px; } /* all durations on one line */
 :root[data-theme="netrunner"]:not([data-light]) .presets button { font-size: 12.5px; padding-inline: 0; }
-:root[data-theme="netrunner"]:not([data-light]) .hex { stroke-width: .6; opacity: .6; }
-:root[data-theme="netrunner"]:not([data-light]) .runes .glyph { opacity: .55; }
-:root[data-theme="netrunner"]:not([data-light]) .ring-wrap::before { content: ""; position: absolute; inset: -5%; border-radius: 50%; pointer-events: none;
-  border: 1.5px dashed color-mix(in srgb, var(--accent) 45%, transparent); animation: nr-arc 90s linear infinite; /* the mask turns, not the box: a turning square box overflowed phones */
-  -webkit-mask: conic-gradient(from var(--nr-a), #000 0 16%, transparent 0 36%, #000 0 46%, transparent 0 63%, #000 0 86%, transparent 0);
-  mask: conic-gradient(from var(--nr-a), #000 0 16%, transparent 0 36%, #000 0 46%, transparent 0 63%, #000 0 86%, transparent 0); }
-@property --nr-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-@keyframes nr-arc { to { --nr-a: 360deg; } }
+/* the tactical chronograph (3.45, netrunner.js) replaces the shared ring */
+:root[data-theme="netrunner"]:not([data-light]) .ring-wrap > .ring { opacity: 0; }
+:root[data-theme="netrunner"]:not([data-light]) .ring-center { z-index: 1; }
+.nt-dial { position: absolute; left: -6%; top: -6%; width: 112%; height: 112%; overflow: visible; pointer-events: none; }
+.nt-dial g, .nt-dial path { transform-origin: 0 0; }
+.nt-bezel { fill: #0a0a14; stroke: #2a2a52; stroke-width: 1.2; } .nt-face { fill: #06060c; stroke: #1b1b36; stroke-width: 1; }
+.nt-bt { fill: none; stroke: #2a2a52; stroke-width: 1.1; }
+.nt-bn text { fill: #7d8db3; font: 400 10px "JetBrains Mono", Consolas, monospace; text-anchor: middle; transition: fill 1.5s; } .nt-bn text.past { fill: #ff2bd6; }
+.nt-zero, .nt-ptr path { fill: #00f0ff; } .nt-lug { fill: none; stroke: #00f0ff; stroke-width: 3.5; }
+.nt-segs path, .nt-cur { fill: none; stroke: #14142a; stroke-width: 13; transition: stroke .6s; }
+.nt-segs path.on { stroke: #ff2bd6; }
+:root[data-timer="break"] :is(.nt-segs path.on, .nt-it path.past) { stroke: #00f0ff; } :root[data-timer="break"] .nt-bn text.past { fill: #00f0ff; }
+.nt-cur { stroke: #00f0ff; animation: nt-blink 1s steps(2) infinite; }
+@keyframes nt-blink { 50% { opacity: .25; } }
+:root[data-timer="paused"] .nt-cur { animation: none; opacity: .45; } :root[data-timer="paused"] .nt-segs path.on { stroke: #b0259a; }
+.nt-it path { fill: none; stroke: #7d8db3; stroke-width: 1.4; } .nt-it path.past { stroke: #ff2bd6; }
+.nt-in { fill: none; stroke: #2a2a52; stroke-width: .8; } .nt-br { fill: none; stroke: #00f0ff; stroke-width: 2; }
+.nt-ptr { transition: transform .9s linear; } .nt-ptr-l { stroke: #00f0ff; stroke-width: 1.2; }
+:root:not([data-timer="running"]):not([data-timer="paused"]):not([data-timer="break"]) .nt-ptr { opacity: 0; }
+.nt-pips rect { fill: #2a2a52; transition: fill .6s; } .nt-pips rect.on { fill: #00f0ff; }
+.nt-run { fill: #7d8db3; font: 400 8.5px "JetBrains Mono", Consolas, monospace; text-anchor: middle; letter-spacing: .5px; }
+@keyframes nt-sweep { 0% { stroke: #e9fdff; } 35% { stroke: #00f0ff; } }
+.nt-dial.sweep .nt-segs path { animation: nt-sweep .6s linear calc(var(--i, 0) * 14ms) 2; }
 /* one status band: gold, buff and streak joined like the cells of a terminal status line */
 :root[data-theme="netrunner"]:not([data-light]) .top-actions > #gold-chip, :root[data-theme="netrunner"]:not([data-light]) .top-actions > #buff-chip,
 :root[data-theme="netrunner"]:not([data-light]) .top-actions > #streak-pill { border-radius: 0; min-height: 34px; background: var(--veil); }
@@ -1290,6 +1305,115 @@ html.mnav-on #washi-incense { display: none; }
 .sm-moon { fill: #f5c372; transition: cx 1.2s linear; } .sm-star { fill: #e7eef5; opacity: .7; }
 .sm-hand { transition: transform .9s linear; } .sm-hand line { stroke: #f5c372; stroke-width: 1.6; stroke-linecap: round; } .sm-hand circle { fill: #f5c372; }
 :root[data-timer="paused"] .sa-dial .sm-arc { opacity: .5; }
+/* Abysses' dial (3.43, abyss.js): the dive watch, or the nautilus / the moon jellyfish from the shop */
+:root[data-theme="abyss"]:not([data-light]) .ring-wrap > .ring { opacity: 0; }
+:root[data-theme="abyss"]:not([data-light]) .ring-center { z-index: 1; }
+.ab-dial { position: absolute; left: -6%; top: -6%; width: 112%; height: 112%; overflow: visible; pointer-events: none; }
+.ab-dial.ab-prev { position: static; width: 72px; height: 72px; margin: 0 auto; overflow: hidden; }
+.ab-dial g, .ab-dial path { transform-origin: 0 0; }
+.ad-crown path, .ad-crown rect { fill: #24505f; stroke: #0a2632; stroke-width: .8; }
+.ad-edge { fill: #0b2531; stroke: #3b6d7c; stroke-width: 1; }
+.ad-bezel { stroke: #071a23; stroke-width: 1; }
+.ad-kn { fill: none; stroke: #4c7f8d; stroke-opacity: .7; stroke-width: 1.1; }
+.ad-tint { fill: none; stroke: #7fcfbd; stroke-opacity: .32; stroke-width: 20; stroke-dasharray: 0 1; transition: stroke-dasharray .9s linear; }
+.ad-ins { fill: none; stroke: #0b2a37; stroke-width: 1; }
+.ad-bt { fill: none; stroke: #d8f3f5; stroke-opacity: .55; stroke-width: 1.2; } .ad-bt.q { stroke-opacity: .88; stroke-width: 2.4; }
+.ad-bn text { fill: #d8f3f5; fill-opacity: .86; font: 600 14px "IBM Plex Sans", system-ui, sans-serif; text-anchor: middle; }
+.ad-pip-rim { fill: #9fb8c0; } .ad-pip { fill: #c8f2e8; }
+.ad-face { stroke: #0e2c3a; stroke-width: 1.2; }
+.ad-sun { fill: none; stroke: #7fcfbd; stroke-opacity: .035; stroke-width: 1; }
+.ad-min path { fill: none; stroke: #7fa9b4; stroke-opacity: .55; stroke-width: .9; transition: stroke-opacity 1.5s; } .ad-min path.past { stroke-opacity: .2; }
+.ad-m { fill: #c8f2e8; stroke: #9fb8c0; stroke-width: .9; transition: opacity 3s ease; } .ad-m.off { opacity: .2; }
+.ad-gauge .ad-g-rim { fill: #0b2531; stroke: #3b6d7c; stroke-width: 1; } .ad-g-face { fill: #04121a; }
+.ad-g-t { fill: none; stroke: #7fa9b4; stroke-width: 1; } .ad-g-red { fill: none; stroke: #a49af0; stroke-width: 1.6; }
+.ad-g-n { fill: #7fa9b4; font: 500 5.5px "IBM Plex Sans", system-ui, sans-serif; text-anchor: middle; }
+.ad-g-m { fill: #d8f3f5; fill-opacity: .8; font: 600 6.5px "IBM Plex Sans", system-ui, sans-serif; text-anchor: middle; }
+.ad-needle { transform: rotate(-120deg); transition: transform .9s linear; } .ad-needle path { fill: #a49af0; } .ad-g-cap { fill: #a49af0; }
+.ad-lbl { fill: #7fa9b4; font: 500 7px "IBM Plex Sans", system-ui, sans-serif; letter-spacing: 2.2px; text-anchor: middle; }
+.ad-hand { transition: transform .9s linear; } .ad-sword { stroke: #06151d; stroke-width: .8; } .ad-inlay { fill: #c8f2e8; } .ad-cw { fill: #c8f2e8; stroke: #9fb8c0; stroke-width: 1.4; }
+.ad-cap { fill: #9fb8c0; stroke: #06151d; stroke-width: .8; } .ad-pin { fill: #06151d; }
+.ab-prev .ad-lbl, .ab-prev .ad-g-m { display: none; }
+.aj-rim { fill: none; stroke: #12303f; stroke-width: 1.2; } .aj-rim2 { fill: none; stroke: #7fcfbd; stroke-opacity: .08; }
+.aj-num rect { fill: #06141d; } .aj-num text { fill: #7fa9b4; font: 700 13px var(--f-display); text-anchor: middle; }
+.aj-t path { fill: none; stroke: #7fa9b4; stroke-opacity: .16; stroke-width: .8; stroke-linecap: round; transition: stroke 2s, stroke-opacity 2s, stroke-width 2s; }
+.aj-t circle { opacity: 0; transition: opacity 2s; }
+.aj-t.on path { stroke: #7fcfbd; stroke-opacity: .6; stroke-width: 1.1; } .aj-t.on.q path { stroke: #a49af0; stroke-opacity: .85; stroke-width: 1.6; }
+.aj-t.on circle { opacity: 1; }
+.aj-cur { transition: transform .9s linear, opacity 1s; }
+.aj-margin { stroke: #7fcfbd; stroke-opacity: .55; stroke-width: 1; }
+.aj-can { fill: none; stroke: #7fcfbd; stroke-opacity: .14; stroke-width: .8; } .aj-ring { fill: none; stroke: #7fcfbd; stroke-opacity: .2; stroke-width: .8; }
+.aj-rho { fill: #eafffa; opacity: .7; } .aj-arms { fill: none; stroke: #a49af0; stroke-opacity: .16; stroke-width: 3; stroke-linecap: round; }
+.aj-gon { fill: none; stroke: #a49af0; stroke-width: 5.5; stroke-linecap: round; transition: stroke-opacity 2s; }
+.aj-gon:not(.lit) { filter: none; }
+/* the bell beats once every 5 s (a quick contraction, a long glide), the tentacles follow a beat later */
+@keyframes aj-beat { 0%, 100% { transform: scale(1); } 10% { transform: scale(.95); } 28% { transform: scale(1.015); } }
+@keyframes aj-trail { 0%, 100% { transform: scale(1); } 18% { transform: scale(.985); } 40% { transform: scale(1.012); } }
+@keyframes aj-drift { 0%, 100% { transform: rotate(-.8deg); } 50% { transform: rotate(.8deg); } }
+.aj-bell { animation: aj-beat 5s cubic-bezier(.4, 0, .3, 1) infinite; }
+.aj-tents { animation: aj-trail 5s cubic-bezier(.4, 0, .3, 1) infinite; }
+.aj-drift { animation: aj-drift 13s ease-in-out infinite; }
+.ab-prev :is(.aj-bell, .aj-tents, .aj-drift) { animation: none; }
+:root[data-timer="paused"] .ab-jelly :is(.aj-bell, .aj-tents, .aj-drift) { animation-play-state: paused; }
+.an-rim { fill: #04121a; stroke: #12303f; stroke-width: 1.2; } .an-in { fill: none; stroke: #7fcfbd; stroke-opacity: .08; }
+.an-ticks path { fill: none; stroke: #7fa9b4; stroke-opacity: .55; stroke-width: 1; transition: stroke 1.5s; } .an-ticks path.q { stroke-opacity: .95; stroke-width: 2.2; }
+.an-ticks path.past { stroke: #7fcfbd; }
+.an-shell { stroke: #7fcfbd; stroke-opacity: .55; stroke-width: 1.3; }
+.an-grow { fill: none; stroke: #d8f3f5; stroke-opacity: .05; stroke-width: .7; }
+.an-spiral { fill: none; stroke: #7fcfbd; stroke-opacity: .32; stroke-width: 1; }
+.an-old { fill: none; stroke: #7fcfbd; stroke-opacity: .2; stroke-width: .7; }
+.an-cell { fill-opacity: var(--f, 0); transition: fill-opacity 2s linear; }
+.an-ch:not(.full):not(.cur) .an-cell { fill: #0a2230; fill-opacity: 1; }
+.an-sep { fill: none; stroke: #7fcfbd; stroke-opacity: .5; stroke-width: 1; transition: stroke 2s, stroke-opacity 2s; }
+.an-ch.full .an-sep { stroke: #eafffa; stroke-opacity: .7; }
+@keyframes an-glow { 0%, 100% { opacity: 1; } 50% { opacity: .62; } }
+.an-ch.cur .an-cell { animation: an-glow 3.4s ease-in-out infinite; }
+.an-siph { fill: none; stroke: #a49af0; stroke-opacity: .55; stroke-width: 1.3; stroke-dasharray: 3 3; }
+.an-tiger { fill: none; stroke: #a49af0; stroke-opacity: .2; stroke-width: 3; stroke-linecap: round; }
+.an-sheen { pointer-events: none; }
+:root[data-timer="paused"] .ab-dial :is(.ad-tint, .an-chs) { opacity: .6; }
+/* Abysses' full screen, the dive log (3.44, abyss.js): a depth rule, the huge time, the log line, the dive profile; surfacing at the end */
+.deep[data-style="log"] { --m: clamp(22px, 5vmin, 56px); --lu: #c8f2e8; }
+.deep[data-style="log"] .deep-inner { display: block; padding: var(--m); overflow: hidden; background: linear-gradient(180deg, #06222e, #020a10); }
+.deep[data-style="log"] .deep-top { position: absolute; z-index: 2; top: 6px; left: var(--m); right: var(--m); width: auto; max-width: none; }
+.deep[data-style="log"] .deep-top .state { visibility: hidden; }
+.deep[data-style="log"] .deep-dock { position: absolute; z-index: 2; left: 50%; bottom: 8px; translate: -50% 0; width: min(560px, calc(100% - 32px)); }
+.dl, .dl-snow, .dl-bub { position: absolute; inset: 0; pointer-events: none; }
+.dl { z-index: 1; font-family: "IBM Plex Sans", system-ui, sans-serif; }
+.dl-snow, .dl-bub { overflow: hidden; }
+.dl-snow i { position: absolute; top: -2%; width: var(--s); height: var(--s); border-radius: 50%; background: #d8f3f5; opacity: var(--a); animation: dl-fall var(--d) linear var(--l) infinite; }
+@keyframes dl-fall { to { transform: translate(12px, 106vh); } }
+.deep.paused .dl-snow i { animation-play-state: paused; }
+.dl-head { position: absolute; top: calc(var(--m) + 30px); left: var(--m); right: var(--m); display: flex; justify-content: space-between; gap: 16px; font-size: 12px; letter-spacing: .25em; color: var(--mist); }
+.dl-rule { position: absolute; left: calc(var(--m) + 46px); top: 22%; bottom: 28%; width: 1px; background: rgba(127, 169, 180, .5); }
+.dl-rule > i { position: absolute; right: 0; width: 6px; height: 1px; background: rgba(127, 169, 180, .5); } .dl-rule > i.q { width: 13px; }
+.dl-rule b { position: absolute; right: 19px; top: -.65em; font-size: 11px; font-weight: 400; color: var(--mist); white-space: nowrap; }
+.dl-fill { position: absolute; left: 2px; top: 0; width: 5px; background: rgba(127, 207, 189, .28); transition: height 1s linear; }
+.dl-pip { position: absolute; left: 8px; top: 0; margin-top: -7px; border: 7px solid transparent; border-left-width: 0; border-right: 14px solid var(--lu); filter: drop-shadow(0 0 6px rgba(200, 242, 232, .8)); transition: top 1s linear; }
+.dl-pip span { position: absolute; left: 20px; top: -.7em; font-size: 11px; font-weight: 600; letter-spacing: .2em; color: var(--lu); white-space: nowrap; }
+.deep.done :is(.dl-pip, .dl-fill) { transition-duration: 2.6s; transition-timing-function: ease-in-out; }
+.dl-main { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2vh; padding: 6vh var(--m) 8vh calc(var(--m) + 110px); }
+.dl-time { font: 700 clamp(84px, min(23vw, 34vh), 260px)/1 var(--f-display); color: var(--text); font-variant-numeric: lining-nums tabular-nums; text-shadow: 0 0 30px rgba(127, 207, 189, .3); transition: opacity 1.5s; }
+.deep.done .dl-time { opacity: .55; }
+.dl-line { margin: 0; font-size: clamp(11px, 1.7vmin, 14px); letter-spacing: .3em; color: var(--text); opacity: .8; }
+.dl-prof { width: min(620px, 62vw); height: clamp(46px, 9vh, 84px); margin-top: 2vh; overflow: visible; }
+.dl-plan { fill: none; stroke: rgba(127, 169, 180, .45); stroke-width: 1.2; stroke-dasharray: 2 5; }
+.dl-path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(127, 207, 189, .5)); }
+.dl-up { fill: none; stroke: var(--lu); stroke-width: 2; stroke-linejoin: round; opacity: 0; transition: opacity 1.4s .4s; }
+.deep.done .dl-up { opacity: 1; }
+.dl-task { margin: 0; max-width: 60ch; font-size: 14px; color: var(--mist); }
+.dl-seal { position: absolute; right: var(--m); top: calc(var(--m) + 64px); width: clamp(84px, 13vmin, 130px); aspect-ratio: 1; border-radius: 50%; display: grid; place-content: center; gap: 2px; text-align: center; color: var(--lu);
+  border: 2.5px solid var(--lu); box-shadow: inset 0 0 0 5px #06222e, inset 0 0 0 6.5px var(--lu), 0 0 40px rgba(127, 207, 189, .35); rotate: -7deg; opacity: 0; scale: 1.4; transition: opacity .5s 2.4s, scale .55s cubic-bezier(.3, 1.6, .5, 1) 2.4s; }
+.dl-seal small { font-size: 10px; font-weight: 600; letter-spacing: .2em; } .dl-seal b { font: 700 clamp(18px, 3vmin, 26px) var(--f-display); }
+.deep.done .dl-seal { opacity: 1; scale: 1; }
+.dl-bub { left: 32%; right: 32%; }
+.dl-bub i { position: absolute; bottom: -20px; width: var(--s); height: var(--s); margin-left: calc(var(--s) * -.5); border: 1.3px solid rgba(200, 242, 232, .6); border-radius: 50%; opacity: 0; }
+.deep.done .dl-bub i { animation: dl-rise var(--d) ease-in calc(var(--l) * -1 * .3) 2 both; }
+@keyframes dl-rise { 0% { opacity: 0; transform: translate(0, 0); } 12% { opacity: var(--a); } 100% { opacity: 0; transform: translate(14px, -96vh); } }
+@media (max-aspect-ratio: 4/5) { .dl-main { padding-left: calc(var(--m) + 74px); } .dl-rule { left: calc(var(--m) + 40px); } .dl-seal { top: calc(var(--m) + 96px); } .dl-head { flex-direction: column; gap: 4px; } }
+/* the end-of-session reward: a ribbon of silver fish swims once round the bezel */
+.ab-school { fill: #d8f3f5; opacity: 0; pointer-events: none; }
+@keyframes ab-circle { 0% { opacity: 0; transform: rotate(-40deg); } 12%, 82% { opacity: .9; } 100% { opacity: 0; transform: rotate(400deg); } }
+.ab-dial.circling .ab-school { animation: ab-circle 11s cubic-bezier(.42, 0, .45, 1) forwards; }
 :root[data-light="1"][data-theme="observatory"] .ring-wrap { isolation: isolate; }
 :root[data-light="1"][data-theme="observatory"] .ring-wrap::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background: center / 100% 100% no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><g fill='none' stroke='%23A8842F'><circle cx='120' cy='120' r='115' stroke-width='1.2'/><circle cx='120' cy='120' r='112' stroke-width='.5'/><circle cx='120' cy='120' r='97' stroke-width='.6'/><circle cx='120' cy='120' r='113.5' stroke-width='2.2' stroke-dasharray='.6 5.34' stroke-opacity='.8'/></g><g fill='%235C4632' font-family='Georgia, serif' font-size='8.5' text-anchor='middle' letter-spacing='.5'><text x='120' y='11' dy='3'>XII</text><text x='229' y='123' transform='rotate(90 229 120)'>III</text><text x='120' y='232'>VI</text><text x='11' y='123' transform='rotate(-90 11 120)'>IX</text></g></svg>"); }
@@ -3059,3 +3183,54 @@ html.mnav-on[data-mview="timer"] .sigil-card { animation: screen-in .22s ease-ou
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 /* the same, from the app's own "reduced animations" option (Settings, per device; html.reduce-motion from core.js) */
 :root.reduce-motion *, :root.reduce-motion *::before, :root.reduce-motion *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+/* Observatoire's full screen, the star chart (3.46, observatory.js): the time, the planet's path from horizon to horizon, today's constellation */
+.deep[data-style="chart"] { --m: clamp(22px, 5vmin, 56px); --br: #e8c27a; }
+.deep[data-style="chart"] .deep-inner { display: block; padding: var(--m); overflow: hidden; background: radial-gradient(120% 80% at 50% 110%, #2a1a10, transparent 60%), linear-gradient(180deg, #0b0a14, #120d0c); }
+.deep[data-style="chart"] .deep-top { position: absolute; z-index: 2; top: 6px; left: var(--m); right: var(--m); width: auto; max-width: none; }
+.deep[data-style="chart"] .deep-top .state { visibility: hidden; }
+.deep[data-style="chart"] .deep-dock { position: absolute; z-index: 2; left: 50%; bottom: 8px; translate: -50% 0; width: min(560px, calc(100% - 32px)); }
+.oc, .oc-sky, .oc-cloud { position: absolute; inset: 0; pointer-events: none; }
+.oc { z-index: 1; font-family: var(--f-display); }
+.oc-sky i { position: absolute; width: var(--s); height: var(--s); border-radius: 50%; background: #f6ecd9; opacity: var(--a); animation: oc-tw var(--d) ease-in-out var(--l) infinite alternate; }
+@keyframes oc-tw { to { opacity: calc(var(--a) * .3); } }
+.oc-sky { transition: opacity 1.2s; } .deep.paused .oc-sky { opacity: .35; }
+.oc-cloud { opacity: 0; background: radial-gradient(40% 18% at 30% 40%, rgba(120, 100, 90, .35), transparent 70%), radial-gradient(35% 14% at 70% 30%, rgba(120, 100, 90, .3), transparent 70%); transition: opacity 1.4s; }
+.deep.paused .oc-cloud { opacity: 1; animation: oc-drift 40s linear infinite alternate; }
+@keyframes oc-drift { to { transform: translateX(12%); } }
+.oc-head { position: absolute; top: calc(var(--m) + 30px); left: var(--m); right: var(--m); display: flex; justify-content: space-between; gap: 16px; font-size: 12px; letter-spacing: .25em; color: var(--mist); }
+.oc-const { position: absolute; margin: 0; right: var(--m); top: calc(var(--m) + 58px); width: clamp(170px, 26vmin, 290px); text-align: right; }
+.oc-const svg { width: 100%; overflow: visible; }
+.oc-const figcaption { font-size: 10px; letter-spacing: .22em; color: var(--dim); margin-top: 4px; }
+.oc-st { fill: rgba(246, 236, 217, .16); transition: fill .6s, r .6s; }
+.oc-st.on { fill: var(--br); filter: drop-shadow(0 0 4px rgba(232, 194, 122, .8)); }
+.oc-st.next { fill: none; stroke: var(--br); stroke-width: .8; stroke-dasharray: 1.5 2; }
+.oc-cl { fill: none; stroke: rgba(232, 194, 122, .55); stroke-width: .8; }
+.oc-cn { fill: none; stroke: rgba(232, 194, 122, .4); stroke-width: .8; stroke-dasharray: 2 3; }
+.deep.done .oc-st.new { animation: oc-flash 1.6s ease-out 2.2s both; }
+@keyframes oc-flash { 0% { r: 3; } 30% { r: 7; fill: #fff6dc; } 100% { r: 3; } }
+.oc-main { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1vh; padding: 10vh var(--m) 12vh; }
+.oc-time { font: 600 clamp(80px, min(22vw, 32vh), 250px)/1 var(--f-display); color: #f6ecd9; font-variant-numeric: lining-nums tabular-nums; letter-spacing: .02em; text-shadow: 0 0 34px rgba(229, 140, 82, .35), 0 2px 0 #6b4320; transition: opacity 1.5s; }
+.deep.done .oc-time { opacity: .5; }
+.oc-line { margin: 0; font: 500 clamp(11px, 1.7vmin, 14px) "IBM Plex Sans", system-ui, sans-serif; letter-spacing: .3em; color: var(--text); opacity: .8; }
+.oc-path { width: min(640px, 82vw); height: auto; margin-top: 1vh; overflow: visible; }
+.oc-hz { stroke: rgba(232, 194, 122, .45); stroke-width: 1; }
+.oc-tk path { stroke: rgba(232, 194, 122, .35); stroke-width: 1; }
+.oc-way { fill: none; stroke: rgba(246, 236, 217, .22); stroke-width: 1; stroke-dasharray: 2 5; }
+.oc-done { fill: none; stroke: #e58c52; stroke-width: 2; filter: drop-shadow(0 0 5px rgba(229, 140, 82, .6)); transition: stroke-dasharray 1s linear; }
+.deep.done .oc-done { transition-duration: 2.4s; }
+#oc-pl { transition: transform 1s linear; } .deep.done #oc-pl { transition: transform 2.4s ease-in-out; }
+.oc-planet { fill: #f6c79c; } .oc-halo { fill: rgba(229, 140, 82, .22); }
+.deep.done .oc-planet, .deep.done .oc-halo { opacity: 0; transition: opacity 1s 2.2s; }
+.oc-pll { fill: var(--mist); font: 600 11px "IBM Plex Sans", system-ui, sans-serif; letter-spacing: .2em; text-anchor: middle; }
+.oc-moon circle { fill: #120d0c; stroke: rgba(232, 194, 122, .45); stroke-width: 1; } .oc-moon path { fill: rgba(232, 194, 122, .25); transition: fill .8s; }
+.oc-moon.on circle { stroke: var(--br); } .oc-moon.on path { fill: var(--br); }
+.oc-task { margin: 0; max-width: 60ch; font: 14px "IBM Plex Sans", system-ui, sans-serif; color: var(--mist); text-align: center; }
+.oc-seal { position: absolute; left: var(--m); top: calc(var(--m) + 64px); width: clamp(84px, 13vmin, 130px); aspect-ratio: 1; border-radius: 50%; display: grid; place-content: center; gap: 2px; text-align: center; color: var(--br);
+  border: 2.5px solid var(--br); box-shadow: inset 0 0 0 5px #0e0b10, inset 0 0 0 6.5px var(--br), 0 0 40px rgba(229, 140, 82, .35); rotate: -7deg; opacity: 0; scale: 1.4; transition: opacity .5s 2.8s, scale .55s cubic-bezier(.3, 1.6, .5, 1) 2.8s; }
+.oc-seal small { font-size: 10px; font-weight: 600; letter-spacing: .2em; } .oc-seal b { font-size: clamp(18px, 3vmin, 26px); }
+.deep.done .oc-seal { opacity: 1; scale: 1; }
+.oc-shoot { position: absolute; z-index: 1; top: 14%; left: 70%; width: 160px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, #fff6dc); opacity: 0; rotate: -24deg; pointer-events: none; }
+.deep.done .oc-shoot { animation: oc-shoot 1.3s ease-in 1.2s both; }
+@keyframes oc-shoot { 0% { opacity: 0; transform: translate(0, 0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(-46vw, 0); } }
+@media (max-aspect-ratio: 4/5) { .oc-head { flex-direction: column; gap: 4px; } .oc-const { top: calc(var(--m) + 96px); } .oc-seal { top: calc(var(--m) + 96px); } .oc-main { padding-top: 22vh; } .oc-time { font-size: 25vw; } .oc-path { width: 94vw; } }
+@media (prefers-reduced-motion: reduce) { .oc-sky i, .deep.paused .oc-cloud, .deep.done .oc-shoot { animation: none; } }
