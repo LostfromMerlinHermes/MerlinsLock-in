@@ -12,10 +12,10 @@
   const G = '#f5c372', T = '#7fd6c8';
 
   ML.addStrings({
-    fr: { cat_dials: 'Cadrans de monde', dial_hint: 'Un autre cadran pour un monde précis. Il remplace celui du monde quand tu l’équipes.',
+    fr: { cat_dials: 'Cadrans de monde', dial_hint: 'Un autre cadran ou plein écran pour un monde précis. Il remplace celui du monde quand tu l’équipes.',
       dial_lotus: 'Lotus du bassin', dial_lotus_d: 'Sanctuaire · douze pétales qui s’ouvrent pendant la séance.',
       dial_moon: 'Chronographe lunaire', dial_moon_d: 'Sanctuaire · une lunette de montre et une lune qui croît dans son guichet.' },
-    en: { cat_dials: 'World dials', dial_hint: 'Another dial for one world. It replaces that world’s own dial when equipped.',
+    en: { cat_dials: 'World dials', dial_hint: 'Another dial or full screen for one world. It replaces that world’s own when equipped.',
       dial_lotus: 'Pond lotus', dial_lotus_d: 'Sanctuary · twelve petals that open during the session.',
       dial_moon: 'Moon chronograph', dial_moon_d: 'Sanctuary · a watch bezel and a moon that waxes in its window.' },
   });

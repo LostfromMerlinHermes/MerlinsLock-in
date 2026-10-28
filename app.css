@@ -3234,3 +3234,102 @@ html.mnav-on[data-mview="timer"] .sigil-card { animation: screen-in .22s ease-ou
 @keyframes oc-shoot { 0% { opacity: 0; transform: translate(0, 0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(-46vw, 0); } }
 @media (max-aspect-ratio: 4/5) { .oc-head { flex-direction: column; gap: 4px; } .oc-const { top: calc(var(--m) + 96px); } .oc-seal { top: calc(var(--m) + 96px); } .oc-main { padding-top: 22vh; } .oc-time { font-size: 25vw; } .oc-path { width: 94vw; } }
 @media (prefers-reduced-motion: reduce) { .oc-sky i, .deep.paused .oc-cloud, .deep.done .oc-shoot { animation: none; } }
+/* Cyber sorcier: the rune circle (3.47, sorcerer.js) replaces the shared ring */
+:root[data-theme="sorcerer"]:not([data-light]) .ring-wrap > .ring { opacity: 0; }
+:root[data-theme="sorcerer"]:not([data-light]) .ring-center { z-index: 1; }
+.sc-dial { position: absolute; left: -6%; top: -6%; width: 112%; height: 112%; overflow: visible; pointer-events: none; }
+.sc-dial g, .sc-dial path { transform-origin: 0 0; }
+.sc-bezel { fill: #0b0918; stroke-width: 5; } .sc-in { fill: none; stroke: #352d5e; stroke-width: 1; } .sc-dash { fill: none; stroke: #241f40; stroke-dasharray: 2 4; }
+.sc-ticks path { stroke: #5f5990; stroke-width: 1; transition: stroke 1.2s; } .sc-ticks path.b { stroke-width: 2; stroke: #8c87b4; }
+.sc-ticks path.on { stroke: var(--accent); }
+.sc-arc, .sc-glow { fill: none; stroke-dasharray: 0 1; transition: stroke-dasharray .9s linear; }
+.sc-arc { stroke: color-mix(in srgb, var(--accent) 55%, #fff); stroke-width: 2; } .sc-glow { stroke: var(--accent); stroke-width: 6; opacity: .75; }
+.sc-runes path { fill: none; stroke: #8c87b4; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; transition: stroke 1.4s, filter 1.4s; }
+.sc-runes path.on { stroke: color-mix(in srgb, var(--accent) 45%, #fff); filter: drop-shadow(0 0 3px var(--accent)); }
+.sc-sub { fill: #0d0b19; stroke: #5f5990; stroke-width: 1; }
+.sc-mana circle:not(.sc-sub) { fill: none; stroke: var(--accent-2); stroke-width: .8; transition: fill .8s; } .sc-mana circle.on { fill: var(--accent-2); filter: drop-shadow(0 0 2px var(--accent-2)); }
+.sc-mana text { fill: #8c87b4; font: 400 6.5px "JetBrains Mono", Consolas, monospace; text-anchor: middle; letter-spacing: .4px; }
+.sc-wand { transition: transform .9s linear; } .sc-shaft { stroke: #c9c3e8; stroke-width: 2.4; stroke-linecap: round; }
+.sc-tip, .sc-knot { fill: var(--accent-2); } .sc-tipg { fill: var(--accent-2); opacity: .6; }
+:root:not([data-timer="running"]):not([data-timer="paused"]):not([data-timer="break"]) :is(.sc-wand, .sc-arc, .sc-glow) { opacity: 0; }
+:root[data-timer="paused"] :is(.sc-arc, .sc-glow) { opacity: .45; }
+:root[data-timer="break"] .sc-glow, :root[data-timer="break"] .sc-ticks path.on { stroke: var(--accent-2); }
+@keyframes sc-cast { 0%, 8% { stroke: #3a3462; filter: none; } 30% { stroke: #fff; filter: drop-shadow(0 0 6px var(--accent)); } 100% { stroke: color-mix(in srgb, var(--accent) 45%, #fff); } }
+.sc-dial.cast .sc-runes path { animation: sc-cast 1.6s ease-out calc(var(--i) * 150ms) both; }
+:root[data-theme="sorcerer"]:not([data-light]) .runes, :root[data-theme="sorcerer"]:not([data-light]) .hex { display: none; }
+/* Cyber sorcier full screens (3.48, sorcerer.js): « spell » (the spell page, default) and « circle » (the summoning circle, shop) */
+.deep:is([data-style="spell"], [data-style="circle"]) .deep-inner { display: block; padding: 0; overflow: hidden; background: radial-gradient(75% 75% at 50% 42%, #17122f, #07060d); }
+.deep:is([data-style="spell"], [data-style="circle"]) .deep-top { position: absolute; z-index: 2; top: 6px; left: 16px; right: 16px; width: auto; max-width: none; }
+.deep:is([data-style="spell"], [data-style="circle"]) .deep-top .state { visibility: hidden; }
+.deep:is([data-style="spell"], [data-style="circle"]) .deep-dock { position: absolute; z-index: 2; left: 50%; bottom: 8px; translate: -50% 0; width: min(560px, calc(100% - 32px)); }
+.sp { position: absolute; inset: 0; pointer-events: none; }
+.sp-svg { width: 100%; height: 100%; display: block; }
+.sp-svg text { font-variant-numeric: tabular-nums; }
+.sp-vel { fill: #110d24; stroke: #352d5e; } .sp-in { fill: none; stroke: #241f40; }
+.sp-corner { fill: none; stroke: #6d6798; } .sp-corner .d { fill: #8c87b4; stroke: none; }
+.sp-diag { fill: none; stroke: #a678ff; opacity: .2; transition: transform 1s linear, opacity 1.6s; }
+.sp-dr { stroke: #c9b6ff; stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.deep.paused .sp-diag { opacity: .1; } .deep.done .sp-diag { opacity: .6; transition: transform 2.4s ease-in-out, opacity 1.6s; }
+.sp-ring { fill: none; stroke: #a678ff; opacity: 0; transform: scale(.85); transition: opacity 1.4s 1.4s, transform 3s ease-out 1.4s; }
+.sp-ring.r1 { stroke-width: 2; } .sp-ring.r2 { stroke-width: 1.4; }
+.deep.done .sp-ring { transform: scale(1); } .deep.done .sp-ring.r1 { opacity: .35; } .deep.done .sp-ring.r2 { opacity: .2; }
+.sp-no { font: 600 30px "Chakra Petch", sans-serif; letter-spacing: 5px; fill: #c9c3e8; } .sp-date { font: 16px "JetBrains Mono", monospace; letter-spacing: 2px; fill: #8c87b4; }
+.sp-tl { font: 13px "JetBrains Mono", monospace; letter-spacing: 2px; fill: #8c87b4; text-anchor: end; }
+.sp-mana circle { fill: none; stroke: #3ee8e0; stroke-opacity: .5; transition: fill .8s; } .sp-mana .h { stroke: none; fill: transparent; }
+.sp-mana.on circle:not(.h) { fill: #3ee8e0; stroke-opacity: 1; } .sp-mana.on .h { fill: rgba(62, 232, 224, .18); }
+.deep.done .sp-mana.new .h { animation: sp-pulse 1.6s ease-out 2s both; }
+@keyframes sp-pulse { 0% { fill: rgba(62, 232, 224, .18); } 40% { fill: rgba(62, 232, 224, .55); } 100% { fill: rgba(62, 232, 224, .25); } }
+.sp-time { font-family: "Chakra Petch", sans-serif; font-weight: 600; text-anchor: middle; fill: #f4eeff; transition: fill 1.2s; }
+.sp-time.g { display: none; } .sp-time { filter: drop-shadow(0 0 14px rgba(166, 120, 255, .75)) drop-shadow(0 0 40px rgba(166, 120, 255, .35)); }
+.deep.paused .sp-time { fill: #a7a2cc; filter: none; } .deep.done .sp-time { filter: drop-shadow(0 0 18px rgba(166, 120, 255, .95)) drop-shadow(0 0 60px rgba(166, 120, 255, .5)); }
+.sp-hold { font: 17px "JetBrains Mono", monospace; letter-spacing: 6px; fill: #c9c3e8; text-anchor: middle; opacity: 0; transition: opacity .8s; } .deep.paused .sp-hold { opacity: 1; }
+.sp-info { font: 20px "JetBrains Mono", monospace; letter-spacing: 4px; fill: #8c87b4; text-anchor: middle; }
+.sp-task { font: italic 22px "IBM Plex Sans", sans-serif; fill: #bdb8e0; text-anchor: middle; }
+.sp-line { stroke: #352d5e; stroke-dasharray: 3 6; } .sp-lit { stroke: #a678ff; stroke-width: 2; opacity: .9; } .deep.paused .sp-lit { opacity: .5; }
+.sp-r path { fill: none; stroke-linecap: round; stroke-linejoin: round; transition: stroke .8s, opacity .8s; }
+.sp-r .c { stroke: #2f2856; stroke-width: 1.4; } .sp-r .g { stroke: #a678ff; stroke-width: 4; opacity: 0; filter: url(#spgs); }
+.sp-r.on .c { stroke: #efe4ff; stroke-width: 1.8; } .sp-r.on .g { opacity: .45; }
+.deep.paused .sp-r.on .c { stroke: #b7b0dc; } .deep.paused .sp-r.on .g { opacity: 0; }
+.sp-form { transition: transform 2.2s cubic-bezier(.3, 0, .2, 1); } .deep.done .sp-form { transform: translateY(-22px); }
+.sp-spark { transition: transform 1s linear; } .sp-spark circle { fill: #3ee8e0; } .sp-spark .h { opacity: .2; }
+.deep.paused .sp-spark circle { fill: #8c87b4; } .deep.paused .sp-spark .h { opacity: 0; } .deep.done .sp-spark { opacity: 0; transition: opacity .6s; }
+.sp-mote { fill: #d9c9ff; opacity: 0; animation: sp-rise var(--d) ease-out var(--l) infinite; } .sp-mote.cy { fill: #3ee8e0; }
+@keyframes sp-rise { 0% { opacity: 0; transform: translateY(0); } 15% { opacity: .6; } 100% { opacity: 0; transform: translateY(var(--h)); } }
+.deep.paused .sp-mote { animation-play-state: paused; }
+.deep.done .sp-mote { animation-duration: 3.2s; }
+.sp-seal { opacity: 0; transition: opacity .6s 2.6s; } .deep.done .sp-seal { opacity: 1; }
+.sp-sealb { fill: #120e26; stroke: url(#spsil); stroke-width: 2; } .sp-sealr { fill: none; stroke: #a678ff; stroke-opacity: .5; }
+.sp-sealt { font: 600 19px "Chakra Petch", sans-serif; letter-spacing: 3px; fill: #efe6ff; text-anchor: middle; }
+/* the circle */
+.ci-slab { fill: none; stroke: rgba(140, 135, 180, .06); }
+.ci-bezel { fill: url(#ci-in); stroke: url(#spsil); stroke-width: 4; } .ci-in1 { fill: none; stroke: #352d5e; } .ci-in2 { fill: none; stroke: #241f40; stroke-dasharray: 2 5; }
+.ci-bloom { opacity: .35; transition: opacity 1.5s; } .deep.paused .ci-bloom { opacity: .15; } .deep.done .ci-bloom { opacity: 1; }
+.ci-t { stroke: #4d4680; stroke-width: 1; transition: stroke 1s; } .ci-t.b { stroke-width: 2; } .ci-t.on { stroke: #a678ff; } .deep.paused .ci-t.on { stroke: #6d6798; }
+.ci-r path { fill: none; stroke-linecap: round; stroke-linejoin: round; transition: stroke .8s, opacity .8s; }
+.ci-r .c { stroke: #352d5e; stroke-width: 1.3; } .ci-r .g { stroke: #a678ff; stroke-width: 5; opacity: 0; filter: url(#spgs); }
+.ci-r.on .c { stroke: #e3d6ff; stroke-width: 1.8; } .ci-r.on .g { opacity: .45; } .deep.paused .ci-r.on .c { stroke: #9d97c4; } .deep.paused .ci-r.on .g { opacity: 0; }
+.deep.done .ci-r .c { animation: ci-flare 1.4s ease-out calc(var(--i) * 60ms) both; } .deep.done .ci-r .g { opacity: .7; }
+@keyframes ci-flare { 0% { stroke: #e3d6ff; } 35%, 100% { stroke: #fff; } }
+.ci-track { fill: none; stroke: #241f40; stroke-width: 3; }
+.ci-arc, .ci-arcg { fill: none; stroke-dasharray: 0 1; transition: stroke-dasharray 1s linear; }
+.ci-arc { stroke: #cbb6ff; stroke-width: 2.4; } .ci-arcg { stroke: #a678ff; stroke-width: 8; opacity: .7; filter: url(#spgs); }
+.deep.paused .ci-arc { stroke: #7d76aa; } .deep.paused .ci-arcg { opacity: .15; }
+.ci-spark { transition: transform 1s linear; } .ci-spark circle { fill: #3ee8e0; } .ci-spark .h { opacity: .2; }
+.deep.paused .ci-spark circle { fill: #8c87b4; } .deep.paused .ci-spark .h { opacity: 0; } .deep.done .ci-spark { opacity: 0; }
+.ci-heart { opacity: 0; transition: opacity 1.6s 1s; } .deep.done .ci-heart { opacity: 1; }
+.ci-wave { fill: none; stroke: #a678ff; stroke-width: 2; opacity: 0; transform-origin: 0 0; animation: ci-wave 16s ease-out infinite; } .ci-wave.w2 { animation-delay: -8s; }
+@keyframes ci-wave { 0% { opacity: 0; transform: scale(1); } 4% { opacity: .3; } 40%, 100% { opacity: 0; transform: scale(1.9); } }
+.deep.paused .ci-wave { animation-play-state: paused; visibility: hidden; }
+.ci-wave.big { animation: none; stroke-width: 3; } .deep.done .ci-wave.big { animation: ci-big 4s ease-out 1s both; }
+@keyframes ci-big { 0% { opacity: .5; transform: scale(1); } 100% { opacity: 0; transform: scale(3.2); } }
+.ci-orbit { animation: ci-turn 240s linear infinite; transform-origin: 0 0; } .ci-orbit .pg { fill: #efe2c6; } .ci-orbit .cv { fill: #4a2f7a; }
+.ci-bk { transition: opacity 1.4s; opacity: .85; } .deep.paused .ci-orbit { animation-play-state: paused; } .deep.paused .ci-bk { opacity: .45; } .deep.done .ci-bk { opacity: 1; }
+@keyframes ci-turn { to { transform: rotate(360deg); } }
+.ci-mist ellipse { fill: #b9a8ff; opacity: 0; transition: opacity 2s; } .deep.paused .ci-mist ellipse { opacity: .09; }
+.ci-mist { animation: ci-drift 60s linear infinite alternate; } @keyframes ci-drift { to { transform: translateX(80px); } }
+.ci-st .b { fill: #1d1838; stroke: #4d4680; } .ci-st .h { fill: #3ee8e0; opacity: 0; filter: url(#spgl); transition: opacity 1s; }
+.ci-st .r { fill: none; stroke: #352d5e; stroke-width: 1.6; stroke-linecap: round; transition: stroke 1s; }
+.ci-st.on .h { opacity: .14; } .ci-st.on .r { stroke: #3ee8e0; } .deep.done .ci-st.new .h { animation: ci-stone 2s ease-out 2s both; }
+@keyframes ci-stone { 0% { opacity: .14; } 40% { opacity: .5; } 100% { opacity: .22; } }
+.sp-prev { width: 100%; height: 100%; } .sp-prev .pv { fill: none; stroke: #4d4680; stroke-width: 1; } .sp-prev .pv.on { stroke: #e3d6ff; }
+@media (prefers-reduced-motion: reduce) { .sp-mote, .ci-wave, .ci-orbit, .ci-mist { animation: none !important; } }

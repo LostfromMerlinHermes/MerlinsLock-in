@@ -100,8 +100,8 @@
   ML.defaults(() => ({
     econ: {
       gold: 0,
-      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus', 'diver'] },
-      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus', dialAbyss: 'diver' },
+      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus', 'diver', 'spell'] },
+      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus', dialAbyss: 'diver', deepSorcerer: 'spell' },
       potions: { seal: 0, elixir: 0, scroll: 0 }, elixir: false, frozen: [], lastCheck: null,
     },
   }));
@@ -113,11 +113,11 @@
     familiar: { owl: 0, cat: 300, raven: 300, fox: 400, hippo: 10000 },
     potion: { seal: 150, elixir: 80, scroll: 40, midas: 120 },
     skin: { classic: 0, runic: 350, parchment: 300, gold: 450, ember: 300, holo: 600, astral: 800 },
-    dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43)
+    dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300, spell: 0, circle: 400 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43); the Cyber sorcier's two full screens (3.48)
   };
   // Each world keeps its own equipped dial: the Sanctuaire's in equip.dial (as before 3.43), the Abysses' in equip.dialAbyss
-  const DIAL_WORLD = { lotus: 'sanctuary', moon: 'sanctuary', diver: 'abyss', nautilus: 'abyss', jelly: 'abyss' };
-  const slotOf = (cat, k) => (cat === 'dial' && DIAL_WORLD[k] === 'abyss' ? 'dialAbyss' : cat);
+  const DIAL_WORLD = { lotus: 'sanctuary', moon: 'sanctuary', diver: 'abyss', nautilus: 'abyss', jelly: 'abyss', spell: 'sorcerer', circle: 'sorcerer' };
+  const slotOf = (cat, k) => (cat !== 'dial' ? cat : DIAL_WORLD[k] === 'abyss' ? 'dialAbyss' : DIAL_WORLD[k] === 'sorcerer' ? 'deepSorcerer' : cat);
   const PREMIUM_ONLY = { skin: ['holo', 'astral'] }; // need a Premium account to buy
   // The app's author (ML.isOwner) gets these for free; everyone else buys them at the catalog price
   const OWNER_GIFTS = { familiar: ['hippo'] };
@@ -129,6 +129,7 @@
     if (!Array.isArray(E.owned.costume)) E.owned.costume = []; if (!E.equip.costume) E.equip.costume = 'none';
     if (!Array.isArray(E.owned.dial)) E.owned.dial = ['lotus']; if (!E.owned.dial.includes('lotus')) E.owned.dial.push('lotus'); if (!E.equip.dial) E.equip.dial = 'lotus';
     if (!E.owned.dial.includes('diver')) E.owned.dial.push('diver'); if (!E.equip.dialAbyss) E.equip.dialAbyss = 'diver';
+    if (!E.owned.dial.includes('spell')) E.owned.dial.push('spell'); if (!E.equip.deepSorcerer) E.equip.deepSorcerer = 'spell';
   }
 
   /* ---------- Sequence costumes: earned by reaching each Sequence, never lost ----------
@@ -255,7 +256,7 @@
     if (cat === 'burst') return `<span class="burst-swatch">${{ theme: '✦', coins: '◈', confetti: '▚', stars: '★', sakura: '❀' }[k]}</span>`;
     if (cat === 'familiar') return ML.familiarSvg ? ML.familiarSvg(k, 'idle') : '';
     if (cat === 'skin') return ML.sportSkinPreview ? ML.sportSkinPreview(k) : '';
-    if (cat === 'dial') { const f = DIAL_WORLD[k] === 'abyss' ? ML.abyssDialSvg : ML.sanctuaryDialSvg; return f ? f(k) : ''; }
+    if (cat === 'dial') { const f = DIAL_WORLD[k] === 'abyss' ? ML.abyssDialSvg : DIAL_WORLD[k] === 'sorcerer' ? ML.sorcererDeepSvg : ML.sanctuaryDialSvg; return f ? f(k) : ''; }
     return `<span class="burst-swatch">${{ seal: '⛨', elixir: '⚗', scroll: '📜', midas: '♛' }[k]}</span>`;
   };
   const label = (cat, k) => cat === 'familiar' ? t('fam_' + k) : t((cat === 'potion' ? 'pot' : cat) + '_' + k);

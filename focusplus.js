@@ -71,10 +71,12 @@
   });
   ML.defaults(() => ({ deepStyle: {} }));
   // Cartouche's "quest" (3.37) lives in cartouche.js, registered in ML.deepStyles: { html(top, dock), built(), render(ctx), doneMs(), over() }
-  const WORLD_STYLE = { netrunner: 'terminal', tokyo: 'proof', atelier: 'folio', cartouche: 'quest', abyss: 'log', observatory: 'chart' }; // Abysses' dive log (3.44) lives in abyss.js, the Observatoire's star chart (3.46) in observatory.js
+  const WORLD_STYLE = { netrunner: 'terminal', tokyo: 'proof', atelier: 'folio', cartouche: 'quest', abyss: 'log', observatory: 'chart', sorcerer: 'spell' }; // Abysses' dive log (3.44) lives in abyss.js, the Observatoire's star chart (3.46) in observatory.js
   const ext = s => (ML.deepStyles || {})[s];
   const worldKey = () => { const r = document.documentElement, th = r.dataset.theme; return r.dataset.light ? { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' }[th] : th; };
-  const styleNow = () => { const k = worldKey(), sp = WORLD_STYLE[k]; return sp && (S.deepStyle || {})[k] !== 'classic' ? sp : 'classic'; };
+  // a world can sell another full screen in the shop (Cyber sorcier's circle, 3.48): ML.deepWorldStyle(world) returns it when equipped
+  const spOf = k => (ML.deepWorldStyle && ML.deepWorldStyle(k)) || WORLD_STYLE[k];
+  const styleNow = () => { const k = worldKey(), sp = spOf(k); return sp && (S.deepStyle || {})[k] !== 'classic' ? sp : 'classic'; };
   const hm = d => ML.pad2(d.getHours()) + ':' + ML.pad2(d.getMinutes());
   const todaysSessions = () => { const td = today(); return S.sessions.filter(s => dayKey(new Date(s.at)) === td); };
 
@@ -133,7 +135,7 @@
 
   // top bar shared by every style: state, the style switch (when the world has its own screen), close
   function topHtml() {
-    const sp = WORLD_STYLE[worldKey()], cur = styleNow();
+    const sp = spOf(worldKey()), cur = styleNow();
     const sw = sp ? `<div class="dp-style seg-toggle" role="group" aria-label="${esc(t('dp_style'))}"><button type="button" data-dpstyle="classic" aria-pressed="${cur === 'classic'}">${esc(t('dp_classic'))}</button><button type="button" data-dpstyle="${sp}" aria-pressed="${cur === sp}">${esc(t('dp_' + sp))}</button></div>` : '';
     return `<div class="deep-top deep-ui"><span class="state" id="dp-state"></span>${sw}<button type="button" class="ghost icon-only" id="dp-close" aria-label="${esc(t('close'))}">${X}</button></div>`;
   }

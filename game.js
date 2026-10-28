@@ -882,9 +882,11 @@
           cx.globalAlpha = 1;
         }
         if (th === 'sorcerer') {
+          // The tower above the clouds (3.47) lives in sorcerer.js; it has its own sky, so the wandering constellations stop
+          const scene = ML.sorcererDraw && ML.sorcererDraw(cx, W, H, slow, still, now, tm, rest);
           // Arcane constellations: each fades in, holds, fades out; barely there while a session runs
           const dim = document.documentElement.dataset.timer === 'running' ? 0.35 : 1;
-          for (const k of consts) {
+          if (!scene) for (const k of consts) {
             const a = (still ? 0.5 : Math.pow(Math.max(0, Math.sin(tm * 6.283 / k.T + k.p)), 2)) * dim;
             if (a < 0.01) continue;
             cx.globalAlpha = 0.22 * a; cx.strokeStyle = colors[1]; cx.lineWidth = 0.7; cx.beginPath();
