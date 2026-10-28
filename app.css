@@ -2988,6 +2988,74 @@ html.mnav-on[data-mview="timer"] .sigil-card { animation: screen-in .22s ease-ou
 #mute-btn .mute-on { display: none; } #mute-btn[aria-pressed=true] .mute-on { display: inline; } #mute-btn[aria-pressed=true] .mute-off { display: none; }
 #mute-btn[aria-pressed=true] { color: var(--warn); }
 
+/* Hooded student (3.42, hood.js): drawing only, placement to come. .hood = a live figure, .on = focus running/paused */
+.hood svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.hm-c { fill: #F3EBDD; }
+.hm-sh { fill: #000; opacity: .2; }
+.hm-rim { stroke: #FFF3D6; opacity: .6; fill: none; stroke-linecap: round; }
+.hm-line { stroke: #F3EBDD; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.hm-track { stroke: #34304A; fill: none; }
+.hm-glow { fill: #F3EBDD; opacity: .12; }
+.hm-spark, .hm-end path { transform-box: fill-box; transform-origin: center; }
+.hood.on .hm-body { transform-box: fill-box; transform-origin: 50% 100%; animation: hm-breathe 5s ease-in-out infinite; }
+.hood.on .hm-spark { animation: hm-twinkle 3.2s ease-in-out infinite; }
+:root[data-timer="paused"] .hood.on .hm-body, :root[data-timer="paused"] .hood.on .hm-spark { animation-play-state: paused; }
+.hm-end path { animation: hm-pop .7s cubic-bezier(.3, 1.6, .5, 1) both; }
+.hm-end path:nth-child(2) { animation-delay: .15s; }
+.hm-end path:nth-child(3) { animation-delay: .3s; }
+@keyframes hm-breathe { 50% { transform: scale(1.025, 1.015); } }
+@keyframes hm-twinkle { 50% { opacity: .65; scale: .88; } }
+@keyframes hm-pop { from { scale: 0; opacity: 0; } }
+/* the living icon (3.42): B in the old logo's place; .free = dropped at a screen edge */
+:root.hood-icon .brand > .logo { display: none; }
+.hood-b { width: 44px; height: 44px; flex: none; padding: 0; margin: 0; border: 0; border-radius: 50%; background: none; box-shadow: none; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .35)); }
+.hood-b:hover, .hood-b:active { background: none; scale: none; }
+.hood-b:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hood-b .hm-body { transform-box: fill-box; transform-origin: 50% 100%; animation: hm-breathe 4.2s ease-in-out infinite; }
+.hood-b.on .hm-body { animation-duration: 5s; }
+:root[data-timer="paused"] .hood-b.on .hm-body { animation-play-state: paused; }
+.hood-b.happy .hm-body { animation: hm-hop .5s ease-out 3; }
+.hood-b.free { position: fixed; z-index: 9; width: 56px; height: 56px; transition: left .5s cubic-bezier(.3, .7, .2, 1), top .5s cubic-bezier(.3, .7, .2, 1); }
+.hood-b.grab { cursor: grabbing; transition: none; z-index: 41; }
+.hood-b.grab .hm-body { animation: none; scale: 1.08; }
+:root.deep-on .hood-b.free, :root.ep-on .hood-b.free { display: none; }
+:root.hood-drag .brand { outline: 1px dashed var(--mist); outline-offset: 6px; border-radius: 12px; }
+@keyframes hm-hop { 40% { transform: translateY(-14%); } }
+.hood-menu { position: fixed; inset: 0; z-index: 41; pointer-events: none; }
+.hood-menu > button { position: fixed; translate: var(--fx, 0px) var(--fy, 0px); scale: .4; opacity: 0; transition: translate .25s ease, scale .25s ease, opacity .2s; pointer-events: auto;
+  min-height: 36px; padding: 7px 14px; border-radius: 99px; white-space: nowrap; font-size: 13px; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
+.hood-menu.on > button { translate: 0 0; scale: 1; opacity: 1; }
+.hood-menu > button:hover { border-color: var(--accent); }
+.hm-park { position: fixed; display: flex; gap: 6px; padding: 6px; pointer-events: auto; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+.hm-park input { flex: 1; min-width: 0; }
+:root.mnav-on .hood-menu > button { min-height: 42px; }
+/* powers (3.42.2): hold to cast, world colour, he keeps your place, the evening word */
+.hood-b { position: relative; -webkit-touch-callout: none; }
+.hood-b.free { position: fixed; }
+.hm-back { display: none; }
+.hood-b.away .hm-back { display: inline; }
+.hood-b.away .hm-face { opacity: 0; }
+.hm-face { transition: translate .6s ease; }
+.hood-b.look .hm-face { translate: 1.6px 0; }
+.hood-b.casting .hm-face { filter: drop-shadow(0 0 3px #FFF3D6); }
+.hood-b.casting .hm-body { animation: hm-shake .12s linear infinite; }
+.hood-b.hop .hm-body { animation: hm-hop .5s ease-out 2; }
+.hood-b.nod .hm-body { animation: hm-nod .9s ease-in-out; }
+@keyframes hm-shake { 50% { translate: .6px 0; } }
+@keyframes hm-nod { 30%, 70% { rotate: 6deg; } 50% { rotate: 0deg; } }
+.hood-b.world .hm-s1 { stop-color: color-mix(in srgb, var(--accent-2) 55%, #fff); }
+.hood-b.world .hm-s2 { stop-color: var(--accent); }
+.hood-b.world .hm-s3 { stop-color: color-mix(in srgb, var(--accent) 55%, #000); }
+.hood-b.world .hm-m { fill: color-mix(in srgb, var(--accent) 40%, #000); }
+.hm-ready { position: absolute; right: -3px; top: -2px; width: 14px; height: 14px; display: none; pointer-events: none; filter: drop-shadow(0 0 4px rgba(243, 235, 221, .7)); }
+.hm-ready svg { width: 100%; height: 100%; display: block; }
+.hood-b.eve .hm-ready { display: block; animation: hm-twinkle 2.6s ease-in-out infinite; }
+.hood-say { position: fixed; z-index: 41; display: grid; gap: 6px; padding: 9px 13px; border-radius: 12px; font-size: 13.5px; line-height: 1.45; color: #15131F; background: #F3EBDD; box-shadow: 0 8px 22px rgba(0, 0, 0, .35); opacity: 0; translate: 0 6px; transition: opacity .3s, translate .3s; pointer-events: none; }
+.hood-say.on { opacity: 1; translate: 0 0; }
+.hood-say p { margin: 0; }
+.hood-say .link { justify-self: start; pointer-events: auto; color: #6B4A12; padding: 0; min-height: 0; background: none; border: 0; text-decoration: underline; }
+:root.deep-on .hood-say { display: none; }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 /* the same, from the app's own "reduced animations" option (Settings, per device; html.reduce-motion from core.js) */
 :root.reduce-motion *, :root.reduce-motion *::before, :root.reduce-motion *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
