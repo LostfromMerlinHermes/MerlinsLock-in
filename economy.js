@@ -100,8 +100,8 @@
   ML.defaults(() => ({
     econ: {
       gold: 0,
-      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus', 'diver', 'spell', 'city'] },
-      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus', dialAbyss: 'diver', deepSorcerer: 'spell', bgNeon: 'city' },
+      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus', 'diver', 'spell', 'city', 'valley', 'worldtone'] },
+      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus', dialAbyss: 'diver', deepSorcerer: 'spell', bgNeon: 'city', arcadeSet: 'valley', arcadePal: 'worldtone' },
       potions: { seal: 0, elixir: 0, scroll: 0 }, elixir: false, frozen: [], lastCheck: null,
     },
   }));
@@ -113,15 +113,15 @@
     familiar: { owl: 0, cat: 300, raven: 300, fox: 400, hippo: 10000 },
     potion: { seal: 150, elixir: 80, scroll: 40, midas: 120 },
     skin: { classic: 0, runic: 350, parchment: 300, gold: 450, ember: 300, holo: 600, astral: 800 },
-    dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300, spell: 0, circle: 400, city: 0, supercar: 600 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43); the Cyber sorcier's two full screens (3.48); the Ville néon's two backgrounds (3.49)
+    dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300, spell: 0, circle: 400, city: 0, supercar: 600, valley: 0, pier: 1200, orbit: 900, worldtone: 0, redcream: 300 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43); the Cyber sorcier's two full screens (3.48); the Ville néon's two backgrounds (3.49); the Arcade's three sets (background + dial + palette) and a palette (3.51)
   };
   // Each world keeps its own equipped dial: the Sanctuaire's in equip.dial (as before 3.43), the Abysses' in equip.dialAbyss
-  const DIAL_WORLD = { lotus: 'sanctuary', moon: 'sanctuary', diver: 'abyss', nautilus: 'abyss', jelly: 'abyss', spell: 'sorcerer', circle: 'sorcerer', city: 'neoncity', supercar: 'neoncity' };
-  const SLOT = { abyss: 'dialAbyss', sorcerer: 'deepSorcerer', neoncity: 'bgNeon' };
-  const slotOf = (cat, k) => (cat !== 'dial' ? cat : SLOT[DIAL_WORLD[k]] || cat);
-  const PREMIUM_ONLY = { skin: ['holo', 'astral'] }; // need a Premium account to buy
-  // The app's author (ML.isOwner) gets these for free; everyone else buys them at the catalog price
-  const OWNER_GIFTS = { familiar: ['hippo'] };
+  const DIAL_WORLD = { lotus: 'sanctuary', moon: 'sanctuary', diver: 'abyss', nautilus: 'abyss', jelly: 'abyss', spell: 'sorcerer', circle: 'sorcerer', city: 'neoncity', supercar: 'neoncity', valley: 'arcade', pier: 'arcade', orbit: 'arcade', worldtone: 'arcade', redcream: 'arcade' };
+  const SLOT = { abyss: 'dialAbyss', sorcerer: 'deepSorcerer', neoncity: 'bgNeon', arcade: 'arcadeSet' };
+  const ITEM_SLOT = { worldtone: 'arcadePal', redcream: 'arcadePal' }; // the Arcade's palettes go over its set
+  const WORLD_ORDER = ['arcade', 'sanctuary', 'abyss', 'sorcerer', 'neoncity']; // the shop shows world items world by world
+  const slotOf = (cat, k) => (cat !== 'dial' ? cat : ITEM_SLOT[k] || SLOT[DIAL_WORLD[k]] || cat);
+  const PREMIUM_ONLY = { skin: ['holo', 'astral'], dial: ['pier'] }; // need a Premium account to buy
   const premOnly = (cat, k) => (PREMIUM_ONLY[cat] || []).includes(k);
   // Categories added after launch: older saves lack them (nested defaults only merge one level deep)
   function migrate() {
@@ -132,6 +132,8 @@
     if (!E.owned.dial.includes('diver')) E.owned.dial.push('diver'); if (!E.equip.dialAbyss) E.equip.dialAbyss = 'diver';
     if (!E.owned.dial.includes('spell')) E.owned.dial.push('spell'); if (!E.equip.deepSorcerer) E.equip.deepSorcerer = 'spell';
     if (!E.owned.dial.includes('city')) E.owned.dial.push('city'); if (!E.equip.bgNeon) E.equip.bgNeon = 'city';
+    for (const k of ['valley', 'worldtone']) if (!E.owned.dial.includes(k)) E.owned.dial.push(k);
+    if (!E.equip.arcadeSet) E.equip.arcadeSet = 'valley'; if (!E.equip.arcadePal) E.equip.arcadePal = 'worldtone';
   }
 
   /* ---------- Sequence costumes: earned by reaching each Sequence, never lost ----------
@@ -148,10 +150,12 @@
     const k = won[won.length - 1];
     toast(t('cs_won', { name: csName(k) }), { ms: 8000, action: { label: t('equip'), fn: () => { S.econ.equip.costume = k; save(); applyCosmetics(); } } });
   }
+  // The app's author (ML.isOwner, app_metadata.owner on the Supabase account) owns every shop item but the potions;
+  // everyone else buys them at the catalog price
   function ownerGifts() {
     if (!S.econ || !(ML.isOwner && ML.isOwner())) return;
-    let changed = false;
-    for (const [cat, ks] of Object.entries(OWNER_GIFTS)) ks.forEach(k => { if (!S.econ.owned[cat].includes(k)) { S.econ.owned[cat].push(k); changed = true; } });
+    migrate(); let changed = false;
+    for (const [cat, items] of Object.entries(CATALOG)) if (cat !== 'potion' && S.econ.owned[cat]) Object.keys(items).forEach(k => { if (!S.econ.owned[cat].includes(k)) { S.econ.owned[cat].push(k); changed = true; } });
     if (changed) save();
   }
 
@@ -258,7 +262,7 @@
     if (cat === 'burst') return `<span class="burst-swatch">${{ theme: '✦', coins: '◈', confetti: '▚', stars: '★', sakura: '❀' }[k]}</span>`;
     if (cat === 'familiar') return ML.familiarSvg ? ML.familiarSvg(k, 'idle') : '';
     if (cat === 'skin') return ML.sportSkinPreview ? ML.sportSkinPreview(k) : '';
-    if (cat === 'dial') { const f = { abyss: ML.abyssDialSvg, sorcerer: ML.sorcererDeepSvg, neoncity: ML.neonShopPic }[DIAL_WORLD[k]] || ML.sanctuaryDialSvg; return f ? f(k) : ''; }
+    if (cat === 'dial') { const f = { abyss: ML.abyssDialSvg, sorcerer: ML.sorcererDeepSvg, neoncity: ML.neonShopPic, arcade: ML.arcadeShopPic }[DIAL_WORLD[k]] || ML.sanctuaryDialSvg; return f ? f(k) : ''; }
     return `<span class="burst-swatch">${{ seal: '⛨', elixir: '⚗', scroll: '📜', midas: '♛' }[k]}</span>`;
   };
   const label = (cat, k) => cat === 'familiar' ? t('fam_' + k) : t((cat === 'potion' ? 'pot' : cat) + '_' + k);
@@ -322,7 +326,11 @@
   on('trial:end', () => toast(t('w_trial_end'), { key: 'trial', ms: 2500 }));
   function renderShop() {
     const E = S.econ;
-    const section = (cat, title, hint) => `<h3 class="shop-h" id="shop-${cat}">${esc(t(title))}</h3>${hint ? `<p class="hint">${esc(t(hint))}</p>` : ''}<div class="shop-grid">${Object.entries(CATALOG[cat]).map(([k, price]) => {
+    // world items (dials, backgrounds, full screens, palettes) come world by world, the world's name over its group
+    const section = (cat, title, hint) => `<h3 class="shop-h" id="shop-${cat}">${esc(t(title))}</h3>${hint ? `<p class="hint">${esc(t(hint))}</p>` : ''}${cat === 'dial'
+      ? WORLD_ORDER.map(w => `<h4 class="shop-world">${esc(t('th_' + w))}</h4><div class="shop-grid">${items(cat, Object.keys(CATALOG.dial).filter(k => DIAL_WORLD[k] === w))}</div>`).join('')
+      : `<div class="shop-grid">${items(cat, Object.keys(CATALOG[cat]))}</div>`}`;
+    const items = (cat, keys) => keys.map(k => [k, CATALOG[cat][k]]).map(([k, price]) => {
       const own = cat !== 'potion' && E.owned[cat].includes(k), eq = cat !== 'potion' && E.equip[slotOf(cat, k)] === k, short = !own && E.gold < price;
       let btn;
       if (cat === 'potion') btn = `<button type="button" class="small buy" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(price, E.gold < price)}</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" class="small" data-use="elixir">${esc(t('use'))}</button>` : '')
@@ -336,7 +344,7 @@
         <b>${esc(label(cat, k))}${premOnly(cat, k) ? `<span class="prem-badge">Premium</span>` : ''}</b><small>${esc(desc(cat, k))}</small>
         ${cat === 'potion' ? `<small class="stock">${esc(t('in_stock', { n: E.potions[k] || 0 }))}${k === 'elixir' && E.elixir ? ' · ' + esc(t('elixir_on')) : ''}${k === 'midas' && E.midas > 0 ? ' · ' + esc(t('midas_on', { n: E.midas })) : ''}</small>` : ''}
         <div class="shop-btns">${btn}</div></div>`;
-    }).join('')}</div>`;
+    }).join('');
     // Sequence costumes first: earned ones show the familiar wearing them, the others a black silhouette
     const seqTile = (k, i) => {
       const own = k === 'none' || E.owned.costume.includes(k), eq = (E.equip.costume || 'none') === k;

@@ -429,7 +429,7 @@
     if (light) root.dataset.light = light; else delete root.dataset.light;
     const meta = document.querySelector('meta[name=theme-color]');
     if (meta) meta.content = light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#F7F5EF', arcade: '#c6d29c' }[th]
-      : { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#120c24', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
+      : { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#150d20', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
     if (themed) playTransition(light ? LIGHT_NAME[th] : th); // the light worlds have their own (3.38.2): aube, atelier, tokyo, cartouche
     themed = true;
     setTimeout(FX.reset, 30);
@@ -844,6 +844,8 @@
         cx.globalAlpha = 1;
       } else if (th === 'arcade' && document.documentElement.dataset.light) {
         // Cartouche: the overworld is a static CSS background (stars would read as specks of dirt on the pale sky)
+      } else if (th === 'arcade' && ML.arcadeDraw && ML.arcadeDraw(cx, W, H, slow, still, now, tm, rest)) {
+        // the valley, the pier or the orbit (3.51) lives in arcade.js
       } else if (th === 'arcade') {
         // Pixel starfield that twinkles slowly in steps (a ~5 s cycle per star), plus the odd shooting pixel
         const step = still ? 0 : Math.floor(tm / 650), dim = document.documentElement.dataset.timer === 'running' ? 0.4 : 1; // dimmer during a session

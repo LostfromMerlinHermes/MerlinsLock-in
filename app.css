@@ -3571,3 +3571,52 @@ html.mnav-on[data-mview="timer"] .sigil-card { animation: screen-in .22s ease-ou
 @keyframes ci-stone { 0% { opacity: .14; } 40% { opacity: .5; } 100% { opacity: .22; } }
 .sp-prev { width: 100%; height: 100%; } .sp-prev .pv { fill: none; stroke: #4d4680; stroke-width: 1; } .sp-prev .pv.on { stroke: #e3d6ff; }
 @media (prefers-reduced-motion: reduce) { .sp-mote, .ci-wave, .ci-orbit, .ci-mist { animation: none !important; } }
+
+/* =================== Arcade 3.51 (arcade.js): palettes, the pixel dial, shop world groups =================== */
+/* Crépuscule (default, valley set): plum, peach, lavender */
+:root[data-theme="arcade"]:not([data-light]) {
+  --void: #150d20; --panel: #20152d; --panel-2: #2a1c3a; --line: #3a2a4e; --line-2: #47305c;
+  --text: #fbe9dc; --mist: #c4abc8; --dim: #8a7398;
+  --accent: #ff9466; --accent-2: #b4a0ff; --ink: #2a0e00; --good: #9ee6a8; --warn: #ff6f7d;
+  --timer-ring: var(--accent-2);
+  --ev-1: #b4a0ff; --ev-2: #ff9466; --ev-3: #9ee6a8; --ev-4: #ffcf6a; --ev-5: #ff9ab0; --ev-6: #ff6f7d; --ev-7: #fce3a0; --ev-8: #8fa0ff;
+}
+/* Jetée (pier set): sea navy, bulb gold, rose in touches */
+:root[data-theme="arcade"]:not([data-light])[data-arc-pal="pier"] {
+  --void: #0a0f22; --panel: #111a34; --panel-2: #182343; --line: #24325a; --line-2: #2d3c68;
+  --text: #fdf2d8; --mist: #a9b2d2; --dim: #6e7aa4; --accent: #ffcf5a; --accent-2: #ff7390; --ink: #241500;
+  --ev-1: #ffcf5a; --ev-2: #ff7390; --ev-3: #7ad0ff; --ev-4: #b4ffa0; --ev-5: #ffe9b8; --ev-6: #ff5d73; --ev-7: #c8a0ff; --ev-8: #8fa0ff;
+}
+/* Borne ambre (orbit set): teal-black, CRT amber, teal */
+:root[data-theme="arcade"]:not([data-light])[data-arc-pal="amber"] {
+  --void: #0b1214; --panel: #132022; --panel-2: #1a2b2d; --line: #26393b; --line-2: #2f4a4b;
+  --text: #f3ead2; --mist: #9fb3ad; --dim: #6a817b; --accent: #ffb340; --accent-2: #4fd1c1; --ink: #1a0e00;
+  --ev-1: #ffb340; --ev-2: #4fd1c1; --ev-3: #9ee6a8; --ev-4: #ffe08a; --ev-5: #ff9a7a; --ev-6: #ff6f6f; --ev-7: #b8f0e0; --ev-8: #8fb8ff;
+}
+/* Rouge et crème (shop palette): warm charcoal, cream, one red */
+:root[data-theme="arcade"]:not([data-light])[data-arc-pal="red"] {
+  --void: #131114; --panel: #1c191e; --panel-2: #252127; --line: #332e35; --line-2: #3e383f;
+  --text: #f4e8cf; --mist: #b7ab9a; --dim: #857a6e; --accent: #ff4a3d; --accent-2: #f4e8cf; --ink: #fff4e4;
+  --ev-1: #ff4a3d; --ev-2: #f4e8cf; --ev-3: #b7ab9a; --ev-4: #ffb36a; --ev-5: #ff8a7a; --ev-6: #c83a30; --ev-7: #e8d8b0; --ev-8: #8a8090;
+}
+:root[data-theme="arcade"]:not([data-light]) h1 span { text-shadow: 3px 3px 0 color-mix(in srgb, var(--accent) 30%, #000); }
+:root[data-theme="arcade"]:not([data-light]) .primary { box-shadow: inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 0 rgba(0, 0, 0, .3), 0 0 0 2px color-mix(in srgb, var(--accent) 40%, #000); }
+:root[data-theme="arcade"]:not([data-light]) body::before { opacity: .12; }
+/* the pixel dial replaces the shared ring; the task title goes under the dial so the sub-dials stay clear */
+:root[data-theme="arcade"]:not([data-light]) .ring-wrap > .ring { opacity: 0; }
+:root[data-theme="arcade"]:not([data-light]) .ring-center { z-index: 1; padding-bottom: 12%; }
+:root[data-theme="arcade"]:not([data-light]) .ring-wrap { margin-bottom: 30px; }
+:root[data-theme="arcade"]:not([data-light]) .focus-on { position: absolute; left: 0; right: 0; top: calc(100% + 8px); text-align: center; -webkit-line-clamp: 1; }
+.arc-dial { position: absolute; left: -5%; top: -5%; width: 110%; height: 110%; pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges; }
+/* shop: world items grouped under the world's name */
+.shop-world { margin: 14px 0 6px; font: 600 12px var(--f-mono, monospace); letter-spacing: .12em; text-transform: uppercase; color: var(--mist); }
+.shop-world:first-of-type { margin-top: 4px; }
+/* the full screen « sunset » (L, valley set): the canvas fills the screen, the dock floats at the bottom */
+.deep[data-style="sunset"] .deep-inner { display: block; padding: 0; overflow: hidden; background: #150d20; }
+.deep[data-style="sunset"] .deep-top { position: absolute; z-index: 2; top: 6px; left: 16px; right: 16px; width: auto; max-width: none; }
+.deep[data-style="sunset"] .deep-top .state { visibility: hidden; }
+.deep[data-style="sunset"] .deep-dock { position: absolute; z-index: 2; left: 50%; bottom: 8px; translate: -50% 0; width: min(560px, calc(100% - 32px)); padding: 10px; background: color-mix(in srgb, #150d20 88%, transparent); box-shadow: 0 0 0 3px #47305c; }
+.deep[data-style="sunset"] .deep-dock .hint { display: none; }
+#as-cv { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+#as-task { position: absolute; z-index: 1; left: 16px; right: 16px; margin: 0; text-align: center; font: 24px/1.2 "VT323", monospace; color: #fbe9dc; text-shadow: 2px 2px 0 #2a0e30; pointer-events: none; }
+.arc-prev { width: 100%; height: 100%; object-fit: cover; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
