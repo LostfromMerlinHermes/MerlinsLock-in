@@ -138,7 +138,7 @@
       sort === 'short' ? (a.mins - b.mins) || (PRI[a.pri] - PRI[b.pri])
       : sort === 'hard' ? (PRI[a.pri] - PRI[b.pri]) || (b.mins - a.mins)
       : (PRI[a.pri] - PRI[b.pri]) || (a.mins - b.mins));
-    const day = S.plan && S.plan.day && S.plan.day.date === today() ? S.plan.day.id : null; // the task of the day (plan.js) comes next
+    const day = ML.dayTaskId ? ML.dayTaskId() : null; // the task of the day (the first pinned task, plan.js) comes next
     const di = day ? open.findIndex(x => x.id === day) : -1;
     if (di > 0) open.unshift(open.splice(di, 1)[0]);
     const ai = open.findIndex(x => x.id === S.activeId);
@@ -162,7 +162,7 @@
     const open = expanded.has(task.id) || (active && subs.length && !task.done);
     const stepXp = Math.max(2, Math.round(ML.taskXp(task) / 10));
     const extra = ML.taskBadges ? ML.taskBadges(task) : '';
-    const pinned = !!(S.plan && S.plan.day && S.plan.day.id === task.id && S.plan.day.date === today());
+    const pinned = !!task.pin && !task.done;
     return `<li class="task ${task.done ? 'done' : ''} ${active ? 'active' : ''} ${isNext && !active ? 'next' : ''} ${pinned ? 'pinned' : ''} ${extra.cls || ''}" data-id="${task.id}">
       ${task.done ? '' : `<span class="t-grip" title="${esc(t('pl_drag'))}" aria-hidden="true"><i></i><i></i></span>`}
       <button type="button" class="check" data-act="toggle" aria-label="${esc(task.done ? t('mark_undone') : t('mark_done'))}">
@@ -186,7 +186,7 @@
           ${task.done ? '' : `<form class="sub-add" autocomplete="off"><input type="text" maxlength="100" placeholder="${esc(t('add_subtask_ph'))}" aria-label="${esc(t('add_subtask_ph'))}"><button type="submit" class="small">+</button></form>`}` : ''}
       </div>
       <div class="t-actions">
-        ${task.done ? '' : `<button type="button" class="icon-btn t-pin ${pinned ? 'on' : ''}" data-act="pin" aria-pressed="${pinned}" aria-label="${esc(t(pinned ? 'pl_unpin' : 'pl_pin'))}" title="${esc(t(pinned ? 'pl_unpin' : 'pl_pin'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button>
+        ${task.done ? '' : `<button type="button" class="icon-btn t-pin ${pinned ? 'on' : ''}" data-act="pin" aria-pressed="${pinned}" aria-label="${esc(t(pinned ? 'pl_unpin' : 'pl_pin'))}" title="${esc(t(pinned ? 'pl_unpin' : 'pl_pin'))}">${ML.PIN_SVG || ''}</button>
         <button type="button" class="${active ? 'is-active' : ''}" data-act="focus">${esc(active ? t('focusing') : t('lock_in'))}</button>`}
         <button type="button" class="icon-btn" data-act="del" aria-label="${esc(t('delete'))}">✕</button>
       </div>
@@ -386,6 +386,7 @@
     const task = { id: uid(), title: q.title || raw, mins: q.mins || +$('new-mins').value, pri: q.pri || $('new-pri').value, done: false, created: Date.now() };
     if (q.due) task.due = q.due;
     const proj = q.project || (S.plan && S.plan.proj) || null; if (proj) task.project = proj;
+    if (ML.qaApply) ML.qaApply(task); // plan.js: the chips under the field (project, date, duration, priority, pin)
     S.tasks.push(task);
     $('new-title').value = ''; emit('quick:clear'); save(); renderAll();
     emit('task:added', task); // juice.js slides it in from the field
@@ -419,24 +420,52 @@
   function renderParked() {
     const n = S.parked.length;
     $('park-count').textContent = n ? n : '';
-    $('parked').innerHTML = n ? S.parked.map(p => `<li data-id="${p.id}">
-        <div class="p-text">${esc(p.text)}<span class="p-time">${new Date(p.at).toLocaleString(ML.locale(), { weekday: 'short', hour: '2-digit', minute: '2-digit' })}</span></div>
-        <div class="t-actions"><button type="button" data-act="task">${esc(t('make_task'))}</button><button type="button" class="icon-btn" data-act="del" aria-label="${esc(t('let_go'))}">✕</button></div>
+    // an inbox to sort (3.50): each thought or page caught from the browser becomes a task, a note, or goes (T / N / X)
+    $('parked').innerHTML = n ? S.parked.map(p => `<li data-id="${p.id}" tabindex="-1">
+        <div class="p-text">${esc(p.text)}${p.url ? `<a class="p-url" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title || p.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 60))}</a>` : ''}<span class="p-time">${new Date(p.at).toLocaleString(ML.locale(), { weekday: 'short', hour: '2-digit', minute: '2-digit' })}</span></div>
+        <div class="t-actions"><button type="button" data-act="task" title="T">${esc(t('make_task'))}</button><button type="button" data-act="note" title="N">${esc(t('make_note'))}</button><button type="button" class="icon-btn" data-act="del" aria-label="${esc(t('let_go'))}" title="X">✕</button></div>
       </li>`).join('')
       : `<li class="empty">${esc(t('park_empty'))}</li>`;
   }
   $('parked').addEventListener('click', e => {
     const btn = e.target.closest('button[data-act]'); if (!btn) return;
     const id = btn.closest('li').dataset.id, p = S.parked.find(x => x.id === id);
-    if (btn.dataset.act === 'task') {
+    sortParked(p, btn.dataset.act);
+  });
+  function sortParked(p, act) {
+    if (!p) return;
+    if (act === 'task') {
       S.tasks = S.tasks.filter(x => !x.sample);
-      S.tasks.push({ id: uid(), title: p.text, mins: 30, pri: 'med', done: false, created: Date.now() });
+      const task = { id: uid(), title: p.text.slice(0, 120), mins: 30, pri: 'med', done: false, created: Date.now() };
+      if (p.url) task.links = [p.url];
+      S.tasks.push(task);
       toast(t('park_to_task'));
     }
-    S.parked = S.parked.filter(x => x.id !== id);
+    if (act === 'note' && ML.notesAppend) {
+      ML.notesAppend(`<p>${esc(p.text)}${p.url ? ` <a href="${esc(p.url)}">${esc(p.title || p.url)}</a>` : ''}</p>`);
+      toast(t('park_to_note'));
+    }
+    const i = S.parked.findIndex(x => x.id === p.id);
+    S.parked = S.parked.filter(x => x.id !== p.id);
     emit('parked:processed');
     save(); renderAll();
-  });
+    const next = $('parked').querySelectorAll('li[data-id]')[Math.min(i, S.parked.length - 1)]; if (next && parkKb) next.focus();
+  }
+  // keyboard on the Parked tab: J / K (or arrows) to move, T task, N note, X let go
+  let parkKb = false;
+  document.addEventListener('keydown', e => {
+    if (S.tab !== 'park' || e.ctrlKey || e.metaKey || e.altKey || ML.isTyping(e) || document.querySelector('.overlay:not([hidden])')) return;
+    const items = [...$('parked').querySelectorAll('li[data-id]')]; if (!items.length) return;
+    const k = e.key.toLowerCase(), at = items.indexOf(document.activeElement && document.activeElement.closest && document.activeElement.closest('#parked li[data-id]'));
+    if (k === 'j' || k === 'k' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault(); e.stopImmediatePropagation(); parkKb = true;
+      const d = k === 'j' || e.key === 'ArrowDown' ? 1 : -1;
+      items[at < 0 ? (d > 0 ? 0 : items.length - 1) : Math.max(0, Math.min(items.length - 1, at + d))].focus(); return;
+    }
+    if (at < 0 || !'tnx'.includes(k) || e.key.length !== 1) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    sortParked(S.parked.find(x => x.id === items[at].dataset.id), k === 't' ? 'task' : k === 'n' ? 'note' : 'del');
+  }, true);
   armedButton($('clear-parked'), 'clear_all', () => { S.parked = []; save(); renderAll(); });
 
   /* ---------- Tabs ---------- */
@@ -580,7 +609,8 @@
 
   function start() {
     if (S.remaining <= 0) S.remaining = S.total;
-    if (S.remaining >= S.total) { S.pauses = 0; S.curDistr = 0; } // a fresh session
+    const fresh = S.remaining >= S.total;
+    if (fresh) { S.pauses = 0; S.curDistr = 0; } // a fresh session
     S.endAt = Date.now() + S.remaining * 1000;
     // With the bottom bar (nav.js) the Timer screen is the full dial, and other screens get a running strip instead
     if (S.autoCompact && innerWidth < 900 && !document.documentElement.classList.contains('mnav-on') && S.mode === 'focus' && !S.compact) { S.compact = true; autoCompacted = true; }
@@ -588,6 +618,7 @@
     if (S.mode === 'focus' && S.block.on) bgSend({ type: 'block', on: true, domains: S.block.domains });
     try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(l => { wakeLock = l; }).catch(() => {}); } catch (e) {}
     emit('timer');
+    if (fresh && S.mode === 'focus') emit('focus:start', { taskId: S.activeId, endAt: S.endAt, mins: Math.round(S.total / 60) }); // extras.js: task links, away message
   }
   function stop(keepAlarm = false) {
     if (running()) S.remaining = Math.max(0, remainingNow());
@@ -967,7 +998,7 @@
   /* ---------- Keyboard shortcuts ---------- */
   const KEYS = [['Espace / Space', 'key_space'], ['N', 'key_n'], ['P', 'key_p'], ['S', 'key_s'], ['C', 'key_c'], ['F', 'key_f'], ['1–7', 'key_tabs'], ['?', 'key_help'], ['Échap / Esc', 'key_esc']];
   function showHelp() {
-    $('help-keys').innerHTML = KEYS.map(([k, d]) => `<dt><kbd>${esc(k)}</kbd></dt><dd>${esc(t(d))}</dd>`).join('');
+    $('help-keys').innerHTML = [...KEYS, ...(ML.planKeys || [])].map(([k, d]) => `<dt><kbd>${esc(k)}</kbd></dt><dd>${esc(t(d))}</dd>`).join('');
     openOverlay('help');
   }
   document.addEventListener('keydown', e => {

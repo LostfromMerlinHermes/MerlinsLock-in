@@ -198,11 +198,11 @@
     render();
   }
   // Hard tasks go first to your best hour (from rated sessions, see focusplus.js), the rest fill the day
-  function autoPlan() {
+  function autoPlan(only) {
     const k = viewDate();
     const base = k === today() ? Math.max(nowMins(), S.planner.startH * 60) : S.planner.startH * 60;
     const scheduled = new Set(S.blocks.filter(b => b.date === k && b.taskId).map(b => b.taskId));
-    const todo = ML.orderedOpen().filter(x => !scheduled.has(x.id));
+    const todo = ML.orderedOpen().filter(x => !scheduled.has(x.id) && (!only || only.includes(x.id)));
     const best = ML.bestHour ? ML.bestHour() : null;
     const hard = x => x.pri === 'high' || x.mins >= 60;
     const placed = new Set();
@@ -221,6 +221,15 @@
     render();
     toast(n ? tn('planned_n', n) + (usedBest ? ' ' + t('best_hour_note', { h: best }) : '') : t('no_slot'));
   }
+  // plan.js "Plan my day": place these tasks today, then show the Day tab
+  ML.autoPlanToday = ids => { S.planner.date = null; autoPlan(ids); ML.setTab('day'); };
+  // Free minutes left today between now (or the start of the working day) and its end, events and blocks taken out
+  ML.freeMinsToday = () => {
+    const k = today(), end = S.planner.endH * 60;
+    let s = Math.max(nowMins(), S.planner.startH * 60), free = 0;
+    for (const [a, b] of busy(k)) { if (a > s) free += Math.max(0, Math.min(a, end) - s); s = Math.max(s, b); if (s >= end) break; }
+    return free + Math.max(0, end - s);
+  };
   function startBlock(b) {
     if (ML.lockIn({ taskId: b.taskId, title: b.taskId ? null : b.title, mins: b.mins })) { S.activeBlock = b.id; save(); }
   }

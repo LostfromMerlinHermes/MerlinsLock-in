@@ -11,7 +11,7 @@
       weekly_review: 'Revue de la semaine', review_open: 'Faire ma revue hebdo', review_prompt: 'C’est le moment de ta revue de la semaine.',
       rv_minutes: 'Focus', rv_sessions: 'Sessions', rv_avg: 'Concentration', rv_tasks: 'Tâches finies', rv_distr: 'Décrochages', rv_best: 'Meilleur jour', rv_vs: 'vs semaine d’avant',
       rv_wins: 'Ce qui a bien marché', rv_improve: 'Ce que je veux améliorer', rv_goal: 'Mon objectif principal pour la semaine prochaine', rv_save: 'Sceller la revue (+50 XP)', rv_saved: 'Revue scellée. +50 XP', rv_updated: 'Revue mise à jour',
-      rv_ach: 'Succès débloqués', rv_none: 'aucun', week_goal: 'Objectif de la semaine', best_hour_note: '(tâches difficiles vers {h}h, ton meilleur moment)', rv_week_of: 'Semaine du {d}',
+      rv_ach: 'Succès débloqués', rv_none: 'aucun', rv_proj: 'Temps par projet', rv_slipped: 'Ce qui a glissé', rv_slipped_none: 'Rien n’a glissé.', rv_goal_n: 'Objectif {n}', rv_goals_prem: 'Avec Premium : temps par projet, ce qui a glissé et 3 objectifs.', week_goal: 'Objectif de la semaine', best_hour_note: '(tâches difficiles vers {h}h, ton meilleur moment)', rv_week_of: 'Semaine du {d}',
     },
     en: {
       deep_focus: 'Deep focus mode (full screen)', deep_exit: 'Esc to leave', distracted: 'I got distracted', distract_ok: 'Logged ({n} this session). Breathe, then back to your task.',
@@ -19,7 +19,7 @@
       weekly_review: 'Weekly review', review_open: 'Do my weekly review', review_prompt: 'Time for your weekly review.',
       rv_minutes: 'Focus', rv_sessions: 'Sessions', rv_avg: 'Focus quality', rv_tasks: 'Tasks done', rv_distr: 'Distractions', rv_best: 'Best day', rv_vs: 'vs the week before',
       rv_wins: 'What went well', rv_improve: 'What I want to improve', rv_goal: 'My main goal for next week', rv_save: 'Seal the review (+50 XP)', rv_saved: 'Review sealed. +50 XP', rv_updated: 'Review updated',
-      rv_ach: 'Achievements unlocked', rv_none: 'none', week_goal: 'Goal of the week', best_hour_note: '(hard tasks around {h}:00, your best time)', rv_week_of: 'Week of {d}',
+      rv_ach: 'Achievements unlocked', rv_none: 'none', rv_proj: 'Time per project', rv_slipped: 'What slipped', rv_slipped_none: 'Nothing slipped.', rv_goal_n: 'Goal {n}', rv_goals_prem: 'With Premium: time per project, what slipped and 3 goals.', week_goal: 'Goal of the week', best_hour_note: '(hard tasks around {h}:00, your best time)', rv_week_of: 'Week of {d}',
     },
   });
   ML.defaults(() => ({ distr: [], curDistr: 0, reviews: {}, reviewPrompted: null }));
@@ -438,8 +438,19 @@
     };
   }
   function reviewWeek() { const d = new Date().getDay(); return d === 0 ? weekStart() : addDays(weekStart(), -7); } // Sunday: this week, other days: last week
+  // Premium (3.50): minutes per project from the week's sessions, and the tasks that were due that week but not done
+  function reviewMore(wk) {
+    const ss = S.sessions.filter(s => inWeek(s.at, wk)), by = {};
+    ss.forEach(s => { const x = S.tasks.find(y => y.id === s.taskId), p = (x && x.project) || t('pl_noproj'); by[p] = (by[p] || 0) + (s.mins || 0); });
+    const rows = Object.entries(by).sort((a, b) => b[1] - a[1]), max = rows.length ? rows[0][1] : 1;
+    const end = addDays(wk, 6), slipped = S.tasks.filter(x => !x.done && x.due && x.due >= wk && x.due <= end && x.due < today());
+    return `<div class="rv-more">
+      <div><span class="label">${esc(t('rv_proj'))}</span>${rows.length ? rows.map(([p, m]) => `<div class="rv-pbar"><span>${esc(p)}</span><i><b style="width:${(m / max * 100).toFixed(1)}%"></b></i><small>${fmtMins(m)}</small></div>`).join('') : `<p class="hint">—</p>`}</div>
+      <div><span class="label">${esc(t('rv_slipped'))}</span>${slipped.length ? `<ul class="rv-slip">${slipped.slice(0, 8).map(x => `<li>${esc(ML.titleOf(x))}</li>`).join('')}</ul>` : `<p class="hint">${esc(t('rv_slipped_none'))}</p>`}</div>
+    </div>`;
+  }
   function openReview(wk = reviewWeek()) {
-    const cur = weekStats(wk), prev = weekStats(addDays(wk, -7)), R = S.reviews[wk] || {};
+    const cur = weekStats(wk), prev = weekStats(addDays(wk, -7)), R = S.reviews[wk] || {}, prem = !!(ML.isPremium && ML.isPremium());
     const delta = (a, b) => b ? `<small class="${a >= b ? 'up' : 'down'}">${a >= b ? '▲' : '▼'} ${Math.abs(Math.round((a - b) / b * 100))}%</small>` : '';
     const achs = Object.entries((S.game && S.game.ach) || {}).filter(([, ts]) => inWeek(ts, wk)).map(([id]) => t('a_' + id));
     const B = S.game && S.game.boss;
@@ -454,16 +465,19 @@
         <div class="kpi"><strong>${cur.bestDay ? esc(parseDay(cur.bestDay.k).toLocaleDateString(ML.locale(), { weekday: 'short' })) : '—'}</strong><span>${esc(t('rv_best'))}</span></div>
       </div>
       <p class="insight">${esc(t('rv_ach'))} : ${esc(achs.length ? achs.join(', ') : t('rv_none'))}${B && B.week === wk ? ' · ⚔ ' + esc(B.title) + (B.done ? ' ✓' : '') : ''}</p>
+      ${prem ? reviewMore(wk) : `<p class="hint">${esc(t('rv_goals_prem'))}</p>`}
       <form class="rv-form" id="rv-form">
         <label><span class="label">${esc(t('rv_wins'))}</span><textarea name="wins" rows="2">${esc(R.wins || '')}</textarea></label>
         <label><span class="label">${esc(t('rv_improve'))}</span><textarea name="improve" rows="2">${esc(R.improve || '')}</textarea></label>
-        <label><span class="label">${esc(t('rv_goal'))}</span><input type="text" name="goal" maxlength="140" value="${esc(R.goal || '')}"></label>
+        <label><span class="label">${esc(prem ? t('rv_goal_n', { n: 1 }) : t('rv_goal'))}</span><input type="text" name="goal" maxlength="140" value="${esc(R.goal || '')}"></label>
+        ${prem ? [2, 3].map(n => `<label><span class="label">${esc(t('rv_goal_n', { n }))}</span><input type="text" name="goal${n}" maxlength="140" value="${esc((R.goals || [])[n - 2] || '')}"></label>`).join('') : ''}
         <button type="submit" class="primary">${esc(R.at ? t('save') : t('rv_save'))}</button>
       </form>`;
     $('rv-form').onsubmit = e => {
       e.preventDefault();
       const fd = new FormData(e.target), first = !S.reviews[wk] || !S.reviews[wk].at;
-      S.reviews[wk] = { wins: String(fd.get('wins')).trim(), improve: String(fd.get('improve')).trim(), goal: String(fd.get('goal')).trim(), at: Date.now() };
+      const goals = prem ? ['goal2', 'goal3'].map(k => String(fd.get(k) || '').trim()).filter(Boolean) : (R.goals || []);
+      S.reviews[wk] = { wins: String(fd.get('wins')).trim(), improve: String(fd.get('improve')).trim(), goal: String(fd.get('goal')).trim(), goals, at: Date.now() };
       if (first) { ML.addXp(50); toast(t('rv_saved')); } else toast(t('rv_updated'));
       save(); $('review').hidden = true; renderGoal();
     };
@@ -475,7 +489,8 @@
     let el = $('week-goal');
     if (!el) { el = document.createElement('div'); el.id = 'week-goal'; $('quest-strip').before(el); }
     const R = S.reviews[addDays(weekStart(), -7)];
-    el.innerHTML = R && R.goal ? `<div class="week-goal"><span class="label">🎯 ${esc(t('week_goal'))}</span><b>${esc(R.goal)}</b></div>` : '';
+    const goals = R ? [R.goal, ...(R.goals || [])].filter(Boolean) : [];
+    el.innerHTML = goals.length ? `<div class="week-goal"><span class="label">${esc(t('week_goal'))}</span>${goals.map(g => `<b>${esc(g)}</b>`).join('')}</div>` : '';
   }
   function maybePrompt() {
     const d = new Date().getDay(), wk = reviewWeek();

@@ -265,7 +265,9 @@
     let dt = z ? new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi)) : new Date(+y, +mo - 1, +d, +h, +mi);
     return { date: dayKey(dt), start: ML.pad2(dt.getHours()) + ':' + ML.pad2(dt.getMinutes()), ts: dt.getTime() };
   }
-  function importIcs(text) {
+  // opts.src (extras.js, a calendar link refreshed on its own): that feed's previous events are replaced, quietly
+  function importIcs(text, opts = {}) {
+    if (opts.src) S.events = S.events.filter(e => e.src !== opts.src);
     const lines = text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '').split(/\r?\n/);
     const found = []; let cur = null;
     for (const line of lines) {
@@ -298,12 +300,16 @@
       if (until && until < cutoff) continue;
       const uidV = v.UID ? v.UID.val : null;
       if (uidV && S.events.some(e => e.uid === uidV)) continue;
-      S.events.push({ id: uid(), uid: uidV, title: unesc(v.SUMMARY.val).slice(0, 100), date: st.date, start: st.start, mins: st.start ? mins : 60, cat: 'class', repeat, until, remind: 0, notes: v.LOCATION ? unesc(v.LOCATION.val).slice(0, 140) : '' });
+      const ev = { id: uid(), uid: uidV, title: unesc(v.SUMMARY.val).slice(0, 100), date: st.date, start: st.start, mins: st.start ? mins : 60, cat: 'class', repeat, until, remind: 0, notes: v.LOCATION ? unesc(v.LOCATION.val).slice(0, 140) : '' };
+      if (opts.src) ev.src = opts.src;
+      S.events.push(ev);
       n++;
     }
     save(); render(); scheduleReminders();
-    toast(n ? t('imported', { n }) : t('import_none'));
+    if (!opts.quiet) toast(n ? t('imported', { n }) : t('import_none'));
+    return n;
   }
+  ML.importIcs = importIcs;
   function exportIcs() {
     const stamp = d => d.replace(/-/g, '');
     const out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//MerlinsLockIN//FR'];

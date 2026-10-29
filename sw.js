@@ -1,7 +1,7 @@
 // Service worker for the installed web app: app files load from cache first (works offline),
 // fonts are cached the first time they load. Bump VERSION whenever app files change.
-const VERSION = 'mli-v3.49.1';
-const FILES = ['./', 'index.html', 'app.css', 'fonts.css', 'mini-view.js', 'core.js', 'strings.js', 'audio.js', 'app.js', 'calendar.js', 'planner.js', 'plan.js', 'game.js', 'mathml.js', 'notes.js', 'study.js', 'rooms.js', 'notehelp.js',
+const VERSION = 'mli-v3.50.0';
+const FILES = ['./', 'index.html', 'app.css', 'fonts.css', 'mini-view.js', 'core.js', 'strings.js', 'audio.js', 'app.js', 'calendar.js', 'planner.js', 'plan.js', 'plantools.js', 'mail.js', 'extras.js', 'game.js', 'mathml.js', 'notes.js', 'study.js', 'rooms.js', 'notehelp.js',
   'juice.js', 'washi.js', 'codex.js', 'cartouche.js', 'observatory.js', 'evening.js', 'sanctuary.js', 'abyss.js', 'netrunner.js', 'sorcerer.js', 'neon.js', 'worlds.js', 'energy.js', 'sfx.js', 'focusplus.js', 'economy.js', 'companion.js', 'hood.js', 'nav.js', 'endscreen.js', 'legal.js', 'config.js', 'sync.js', 'restore.js', 'push.js', 'main.js',
   'world-aube.jpg', 'world-atelier.jpg', 'world-atelier-focus.jpg', 'world-atelier-pause.jpg', 'world-atelier-fin.jpg', 'world-tokyo.jpg', 'world-cartouche.jpg',
   'world-sanctuary.jpg', 'world-observatory.jpg', 'world-netrunner.jpg', 'world-arcade.jpg',
