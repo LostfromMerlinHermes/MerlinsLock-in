@@ -819,6 +819,8 @@
           }
         }
         cx.globalAlpha = 1;
+      } else if (th === 'neoncity' && ML.neonDraw && ML.neonDraw(cx, W, H, slow, still, performance.now(), tm, rest)) {
+        // the city in tiers (3.49) lives in neon.js
       } else if (th === 'neoncity') {
         // Synthwave night: striped sun on the horizon, a skyline, and a perspective grid rolling toward you
         const hz = H * 0.66, sr = Math.min(W, H) * 0.2, sx = W * 0.5;

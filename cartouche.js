@@ -440,6 +440,7 @@
     if (!still && now - lastF < (focus ? 330 : 125)) { raf = requestAnimationFrame(frame); return; }
     vt += still ? 0 : Math.min(400, now - (lastF || now)) * (focus ? .3 : 1); lastF = now;
     const mode = dayPart(), k = window.innerWidth < 700 ? 3 : 4, w = Math.ceil(innerWidth / k), h = Math.ceil(innerHeight / k);
+    if (root.dataset.cartSky !== mode) root.dataset.cartSky = mode; // the night sky switches the header and panels (app.css)
     if (w !== SW || h !== SH || k !== K) { SW = w; SH = h; K = k; scv.width = w; scv.height = h; baseKey = ''; }
     if (baseKey !== mode + w + 'x' + h) { base = paintBase(mode); baseKey = mode + w + 'x' + h; }
     const g = scv.getContext('2d'), P = COL[mode], R = (x, y, ww, hh, col) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), ww, hh); };

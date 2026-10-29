@@ -500,12 +500,12 @@
     setDuration(+b.dataset.m);
   });
   $('custom-set').onclick = () => {
-    const m = Math.round(+$('custom-mins').value);
+    const m = Math.round((+$('custom-hrs').value || 0) * 60 + (+$('custom-mins').value || 0)); // hours and/or minutes
     if (!(m >= 1 && m <= 600)) { toast(t('custom_range')); return; }
     if (running()) { toast(t('pause_first')); return; }
-    setDuration(m); $('custom-mins').value = '';
+    setDuration(m); $('custom-hrs').value = $('custom-mins').value = '';
   };
-  $('custom-mins').addEventListener('keydown', e => { if (e.key === 'Enter') $('custom-set').click(); });
+  ['custom-hrs', 'custom-mins'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('custom-set').click(); }));
 
   function setDuration(m) {
     if (S.mode === 'focus') S.focusMins = m; else S.breakMins = m;

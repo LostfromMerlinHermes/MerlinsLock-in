@@ -239,7 +239,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 18px var(--glow); }
 .suggested { position: relative; }
 .suggested::after { content: ""; position: absolute; top: 3px; right: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 6px var(--accent-2); }
 .custom { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--mist); flex-wrap: wrap; margin-top: 10px; }
-.custom input { width: 80px; padding: 5px 9px; font-family: var(--f-mono); }
+.custom input { width: 64px; padding: 5px 9px; font-family: var(--f-mono); }
 .custom button { padding: 5px 12px; font-size: 13px; }
 .controls { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; margin-top: 10px; }
 .controls .primary { font-family: var(--f-display); font-size: 16px; letter-spacing: .08em; text-transform: uppercase; padding: 12px; }
@@ -1644,6 +1644,18 @@ html.mnav-on #washi-incense { display: none; }
 #cx-scene { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; image-rendering: pixelated; }
 :root[data-light="1"][data-theme="arcade"][data-cart-level="plein"] body { background: #D9E8B4; }
 :root[data-light="1"][data-theme="arcade"][data-cart-level="plein"] body::after { display: none; }
+/* 3.49.1: the landscape at night (cartouche.js sets data-cart-sky): the header turns pale over the dark sky, its buttons get
+   a pixel plate, and the panels go a soft sage instead of the bright day paper (text greens darkened to keep AA) */
+:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] {
+  --void: #A9BC8C; --panel: #B7C99C; --panel-2: #A6BA88; --line: #6F8E3E;
+  --mist: #1E4A1E; --dim: #1E4A1E; --accent: #1E4A1E; --good: #1E4A1E; --r-common: #1E4A1E; --soft: rgba(15, 56, 15, .08);
+}
+:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] .brand h1 { color: #DCE8C0; }
+:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] .brand h1 span { color: #9BBC0F; text-shadow: 3px 3px 0 #0F380F; }
+:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] .brand .seq { color: #DCE8C0; }
+:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] .top-actions > *:not([hidden]) {
+  background: var(--panel); color: var(--text); box-shadow: 0 0 0 2px #0F380F, 3px 3px 0 0 rgba(0, 0, 0, .35); }
+:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] .top-actions > :not([hidden]) * { color: var(--text); }
 /* the pixel title and clock keep their own size (Press Start 2P is already wide) */
 :root[data-light="1"][data-theme="arcade"] h1, :root[data-light="1"][data-theme="arcade"] .clock, :root[data-light="1"][data-theme="arcade"] .cbar-clock,
 :root[data-light="1"][data-theme="arcade"] .lu-title, :root[data-light="1"][data-theme="arcade"] .deep-clock { font-size-adjust: none; }
@@ -3257,6 +3269,39 @@ html.mnav-on[data-mview="timer"] .sigil-card { animation: screen-in .22s ease-ou
 @keyframes sc-cast { 0%, 8% { stroke: #3a3462; filter: none; } 30% { stroke: #fff; filter: drop-shadow(0 0 6px var(--accent)); } 100% { stroke: color-mix(in srgb, var(--accent) 45%, #fff); } }
 .sc-dial.cast .sc-runes path { animation: sc-cast 1.6s ease-out calc(var(--i) * 150ms) both; }
 :root[data-theme="sorcerer"]:not([data-light]) .runes, :root[data-theme="sorcerer"]:not([data-light]) .hex { display: none; }
+/* Ville néon: the ring road (3.49, neon.js) replaces the shared ring */
+:root[data-theme="neoncity"]:not([data-light]) .ring-wrap > .ring { opacity: 0; }
+:root[data-theme="neoncity"]:not([data-light]) .ring-center { z-index: 1; }
+:root[data-theme="neoncity"]:not([data-light]) .runes, :root[data-theme="neoncity"]:not([data-light]) .hex { display: none; }
+.nc-dial { position: absolute; left: -7%; top: -7%; width: 114%; height: 114%; overflow: visible; pointer-events: none; }
+.nc-dial g, .nc-dial path { transform-origin: 0 0; }
+.nc-face { fill: #08040f; opacity: .9; }
+.nc-ticks path { stroke: #6e5e86; stroke-width: .7; transition: stroke 1.2s; } .nc-ticks path.b { stroke: #d9cbe8; stroke-width: 1.5; } .nc-ticks path.on { stroke: #ff3fa4; }
+.nc-num text { fill: #b394c9; font: 600 10px "Chakra Petch", "Bahnschrift", sans-serif; text-anchor: middle; }
+.nc-ramp { fill: none; stroke: #150b20; stroke-width: 6.5; } .nc-ro { fill: none; stroke: #ff3fa4; stroke-width: .6; opacity: .55; } .nc-ri { fill: none; stroke: #2de2ff; stroke-width: .6; opacity: .5; }
+.nc-road { fill: none; stroke: #150b20; stroke-width: 26; } .nc-rail { fill: none; stroke: #6e6480; stroke-width: .8; }
+.nc-ledo { fill: none; stroke: #ff3fa4; stroke-width: 1.2; } .nc-ledi { fill: none; stroke: #2de2ff; stroke-width: 1; }
+.nc-lane { fill: none; stroke: rgba(255, 255, 255, .3); stroke-width: .8; stroke-dasharray: 5 7; }
+.nc-tr { fill: none; stroke-width: 3; opacity: .25; } .nc-tr.w { stroke: #fff4e2; } .nc-tr.r { stroke: #ff3355; }
+.nc-hl.w { fill: #fff4e2; } .nc-hl.r { fill: #ff3355; }
+.nc-traffic { animation: nc-flow 150s linear infinite; }
+@keyframes nc-flow { to { transform: rotate(360deg); } }
+.nc-past { fill: none; stroke: #150b20; stroke-width: 25; opacity: .86; stroke-dasharray: 0 1; transition: stroke-dasharray .9s linear; }
+.nc-lamps .h { fill: #ffb050; opacity: .18; transition: opacity 1s; } .nc-lamps circle:not(.h) { fill: #ffc070; transition: fill 1s; }
+.nc-lamps g.off .h { opacity: 0; } .nc-lamps g.off circle:not(.h) { fill: #4a2a3a; }
+.nc-zero { stroke: #2de2ff; stroke-width: 2; }
+.nc-car { transition: transform .9s linear; } .nc-car rect { fill: #ff3fa4; } .nc-car circle { fill: #fff; } .nc-car .cone { fill: #ff8fd0; opacity: .22; }
+:root[data-timer="break"] .nc-car rect { fill: #2de2ff; } :root[data-timer="break"] .nc-ticks path.on { stroke: #2de2ff; }
+:root:not([data-timer="running"]):not([data-timer="paused"]):not([data-timer="break"]) :is(.nc-car, .nc-past) { opacity: 0; }
+:root[data-timer="paused"] .nc-traffic { animation-play-state: paused; } :root[data-timer="paused"] .nc-car .cone { opacity: 0; }
+.nc-bars rect { fill: #33223f; transition: fill .6s; } .nc-bars rect.on { fill: #ff3fa4; filter: drop-shadow(0 0 2px #ff3fa4); }
+.nc-lab { fill: #b394c9; font: 400 7.5px "JetBrains Mono", Consolas, monospace; text-anchor: middle; letter-spacing: 1.5px; }
+.nc-wave { opacity: 0; } .nc-wave .g { fill: none; stroke: #ff8fd0; stroke-width: 16; opacity: .8; } .nc-wave .c { fill: none; stroke: #fff3fb; stroke-width: 4; stroke-linecap: round; }
+@keyframes nc-wave { 0% { opacity: 1; transform: rotate(0); } 90% { opacity: 1; } 100% { opacity: 0; transform: rotate(720deg); } }
+@keyframes nc-flash { 0%, 100% { opacity: .18; } 50% { opacity: .9; } }
+.nc-dial.wave .nc-wave { animation: nc-wave 2.4s cubic-bezier(.4, 0, .3, 1) both; }
+.nc-dial.wave .nc-lamps .h { animation: nc-flash .6s ease-in-out 3; }
+.nc-prev { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* Cyber sorcier full screens (3.48, sorcerer.js): « spell » (the spell page, default) and « circle » (the summoning circle, shop) */
 .deep:is([data-style="spell"], [data-style="circle"]) .deep-inner { display: block; padding: 0; overflow: hidden; background: radial-gradient(75% 75% at 50% 42%, #17122f, #07060d); }
 .deep:is([data-style="spell"], [data-style="circle"]) .deep-top { position: absolute; z-index: 2; top: 6px; left: 16px; right: 16px; width: auto; max-width: none; }
