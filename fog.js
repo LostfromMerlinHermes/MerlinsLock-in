@@ -514,12 +514,12 @@
     sprite(g, A.g.center, 0, 0, tt * .02);
     sprite(g, A.g.third, 38, -36, -tt * .045); sprite(g, A.g.pin, 38, -36, -tt * .045);
     sprite(g, A.g.fourth, 52, 14, tt * TAU / 60); sprite(g, A.g.pin, 52, 14, tt * TAU / 60);
-    sprite(g, A.g.escape, 34, 54, -Math.floor(tt * 5) * TAU / 30);
+    sprite(g, A.g.escape, 34, 54, -tt * TAU / 90);
     // bridges, jewels, screws
     bridge(g, [[-104, -18], [-68, -78], [-6, -82]], 9);
     bridge(g, [[10, -86], [44, -34], [86, 34]], 8);
     bridge(g, [[18, 84], [36, 52], [76, 66]], 6.5);
-    const osc = still ? .4 : Math.sin(tt * TAU * 2.5) * 1.5;
+    const osc = still ? .4 : Math.sin(tt * TAU / 12) * .6; // calm on purpose: a real 2.5 Hz balance is too busy beside the time
     g.save(); g.translate(34, 54); g.rotate(osc * .05 - .6); g.strokeStyle = '#8c90a0'; g.lineWidth = 1.6; line(g, 0, 0, -30, 0); g.fillStyle = '#c0284a'; g.fillRect(-3, -3, 2, 2.4); g.fillRect(-3, 1, 2, 2.4); g.restore();
     balance(g, -34, 50, 27, osc, tt);
     bridge(g, [[-106, 70], [-34, 50]], 7);
@@ -581,18 +581,22 @@
     const wrap = document.querySelector('#sigil-card .ring-wrap');
     if (!isOn() || !wrap) { if (dc.isConnected) dc.remove(); return; }
     if (dc.parentNode !== wrap) wrap.prepend(dc);
-    if (!wrap.offsetParent) return; // another screen is shown (phone)
-    const px = Math.round(wrap.clientWidth * 1.1 * Math.min(2, window.devicePixelRatio || 1)) || 300;
+    if (!wrap.offsetParent && !ML.dialText) return; // another screen is shown (phone); the energy picker still copies this dial
+    if (root.classList.contains('app-covered') || root.classList.contains('fc-full')) return; // the reader or a full-screen review covers it
+    const px = Math.round((wrap.clientWidth || Math.min(innerWidth * .8, 300)) * 1.1 * Math.min(2, window.devicePixelRatio || 1)) || 300;
     if (dc.width !== px) { dc.width = px; dc.height = px; }
     still = reduced();
     const pr = progress(), endNow = (performance.now() - dEndAt) / 1000 < 2.6;
-    const st = { mode: endNow ? 'end' : pr.started ? 'mid' : 'rest', prog: endNow ? 1 : pr.p, time: txt('clock'), label: txt('state').toUpperCase(), n: count() };
+    const shown = ML.dialText; // the energy picker's duration while it browses
+    const st = { mode: endNow ? 'end' : pr.started && !shown ? 'mid' : 'rest', prog: endNow ? 1 : pr.p, time: shown ? shown.time : txt('clock'), label: shown ? shown.label : txt('state').toUpperCase(), n: count() };
     dg.setTransform(px / 300, 0, 0, px / 300, 0, 0); dg.clearRect(0, 0, 300, 300);
     DIALS[dialOf()](dg, st, still ? 12 : performance.now() / 1000, assets());
   }
-  // the spark, the fog and the balance wheel move between ticks: ~25 fps while the world is shown
-  function loop(ts) { dRaf = 0; if (!isOn() || reduced()) return; if (!document.hidden && ts - dLast > 40) { dLast = ts; renderDial(); } dRaf = requestAnimationFrame(loop); }
+  // the spark, the fog and the balance wheel move between ticks: ~25 fps while the world is shown, 15 on a phone (a slow scene, a heavy paint)
+  const dGap = matchMedia('(pointer: coarse)').matches ? 66 : 40;
+  function loop(ts) { dRaf = 0; if (!isOn() || reduced()) return; if (!document.hidden && ts - dLast > dGap) { dLast = ts; renderDial(); } dRaf = requestAnimationFrame(loop); }
   const kick = () => { renderDial(); if (!dRaf && isOn() && !reduced()) dRaf = requestAnimationFrame(loop); };
+  ML.fogPaint = kick;
   function dialEnd() { if (reduced()) return; dEndAt = performance.now(); kick(); }
   on('session', s => { if (s && s.mins >= 1) dialEnd(); });
   ['tick', 'timer', 'render', 'started', 'newday', 'saved', 'motion'].forEach(ev => on(ev, kick));

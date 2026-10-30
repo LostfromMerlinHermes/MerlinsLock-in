@@ -717,7 +717,7 @@
       // Deep focus (step 6, item 61): its opaque scene covers the page, so the decor stops drawing altogether
       const deepEl = $('deep');
       // (Washi Peint keeps its misty landscape behind the full-screen ink ensō)
-      if (deepEl && !deepEl.hidden && !(ML.washiKeepsDrawing && ML.washiKeepsDrawing())) { if (!still) raf = requestAnimationFrame(draw); return; }
+      if (document.documentElement.classList.contains('app-covered') || (deepEl && !deepEl.hidden && !(ML.washiKeepsDrawing && ML.washiKeepsDrawing()))) { if (!still) raf = requestAnimationFrame(draw); return; }
       if (th === 'fog' && ML.fogDraw && ML.fogDraw(cx, W, H, slow, still, now, tm, rest)) {
         // « Le seuil » (3.52) lives in fog.js
       } else if (th === 'fog') {

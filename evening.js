@@ -106,6 +106,7 @@
   }
 
   function render(force) {
+    if (!S.evening) return; // the sign-in screen: a resize or rotation comes before the state is loaded
     const w = S.juice && S.juice.tod ? worldNow() : null, p = phase(), d = new Date();
     const W = innerWidth, H = innerHeight;
     // warm eye-comfort filter: ramps in around sunset, stays until a little after sunrise

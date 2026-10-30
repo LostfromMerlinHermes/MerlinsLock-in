@@ -37,8 +37,9 @@
   function dialHtml(mins, label) {
     const src = document.querySelector('#sigil-card .ring-wrap'); if (!src) return '';
     const d = src.cloneNode(true);
-    d.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
-    d.querySelectorAll('canvas').forEach(n => n.remove());
+    // A gradient or filter the dial refers to gets its own id: a reference back into the real dial paints black when that screen is hidden (phone)
+    const REF = /(url\((?:&quot;|["'])?#|href="#)([\w:-]+)/g, html0 = d.outerHTML, refs = new Set([...html0.matchAll(REF)].map(m => m[2])), own = new Set();
+    d.querySelectorAll('[id]').forEach(n => { if (refs.has(n.id)) { own.add(n.id); n.id = 'ep-' + n.id; } else n.removeAttribute('id'); });
     d.querySelectorAll('.segs-lit line').forEach(l => l.setAttribute('visibility', 'visible'));
     d.querySelectorAll('.segs-lit').forEach(g => g.classList.remove('wave'));
     const arc = d.querySelector('.arc'); if (arc) arc.style.strokeDashoffset = '0';
@@ -48,7 +49,28 @@
     if (q('.clock')) { q('.clock').textContent = clockOf(mins); q('.clock').removeAttribute('role'); }
     if (q('.focus-on')) q('.focus-on').textContent = label || '';
     d.setAttribute('aria-hidden', 'true');
-    return d.outerHTML;
+    return d.outerHTML.replace(REF, (m, a, id) => own.has(id) ? a + 'ep-' + id : m);
+  }
+  // The dial shown by the current step
+  const dialNow = () => st.step === 3 ? [focusOf(S.mood), st.title || ''] : [focusOf(st.pick), ''];
+  // A canvas dial (Brouillard, Arcade) has no bitmap in the clone, and each world swaps its dial just after the theme changes:
+  // while a dial is on screen, follow the real one.
+  let mirrorT = 0;
+  function mirrorDial() {
+    mirrorT = 0; if (!st) return;
+    const box = el.querySelector('.ep-dial'), src = document.querySelector('#sigil-card .ring-wrap');
+    if (box && src) {
+      const [mins, label] = dialNow(), text = clockOf(mins), sig = [...src.children].map(c => c.tagName + c.getAttribute('class')).join() + text;
+      if (!ML.dialText || ML.dialText.time !== text) { ML.dialText = { time: text, label: t('ready').toUpperCase() }; if (ML.fogPaint) ML.fogPaint(); }
+      if (box.dataset.sig !== sig) { box.dataset.sig = sig; box.innerHTML = dialHtml(mins, label); }
+      const to = box.querySelectorAll('canvas');
+      src.querySelectorAll('canvas').forEach((c, i) => {
+        const o = to[i]; if (!o || !c.width) return;
+        if (o.width !== c.width || o.height !== c.height) { o.width = c.width; o.height = c.height; }
+        const g = o.getContext('2d'); g.clearRect(0, 0, o.width, o.height); g.drawImage(c, 0, 0);
+      });
+    }
+    mirrorT = setTimeout(mirrorDial, 80);
   }
 
   /* ---------- The overlay ---------- */
@@ -120,12 +142,13 @@
     document.documentElement.classList.add('ep-on');
     el.hidden = false; el.classList.remove('out');
     render();
+    if (!mirrorT) mirrorDial();
     addEventListener('keydown', onKey, true);
     setTimeout(() => { const b = el.querySelector('.ep-go'); if (b && !st.onboard) b.focus({ preventScroll: true }); }, 40);
   }
   function close() {
     if (!st) return;
-    st = null; ML.previewMood && ML.previewMood(null);
+    st = null; ML.dialText = null; ML.previewMood && ML.previewMood(null);
     removeEventListener('keydown', onKey, true);
     el.classList.add('out');
     setTimeout(() => { if (!st) { el.hidden = true; el.innerHTML = ''; document.documentElement.classList.remove('ep-on'); } }, 280);
