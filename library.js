@@ -12,7 +12,7 @@
       lb_add: 'Ajouter', lb_photo: 'Photo', lb_sheet: 'Fiche', lb_search: 'Chercher dans les titres, notes et PDF…', lb_all: 'Tout', lb_untagged: 'Sans étiquette', lb_any: 'Tous les types', lb_pdf: 'PDF', lb_images: 'Photos', lb_sheets: 'Fiches',
       lb_s_recent: 'Ajoutés récemment', lb_s_opened: 'Ouverts récemment', lb_s_name: 'Nom', lb_s_size: 'Taille', lb_resume: 'Reprendre', lb_page: 'page {n}', lb_pages: '{n} pages', lb_pages_one: '{n} page', lb_empty_h: 'Ta bibliothèque est vide', lb_empty: 'Ajoute un PDF, une photo de cours ou crée une fiche. Tu peux aussi déposer un fichier ici ou coller une image.',
       lb_none: 'Aucun document ne correspond.', lb_rename: 'Nom', lb_tags: 'Étiquettes', lb_tag_ph: 'Ajouter une étiquette', lb_download: 'Télécharger', lb_delete: 'Supprimer', lb_deleted: 'Document supprimé', lb_edit: 'Modifier', lb_done: 'Terminé',
-      lb_added: '{n} document(s) ajouté(s)', lb_bad: 'Ce type de fichier n’est pas pris en charge : {name}', lb_full: 'Plus assez de place sur cet appareil.', lb_err: 'La bibliothèque ne peut pas s’ouvrir ici (navigation privée ?).', lb_new_sheet: 'Nouvelle fiche', lb_used: '{used} utilisés sur cet appareil', lb_free: '{free} disponibles', lb_local: 'Les fichiers restent sur cet appareil. Garde une copie de ce qui compte : vider les données du navigateur les efface.',
+      lb_added: '{n} document(s) ajouté(s)', lb_bad: 'Ce type de fichier n’est pas pris en charge : {name}', lb_cut: 'Fichier « {name} » trop long : seul le début a été gardé (environ 1000 pages).', lb_full: 'Plus assez de place sur cet appareil.', lb_err: 'La bibliothèque ne peut pas s’ouvrir ici (navigation privée ?).', lb_new_sheet: 'Nouvelle fiche', lb_used: '{used} utilisés sur cet appareil', lb_free: '{free} disponibles', lb_local: 'Les fichiers restent sur cet appareil. Garde une copie de ce qui compte : vider les données du navigateur les efface.',
       lb_hit: 'p. {n}', lb_today: 'aujourd’hui', lb_yest: 'hier', lb_worked: '{t} de travail',
       rd_close: 'Fermer', rd_doc: 'Document', rd_notes: 'Notes', rd_cards: 'Cartes', rd_sheet: 'Fiche', rd_prev: 'Page précédente', rd_next: 'Page suivante', rd_of: 'sur {n}', rd_zoom_in: 'Agrandir', rd_zoom_out: 'Réduire', rd_fit: 'Ajuster', rd_flash: 'Flashcard', rd_loading: 'Ouverture…', rd_load_err: 'Ce document ne s’ouvre pas ici.', rd_open_out: 'Ouvrir dans un onglet',
       rd_native: 'Lecteur du navigateur : la sélection, le suivi des pages et la recherche dans le PDF ne sont pas disponibles.',
@@ -23,7 +23,7 @@
       lb_add: 'Add', lb_photo: 'Photo', lb_sheet: 'Sheet', lb_search: 'Search titles, notes and PDFs…', lb_all: 'All', lb_untagged: 'No tag', lb_any: 'All types', lb_pdf: 'PDF', lb_images: 'Photos', lb_sheets: 'Sheets',
       lb_s_recent: 'Recently added', lb_s_opened: 'Recently opened', lb_s_name: 'Name', lb_s_size: 'Size', lb_resume: 'Resume', lb_page: 'page {n}', lb_pages: '{n} pages', lb_pages_one: '{n} page', lb_empty_h: 'Your library is empty', lb_empty: 'Add a PDF or a photo of your notes, or write a sheet. You can also drop a file here or paste an image.',
       lb_none: 'No document matches.', lb_rename: 'Name', lb_tags: 'Tags', lb_tag_ph: 'Add a tag', lb_download: 'Download', lb_delete: 'Delete', lb_deleted: 'Document deleted', lb_edit: 'Edit', lb_done: 'Done',
-      lb_added: '{n} document(s) added', lb_bad: "This file type isn't supported: {name}", lb_full: 'Not enough space left on this device.', lb_err: "The library can't open here (private browsing?).", lb_new_sheet: 'New sheet', lb_used: '{used} used on this device', lb_free: '{free} available', lb_local: 'Files stay on this device. Keep a copy of what matters: clearing browser data erases them.',
+      lb_added: '{n} document(s) added', lb_bad: "This file type isn't supported: {name}", lb_cut: '"{name}" is too long: only the start was kept (about 1000 pages).', lb_full: 'Not enough space left on this device.', lb_err: "The library can't open here (private browsing?).", lb_new_sheet: 'New sheet', lb_used: '{used} used on this device', lb_free: '{free} available', lb_local: 'Files stay on this device. Keep a copy of what matters: clearing browser data erases them.',
       lb_hit: 'p. {n}', lb_today: 'today', lb_yest: 'yesterday', lb_worked: '{t} of work',
       rd_close: 'Close', rd_doc: 'Document', rd_notes: 'Notes', rd_cards: 'Cards', rd_sheet: 'Sheet', rd_prev: 'Previous page', rd_next: 'Next page', rd_of: 'of {n}', rd_zoom_in: 'Zoom in', rd_zoom_out: 'Zoom out', rd_fit: 'Fit', rd_flash: 'Flashcard', rd_loading: 'Opening…', rd_load_err: "This document can't open here.", rd_open_out: 'Open in a tab',
       rd_native: "Browser viewer: text selection, page tracking and PDF search aren't available.",
@@ -125,6 +125,7 @@
     refresh();
     enrichNext();
   }
+  const SHEET_MAX = 2e6; // about 1000 pages: a sheet opens in a text box, PDFs and photos have no limit but the device's space
   async function addFiles(files) {
     files = [...files]; if (!files.length) return;
     if (!(await load())) { toast(t('lb_err')); return; }
@@ -134,11 +135,17 @@
       if (!kind) { toast(t('lb_bad', { name: f.name || '?' }), { ms: 5000 }); continue; }
       const d = { id: uid(), name: (f.name || t('lb_photo')).replace(/\.\w{1,5}$/, '').slice(0, 120) || t('lb_photo'), kind, mime: f.type || (kind === 'pdf' ? 'application/pdf' : ''), size: f.size, tags: L().tag && L().tag !== '-' ? [L().tag] : [], created: Date.now(), opened: 0, page: 1, zoom: 1, notes: '', deck: null, mins: 0, thumb: '', text: '' };
       try {
-        if (kind === 'sheet') d.text = (await f.text()).slice(0, 200000);
-        else { await idb('blobs', 'readwrite', s => s.put(f, d.id)); if (kind === 'image') d.thumb = await imageThumb(f); }
+        if (kind === 'sheet') {
+          const txt = await ML.readText(f);
+          d.text = txt.slice(0, SHEET_MAX);
+          if (txt.length > SHEET_MAX) toast(t('lb_cut', { name: d.name }), { ms: 6000 });
+        } else { await idb('blobs', 'readwrite', s => s.put(f, d.id)); if (kind === 'image') d.thumb = await imageThumb(f); }
         await putDoc(d); docs.push(d); n++;
         if (kind === 'pdf') enrich(d);
-      } catch (e) { toast(t(e && e.name === 'QuotaExceededError' ? 'lb_full' : 'lb_err'), { ms: 5000 }); break; }
+      } catch (e) {
+        if (e && e.name === 'NotText') { toast(t('lb_bad', { name: f.name || '?' }), { ms: 5000 }); continue; }
+        toast(t(e && e.name === 'QuotaExceededError' ? 'lb_full' : 'lb_err'), { ms: 5000 }); break;
+      }
     }
     if (n) { toast(t('lb_added', { n })); if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); }
     refresh();

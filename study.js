@@ -19,8 +19,8 @@
       fc_review: 'Réviser', fc_open: 'Ouvrir', fc_none: 'Aucun paquet. Crée-en un pour commencer.', fc_back: '← Paquets', fc_front: 'Recto (question)', fc_backside: 'Verso (réponse)',
       fc_add: 'Ajouter la carte', fc_added: 'Carte ajoutée', fc_bulk_done: '{n} carte(s) importée(s)',
       fi_btn: 'Importer', fi_h: 'Importer des cartes', fi_file: 'Choisir un fichier', fi_drop: 'Fichier .txt, .csv, .tsv, .json ou .md (export Anki ou Quizlet accepté), ou colle le texte ci-dessous.',
-      fi_ph: 'question ; réponse\nquestion ; réponse', fi_new: 'Nouveau paquet', fi_into: 'Ajouter à', fi_name: 'Nom du paquet', fi_go: 'Importer {n} carte(s)', fi_none: 'Aucune carte reconnue. Il faut une question et une réponse par ligne.',
-      fi_found: '{n} carte(s) trouvée(s)', fi_skip: '{n} ligne(s) ignorée(s)', fi_dup: '{n} déjà dans le paquet', fi_more: 'et {n} de plus', fi_apkg: 'Les fichiers .apkg ne sont pas lus. Dans Anki : Fichier, Exporter, « Notes en texte brut », puis importe ce fichier.', fi_big: 'Fichier trop lourd (5 Mo maximum).', fi_full: 'Trop de cartes pour la place disponible sur cet appareil. Importe un paquet plus petit.', fi_err: 'Impossible de lire ce fichier.',
+      fi_ph: 'question ; réponse\nquestion ; réponse', fi_new: 'Nouveau paquet', fi_into: 'Ajouter à', fi_name: 'Nom du paquet', fi_go: 'Importer {n} carte(s)', fi_none: 'Aucune carte reconnue. Mets une question et sa réponse sur une ligne (question ; réponse), ou sur deux lignes suivies d’une ligne vide.', fi_long: 'Fichier long : il n’est pas affiché ici, mais il sera importé en entier.',
+      fi_found: '{n} carte(s) trouvée(s)', fi_skip: '{n} ligne(s) ignorée(s)', fi_dup: '{n} déjà dans le paquet', fi_more: 'et {n} de plus', fi_apkg: 'Les fichiers .apkg ne sont pas lus. Dans Anki : Fichier, Exporter, « Notes en texte brut », puis importe ce fichier.', fi_big: 'Fichier trop lourd (50 Mo maximum).', fi_full: 'Trop de cartes pour la place disponible sur cet appareil. Importe un paquet plus petit.', fi_err: 'Impossible de lire ce fichier. Il faut un fichier texte (.txt, .csv, .json…).',
       fi_claude: 'Créer un paquet avec Claude', fi_claude_p: 'Copie ce message dans Claude, remplace le sujet, puis colle sa réponse ici.', fi_copy: 'Copier le message', fi_copied: 'Message copié',
       fi_prompt: 'Crée un paquet de flashcards sur : [SUJET]\n\nRéponds uniquement avec ce JSON, sans commentaire :\n{"deck":"Nom du paquet","cards":[{"front":"question","back":"réponse"}]}\n\nUne seule idée par carte, questions précises, réponses courtes.',
       fc_find: 'Chercher une carte…', fc_show_more: 'Afficher {n} de plus', fc_undo: 'Annuler la note', fc_where: 'Réviser dans', fc_in_panel: 'la section de droite', fc_in_full: 'le plein écran', fc_to_full: 'Plein écran', fc_to_panel: 'Section de droite', fc_ready: 'Minuteur', fc_running: 'Focus en cours', fc_paused: 'En pause',
@@ -49,8 +49,8 @@
       fc_review: 'Review', fc_open: 'Open', fc_none: 'No decks yet. Create one to start.', fc_back: '← Decks', fc_front: 'Front (question)', fc_backside: 'Back (answer)',
       fc_add: 'Add card', fc_added: 'Card added', fc_bulk_done: '{n} card(s) imported',
       fi_btn: 'Import', fi_h: 'Import cards', fi_file: 'Choose a file', fi_drop: 'A .txt, .csv, .tsv, .json or .md file (Anki and Quizlet exports work), or paste the text below.',
-      fi_ph: 'question ; answer\nquestion ; answer', fi_new: 'New deck', fi_into: 'Add to', fi_name: 'Deck name', fi_go: 'Import {n} card(s)', fi_none: 'No cards found. Each line needs a question and an answer.',
-      fi_found: '{n} card(s) found', fi_skip: '{n} line(s) skipped', fi_dup: '{n} already in the deck', fi_more: 'and {n} more', fi_apkg: "Can't read .apkg files. In Anki: File, Export, \"Notes in Plain Text\", then import that file.", fi_big: 'File too large (5 MB at most).', fi_full: 'Too many cards for the space left on this device. Import a smaller deck.', fi_err: "Can't read this file.",
+      fi_ph: 'question ; answer\nquestion ; answer', fi_new: 'New deck', fi_into: 'Add to', fi_name: 'Deck name', fi_go: 'Import {n} card(s)', fi_none: 'No cards found. Put a question and its answer on one line (question ; answer), or on two lines followed by an empty line.', fi_long: "Long file: it isn't shown here, but all of it will be imported.",
+      fi_found: '{n} card(s) found', fi_skip: '{n} line(s) skipped', fi_dup: '{n} already in the deck', fi_more: 'and {n} more', fi_apkg: "Can't read .apkg files. In Anki: File, Export, \"Notes in Plain Text\", then import that file.", fi_big: 'File too large (50 MB at most).', fi_full: 'Too many cards for the space left on this device. Import a smaller deck.', fi_err: "Can't read this file. It needs to be a text file (.txt, .csv, .json…).",
       fi_claude: 'Make a deck with Claude', fi_claude_p: 'Copy this message into Claude, replace the topic, then paste the reply here.', fi_copy: 'Copy the message', fi_copied: 'Message copied',
       fi_prompt: 'Make a flashcard deck about: [TOPIC]\n\nReply only with this JSON, no comments:\n{"deck":"Deck name","cards":[{"front":"question","back":"answer"}]}\n\nOne idea per card, precise questions, short answers.',
       fc_find: 'Find a card…', fc_show_more: 'Show {n} more', fc_undo: 'Undo rating', fc_where: 'Review in', fc_in_panel: 'the right section', fc_in_full: 'full screen', fc_to_full: 'Full screen', fc_to_panel: 'Right section', fc_ready: 'Timer', fc_running: 'Focusing', fc_paused: 'Paused',
@@ -315,12 +315,14 @@
     if (a < 0 || b <= a || !/^\s*["{[\]]/.test(raw.slice(a + 1))) return null;
     try { return JSON.parse(raw.slice(a, b + 1).replace(/,\s*([}\]])/g, '$1')); } catch (e) { return null; }
   }
+  // A quote only opens a field if it closes right before a separator or a line end, so a lone " can't swallow the lines after it
+  const closesField = (text, i, sep) => { for (let j = i + 1; j < text.length; j++) if (text[j] === '"') { if (text[j + 1] === '"') j++; else { const n = text[j + 1]; return n === undefined || n === sep || n === '\n' || n === '\r'; } } return false; };
   function csvRows(text, sep) { // quoted fields may hold the separator and line breaks (Anki does this)
     const rows = []; let row = [], cur = '', q = false;
     for (let i = 0; i < text.length; i++) {
       const ch = text[i];
       if (q) { if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
-      else if (ch === '"' && !cur.trim()) { q = true; cur = ''; }
+      else if (ch === '"' && !cur.trim() && closesField(text, i, sep)) { q = true; cur = ''; }
       else if (ch === sep) { row.push(cur); cur = ''; }
       else if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
       else if (ch !== '\r') cur += ch;
@@ -330,7 +332,7 @@
   }
   const HEAD_RE = /^(question|questions|front|recto|term|terme|q|prompt)$/i;
   function parseDeck(text0, ext) {
-    const text = text0.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trim();
+    const text = text0.replace(/^\uFEFF/, '').replace(/\0/g, '').replace(/\r\n?/g, '\n').trim();
     if (!text) return { decks: [], skipped: 0, total: 0 };
     const done = (decks, skipped = 0) => { decks = decks.filter(d => d.cards.length); return { decks, skipped, total: decks.reduce((n, d) => n + d.cards.length, 0) }; };
     if (ext === 'json' || /^\s*[[{]|```/.test(text)) { const j = jsonIn(text), ds = j && decksFromJson(j); if (ds && ds.some(d => d.cards.length)) return done(ds); }
@@ -344,18 +346,23 @@
       else if ((m = /^#(?:guid|notetype|deck|tags) column:(\d+)/i.exec(l))) drop.add(+m[1] - 1);
       else if (!/^#\w[\w ]*:/.test(l)) body.push(l);
     });
-    const src = body.join('\n'), lines = body.filter(l => l.trim());
-    // Q: … / A: … blocks
-    const QRE = /^\s*(?:[-*]\s*)?\*{0,2}(?:Q\d*|Question|Recto|Front)\*{0,2}\s*[:.)]\*{0,2}\s*/i, ARE = /^\s*(?:[-*]\s*)?\*{0,2}(?:A\d*|R|Answer|Réponse|Verso|Back)\*{0,2}\s*[:.)]\*{0,2}\s*/i;
-    if (lines.filter(l => QRE.test(l)).length && lines.filter(l => ARE.test(l)).length) {
+    let src = body.join('\n'), lines = body.filter(l => l.trim());
+    // Q: … / A: … blocks, numbered or not, the answer on its own line or on the question's
+    const QRE = /^\s*(?:[-*]\s*)?\*{0,2}(?:Q\s*\d*|Question\s*\d*|Recto|Front|Terme?)\*{0,2}\s*[:.)]\*{0,2}\s*/i, ARE = /^\s*(?:[-*]\s*)?\*{0,2}(?:A\s*\d*|R\s*\d*|Answer\s*\d*|R[ée]ponse\s*\d*|Verso|Back|D[ée]finition)\*{0,2}\s*[:.)]\*{0,2}\s*/i;
+    const INLINE_A = /\s(?=(?:A\d*|R|Answer|Réponse|Reponse|Verso|Back)\s*:\s)/; // case-sensitive: "il y a : trois" stays in the question
+    const qa = lines.flatMap(l => (QRE.test(l) ? l.split(INLINE_A) : [l]));
+    if (qa.some(l => QRE.test(l)) && qa.some(l => ARE.test(l))) {
       const out = []; let cur = null, side = '';
-      lines.forEach(l => {
+      qa.forEach(l => {
         if (QRE.test(l)) { cur = { front: l.replace(QRE, ''), back: '' }; out.push(cur); side = 'front'; }
         else if (ARE.test(l) && cur) { cur.back = l.replace(ARE, ''); side = 'back'; }
         else if (cur) cur[side] += '\n' + l.trim();
       });
-      return done([{ name: deck, cards: toCards(out) }]);
+      const cards = toCards(out);
+      return done([{ name: deck, cards }], out.length - cards.length);
     }
+    // Quizlet can put every card on one line, with ; between them
+    if (!sep && lines.length === 1 && (src.match(/;/g) || []).length >= 2) { lines = src.split(';').filter(l => l.trim()); src = lines.join('\n'); }
     // Markdown table
     if (lines.filter(l => /^\s*\|.*\|\s*$/.test(l)).length >= lines.length * .6) {
       const rows = lines.filter(l => /\|/.test(l) && !/^[\s|:-]+$/.test(l)).map(l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
@@ -365,11 +372,25 @@
     }
     // Lines with a separator: quoted CSV for tab, comma and semicolon; the first occurrence for the others, so an answer may contain it
     const share = s => lines.filter(l => l.includes(s)).length / lines.length;
-    if (!sep) sep = share('\t') >= .5 ? '\t' : ext === 'csv' && share(';') > share(',') ? ';' : ext === 'csv' ? ',' : share(';') >= .6 ? ';' : ['::', ' | ', '->', '→', ' = ', ' – ', ' — ', ' - ', ': '].find(s => share(s) >= .6) || null;
+    const tabs = lines.filter(l => l.trim().includes('\t')).length / lines.length; // lower bar: a Quizlet answer may run over several lines
+    if (!sep) sep = tabs >= .3 ? '\t' : ext === 'csv' && share(';') > share(',') ? ';' : ext === 'csv' ? ',' : share(';') >= .6 ? ';' : ['::', ' | ', '->', '→', ' = ', ' – ', ' — ', ' - ', ': '].find(s => share(s) >= .6) || null;
+    if (!sep) {
+      // Blocks split by an empty line: the first line is the question, the rest the answer
+      const blocks = src.split(/\n\s*\n/).map(b => b.split('\n').map(l => l.trim()).filter(Boolean)).filter(b => b.length);
+      if (blocks.length >= 2 && blocks.filter(b => b.length >= 2 && b[0].length <= 300).length >= blocks.length * .8) {
+        const cards = toCards(blocks.map(b => [b[0], b.slice(1).join('\n')]));
+        return done([{ name: deck, cards }], blocks.length - cards.length);
+      }
+      if (lines.filter(l => l.split(',').length === 2).length >= lines.length * .8) sep = ',';
+    }
     if (!sep) return done([], lines.length);
     let rows;
-    if (sep === '\t' || sep === ',' || (sep === ';' && ext === 'csv')) rows = csvRows(src, sep).map(r => r.filter((_, i) => !drop.has(i)));
-    else {
+    if (sep === '\t' || sep === ',' || (sep === ';' && ext === 'csv')) {
+      rows = csvRows(src, sep);
+      // Quizlet doesn't quote: a line without a tab carries on the answer above
+      if (sep === '\t') rows = rows.reduce((out, r) => { const p = out[out.length - 1]; if (r.length === 1 && p && p.length > 1) p[p.length - 1] += '\n' + r[0]; else out.push(r); return out; }, []);
+      rows = rows.map(r => r.filter((_, i) => !drop.has(i)));
+    } else {
       const bullet = /^\s*(?:[-*•]|\d+[.)])\s+/;
       rows = lines.map(l => { const s = l.replace(bullet, ''), i = s.indexOf(sep); return i < 0 ? [s] : [s.slice(0, i), s.slice(i + sep.length)]; });
     }
@@ -386,7 +407,7 @@
         <label class="fi-file"><input type="file" id="fi-input" accept=".txt,.csv,.tsv,.json,.md,.apkg,text/*,application/json"><span>${esc(t('fi_file'))}</span></label>
         <small>${esc(V.fileName || t('fi_drop'))}</small>
       </div>
-      <textarea id="fi-text" rows="6" spellcheck="false" placeholder="${esc(t('fi_ph'))}">${esc(V.text || '')}</textarea>
+      ${V.big ? `<p class="hint">${esc(t('fi_long'))}</p>` : `<textarea id="fi-text" rows="6" spellcheck="false" placeholder="${esc(t('fi_ph'))}">${esc(V.text || '')}</textarea>`}
       <div id="fi-preview">${importPreview()}</div>
       <details class="fi-claude"><summary>${esc(t('fi_claude'))}</summary>
         <p class="hint">${esc(t('fi_claude_p'))}</p>
@@ -417,21 +438,37 @@
     const P = V.parsed; if (P.decks.length === 1 && !V.nameEdited) V.name = P.decks[0].name || V.fileBase || '';
     importRefresh();
   }
+  // Text files come in UTF-8, UTF-16 (Notepad's "Unicode") or Windows-1252 (older Windows and Excel, where accents break if read as UTF-8)
+  async function readText(file) {
+    const b = new Uint8Array(await file.arrayBuffer()), dec = (enc, o) => new TextDecoder(enc, o).decode(b);
+    const head = b.subarray(0, 4096); let odd = 0, even = 0;
+    head.forEach((x, i) => { if (!x) { if (i % 2) odd++; else even++; } });
+    const bom16 = b[0] === 0xFF && b[1] === 0xFE ? 'utf-16le' : b[0] === 0xFE && b[1] === 0xFF ? 'utf-16be' : odd > head.length * .3 ? 'utf-16le' : even > head.length * .3 ? 'utf-16be' : '';
+    if (bom16) return dec(bom16);
+    if (b.includes(0)) { const e = new Error('not text'); e.name = 'NotText'; throw e; } // a PDF or Word file renamed or dropped here
+    try { return dec('utf-8', { fatal: true }); } catch (e) { return dec('windows-1252'); }
+  }
+  ML.readText = readText;
+  const FILE_MAX = 50e6, SHOW_MAX = 200000; // only what becomes cards is kept, and a long text would freeze the text box
   async function importFile(file) {
     if (!file || view.kind !== 'import') return;
     const V = view, ext = (/\.(\w+)$/.exec(file.name) || [])[1] || '';
-    V.err = ''; V.fileName = file.name;
+    V.err = ''; V.fileName = file.name; V.big = false;
     if (ext.toLowerCase() === 'apkg') { V.err = t('fi_apkg'); V.text = ''; V.parsed = null; return renderTool(); }
-    if (file.size > 5e6) { V.err = t('fi_big'); V.text = ''; V.parsed = null; return renderTool(); }
-    try { V.text = await file.text(); } catch (e) { V.err = t('fi_err'); V.text = ''; V.parsed = null; return renderTool(); }
+    if (file.size > FILE_MAX) { V.err = t('fi_big'); V.text = ''; V.parsed = null; return renderTool(); }
+    try { V.text = await readText(file); } catch (e) { V.err = t('fi_err'); V.text = ''; V.parsed = null; return renderTool(); }
     if (view !== V) return;
+    V.big = V.text.length > SHOW_MAX;
     V.ext = ext.toLowerCase(); V.fileBase = file.name.replace(/\.\w+$/, '').slice(0, 60); V.nameEdited = false;
     importParse(); renderTool();
   }
   function importCommit() {
     const V = view, P = V.parsed, D = ST(); if (!P || !P.total) return;
     const size = P.decks.reduce((a, d) => a + d.cards.reduce((b, c) => b + c.front.length + c.back.length + 130, 0), 0);
-    if (JSON.stringify(S).length + size > 4.5e6) { toast(t('fi_full'), { ms: 6000 }); return; }
+    // Cards live in S, so in localStorage (about 5 million characters per site). save() frees restore points when it must; the sync base is a second copy of S that grows too
+    let other = 0, hasBase = false;
+    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('mli-sync-base:')) hasBase = true; if (k !== ML.storageKey() && !/^mli-(snaps|corrupt):/.test(k)) other += k.length + localStorage.getItem(k).length; } } catch (e) {}
+    if (JSON.stringify(S).length + size + other + (hasBase ? size : 0) > 4.5e6) { toast(t('fi_full'), { ms: 6000 }); return; }
     const one = P.decks.length === 1; let n = 0, last = null;
     P.decks.forEach(pd => {
       const name = (one ? (V.name || '').trim() : '') || pd.name || t('fi_new');
