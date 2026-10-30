@@ -2,7 +2,7 @@
 // leaving the app. The list is one searchable list (PDF text included); a document opens with its notes and its flashcards: tabs on
 // a phone, side by side with the timer from 900 px. Files live in IndexedDB (per account, never in S: they are far too large for
 // localStorage and for the sync row), so they stay on the device they were added on.
-// PDFs: pdf.js if it can load (a local pdf.min.js if one ships with the app, otherwise the CDN), else the browser's own viewer.
+// PDFs: pdf.js 3.11.174 (pdf.min.js and its worker ship with the app; only the artifact, which can't serve them, takes the CDN), else the browser's own viewer.
 (() => {
   'use strict';
   const { S, t, esc, save, on, emit, toast, uid, $ } = ML;
@@ -76,9 +76,10 @@
   function pdfLib() {
     if (pdfP) return pdfP;
     pdfP = (async () => {
-      try { await addScript('pdf.min.js'); window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js'; return { lib: window.pdfjsLib, opts: {} }; } catch (e) {}
-      await addScript(CDN + 'pdf.min.js');
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc = CDN + 'pdf.worker.min.js';
+      let base = '';
+      try { await addScript('pdf.min.js'); } catch (e) { base = CDN; await addScript(CDN + 'pdf.min.js'); }
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = base + 'pdf.worker.min.js';
+      // Asian scripts and fonts not embedded in the file come from the CDN when online; a PDF still opens without them
       return { lib: window.pdfjsLib, opts: { cMapUrl: CDN + 'cmaps/', cMapPacked: true, standardFontDataUrl: CDN + 'standard_fonts/' } };
     })();
     pdfP.catch(() => { pdfP = null; });
