@@ -19,7 +19,7 @@
     neoncity: ['#0b0418', `<path d="M0 100 V64 H12 V50 H24 V70 H34 V40 H44 V60 H56 V46 H68 V66 H80 V54 H100 V100Z" fill="#2a1150"/>${sq([[16, 56], [38, 48], [60, 54]], 3, '#ff3fa4')}<circle cx="76" cy="24" r="10" fill="#ffa34a" opacity=".85"/>`],
     tokyo: ['#F7F5EF', `<circle cx="28" cy="70" r="14" fill="#E3001B"/><path d="M40 100 V50 H50 V30 H58 V100 Z M64 100 V58 H76 V40 H84 V100Z" fill="#111"/><line x1="0" y1="84" x2="100" y2="84" stroke="#111" stroke-width="2"/>`],
     arcade: ['#110b22', `${sq([[16, 20], [70, 16], [44, 36], [84, 44], [24, 56]], 4, '#ffb547')}${sq([[56, 64], [12, 78]], 4, '#5ad1ff')}<rect x="0" y="88" width="100" height="12" fill="#241b47"/>`],
-    fog: ['#0c0c0f', `<rect x="30" y="18" width="40" height="64" rx="3" fill="none" stroke="#c9a55c" stroke-width="2.4"/><path d="M50 36 L54 48 L66 50 L54 52 L50 64 L46 52 L34 50 L46 48Z" fill="#e85a6f"/><rect x="0" y="70" width="100" height="30" fill="#b5afa4" opacity=".14"/>`],
+    fog: ['#0c0c0f', `<circle cx="50" cy="36" r="24" fill="none" stroke="#c9ccd6" stroke-width="1.6" opacity=".45"/><rect x="40" y="34" width="20" height="40" fill="#e8c9a0" opacity=".85"/><rect x="33" y="28" width="34" height="6" fill="#7a7c86"/><rect x="35" y="34" width="5" height="40" fill="#5a5c66"/><rect x="60" y="34" width="5" height="40" fill="#5a5c66"/><rect x="0" y="68" width="100" height="32" fill="#9a9ca6" opacity=".22"/>`],
     cartouche: ['#C9DB9A', `<path d="M0 100 V70 Q20 52 40 70 Q60 48 82 66 Q92 60 100 64 V100Z" fill="#306230"/><rect x="18" y="20" width="22" height="8" fill="#E3EDC8"/><rect x="24" y="14" width="10" height="6" fill="#E3EDC8"/><rect x="70" y="56" width="8" height="12" fill="#0F380F"/>`],
   };
   // key: a theme id or a light-skin id (game.js LIGHT_NAME)

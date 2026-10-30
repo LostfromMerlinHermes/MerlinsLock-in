@@ -269,7 +269,7 @@
       buff_scattered: 'Ancrage', buff_scattered_d: 'Session sans pause +25 % d’XP, +5 XP par pensée parquée traitée',
       buff_ready: 'prêt', buff_combo: 'Combo ×{n}', buff_streak: '+{n} %', buff_nopause: 'sans pause +25 %', buff_short: 'courtes +20 %',
       park_bonus: 'Ancrage : +5 XP',
-      th_auto: 'Auto (selon l’humeur)', th_sorcerer: 'Cyber sorcier', th_fog: 'Brouillard gris (Tarot)', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuaire', th_arcade: 'Arcade 8-bit',
+      th_auto: 'Auto (selon l’humeur)', th_sorcerer: 'Cyber sorcier', th_fog: 'Brouillard', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuaire', th_arcade: 'Arcade 8-bit',
       th_hint: 'Auto : chaque énergie a trois mondes, à choisir avec le bouton Monde en haut ou au choix de l’énergie.',
       th_observatory: 'Observatoire', th_abyss: 'Abysses', th_neoncity: 'Ville néon',
       dn_t_auto: 'Auto', dn_t_autolight: 'Auto clair', dn_t_day: 'Monde de jour', dn_t_night: 'Monde de nuit', dn_t_light: 'Clair',
@@ -289,7 +289,7 @@
       buff_scattered: 'Anchor', buff_scattered_d: 'No-pause session +25% XP, +5 XP per parked thought processed',
       buff_ready: 'ready', buff_combo: 'Combo ×{n}', buff_streak: '+{n}%', buff_nopause: 'no pause +25%', buff_short: 'short +20%',
       park_bonus: 'Anchor: +5 XP',
-      th_auto: 'Auto (by mood)', th_sorcerer: 'Cyber sorcerer', th_fog: 'Gray fog (Tarot)', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuary', th_arcade: '8-bit arcade',
+      th_auto: 'Auto (by mood)', th_sorcerer: 'Cyber sorcerer', th_fog: 'Fog', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuary', th_arcade: '8-bit arcade',
       th_hint: 'Auto: every energy has three worlds, chosen with the World button at the top or when you pick your energy.',
       th_observatory: 'Observatory', th_abyss: 'Abyss', th_neoncity: 'Neon city',
       dn_t_auto: 'Auto', dn_t_autolight: 'Auto light', dn_t_day: 'Day world', dn_t_night: 'Night world', dn_t_light: 'Light',
@@ -718,7 +718,9 @@
       const deepEl = $('deep');
       // (Washi Peint keeps its misty landscape behind the full-screen ink ensō)
       if (deepEl && !deepEl.hidden && !(ML.washiKeepsDrawing && ML.washiKeepsDrawing())) { if (!still) raf = requestAnimationFrame(draw); return; }
-      if (th === 'fog') {
+      if (th === 'fog' && ML.fogDraw && ML.fogDraw(cx, W, H, slow, still, now, tm, rest)) {
+        // « Le seuil » (3.52) lives in fog.js
+      } else if (th === 'fog') {
         glow(W * 0.85, H * 0.08, Math.max(W, H) * 0.35, 'rgba(196,56,74,0.9)', 0.14);
         for (const f of fog) {
           if (mv) { f.x += f.v; if (f.x - f.r > W) f.x = -f.r; if (f.x + f.r < 0) f.x = W + f.r; }

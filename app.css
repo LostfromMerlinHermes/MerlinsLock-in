@@ -3620,3 +3620,20 @@ html.mnav-on[data-mview="timer"] .sigil-card { animation: screen-in .22s ease-ou
 #as-cv { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
 #as-task { position: absolute; z-index: 1; left: 16px; right: 16px; margin: 0; text-align: center; font: 24px/1.2 "VT323", monospace; color: #fbe9dc; text-shadow: 2px 2px 0 #2a0e30; pointer-events: none; }
 .arc-prev { width: 100%; height: 100%; object-fit: cover; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+
+/* =================== Brouillard 3.52 (fog.js): the canvas dial =================== */
+/* the dial draws the time and the state itself; the HTML clock stays for screen readers; the task title goes under the dial */
+:root[data-theme="fog"]:not([data-light]) .ring-wrap > .ring { opacity: 0; }
+:root[data-theme="fog"]:not([data-light]) .ring-center .clock, :root[data-theme="fog"]:not([data-light]) .ring-center .state { opacity: 0; }
+:root[data-theme="fog"]:not([data-light]) .ring-wrap { margin-bottom: 30px; }
+:root[data-theme="fog"]:not([data-light]) .focus-on { position: absolute; left: 0; right: 0; top: calc(100% + 8px); text-align: center; -webkit-line-clamp: 1; }
+.fog-dial { position: absolute; left: -5%; top: -5%; width: 110%; height: 110%; pointer-events: none; }
+.shop-prev .fog-prev { width: 70px; height: 70px; display: block; border-radius: 50%; }
+/* the full screens « incant » (default) and « door » (shop): the canvas fills the screen, the dock floats at the bottom */
+.deep[data-style="incant"] .deep-inner, .deep[data-style="door"] .deep-inner { display: block; padding: 0; overflow: hidden; background: #0b0c11; }
+.deep[data-style="incant"] .deep-top, .deep[data-style="door"] .deep-top { position: absolute; z-index: 2; top: 6px; left: 16px; right: 16px; width: auto; max-width: none; }
+.deep[data-style="incant"] .deep-dock, .deep[data-style="door"] .deep-dock { position: absolute; z-index: 2; left: 50%; bottom: 10px; translate: -50% 0; width: min(560px, calc(100% - 32px)); padding: 10px; border-radius: 10px; background: color-mix(in srgb, #0b0c11 86%, transparent); box-shadow: 0 0 0 1px #2c2e38; }
+.deep[data-style="incant"] .deep-dock .hint, .deep[data-style="door"] .deep-dock .hint { display: none; }
+#fg-cv { position: absolute; inset: 0; width: 100%; height: 100%; }
+#fg-task { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } /* the task is drawn on the canvas; kept for screen readers */
+.shop-prev .fog-fs-prev { width: 100%; height: 70px; object-fit: cover; display: block; }
