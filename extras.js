@@ -19,7 +19,7 @@
       cf_url: 'Adresse .ics', cf_add: 'Ajouter', cf_refresh: 'Actualiser', cf_remove: 'Retirer', cf_ok: '{n} évènements · mis à jour {t}', cf_err: 'Impossible de lire ce lien ({e}).', cf_bad: 'Colle une adresse qui commence par https:// ou webcal://',
       cf_premium: 'L’agenda en direct est réservé à Premium. Sans Premium, exporte ton agenda en .ics et importe-le dans Agenda.', cf_noproxy: 'Dans l’app web, ce lien passe par notre serveur, pas encore activé. Il marche dans l’extension.',
       rl_title: 'À lire', rl_add_ph: 'Colle un lien à lire plus tard', rl_add: 'Garder', rl_mins: '{m} de lecture', rl_session: 'En faire une session', rl_read: 'Lu', rl_task: 'Lire : {title}', rl_empty: 'Rien à lire pour l’instant. Garde une page ici, ou fais clic droit → Lire plus tard dans le navigateur (extension).',
-      cap_task: 'Ajouté au plan depuis le navigateur : {title}', cap_note: 'Gardé dans Parqués.', cap_read: 'Ajouté à « À lire ».',
+      cap_task: 'Ajouté au plan depuis le navigateur : {title}', cap_note: 'Gardé dans À trier.', cap_read: 'Ajouté à « À lire ».',
     },
     en: {
       lk_label: 'Links (one per line)', lk_ph: 'https://…', lk_open: 'Open the links', lk_auto: 'Open a task’s links when its session starts', lk_n: '{n} link(s)',
@@ -30,7 +30,7 @@
       cf_url: '.ics address', cf_add: 'Add', cf_refresh: 'Refresh', cf_remove: 'Remove', cf_ok: '{n} events · updated {t}', cf_err: 'Could not read this link ({e}).', cf_bad: 'Paste an address starting with https:// or webcal://',
       cf_premium: 'The live calendar is a Premium feature. Without Premium, export your calendar as .ics and import it in Calendar.', cf_noproxy: 'In the web app this link goes through our server, which is not switched on yet. It works in the extension.',
       rl_title: 'To read', rl_add_ph: 'Paste a link to read later', rl_add: 'Keep', rl_mins: '{m} read', rl_session: 'Make it a session', rl_read: 'Read', rl_task: 'Read: {title}', rl_empty: 'Nothing to read yet. Keep a page here, or right-click → Read later in the browser (extension).',
-      cap_task: 'Added to your plan from the browser: {title}', cap_note: 'Kept in Parked.', cap_read: 'Added to "To read".',
+      cap_task: 'Added to your plan from the browser: {title}', cap_note: 'Kept in Inbox.', cap_read: 'Added to "To read".',
     },
   });
   ML.defaults(() => ({ links: { auto: true }, away: { on: true, text: '' }, reading: [], calFeeds: [] }));

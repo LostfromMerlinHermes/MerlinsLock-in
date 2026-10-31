@@ -240,7 +240,8 @@
       ? `<div class="boss-bar"><span class="label">⚔ ${esc(t('boss'))}</span><b>${esc(B.title)}</b>
           <span class="hp"><i style="width:${Math.max(0, 100 - (B.dmg / B.max) * 100)}%"></i></span><span class="q-val">${esc(t('boss_hp'))} ${Math.max(0, B.max - B.dmg)}/${B.max}</span></div>`
       : '';
-    el.innerHTML = `<div class="quests"><div class="q-head"><span class="label">${esc(t('quests'))}</span><span class="q-val">${Q.claimed.length}/${Q.ids.length}</span></div><ul>${qrows}</ul>${boss}</div>`;
+    const qOpen = !!(S.plan && S.plan.qOpen);
+    el.innerHTML = `<div class="quests ${qOpen ? '' : 'folded'}"><button type="button" class="q-head" data-qfold aria-expanded="${qOpen}"><span class="label">${esc(t('quests'))}</span><span class="q-val">${Q.claimed.length}/${Q.ids.length}<svg class="pg-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></span></button><ul>${qrows}</ul>${boss}</div>`;
   }
 
   /* ---------- Grimoire: achievements ---------- */
@@ -952,7 +953,7 @@
     Q.ids[Q.ids.indexOf(id)] = pool[Math.floor(Math.random() * pool.length)];
     S.econ.potions.scroll--; save(); renderStrip(); checkAll();
   };
-  $('quest-strip').addEventListener('click', e => { const b = e.target.closest('[data-reroll]'); if (b) ML.rerollQuest(b.dataset.reroll); });
+  $('quest-strip').addEventListener('click', e => { const b = e.target.closest('[data-reroll]'); if (b) ML.rerollQuest(b.dataset.reroll); if (e.target.closest('[data-qfold]')) { S.plan.qOpen = !S.plan.qOpen; save(); renderStrip(); } });
   ML.sfx = sfx;
   ML.showOverlayFx = showOverlay;
   ML.applyTheme = applyTheme;

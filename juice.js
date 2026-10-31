@@ -220,11 +220,11 @@
   });
   let tabReady = false; // the boot's setTab doesn't glide
   on('started', () => { tabReady = true; lastTabBtn = document.querySelector('.tabs button[aria-selected=true]'); });
-  // 9. A parked thought glides to the Parked tab (or the More button on the phone bar); the timer keeps running
+  // 9. A parked thought glides to the Inbox view (or the Plan button on the phone bar); the timer keeps running
   on('parked', () => {
     if (still) return;
     const p = S.parked[S.parked.length - 1], from = $('park-input'); if (!p || !from) return;
-    const to = [$('t-park'), document.querySelector('#mnav [data-mnav="more"]')].find(el => el && el.getBoundingClientRect().width);
+    const to = [$('pl-inbox-btn'), $('t-plan'), document.querySelector('#mnav [data-mnav="plan"]')].find(el => el && el.getBoundingClientRect().width);
     if (!to) return;
     const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
     const ghost = document.createElement('div'); ghost.className = 'park-ghost'; ghost.textContent = p.text;

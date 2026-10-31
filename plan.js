@@ -16,7 +16,7 @@
       pl_g_moment: 'Moment', pl_g_project: 'Projet', pl_g_pri: 'Priorité', pl_g_none: 'Aucun',
       pl_s_energy: 'Suggéré', pl_s_due: 'Date', pl_s_mins: 'Durée', pl_s_pri: 'Priorité', pl_s_added: 'Ajout', pl_s_xp: 'XP', pl_s_spent: 'Temps passé', pl_s_manual: 'À la main',
       pl_m_today: 'Aujourd’hui', pl_m_week: 'Cette semaine', pl_m_nodate: 'Sans date', pl_m_later: 'Plus tard', pl_m_done: 'Terminées', pl_m_late: 'En retard',
-      pl_v_today: 'Aujourd’hui', pl_v_upcoming: 'À venir', pl_v_projects: 'Projets', pl_v_all: 'Toutes', pl_views: 'Vues',
+      pl_v_today: 'Aujourd’hui', pl_v_upcoming: 'À venir', pl_v_projects: 'Projets', pl_v_all: 'Toutes', pl_views: 'Vues', pl_v_inbox: 'À trier', pl_v_next: 'Prochaine',
       pl_noproj: 'Sans projet', pl_late: '{n} en retard', pl_week_h: '{h} cette semaine',
       pl_day: 'Tâche du jour', pl_pin: 'Épingler', pl_unpin: 'Désépingler', pl_pinned: 'Épinglées', pl_pin_max: 'Maximum {n} tâches épinglées.', pl_drag: 'Glisser pour déplacer',
       pl_project: 'Projet', pl_qa_tip: 'Astuce : écris tout d’un coup, par exemple « Réviser maths 45m demain ! #Partiels »',
@@ -36,7 +36,7 @@
       pl_g_moment: 'Moment', pl_g_project: 'Project', pl_g_pri: 'Priority', pl_g_none: 'None',
       pl_s_energy: 'Suggested', pl_s_due: 'Date', pl_s_mins: 'Duration', pl_s_pri: 'Priority', pl_s_added: 'Added', pl_s_xp: 'XP', pl_s_spent: 'Time spent', pl_s_manual: 'By hand',
       pl_m_today: 'Today', pl_m_week: 'This week', pl_m_nodate: 'No date', pl_m_later: 'Later', pl_m_done: 'Done', pl_m_late: 'Late',
-      pl_v_today: 'Today', pl_v_upcoming: 'Upcoming', pl_v_projects: 'Projects', pl_v_all: 'All', pl_views: 'Views',
+      pl_v_today: 'Today', pl_v_upcoming: 'Upcoming', pl_v_projects: 'Projects', pl_v_all: 'All', pl_views: 'Views', pl_v_inbox: 'Inbox', pl_v_next: 'Next',
       pl_noproj: 'No project', pl_late: '{n} late', pl_week_h: '{h} this week',
       pl_day: 'Task of the day', pl_pin: 'Pin', pl_unpin: 'Unpin', pl_pinned: 'Pinned', pl_pin_max: 'At most {n} pinned tasks.', pl_drag: 'Drag to move',
       pl_project: 'Project', pl_qa_tip: 'Tip: type it all at once, for example "Revise maths 45m tomorrow ! #Exams"',
@@ -204,7 +204,12 @@
   const chips = document.createElement('div'); chips.className = 'qa-chips'; chips.id = 'qa-chips';
   const prev = document.createElement('p'); prev.className = 'qa-prev'; prev.id = 'qa-prev'; prev.setAttribute('aria-live', 'polite');
   form.after(chips); chips.after(prev);
-  let draft = {}, lastQ = {};
+  let draft = {}, lastQ = {}, writing = false;
+  // P1 (3.56): the chips only show while a task is being written
+  const isWriting = () => writing || !!field.value.trim() || Object.keys(draft).length > 0;
+  const stopWriting = e => { if (writing && !form.contains(e.target) && !chips.contains(e.target) && !pop.contains(e.target)) { writing = false; renderChips(); } };
+  document.addEventListener('pointerdown', stopWriting, true);
+  document.addEventListener('focusin', stopWriting, true);
   // What the new task would get: a chip picked by hand wins, then what is typed, then the project filter / defaults
   function eff() {
     const q = field.value.trim() ? parseQuick(field.value) : {};
@@ -221,8 +226,8 @@
   ML.PIN_SVG = PIN_SVG;
   function renderChips() {
     const e = eff(), single = chips.dataset.single === '1';
-    chips.hidden = single;
-    if (single) return;
+    chips.hidden = single || !isWriting();
+    if (chips.hidden) return;
     const chip = (k, html, onx, extra = '') => `<button type="button" class="chip qa-chip ${onx ? 'on' : ''}" data-qa="${k}" ${extra}>${html}</button>`;
     chips.innerHTML = chip('project', e.project ? projDot(e.project) + esc(e.project) : esc(t('pl_project')), !!e.project, 'aria-haspopup="true" aria-expanded="false"')
       + chip('due', esc(e.due ? cap(dayLabel(e.due)) : t('pl_c_date')), !!e.due, 'aria-haspopup="true" aria-expanded="false"')
@@ -242,7 +247,7 @@
     ['project', 'due', 'mins', 'pri'].forEach(k => { if (q[k] !== undefined && lastQ[k] === undefined) delete draft[k]; }); // typing a token takes over that chip
     lastQ = q; renderChips(); renderPreview();
   });
-  field.addEventListener('focus', renderPreview);
+  field.addEventListener('focus', () => { writing = true; renderChips(); renderPreview(); });
   field.addEventListener('blur', () => setTimeout(renderPreview, 150));
   on('quick:clear', () => { draft = {}; lastQ = {}; renderChips(); renderPreview(); });
   // app.js's add form calls this on the new task before saving it
@@ -271,7 +276,8 @@
   /* ---------- Task of the day (the first pinned task) ---------- */
   const dayTask = () => { const id = ML.dayTaskId(); return id ? S.tasks.find(x => x.id === id) : null; };
   const card = document.createElement('div'); card.className = 'pl-today'; card.id = 'plan-today'; card.hidden = true;
-  form.before(card);
+  // Order of the tab (P1, 3.56): views, add field, quests, task of the day, then the list
+  const quests = $('quest-strip'); prev.after(quests); quests.after(card);
   function renderCard(single) {
     const x = single ? null : dayTask();
     card.hidden = !x; if (!x) { card.innerHTML = ''; return; }
@@ -295,7 +301,7 @@
   list.before(layout);
   const bar = document.createElement('div'); bar.className = 'pl-bar'; bar.id = 'plan-bar';
   const bulk = document.createElement('div'); bulk.className = 'pl-bulk'; bulk.id = 'plan-bulk'; bulk.hidden = true; bulk.setAttribute('role', 'toolbar');
-  const grid = document.createElement('div'); grid.className = 'pl-grid';
+  const grid = document.createElement('div'); grid.className = 'pl-cols';
   const side = document.createElement('nav'); side.className = 'pl-side'; side.setAttribute('aria-label', t('pl_v_projects'));
   const main = document.createElement('div'); main.className = 'pl-main';
   const phead = document.createElement('div'); phead.className = 'pl-phead'; phead.hidden = true;
@@ -303,56 +309,92 @@
 
   /* ---------- Toolbar ---------- */
   const VIEWS = ['today', 'upcoming', 'projects', 'all'], GROUPS = ['moment', 'project', 'pri', 'none'], SORTS = ['energy', 'due', 'mins', 'pri', 'manual'];
-  let query = '', selMode = false;
+  let query = '', selMode = false, searchOpen = false, backView = 'all';
   const sel = new Set();
+  const tabPlan = $('tab-plan'), viewsRow = document.createElement('div'); viewsRow.className = 'pl-viewsrow';
+  tabPlan.prepend(viewsRow);
   const ICON_SEARCH = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>';
   const ICON_DISPLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>';
   const ICON_SEL = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/><path d="M14 7.5l1.8 1.8L19 6"/></svg>';
   const ICON_SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="4"/><path d="M12 4v2M4 13h2M18 13h2M6.3 7.3l1.4 1.4M17.7 7.3l-1.4 1.4M3 20h18"/></svg>';
+  // The views stay on top in every energy and even with no task. Scattered keeps its single card: only Next and Inbox.
+  function renderViews() {
+    const p = P(), M = ML.MOODS[S.mood], single = M && M.single && !S.showAll, inbox = p.pview === 'inbox', n = (S.parked || []).length;
+    const btn = (v, label, on, id = '') => `<button type="button" ${id ? `id="${id}"` : ''} data-pv2="${v}" aria-pressed="${on}">${label}</button>`;
+    const inboxBtn = btn('inbox', esc(t('pl_v_inbox')) + (n ? ` <span class="count">${n}</span>` : ''), inbox, 'pl-inbox-btn');
+    const html = `<div class="pl-views" role="group" aria-label="${esc(t('pl_views'))}">${single ? btn('back', esc(t('pl_v_next')), !inbox) : VIEWS.map(v => btn(v, esc(t('pl_v_' + v)), p.pview === v)).join('')}${inboxBtn}</div>
+      ${single || inbox ? '' : `<button type="button" class="ghost icon-only pl-tb" data-ptool="display" aria-haspopup="true" aria-expanded="false" aria-label="${esc(t('pl_display'))}" title="${esc(t('pl_display'))}">${ICON_DISPLAY}</button>`}`;
+    if (viewsRow.dataset.h !== html) { viewsRow.innerHTML = html; viewsRow.dataset.h = html; }
+    tabPlan.classList.toggle('pl-inboxing', inbox);
+    $('tab-park').hidden = !inbox;
+  }
+  ML.planRenderViews = renderViews;
+  viewsRow.addEventListener('click', e => {
+    const w = e.target.closest('[data-pv2]'), tool = e.target.closest('[data-ptool]');
+    if (w) {
+      const v = w.dataset.pv2;
+      if (v === 'inbox') { if (P().pview !== 'inbox') backView = P().pview; P().pview = 'inbox'; } else P().pview = v === 'back' ? backView : v;
+      save(); ML.renderTasks();
+    }
+    if (tool) openDisplay(tool);
+  });
   function renderBar(single) {
-    bar.hidden = single;
-    if (single) return;
+    if (single) { bar.hidden = true; return; }
     const p = P(), projs = ML.planProjects();
     if (p.proj && !projs.includes(p.proj)) p.proj = '';
     const counts = Object.fromEntries(projs.map(n => [n, S.tasks.filter(x => !x.done && x.project === n).length]));
-    const html = `<div class="pl-views" role="group" aria-label="${esc(t('pl_views'))}">${VIEWS.map(v => `<button type="button" data-pv2="${v}" aria-pressed="${p.pview === v}">${esc(t('pl_v_' + v))}</button>`).join('')}</div>
-      <div class="pl-tools">
-        <div class="seg-toggle pl-view" role="group" aria-label="${esc(t('pl_list'))} / ${esc(t('pl_table'))}">
-          <button type="button" data-pview="list" aria-pressed="${p.view !== 'table'}">${esc(t('pl_list'))}</button><button type="button" data-pview="table" aria-pressed="${p.view === 'table'}">${esc(t('pl_table'))}</button></div>
-        <label class="pl-q">${ICON_SEARCH}<input type="search" id="pl-q" maxlength="60" placeholder="${esc(t('pl_search'))}" aria-label="${esc(t('pl_search'))}"></label>
-        <button type="button" class="ghost icon-only pl-tb" data-ptool="display" aria-haspopup="true" aria-expanded="false" aria-label="${esc(t('pl_display'))}" title="${esc(t('pl_display'))}">${ICON_DISPLAY}</button>
-        <button type="button" class="ghost icon-only pl-tb" data-ptool="select" aria-pressed="${selMode}" aria-label="${esc(t('pl_select'))}" title="${esc(t('pl_select'))}">${ICON_SEL}</button>
-        <button type="button" class="ghost small pl-prep-btn" data-ptool="prep">${ICON_SUN}<span>${esc(t('pl_prep'))}</span></button>
-      </div>
+    bar.hidden = !(searchOpen || query || projs.length);
+    const html = `${searchOpen || query ? `<label class="pl-q">${ICON_SEARCH}<input type="search" id="pl-q" maxlength="60" placeholder="${esc(t('pl_search'))}" aria-label="${esc(t('pl_search'))}"></label>` : ''}
       ${projs.length ? `<div class="pl-projs" role="group" aria-label="${esc(t('pl_project'))}"><button type="button" class="chip" data-pproj="" aria-pressed="${!p.proj}">${esc(t('pl_all'))} · ${S.tasks.filter(x => !x.done).length}</button>${projs.map(n => `<button type="button" class="chip proj" style="--pc:${projColor(n)}" data-pproj="${esc(n)}" aria-pressed="${p.proj === n}"><i></i>${esc(n)} · ${counts[n]}</button>`).join('')}</div>` : ''}`;
     if (bar.dataset.h !== html) { // untouched when nothing changed (the search field keeps its focus)
       const qf = $('pl-q'), had = qf && document.activeElement === qf;
       bar.innerHTML = html; bar.dataset.h = html;
-      const nq = $('pl-q'); nq.value = query; if (had) { nq.focus(); nq.setSelectionRange(query.length, query.length); }
+      const nq = $('pl-q'); if (nq) { nq.value = query; if (had) { nq.focus(); nq.setSelectionRange(query.length, query.length); } }
     }
   }
   bar.addEventListener('click', e => {
-    const v = e.target.closest('[data-pview]'), pj = e.target.closest('[data-pproj]'), w = e.target.closest('[data-pv2]'), tool = e.target.closest('[data-ptool]');
-    if (v) { P().view = v.dataset.pview; save(); ML.renderTasks(); }
+    const pj = e.target.closest('[data-pproj]');
     if (pj) { P().proj = pj.dataset.pproj; save(); ML.renderTasks(); }
-    if (w) { P().pview = w.dataset.pv2; save(); ML.renderTasks(); }
-    if (tool) {
-      const k = tool.dataset.ptool;
-      if (k === 'display') openDisplay(tool);
-      if (k === 'select') setSel(!selMode);
-      if (k === 'prep' && ML.openDayPrep) ML.openDayPrep();
-    }
   });
   bar.addEventListener('input', e => { if (e.target.id === 'pl-q') { query = e.target.value; ML.renderTasks(); } });
-  ML.planFocusSearch = () => { const q = $('pl-q'); if (q) { q.focus(); q.select(); } };
+  bar.addEventListener('focusout', e => { if (e.target.id === 'pl-q' && !query.trim()) { searchOpen = false; query = ''; setTimeout(() => renderBar(false), 120); } });
+  ML.planFocusSearch = () => {
+    if (P().pview === 'inbox') { P().pview = backView; ML.renderTasks(); }
+    searchOpen = true; renderBar(false);
+    const q = $('pl-q'); if (q) { q.focus(); q.select(); }
+  };
+  // One menu for everything that isn't a view (P1, 3.56): list or table, grouping, sort, columns, search, select,
+  // Plan my day, and the two clearing actions, away from the thumb
+  let clearArmed = 0;
   function openDisplay(anchor) {
     const p = P(), sorts = SORTS.includes(p.sort) ? SORTS : [...SORTS, p.sort];
     const html = `<div class="pp-list pp-display">
+      <div class="seg-toggle pl-view" role="group" aria-label="${esc(t('pl_list'))} / ${esc(t('pl_table'))}">
+        <button type="button" data-pv="${pv({ act: 'view', v: 'list' })}" aria-pressed="${p.view !== 'table'}">${esc(t('pl_list'))}</button><button type="button" data-pv="${pv({ act: 'view', v: 'table' })}" aria-pressed="${p.view === 'table'}">${esc(t('pl_table'))}</button></div>
       ${p.pview === 'all' ? `<label class="pp-row"><span>${esc(t('pl_group'))}</span><select data-pchg="group">${GROUPS.map(g => `<option value="${g}" ${p.group === g ? 'selected' : ''}>${esc(t('pl_g_' + g))}</option>`).join('')}</select></label>` : ''}
       <label class="pp-row"><span>${esc(t('pl_sort'))}</span><select data-pchg="sort">${sorts.map(s => `<option value="${s}" ${p.sort === s ? 'selected' : ''}>${esc(t('pl_s_' + s))}</option>`).join('')}</select></label>
       ${p.view === 'table' ? `<p class="pp-k">${esc(t('pl_cols'))}</p>${COLKEYS.map(c => `<label class="pp-chk"><input type="checkbox" data-pchg="col" value="${c}" ${p.cols.includes(c) ? 'checked' : ''}><span>${esc(colLabel(c))}</span></label>`).join('')}` : ''}
+      <hr class="pp-sep">
+      ${item({ act: 'search' }, esc(t('pl_search')), false, '', ICON_SEARCH)}
+      ${item({ act: 'select' }, esc(t('pl_select')), selMode, '', ICON_SEL)}
+      ${item({ act: 'prep' }, esc(t('pl_prep')), false, '', ICON_SUN)}
+      <hr class="pp-sep">
+      ${item({ act: 'clearDone' }, esc(t('clear_done')))}
+      <button type="button" class="pp-it pp-danger" data-pv="${pv({ act: 'clearAll' })}" data-keep="1"><span>${esc(t('clear_all'))}</span></button>
     </div>`;
-    openPop(anchor, html, r => {
+    openPop(anchor, html, (r, b) => {
+      if (r && r.act) {
+        if (r.act === 'view') { P().view = r.v; save(); ML.renderTasks(); }
+        if (r.act === 'search') ML.planFocusSearch();
+        if (r.act === 'select') setSel(!selMode);
+        if (r.act === 'prep' && ML.openDayPrep) ML.openDayPrep();
+        if (r.act === 'clearDone') ML.planClearDone();
+        if (r.act === 'clearAll') {
+          if (Date.now() - clearArmed > 3000) { clearArmed = Date.now(); b.querySelector('span').textContent = t('tap_again'); return; }
+          clearArmed = 0; closePop(); ML.planClearAll();
+        }
+        return;
+      }
       if (!r || !r.chg) return;
       if (r.chg === 'group') P().group = r.value;
       if (r.chg === 'sort') { P().sort = r.value; P().dir = r.value === 'xp' || r.value === 'spent' ? -1 : 1; }
@@ -366,7 +408,7 @@
   function renderSide() {
     const p = P(), projs = ML.planProjects(), open = S.tasks.filter(x => !x.done);
     const html = `<button type="button" class="pl-sit ${!p.proj ? 'on' : ''}" data-pproj=""><span>${esc(t('pl_all'))}</span><small>${open.length}</small></button>
-      ${projs.map(n => { const wk = weekMins(n); return `<button type="button" class="pl-sit ${p.proj === n ? 'on' : ''}" data-pproj="${esc(n)}">${projDot(n)}<span>${esc(n)}</span><small>${open.filter(x => x.project === n).length}${wk ? ' · ' + esc(fmtMins(wk)) : ''}</small></button>`; }).join('')}
+      ${projs.map(n => { const wk = weekMins(n); return `<button type="button" class="pl-sit ${p.proj === n ? 'on' : ''}" data-pproj="${esc(n)}" title="${esc(n)}${wk ? ' · ' + esc(t('pl_week_h', { h: fmtMins(wk) })) : ''}">${projDot(n)}<span>${esc(n)}</span><small>${open.filter(x => x.project === n).length}</small></button>`; }).join('')}
       ${newProj ? `<form class="pl-snew"><input type="text" maxlength="40" placeholder="${esc(t('pl_p_new_ph'))}" aria-label="${esc(t('pl_p_new'))}"><button type="submit" class="small">${esc(t('pl_ok'))}</button></form>` : `<button type="button" class="pl-sit pl-sadd" data-snew="1">${esc(t('pl_side_new'))}</button>`}`;
     if (side.dataset.h !== html) { side.innerHTML = html; side.dataset.h = html; if (newProj) side.querySelector('input').focus(); }
   }
@@ -497,7 +539,7 @@
       <span class="pl-empty-btns"><button type="button" class="primary small" data-pempty="prep">${esc(t('pl_prep'))}</button><button type="button" class="ghost small" data-pempty="all">${esc(t('pl_see_all'))}</button></span></li>`;
   };
   ML.planRender = (ul, open, done, rowHtml, editingId) => {
-    chips.dataset.single = ''; renderChips();
+    chips.dataset.single = ''; renderChips(); grid.classList.remove('pl-solo');
     renderBar(false); renderCard(false); renderSide(); renderPhead();
     if (drag || renaming) return; // a drag or a rename is in progress: the next render draws the list
     let groups = groupsOf(open, done);
@@ -730,8 +772,9 @@
 
   // Scattered's single card: no toolbar, no chips, no day card (the card already shows the next task)
   on('tasks:render', () => {
+    renderViews();
     const M = ML.MOODS[S.mood];
-    if (M && M.single && !S.showAll) { renderBar(true); renderCard(true); chips.dataset.single = '1'; renderChips(); bulk.hidden = true; phead.hidden = true; side.innerHTML = ''; side.dataset.h = ''; list.classList.remove('grouped', 'pl-tabled', 'selecting'); }
+    if (M && M.single && !S.showAll) { renderBar(true); renderCard(true); chips.dataset.single = '1'; renderChips(); bulk.hidden = true; phead.hidden = true; side.innerHTML = ''; side.dataset.h = ''; grid.classList.add('pl-solo'); list.classList.remove('grouped', 'pl-tabled', 'selecting'); }
   });
-  on('lang', () => { bar.dataset.h = ''; side.dataset.h = ''; phead.dataset.h = ''; card.dataset.h = ''; });
+  on('lang', () => { viewsRow.dataset.h = ''; bar.dataset.h = ''; side.dataset.h = ''; phead.dataset.h = ''; card.dataset.h = ''; });
 })();

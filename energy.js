@@ -128,6 +128,7 @@
     el.innerHTML = `<div class="ep-in">
       ${head(t('ob_go_h'), t('ob_go_p'))}
       <div class="ep-stage"><div class="ep-dial">${dialHtml(focusOf(S.mood), st.title || '')}</div></div>
+      <button type="button" class="ep-clock ep-eyes" role="switch" aria-checked="${!!(S.eyes && S.eyes.on)}" data-ep="eyes"><i></i>${esc(t('eye_opt'))}</button>
       <div class="ep-foot"><button type="button" class="primary ep-go ep-lock" data-ep="go">LOCK IN</button>
         <button type="button" class="link" data-ep="later">${esc(t('ob_later'))}</button></div></div>`;
   }
@@ -205,7 +206,7 @@
     const s = e.target.closest('[data-ep-sugg]'); if (s) { const i = $('ep-task'); if (i) { i.value = s.dataset.epSugg; i.focus(); } return; }
     const a = e.target.closest('[data-ep]'); if (!a) return;
     ({ close, prev: () => step(-1), next: () => step(1), choose, clock: () => pickWorld(null), 'task-next': saveTask, 'task-skip': () => { $('ep-task').value = ''; saveTask(); },
-      go: () => finish(true), later: () => finish(false) })[a.dataset.ep]?.();
+      eyes: () => { S.eyes.on = !S.eyes.on; save(); renderGo(); }, go: () => finish(true), later: () => finish(false) })[a.dataset.ep]?.();
   });
   el.addEventListener('submit', e => { e.preventDefault(); if (st && st.step === 2) saveTask(); });
   // Swipe left / right on the dial to browse

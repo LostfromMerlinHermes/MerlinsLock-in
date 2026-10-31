@@ -149,13 +149,14 @@
 
     <section class="panel">
       <div class="tabs" role="tablist">
-        <button type="button" role="tab" id="t-plan" aria-controls="tab-plan" data-i18n="tab_plan">Plan</button>
+        <button type="button" role="tab" id="t-plan" aria-controls="tab-plan"><span data-i18n="tab_plan">Plan</span> <span class="count" id="park-count"></span></button>
         <button type="button" role="tab" id="t-day" aria-controls="tab-day" data-i18n="tab_day">Journée</button>
         <button type="button" role="tab" id="t-cal" aria-controls="tab-cal" data-i18n="tab_cal">Agenda</button>
         <button type="button" role="tab" id="t-notes" aria-controls="tab-notes" data-i18n="tab_notes">Carnet</button>
-        <button type="button" role="tab" id="t-park" aria-controls="tab-park"><span data-i18n="tab_park">Parqués</span> <span class="count" id="park-count"></span></button>
-        <button type="button" role="tab" id="t-grim" aria-controls="tab-grim" data-i18n="tab_grim">Grimoire</button>
+        <button type="button" role="tab" id="t-lib" aria-controls="tab-lib"><span data-i18n="tab_lib">Bibliothèque</span> <svg class="lock-ico" id="lib-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
         <button type="button" role="tab" id="t-study" aria-controls="tab-study"><span data-i18n="tab_study">Étude</span> <svg class="lock-ico" id="study-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
+        <button type="button" role="tab" id="t-learn" aria-controls="tab-learn" data-i18n="tab_learn">Apprendre</button>
+        <button type="button" role="tab" id="t-grim" aria-controls="tab-grim" data-i18n="tab_grim">Grimoire</button>
       </div>
 
       <div class="tabpanel" id="tab-plan" role="tabpanel">
@@ -176,14 +177,16 @@
         <ul class="tasks" id="tasks"></ul>
         <div class="plan-foot">
           <span id="foot-note"></span>
-          <span class="foot-btns">
-            <button type="button" class="ghost small" id="clear-done" data-i18n="clear_done">Retirer les terminées</button>
-            <button type="button" class="ghost small" id="clear-all" data-i18n="clear_all">Tout effacer</button>
-          </span>
         </div>
         <div class="log">
           <h2 data-i18n="today_sessions">Sessions du jour</h2>
           <ol id="log"></ol>
+        </div>
+        <!-- The Inbox view of the Plan (Parked until 3.56): plan.js shows it instead of the rest of this tab -->
+        <div class="pl-inbox" id="tab-park" hidden>
+          <p class="hint" data-i18n="park_hint"></p>
+          <ul class="parked" id="parked"></ul>
+          <div class="plan-foot"><span></span><button type="button" class="ghost small" id="clear-parked" data-i18n="clear_all">Tout effacer</button></div>
         </div>
       </div>
 
@@ -191,17 +194,13 @@
       <div class="tabpanel" id="tab-cal" role="tabpanel" hidden><div id="calendar"></div></div>
       <div class="tabpanel" id="tab-notes" role="tabpanel" hidden><div id="notes"></div></div>
 
-      <div class="tabpanel" id="tab-park" role="tabpanel" hidden>
-        <p class="hint" data-i18n="park_hint"></p>
-        <ul class="parked" id="parked"></ul>
-        <div class="plan-foot"><span></span><button type="button" class="ghost small" id="clear-parked" data-i18n="clear_all">Tout effacer</button></div>
-      </div>
-
       <div class="tabpanel" id="tab-grim" role="tabpanel" hidden>
         <div class="grim" id="grim"></div>
         <div class="grim" id="g-game"></div>
       </div>
       <div class="tabpanel" id="tab-study" role="tabpanel" hidden><div id="study"></div></div>
+      <div class="tabpanel" id="tab-lib" role="tabpanel" hidden><div class="st-body" id="library"></div></div>
+      <div class="tabpanel" id="tab-learn" role="tabpanel" hidden><div id="learn"></div></div>
     </section>
   </div>
   </div>
@@ -299,6 +298,7 @@
 <script src="study.js"></script>
 <script src="rooms.js"></script>
 <script src="library.js"></script>
+<script src="learn.js"></script>
 <script src="notehelp.js"></script>
 <script src="juice.js"></script>
 <script src="washi.js"></script>

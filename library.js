@@ -1,4 +1,4 @@
-// Library (Study tab): PDFs, photos and study sheets kept on this device, sorted with tags, and a reader to work on them without
+// Library (its own tab since 3.55, Premium): PDFs, photos and study sheets kept on this device, sorted with tags, and a reader to work on them without
 // leaving the app. The list is one searchable list (PDF text included); a document opens with its notes and its flashcards: tabs on
 // a phone, side by side with the timer from 900 px. Files live in IndexedDB (per account, never in S: they are far too large for
 // localStorage and for the sync row), so they stay on the device they were added on.
@@ -254,10 +254,19 @@
     host = el; el.innerHTML = mainHtml();
     load().then(() => { if (host === el && el.isConnected) { el.innerHTML = mainHtml(); usage(); } });
   }
+  ML.addStrings({ fr: { tab_lib: 'Bibliothèque', nav_lib: 'Biblio' }, en: { tab_lib: 'Library', nav_lib: 'Library' } });
+  const tab = $('library');
+  function renderTab() {
+    const lock = $('lib-lock'), ok = ML.isPremium();
+    if (lock) lock.style.display = ok ? 'none' : '';
+    if (ok) bind(tab); else { host = null; tab.innerHTML = ML.studyLockedHtml(); }
+  }
+  on('tab', name => { if (name === 'lib') renderTab(); });
+  on('premium', () => { if (S.tab === 'lib') renderTab(); else { const l = $('lib-lock'); if (l) l.style.display = ML.isPremium() ? 'none' : ''; } });
+  on('started', () => { const l = $('lib-lock'); if (l) l.style.display = ML.isPremium() ? 'none' : ''; if (S.tab === 'lib') renderTab(); });
   ML.Library = { bind };
 
-  /* ---------- List events (delegated on the Study tab, which keeps its node across renders) ---------- */
-  const tab = $('study');
+  /* ---------- List events (delegated on the Library tab, which keeps its node across renders) ---------- */
   const inLib = () => host && host.isConnected;
   tab.addEventListener('click', e => {
     if (!inLib()) return;
@@ -303,7 +312,7 @@
   tab.addEventListener('dragleave', e => { if (inLib() && !host.contains(e.relatedTarget)) host.classList.remove('lb-over'); });
   tab.addEventListener('drop', e => { if (inLib() && e.dataTransfer.files.length) { e.preventDefault(); host.classList.remove('lb-over'); addFiles(e.dataTransfer.files); } });
   addEventListener('paste', e => {
-    if (!inLib() || cur || S.tab !== 'study' || ML.isTyping(e)) return;
+    if (!inLib() || cur || S.tab !== 'lib' || ML.isTyping(e)) return;
     const files = [...((e.clipboardData && e.clipboardData.files) || [])]; if (files.length) { e.preventDefault(); addFiles(files); }
   });
 

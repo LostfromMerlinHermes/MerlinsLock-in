@@ -16,6 +16,7 @@
       st_f_tools: 'Boîte à outils : dictionnaire, générateur de bibliographie (APA, MLA, ISO 690…), convertisseur d’unités, calculatrice scientifique, formules mathématiques dans le Carnet.',
       st_locked_how: 'Déjà Premium ? Connecte-toi avec ton compte, la section se débloque toute seule.',
       fc_decks: 'Mes paquets', fc_new_deck_ph: 'Nom du paquet (ex. Anglais, Histoire…)', fc_create: 'Créer', fc_due: '{n} à revoir', fc_due_one: '{n} à revoir', fc_cards_n: '{n} cartes', fc_cards_n_one: '{n} carte',
+      fc_new_per: 'Nouvelles cartes par session', fc_all: 'Toutes',
       fc_review: 'Réviser', fc_open: 'Ouvrir', fc_none: 'Aucun paquet. Crée-en un pour commencer.', fc_back: '← Paquets', fc_front: 'Recto (question)', fc_backside: 'Verso (réponse)',
       fc_add: 'Ajouter la carte', fc_added: 'Carte ajoutée', fc_bulk_done: '{n} carte(s) importée(s)',
       fi_btn: 'Importer', fi_h: 'Importer des cartes', fi_file: 'Choisir un fichier', fi_drop: 'Fichier .txt, .csv, .tsv, .json ou .md (export Anki ou Quizlet accepté), ou colle le texte ci-dessous.',
@@ -46,6 +47,7 @@
       st_f_tools: 'Toolbox: dictionary, bibliography generator (APA, MLA, ISO 690…), unit converter, scientific calculator, math formulas in the Notebook.',
       st_locked_how: 'Already Premium? Sign in with your account and the section unlocks by itself.',
       fc_decks: 'My decks', fc_new_deck_ph: 'Deck name (e.g. Spanish, History…)', fc_create: 'Create', fc_due: '{n} due', fc_due_one: '{n} due', fc_cards_n: '{n} cards', fc_cards_n_one: '{n} card',
+      fc_new_per: 'New cards per session', fc_all: 'All',
       fc_review: 'Review', fc_open: 'Open', fc_none: 'No decks yet. Create one to start.', fc_back: '← Decks', fc_front: 'Front (question)', fc_backside: 'Back (answer)',
       fc_add: 'Add card', fc_added: 'Card added', fc_bulk_done: '{n} card(s) imported',
       fi_btn: 'Import', fi_h: 'Import cards', fi_file: 'Choose a file', fi_drop: 'A .txt, .csv, .tsv, .json or .md file (Anki and Quizlet exports work), or paste the text below.',
@@ -112,7 +114,8 @@
   };
   ICONS.room = '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2.5 20c.5-3.5 2.8-5.5 5.5-5.5s5 2 5.5 5.5M11 15.5c1-.7 2.8-1 5-1 2.7 0 5 2 5.5 5.5"/>';
   ICONS.library = '<path d="M5 3.5h4v17H5zM10.5 3.5h4v17h-4z"/><path d="M16.2 4.6l3.8-1 3 16-3.8 1z" transform="translate(-1.2 .3)"/>';
-  const TOOLS = ['cards', 'library', 'search', 'translate', 'tools', 'room'];
+  const TOOLS = ['cards', 'search', 'translate', 'tools', 'room'];
+  const FEATS = ['cards', 'library', 'search', 'translate', 'tools', 'room']; // Library has its own tab since 3.55, same Premium page
   const multiline = s => esc(s).replace(/\n/g, '<br>');
 
   /* ---------- Rendering ---------- */
@@ -120,6 +123,7 @@
     const root = $('study'); if (!root) return;
     $('study-lock').style.display = ML.isPremium() ? 'none' : '';
     if (!ML.isPremium()) { root.innerHTML = lockedHtml(); return; }
+    if (!TOOLS.includes(ST().tool)) ST().tool = 'cards';
     const tool = ST().tool;
     root.innerHTML = `<div class="st-tools" role="group">${TOOLS.map(k =>
       `<button type="button" data-tool="${k}" aria-pressed="${tool === k}">${icon(ICONS[k])}<span>${esc(t('st_' + k))}</span></button>`).join('')}</div>
@@ -137,7 +141,6 @@
     const el = $('st-body'); if (!el) return;
     const tool = ST().tool;
     if (tool === 'room') { if (ML.Rooms) ML.Rooms.bind(el); return; }
-    if (tool === 'library') { if (ML.Library) ML.Library.bind(el); return; }
     el.innerHTML = tool === 'search' ? searchHtml() : tool === 'translate' ? translateHtml() : tool === 'tools' ? toolsHtml() : cardsHtml();
     if (tool === 'search' && !sres) { const i = $('sr-q'); if (i && innerWidth >= 900) i.focus(); }
   }
@@ -146,7 +149,7 @@
       <div class="st-lock-badge">${icon(ICONS.lock)}<span>${esc(t('st_locked_badge'))}</span></div>
       <h3>${esc(t('st_locked_h'))}</h3>
       <p class="hint">${esc(t('st_locked_p'))}</p>
-      <ul class="st-feats">${TOOLS.map(k => `<li>${icon(ICONS[k])}<div><b>${esc(t('st_' + k))}</b><span>${esc(t('st_f_' + k))}</span></div></li>`).join('')}</ul>
+      <ul class="st-feats">${FEATS.map(k => `<li>${icon(ICONS[k])}<div><b>${esc(t('st_' + k))}</b><span>${esc(t('st_f_' + k))}</span></div></li>`).join('')}</ul>
       ${ML.auth && ML.auth.enabled && !ML.auth.user ? `<p class="hint">${esc(t('st_locked_how'))}</p>` : ''}
     </div>`;
   }
@@ -155,10 +158,11 @@
   let view = { kind: 'decks' }; // { kind: 'decks' } | { kind: 'deck', id } | { kind: 'review', id, queue, shown, done, editing }
   const deckCards = id => ST().cards.filter(c => c.deck === id);
   const isDue = c => !c.due || c.due <= today();
-  const NEW_PER_SESSION = 20;
+  const NEW_PER_SESSION = 20, NEW_PER_CHOICES = [10, 20, 30, 50, 100, 0]; // 0 = all, kept per deck in d.newPer
+  const newPerOf = id => { const d = ST().decks.find(x => x.id === id), n = d && d.newPer; return n === 0 || n > 0 ? n : NEW_PER_SESSION; };
   function queueFor(id) {
-    const cs = deckCards(id).filter(isDue);
-    const fresh = cs.filter(c => !c.reps).slice(0, NEW_PER_SESSION), old = cs.filter(c => c.reps);
+    const cs = deckCards(id).filter(isDue), lim = newPerOf(id);
+    const fresh = cs.filter(c => !c.reps).slice(0, lim || Infinity), old = cs.filter(c => c.reps);
     return [...old.sort((a, b) => (a.due || '').localeCompare(b.due || '')), ...fresh].map(c => c.id);
   }
   // Next interval in days for each answer (1 Again, 2 Hard, 3 Good, 4 Easy)
@@ -201,6 +205,7 @@
         <button type="button" class="small ${due ? 'primary' : ''}" data-fc-review="${id}" ${due ? '' : 'disabled'}>${esc(t('fc_review'))}${due ? ' · ' + due : ''}</button>
         <button type="button" class="small" data-qzstart="${id}" ${cs.length >= 2 ? '' : 'disabled'}>${esc(t('qz_start'))}</button>
         <button type="button" class="small" data-fi-open="${id}">${esc(t('fi_btn'))}</button></div>
+      ${cs.some(c => !c.reps) ? `<label class="fc-newper"><span>${esc(t('fc_new_per'))}</span><select id="fc-newper">${NEW_PER_CHOICES.map(n => `<option value="${n}" ${n === newPerOf(id) ? 'selected' : ''}>${n ? n : esc(t('fc_all'))}</option>`).join('')}</select></label>` : ''}
       <form class="fc-add" id="fc-add" autocomplete="off">
         <textarea name="front" rows="2" maxlength="${FRONT_MAX}" placeholder="${esc(t('fc_front'))}" required></textarea>
         <textarea name="back" rows="2" maxlength="${BACK_MAX}" placeholder="${esc(t('fc_backside'))}" required></textarea>
@@ -1147,6 +1152,7 @@
   listen('change', e => {
     if (e.target.id === 'fi-input') importFile(e.target.files[0]);
     else if (e.target.id === 'fi-target' && view.kind === 'import') { view.target = e.target.value; importRefresh(); }
+    else if (e.target.id === 'fc-newper' && view.kind === 'deck') { const d = ST().decks.find(x => x.id === view.id); if (d) { d.newPer = +e.target.value; save(); renderTool(); } }
   });
   listen('dragover', e => { const z = e.target.closest('#fi-zone'); if (z) { e.preventDefault(); z.classList.add('over'); } });
   listen('dragleave', e => { const z = e.target.closest('#fi-zone'); if (z) z.classList.remove('over'); });
@@ -1179,4 +1185,5 @@
   on('premium', () => render());
   on('started', () => { const l = $('study-lock'); if (l) l.style.display = ML.isPremium() ? 'none' : ''; if (S.tab === 'study') render(); });
   ML.renderStudy = render;
+  ML.studyLockedHtml = lockedHtml;
 })();

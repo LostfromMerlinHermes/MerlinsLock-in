@@ -1,4 +1,4 @@
-// Phone and side-panel navigation (under 900px wide): a bottom bar with Timer, Plan, Day, Calendar and More.
+// Phone and side-panel navigation (under 900px wide): a bottom bar with Timer, Plan, Day, Calendar, Library and More.
 // Each item is a full screen: the Timer screen is the mood row + the dial, the others are one tab each, so nothing
 // sits three screens down. While a session runs, a thin strip above the bar shows it from any screen.
 // The current screen is per device (localStorage), never synced.
@@ -14,8 +14,8 @@
   const KEY = 'mli-mview';
   const mq = matchMedia('(max-width: 899px)');
   const root = document.documentElement;
-  const BAR = ['timer', 'plan', 'day', 'cal', 'more'];
-  const MORE = ['notes', 'park', 'grim', 'study'];
+  const BAR = ['timer', 'plan', 'day', 'cal', 'lib', 'more'];
+  const MORE = ['notes', 'study', 'learn', 'grim'];
   const ICON = {
     timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/>',
     plan: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11"/><circle cx="5" cy="18" r="1.3"/>',
@@ -23,14 +23,15 @@
     cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="8" cy="14.5" r="1"/><circle cx="12" cy="14.5" r="1"/><circle cx="16" cy="14.5" r="1"/>',
     more: '<circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/>',
     notes: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h5"/>',
-    park: '<path d="M12 3a6 6 0 0 1 3.5 10.9V17h-7v-3.1A6 6 0 0 1 12 3zM9.5 21h5"/>',
+    learn: '<path d="M12 6.5C10 5 7 4.5 3.5 4.5v14c3.5 0 6.5.5 8.5 2 2-1.5 5-2 8.5-2v-14c-3.5 0-6.5.5-8.5 2z"/><path d="M12 6.5v14"/>',
     grim: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M10 8h5"/>',
     study: '<path d="M2.5 9L12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11v5c3 2.5 8 2.5 11 0v-5M21.5 9v5"/>',
+    lib: '<path d="M4 4h4v16H4zM9.5 4h4v16h-4z"/><path d="M15.2 5l3.8-1 2.8 15-3.8 1z"/>',
     shop: '<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
     settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
   };
   const svg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>`;
-  const label = k => t(k === 'timer' ? 'nav_timer' : k === 'more' ? 'nav_more' : k === 'shop' ? 'nav_shop' : k === 'settings' ? 'settings' : 'tab_' + k);
+  const label = k => t(k === 'timer' ? 'nav_timer' : k === 'lib' ? 'nav_lib' : k === 'more' ? 'nav_more' : k === 'shop' ? 'nav_shop' : k === 'settings' ? 'settings' : 'tab_' + k);
 
   let view = 'timer';
   try { view = localStorage.getItem(KEY) || 'timer'; } catch (e) {}
@@ -56,13 +57,13 @@
     const el = $('mnav'); if (!el) return;
     const cur = view === 'timer' ? 'timer' : BAR.includes(S.tab) ? S.tab : 'more';
     const parked = (S.parked || []).length;
-    el.innerHTML = BAR.map(k => `<button type="button" data-mnav="${k}" aria-current="${k === cur ? 'page' : 'false'}">${svg(k)}<span>${esc(label(k))}</span>${k === 'more' && parked ? `<i class="mnav-dot">${parked}</i>` : ''}</button>`).join('');
+    el.innerHTML = BAR.map(k => `<button type="button" data-mnav="${k}" aria-current="${k === cur ? 'page' : 'false'}">${svg(k)}<span>${esc(label(k))}</span>${k === 'plan' && parked ? `<i class="mnav-dot">${parked}</i>` : ''}</button>`).join('');
   }
 
   function renderMore() {
     const parked = (S.parked || []).length, locked = !(ML.isPremium && ML.isPremium());
     $('more-grid').innerHTML = [...MORE, 'shop', 'settings'].map(k => `<button type="button" class="more-item ${S.tab === k && view === 'tab' ? 'on' : ''}" data-more="${k}">${svg(k)}<span>${esc(label(k))}</span>
-      ${k === 'park' && parked ? `<i class="mnav-dot">${parked}</i>` : ''}${k === 'study' && locked ? '<small>Premium</small>' : ''}${k === 'shop' && S.econ ? `<small>◈ ${S.econ.gold.toLocaleString(ML.locale())}</small>` : ''}</button>`).join('');
+      ${k === 'study' && locked ? '<small>Premium</small>' : ''}${k === 'shop' && S.econ ? `<small>◈ ${S.econ.gold.toLocaleString(ML.locale())}</small>` : ''}</button>`).join('');
   }
 
   // Running strip: visible on every screen but the Timer one while a session is going (or paused mid-way)

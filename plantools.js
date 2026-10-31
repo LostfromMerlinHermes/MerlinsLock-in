@@ -96,7 +96,7 @@
   ML.on('plan:rendered', () => { if (!cur) return; const had = document.activeElement === document.body; mark(cur, had); });
   document.addEventListener('pointerdown', e => { if (cur && !e.target.closest('.task.kb')) mark(null); }, true);
   document.addEventListener('keydown', e => {
-    if (S.tab !== 'plan' || e.ctrlKey || e.metaKey || e.altKey || ML.isTyping(e)) return;
+    if (S.tab !== 'plan' || S.plan.pview === 'inbox' || e.ctrlKey || e.metaKey || e.altKey || ML.isTyping(e)) return;
     if (document.querySelector('.overlay:not([hidden])') || !ML.planRender) return;
     const k = e.key, lk = k.toLowerCase(), all = rows();
     if (k === '/') { e.preventDefault(); e.stopImmediatePropagation(); ML.planFocusSearch(); return; }

@@ -391,8 +391,8 @@
     $('new-title').value = ''; emit('quick:clear'); save(); renderAll();
     emit('task:added', task); // juice.js slides it in from the field
   });
-  $('clear-done').onclick = () => { S.tasks = S.tasks.filter(x => !x.done || x.repeat); save(); renderAll(); };
-  armedButton($('clear-all'), 'clear_all', () => { S.tasks = []; S.activeId = null; save(); renderAll(); });
+  ML.planClearDone = () => { S.tasks = S.tasks.filter(x => !x.done || x.repeat); save(); renderAll(); };
+  ML.planClearAll = () => { S.tasks = []; S.activeId = null; save(); renderAll(); };
 
   // Repeating tasks come back undone on the days they repeat
   function resetRepeating() {
@@ -421,6 +421,7 @@
     const n = S.parked.length;
     $('park-count').textContent = n ? n : '';
     // an inbox to sort (3.50): each thought or page caught from the browser becomes a task, a note, or goes (T / N / X)
+    if (ML.planRenderViews) ML.planRenderViews();
     $('parked').innerHTML = n ? S.parked.map(p => `<li data-id="${p.id}" tabindex="-1">
         <div class="p-text">${esc(p.text)}${p.url ? `<a class="p-url" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title || p.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 60))}</a>` : ''}<span class="p-time">${new Date(p.at).toLocaleString(ML.locale(), { weekday: 'short', hour: '2-digit', minute: '2-digit' })}</span></div>
         <div class="t-actions"><button type="button" data-act="task" title="T">${esc(t('make_task'))}</button><button type="button" data-act="note" title="N">${esc(t('make_note'))}</button><button type="button" class="icon-btn" data-act="del" aria-label="${esc(t('let_go'))}" title="X">✕</button></div>
@@ -451,10 +452,10 @@
     save(); renderAll();
     const next = $('parked').querySelectorAll('li[data-id]')[Math.min(i, S.parked.length - 1)]; if (next && parkKb) next.focus();
   }
-  // keyboard on the Parked tab: J / K (or arrows) to move, T task, N note, X let go
+  // keyboard on the Inbox view: J / K (or arrows) to move, T task, N note, X let go
   let parkKb = false;
   document.addEventListener('keydown', e => {
-    if (S.tab !== 'park' || e.ctrlKey || e.metaKey || e.altKey || ML.isTyping(e) || document.querySelector('.overlay:not([hidden])')) return;
+    if (S.tab !== 'plan' || S.plan.pview !== 'inbox' || e.ctrlKey || e.metaKey || e.altKey || ML.isTyping(e) || document.querySelector('.overlay:not([hidden])')) return;
     const items = [...$('parked').querySelectorAll('li[data-id]')]; if (!items.length) return;
     const k = e.key.toLowerCase(), at = items.indexOf(document.activeElement && document.activeElement.closest && document.activeElement.closest('#parked li[data-id]'));
     if (k === 'j' || k === 'k' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -469,8 +470,9 @@
   armedButton($('clear-parked'), 'clear_all', () => { S.parked = []; save(); renderAll(); });
 
   /* ---------- Tabs ---------- */
-  const TABS = { plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], park: ['t-park', 'tab-park'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'] };
+  const TABS = { plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'] };
   function setTab(name) {
+    if (name === 'park') { S.plan.pview = 'inbox'; name = 'plan'; if (ML.renderTasks) ML.renderTasks(); } // Parked became the Plan's Inbox view (3.56)
     if (!TABS[name]) name = 'plan';
     S.tab = name; save();
     for (const [k, [b, p]] of Object.entries(TABS)) { $(b).setAttribute('aria-selected', k === name); $(p).hidden = k !== name; }
@@ -996,7 +998,7 @@
   });
 
   /* ---------- Keyboard shortcuts ---------- */
-  const KEYS = [['Espace / Space', 'key_space'], ['N', 'key_n'], ['P', 'key_p'], ['S', 'key_s'], ['C', 'key_c'], ['F', 'key_f'], ['1–7', 'key_tabs'], ['?', 'key_help'], ['Échap / Esc', 'key_esc']];
+  const KEYS = [['Espace / Space', 'key_space'], ['N', 'key_n'], ['P', 'key_p'], ['S', 'key_s'], ['C', 'key_c'], ['F', 'key_f'], ['1–8', 'key_tabs'], ['?', 'key_help'], ['Échap / Esc', 'key_esc']];
   function showHelp() {
     $('help-keys').innerHTML = [...KEYS, ...(ML.planKeys || [])].map(([k, d]) => `<dt><kbd>${esc(k)}</kbd></dt><dd>${esc(t(d))}</dd>`).join('');
     openOverlay('help');
@@ -1014,7 +1016,7 @@
     else if (k === 's') { emit('gesture'); emit('sound:toggle'); }
     else if (k === 'c') $('compact-btn').click();
     else if (k === 'f') openFloat();
-    else if ('1234567'.includes(k)) setTab(['plan', 'day', 'cal', 'notes', 'park', 'grim', 'study'][+k - 1]);
+    else if ('12345678'.includes(k)) setTab(['plan', 'day', 'cal', 'notes', 'lib', 'study', 'learn', 'grim'][+k - 1]);
     else if (e.key === '?') showHelp();
   });
 
