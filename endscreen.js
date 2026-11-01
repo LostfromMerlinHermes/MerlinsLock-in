@@ -98,6 +98,7 @@
     const a = b.dataset.end;
     if (a === 'done') { const task = S.tasks.find(x => x.id === cur.taskId); if (task && !task.done) { ML.completeTask(task); save(); ML.renderAll(); } render(); return; }
     if (a === 'later') { close(); return; }
+    if (a === 'shop') { close(); ML.openShop(); return; }
     const taskId = cur.taskId, title = cur.title;
     close();
     if (a === 'break') { if (!(ML.running() && S.mode === 'break')) $('start').click(); return; }

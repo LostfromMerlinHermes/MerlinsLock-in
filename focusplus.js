@@ -147,7 +147,7 @@
         <button type="button" id="dp-finish">${esc(t('finish'))}</button>
       </div>
       <form class="park" id="dp-park" autocomplete="off"><input type="text" maxlength="140" placeholder="${esc(t('park_ph'))}" id="dp-park-in"><button type="submit">${esc(t('park'))}</button></form>
-      <p class="hint">${esc(t('deep_exit'))}</p>
+      <p class="hint deep-esc">${esc(t('deep_exit'))}</p>
     </div>`;
   }
   function classicHtml(task) {

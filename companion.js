@@ -78,7 +78,7 @@
     cat: '<ellipse class="f-eye" cx="27" cy="27" rx="3.6" ry="4.2"/><ellipse class="f-eye" cx="37" cy="27" rx="3.6" ry="4.2"/><ellipse class="f-pupil" cx="27" cy="27" rx="1.3" ry="3.4"/><ellipse class="f-pupil" cx="37" cy="27" rx="1.3" ry="3.4"/>',
     raven: '<circle class="f-eye" cx="40" cy="22" r="3.2"/><circle class="f-pupil" cx="40.6" cy="22" r="1.6"/>',
     fox: '<ellipse class="f-eye" cx="26" cy="25" rx="3" ry="3.4"/><ellipse class="f-eye" cx="38" cy="25" rx="3" ry="3.4"/><circle class="f-pupil" cx="26" cy="25.4" r="1.6"/><circle class="f-pupil" cx="38" cy="25.4" r="1.6"/>',
-    hippo: '<ellipse class="f-eye white" cx="25.5" cy="20.5" rx="3.2" ry="3.4"/><ellipse class="f-eye white" cx="38.5" cy="20.5" rx="3.2" ry="3.4"/><circle class="f-pupil" cx="26" cy="21.2" r="1.6"/><circle class="f-pupil" cx="38" cy="21.2" r="1.6"/><circle class="f-glint" cx="26.6" cy="20.4" r=".6"/><circle class="f-glint" cx="38.6" cy="20.4" r=".6"/>',
+    hippo: '<ellipse class="f-eye" cx="26.5" cy="18.5" rx="3" ry="3.3"/><ellipse class="f-eye" cx="37.5" cy="18.5" rx="3" ry="3.3"/><circle class="f-pupil" cx="26.8" cy="18.8" r="1.6"/><circle class="f-pupil" cx="37.2" cy="18.8" r="1.6"/>',
   };
   const BODY = {
     owl: `<path class="f-wing" d="M14 34 C9 40 11 48 16 51 Z M50 34 C55 40 53 48 48 51 Z"/>
@@ -97,20 +97,18 @@
       <path class="f-body" d="M16 22 L21 8 L28 18 L36 18 L43 8 L48 22 C48 32 40 38 32 38 C24 38 16 32 16 22 Z"/>
       <path class="f-inner" d="M20 18 L21.5 12 L25 17 Z M44 18 L42.5 12 L39 17 Z"/>
       <path class="f-belly" d="M18 26 C22 34 28 37 32 37 C36 37 42 34 46 26 C40 30 36 30 32 33 C28 30 24 30 18 26 Z"/><circle class="f-beak" cx="32" cy="32.5" r="1.8"/>`,
-    hippo: `<path class="f-tail" d="M51 44 C56 44 57 40 55 37"/>
-      <rect class="f-body" x="15" y="47" width="8" height="9" rx="2.5"/><rect class="f-body" x="41" y="47" width="8" height="9" rx="2.5"/>
-      <ellipse class="f-body" cx="32" cy="43" rx="20" ry="12.5"/><ellipse class="f-belly" cx="32" cy="47" rx="12" ry="6.5" opacity=".55"/>
-      <ellipse class="f-body" cx="20.5" cy="12.5" rx="3.6" ry="3.2"/><ellipse class="f-inner" cx="20.5" cy="12.8" rx="1.8" ry="1.5"/>
-      <ellipse class="f-body" cx="43.5" cy="12.5" rx="3.6" ry="3.2"/><ellipse class="f-inner" cx="43.5" cy="12.8" rx="1.8" ry="1.5"/>
-      <ellipse class="f-body" cx="32" cy="23" rx="14" ry="10.5"/>
-      <ellipse class="f-belly" cx="32" cy="31" rx="13" ry="7.5"/>
-      <ellipse class="f-beak" cx="27.5" cy="29" rx="1.4" ry="1.1"/><ellipse class="f-beak" cx="36.5" cy="29" rx="1.4" ry="1.1"/>
-      <rect class="f-tooth" x="26.5" y="35" width="2.6" height="3" rx=".6"/><rect class="f-tooth" x="34.9" y="35" width="2.6" height="3" rx=".6"/>
-      <ellipse class="f-blush" cx="20.5" cy="28" rx="3" ry="1.6"/><ellipse class="f-blush" cx="43.5" cy="28" rx="3" ry="1.6"/>
-      <circle class="f-earring" cx="18.6" cy="16.6" r="1.5"/><circle class="f-pearl" cx="18.6" cy="18.6" r="1.1"/><circle class="f-earring" cx="45.4" cy="16.6" r="1.5"/><circle class="f-pearl" cx="45.4" cy="18.6" r="1.1"/>
-      <path class="f-medal" d="M27 40.5 Q32 44 37 40.5"/><circle class="f-gold" cx="32" cy="44.6" r="2.2"/>`,
+    // Seated from the front like the cat and the fox (picked 2026-11-01, proposals/rentree/rentree2.html A); its broad muzzle is what tells it apart
+    hippo: `<path class="f-tail" d="M47 49 C53 49 55 45 53 41"/>
+      <ellipse class="f-body" cx="32" cy="46" rx="16" ry="11"/><ellipse class="f-belly" cx="32" cy="50" rx="9" ry="6.4" opacity=".55"/>
+      <rect class="f-body" x="19" y="50" width="9" height="7.5" rx="3"/><rect class="f-body" x="36" y="50" width="9" height="7.5" rx="3"/>
+      <circle class="f-body" cx="22" cy="11.5" r="3.6"/><circle class="f-inner" cx="22" cy="11.8" r="1.8"/><circle class="f-body" cx="42" cy="11.5" r="3.6"/><circle class="f-inner" cx="42" cy="11.8" r="1.8"/>
+      <ellipse class="f-body" cx="32" cy="20" rx="13" ry="10.5"/>
+      <path class="f-body" d="M15.5 30 C15.5 23.5 23 22.5 32 22.5 C41 22.5 48.5 23.5 48.5 30 C48.5 37 41 40.5 32 40.5 C23 40.5 15.5 37 15.5 30 Z"/>
+      <path class="f-belly" d="M18 31 C18 26.5 25 25.6 32 25.6 C39 25.6 46 26.5 46 31 C46 36.4 39 38.6 32 38.6 C25 38.6 18 36.4 18 31 Z"/>
+      <ellipse class="f-beak" cx="27" cy="29.5" rx="1.5" ry="1.2"/><ellipse class="f-beak" cx="37" cy="29.5" rx="1.5" ry="1.2"/>
+      <path class="f-mouth" d="M23 34.6 Q32 37.6 41 34.6"/><rect class="f-tooth" x="26.4" y="35.2" width="2.4" height="2.6" rx=".6"/><rect class="f-tooth" x="35.2" y="35.2" width="2.4" height="2.6" rx=".6"/>`,
   };
-  const HAT_POS = { owl: 'translate(20 -2)', cat: 'translate(20 -4)', raven: 'translate(26 -4)', fox: 'translate(20 -6)', hippo: 'translate(24 -2)' };
+  const HAT_POS = { owl: 'translate(20 -2)', cat: 'translate(20 -4)', raven: 'translate(26 -4)', fox: 'translate(20 -6)', hippo: 'translate(24 -3)' };
 
   /* ---------- Sequence costumes (one per Sequence, earned for good, worn by the familiar) ----------
      Each costume is drawn once in a head-centred frame; ANCHOR places that frame on each species:
@@ -121,7 +119,7 @@
     cat: { c: [32, 26], s: 1, top: -12, nose: [0, 6.3], neck: [0, 13], eyes: [[-5, 1, 4], [5, 1, 4]], face: [0, 2, 11, 8.5] },
     raven: { c: [38, 23], s: 0.8, top: -12.5, nose: [15, 2.5], neck: [-6, 11], eyes: [[2.5, -1.2, 4]], face: [2.5, -1, 7, 6.5] },
     fox: { c: [32, 25], s: 1, top: -11, nose: [0, 7.5], neck: [0, 13], eyes: [[-6, 0, 3.4], [6, 0, 3.4]], face: [0, 1.5, 10.5, 7.5] },
-    hippo: { c: [32, 22], s: 1, top: -9.5, nose: [0, 7], neck: [0, 13], eyes: [[-6.5, -1.5, 3.4], [6.5, -1.5, 3.4]], face: [0, -1, 11, 6.5] },
+    hippo: { c: [32, 20], s: 1, top: -10.5, nose: [0, 9.5], neck: [0, 21], eyes: [[-5.5, -1.5, 3.3], [5.5, -1.5, 3.3]], face: [0, -1, 11, 6.5] },
   };
   const FOG = '<g class="cs-fog"><ellipse cx="18" cy="56" rx="14" ry="3.4"/><ellipse cx="46" cy="57" rx="15" ry="3.4"/><ellipse cx="32" cy="59.5" rx="24" ry="3"/></g>';
   const cape = (A, cls, edge) => { const [x, y] = A.neck; return `<path class="${cls}" d="M${x - 7} ${y - 1} C${x - 18} ${y + 7} ${x - 20} ${y + 15} ${x - 17} ${y + 20} L${x + 17} ${y + 20} C${x + 20} ${y + 15} ${x + 18} ${y + 7} ${x + 7} ${y - 1} Z"/>${edge ? `<path class="${edge}" d="M${x - 17} ${y + 20} L${x + 17} ${y + 20}"/>` : ''}`; };
@@ -156,17 +154,15 @@
   }
   const equippedCostume = () => { const k = S.econ && S.econ.equip.costume; return COSTUME[k] ? k : null; };
 
-  // Royal hippo extras: a crown instead of the Elder hat, and a pool it stands in. Everything below the
-  // waterline is clipped, so it can dive in (celebration) and float half-submerged (focus).
-  const CROWN = '<g class="f-crown"><path d="M24.5 12.6 L23.4 5.2 L28.2 8.8 L32 2.6 L35.8 8.8 L40.6 5.2 L39.5 12.6 Z"/><path class="f-crown-band" d="M24.6 11 H39.4"/><circle class="f-ruby" cx="32" cy="9.6" r="1.3"/><circle class="f-pearl" cx="32" cy="2.4" r="1"/><circle class="f-pearl" cx="23.4" cy="5" r=".8"/><circle class="f-pearl" cx="40.6" cy="5" r=".8"/></g>';
+  // Royal hippo extra: a pool it stands in. Everything below the waterline is clipped, so it can dive in
+  // (celebration) and float half-submerged (focus).
   const POOL = '<g class="f-pool"><ellipse class="pool" cx="32" cy="57.4" rx="25" ry="4.8"/><ellipse class="ripple r1" cx="32" cy="57.4" rx="12" ry="2.4"/><ellipse class="ripple r2" cx="32" cy="57.4" rx="12" ry="2.4"/></g>';
   const SPLASH = '<g class="f-splash">' + [[-14, -20], [-8, -28], [-2, -32], [5, -30], [11, -24], [16, -16], [-18, -12]].map(([dx, dy], i) => `<circle cx="32" cy="56" r="${(1 + (i % 3) * 0.5).toFixed(1)}" style="--dx:${dx}px;--dy:${dy}px"/>`).join('') + '</g>';
   let clipN = 0;
   function familiarSvg(kind = species(), state = 'idle', st = 2, extra = '', costume = equippedCostume()) {
     if (!BODY[kind]) kind = 'owl';
     const C = costume && COSTUME[costume], hippo = kind === 'hippo', clip = hippo ? 'hc' + (++clipN) : '';
-    const hat = hippo ? (C && C.head ? '' : CROWN)
-      : st >= 3 && !(C && C.head) ? `<g transform="${HAT_POS[kind]}"><path class="f-hat" d="M0 12 C3 8 5 4 10 0 C9 4 11 8 16 12 Z"/><path class="f-hatband" d="M1 11 H15"/></g>` : '';
+    const hat = st >= 3 && !(C && C.head) ? `<g transform="${HAT_POS[kind]}"><path class="f-hat" d="M0 12 C3 8 5 4 10 0 C9 4 11 8 16 12 Z"/><path class="f-hatband" d="M1 11 H15"/></g>` : '';
     const body = `<g class="f-all">${C ? costumeSvg(kind, costume, 'back') : ''}${BODY[kind]}<g class="f-eyes">${EYES[kind]}</g>${hat}${C ? costumeSvg(kind, costume, 'front') : ''}</g>`;
     return `<svg class="fam fam-${kind} ${state} st-${st} ${C ? 'cos-' + costume : ''} ${extra}" viewBox="-4 -14 72 78" aria-hidden="true">
       ${hippo ? `<defs><clipPath id="${clip}"><rect x="-20" y="-40" width="110" height="97.4"/></clipPath></defs>${POOL}` : '<ellipse class="f-shadow" cx="32" cy="58" rx="16" ry="3"/>'}${C ? costumeSvg(kind, costume, 'ground') : ''}
@@ -235,23 +231,32 @@
     T.best = Math.max(0, ...Object.values(T.log));
     T.init = true; save();
   }
-  // Tower drawing: n stacked floors (lit windows for today's), a roof with a flag
-  function towerSvg(n, litToday, mini) {
+  ML.towerGain = gainFor;
+  // Tower drawing: n stacked floors (lit windows for today's), a roof with a flag. extra (the big tower only): gold = how
+  // many floors are furnished by Expeditions (one gold middle window each), wings = passed exams of the Season (expeditions.js)
+  function towerSvg(n, litToday, mini, extra = {}) {
     const fh = mini ? 7 : 14, w = mini ? 22 : 64, x0 = mini ? 4 : 18, top = mini ? 18 : 40;
     const H = top + n * fh + (mini ? 4 : 18);
     let floors = '';
     for (let i = 0; i < n; i++) {
       const y = H - (mini ? 4 : 18) - (i + 1) * fh, lit = i >= n - litToday;
       floors += `<rect class="tw-floor ${lit ? 'lit' : ''}" x="${x0}" y="${y}" width="${w}" height="${fh - 1}"/>`;
-      if (!mini) for (let k = 0; k < 3; k++) floors += `<rect class="tw-win ${lit ? 'lit' : ''}" x="${x0 + 10 + k * 18}" y="${y + 4}" width="7" height="${fh - 8}" rx="3"/>`;
+      if (!mini) for (let k = 0; k < 3; k++) floors += `<rect class="tw-win ${lit ? 'lit' : ''} ${k === 1 && i < (extra.gold || 0) ? 'gold' : ''}" x="${x0 + 10 + k * 18}" y="${y + 4}" width="7" height="${fh - 8}" rx="3"/>`;
       else floors += `<rect class="tw-win ${lit ? 'lit' : ''}" x="${x0 + 8}" y="${y + 2}" width="6" height="${fh - 4}"/>`;
     }
     const roofY = H - (mini ? 4 : 18) - n * fh;
     const roof = `<path class="tw-roof" d="M${x0 - (mini ? 2 : 6)} ${roofY} L${x0 + w / 2} ${roofY - (mini ? 14 : 34)} L${x0 + w + (mini ? 2 : 6)} ${roofY} Z"/>`
       + (mini ? '' : `<path class="tw-pole" d="M${x0 + w / 2} ${roofY - 34} v-12"/><path class="tw-flag" d="M${x0 + w / 2} ${roofY - 46} l14 4 l-14 4 Z"/>`);
     const base = mini ? `<rect class="tw-base" x="${x0 - 3}" y="${H - 4}" width="${w + 6}" height="4"/>` : `<rect class="tw-base" x="${x0 - 8}" y="${H - 18}" width="${w + 16}" height="18"/><path class="tw-door" d="M${x0 + w / 2 - 7} ${H} v-12 a7 7 0 0 1 14 0 v12 Z"/>`;
-    return `<svg class="tower ${mini ? 'mini' : ''}" viewBox="0 0 ${mini ? 30 : 100} ${H}" ${mini ? 'width="30"' : ''} aria-hidden="true">${floors}${roof}${base}</svg>`;
+    // Season wings: small towers leaning on each side, one per exam passed, from the ground up
+    let wings = '';
+    for (let i = 0; i < Math.min(extra.wings || 0, 8); i++) {
+      const left = i % 2 === 0, lvl = Math.floor(i / 2), wy = H - 18 - (lvl + 1) * 22, wx = left ? x0 - 16 : x0 + w;
+      wings += `<rect class="tw-floor lit" x="${wx}" y="${wy}" width="16" height="20"/><rect class="tw-win lit" x="${wx + 5}" y="${wy + 5}" width="6" height="9" rx="3"/><path class="tw-roof" d="M${wx - 1} ${wy} L${wx + 8} ${wy - 8} L${wx + 17} ${wy} Z"/>`;
+    }
+    return `<svg class="tower ${mini ? 'mini' : ''}" viewBox="0 0 ${mini ? 30 : 100} ${H}" ${mini ? 'width="30"' : ''} aria-hidden="true">${wings}${floors}${roof}${base}</svg>`;
   }
+  ML.towerSvg = towerSvg;
   on('session', s => {
     initTower();
     const g = gainFor(s.mins); if (!g) return;
@@ -298,12 +303,14 @@
   /* ---------- Grimoire: tower + familiar ---------- */
   on('grimoire', () => {
     initTower();
-    const T = towerDay(), shown = Math.min(24, T.floors), weekAgo = Date.now() - 7 * 864e5;
+    // The big tower is this Season's: a new one each semester (expeditions.js); the total stays in the text
+    const T = towerDay(), sea = ML.seasonNow ? ML.seasonNow() : { floors: T.floors, wings: 0 }, gold = ML.furnished ? ML.furnished() : 0;
+    const shown = Math.min(24, sea.floors), weekAgo = Date.now() - 7 * 864e5;
     const card = document.createElement('div');
     card.className = 'g-card tower-card'; card.id = 'tower-card';
     card.innerHTML = `<h2>${esc(t('tower'))}</h2>
       <div class="tower-row">
-        <div class="tower-big">${shown ? towerSvg(shown, Math.min(shown, T.built), false) : towerSvg(1, 0, false)}${T.floors > 24 ? `<span class="tw-more">+${T.floors - 24}</span>` : ''}</div>
+        <div class="tower-big">${towerSvg(Math.max(1, shown), shown ? Math.min(shown, T.built) : 0, false, { gold, wings: sea.wings })}${sea.floors > 24 ? `<span class="tw-more">+${sea.floors - 24}</span>` : ''}</div>
         <div class="tower-info">
           <strong>${esc(ML.tn('floors_n', T.floors))}</strong>
           <span>${esc(t('floors_today', { n: T.built }))}</span>

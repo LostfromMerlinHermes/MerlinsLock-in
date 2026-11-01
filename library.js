@@ -264,7 +264,13 @@
   on('tab', name => { if (name === 'lib') renderTab(); });
   on('premium', () => { if (S.tab === 'lib') renderTab(); else { const l = $('lib-lock'); if (l) l.style.display = ML.isPremium() ? 'none' : ''; } });
   on('started', () => { const l = $('lib-lock'); if (l) l.style.display = ML.isPremium() ? 'none' : ''; if (S.tab === 'lib') renderTab(); });
-  ML.Library = { bind };
+  // Text of every document that has some, for the Mock exam (mock.js)
+  async function sources() {
+    await load(); if (!docs) return [];
+    const tx = await loadTexts();
+    return docs.map(d => ({ id: d.id, name: d.name, pages: d.kind === 'sheet' ? (d.text ? [d.text] : null) : tx[d.id] })).filter(x => x.pages && x.pages.some(p => p && p.length > 80));
+  }
+  ML.Library = { bind, sources };
 
   /* ---------- List events (delegated on the Library tab, which keeps its node across renders) ---------- */
   const inLib = () => host && host.isConnected;

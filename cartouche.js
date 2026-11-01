@@ -405,16 +405,19 @@
     // far mountains with snow, then a lower range
     const ridge = (b, amp, fq, ph, col, snow) => { for (let x = 0; x < W; x++) { const h = b - Math.abs(Math.sin(x * fq + ph)) * amp - Math.sin(x * fq * 2.7 + ph) * amp * .25; R(x, h, 1, H, col); if (snow && h < b - amp * .72) R(x, h, 1, 2, snow); } };
     ridge(L.ridge, H * .13, .021, .4, P.far, P.snow); ridge(L.ridge + H * .05, H * .07, .034, 2.1, P.far2, null);
-    // the castle on its hill, its road
-    const [cx, cy] = L.castle, k0 = mode === 'night' ? PAL[0] : PAL[1];
-    for (let i = -46; i <= 46; i++) R(cx + 18 + i, cy + 48 - Math.round(Math.sqrt(2116 - i * i) * .3), 1, H, P.hill);
+    // middle hills
+    for (let x = 0; x < W; x++) R(x, L.village[1] + 6 - Math.sin(x * .018 + 1.2) * 10, 1, H, P.mid);
+    // the castle on its hill, its road (drawn over the middle hills: under them the hill was hidden, the castle floated and the road was a loose scrap)
+    const [cx, cy] = L.castle, k0 = mode === 'night' ? PAL[0] : PAL[1], hx = cx + 18, hr = 74, top = cy + 30;
+    for (let i = -hr; i <= hr; i++) { const q = Math.abs(i) / hr, y = top + Math.round(q * q * (L.ground - top)); R(hx + i, y, 1, H, P.hill); R(hx + i, y, 1, 1, P.far); }
+    for (let k = 0; k < 46; k++) { const i = (rnd() - .5) * hr * 1.6, q = Math.abs(i) / hr, y = top + q * q * (L.ground - top) + 3 + rnd() * 20; R(hx + i, y, 2 + rnd() * 3, 1, P.far2); }
     R(cx, cy + 10, 36, 24, k0); R(cx - 6, cy, 10, 34, k0); R(cx + 32, cy, 10, 34, k0); R(cx + 13, cy - 10, 10, 20, k0);
     [[-6, -2], [-2, -2], [2, -2], [32, -2], [36, -2], [40, -2], [13, -12], [17, -12], [21, -12]].forEach(([a, b]) => R(cx + a, cy + b, 2, 2, k0));
-    R(cx + 14, cy + 22, 8, 12, PAL[0]); const win = mode === 'day' ? PAL[0] : PAL.y; R(cx - 3, cy + 8, 2, 3, win); R(cx + 36, cy + 8, 2, 3, win); R(cx + 17, cy - 4, 2, 3, win);
+    R(cx - 8, cy + 33, 52, 2, k0); R(cx + 14, cy + 22, 8, 12, PAL[0]); const win = mode === 'day' ? PAL[0] : PAL.y; R(cx - 3, cy + 8, 2, 3, win); R(cx + 36, cy + 8, 2, 3, win); R(cx + 17, cy - 4, 2, 3, win);
     R(cx + 17, cy - 22, 1, 12, PAL[0]);
-    for (let i = 0; i < 160; i++) { const p = i / 160, x = cx + 10 + Math.sin(p * 9) * 22 + p * 6, y = H - p * (H - cy - 36); R(x, y, 6 - p * 3, 2, P.road); }
-    // middle hills, the windmill's tower, the village
-    for (let x = 0; x < W; x++) R(x, L.village[1] + 6 - Math.sin(x * .018 + 1.2) * 10, 1, H, P.mid);
+    // from the gate down to the foreground, wider as it comes closer
+    for (let i = 0; i < 180; i++) { const p = i / 180, x = hx - 2 + Math.sin(p * 7) * (8 + p * 18) + p * 22, y = cy + 34 + p * (L.ground - cy - 34); R(x, y, 3 + p * 5, 2, P.road); }
+    // the windmill's tower, the village
     const [mx, my] = L.mill; for (let j = 0; j < 30; j++) R(mx - 4 - j / 6, my + j, 8 + j / 3, 1, k0); R(mx - 5, my - 4, 10, 4, PAL[0]); R(mx - 1, my + 20, 3, 10, PAL[0]); if (mode !== 'day') R(mx - 1, my + 8, 2, 3, PAL.y);
     const [vx, vy] = L.village;
     [[-18, 6, 12, 8], [0, 0, 14, 10], [22, -4, 16, 12], [46, 2, 12, 9]].forEach(([dx, dy, w, h]) => { const x = vx + dx, y = vy + dy; R(x, y, w, h, P.wall);
@@ -427,7 +430,8 @@
     // the foreground: ground, trees, a fence, flowers, grass
     R(0, L.ground, W, H, P.ground);
     const tree = (x, y, s) => { R(x + 5 * s, y + 9 * s, 2 * s, 5 * s, PAL[0]); [[3, 0, 6], [1, 1, 10], [0, 2, 12], [0, 3, 12], [0, 4, 12], [1, 5, 10], [0, 6, 12], [1, 7, 10], [3, 8, 6]].forEach(([dx, dy, w]) => R(x + dx * s, y + dy * s, w * s, s, P.tree)); [[2, 2], [7, 4], [4, 6], [9, 6]].forEach(([dx, dy]) => R(x + dx * s, y + dy * s, s, s, P.shade)); };
-    [[2, L.ground - 40, 3], [W * .06, L.ground - 26, 2], [W - 40, L.ground - 36, 3], [W * .9, L.ground - 22, 2]].forEach(([x, y, s]) => tree(x, y, s));
+    const wide = W >= 200; // on a wide window the right-hand trees stand clear of the bridge they used to cover
+    [[2, L.ground - 40, 3], [W * .06, L.ground - 26, 2], [wide ? W * .68 : W - 40, L.ground - 36, 3], [wide ? W * .75 : W * .9, L.ground - 22, 2]].forEach(([x, y, s]) => tree(x, y, s));
     for (let i = 0; i < 8; i++) R(W * .12 + i * 10, L.ground + 8, 2, 10, PAL[1]); R(W * .12 - 2, L.ground + 11, 76, 2, PAL[1]); R(W * .12 - 2, L.ground + 15, 76, 1, PAL[1]);
     for (let k = 0; k < W / 10; k++) { const x = rnd() * W, y = L.ground + 3 + rnd() * (H - L.ground - 4); R(x, y, 1, 2, mode === 'night' ? PAL[0] : PAL[1]); R(x + 2, y + 1, 1, 1, mode === 'night' ? PAL[0] : PAL[1]); }
     if (mode !== 'night') for (let k = 0; k < W / 30; k++) R(rnd() * W, L.ground + 6 + rnd() * (H - L.ground - 8), 2, 2, rnd() < .5 ? PAL.r : PAL.y);

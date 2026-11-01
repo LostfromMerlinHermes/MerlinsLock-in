@@ -168,9 +168,25 @@
     S.econ.gold += g; save(); renderGold();
     setTimeout(() => ML.floater && ML.floater('+' + g + ' ◈', 'gold'), 250);
   });
-  function renderGold() { const el = $('gold-chip'); if (el) { el.innerHTML = `<span>◈</span><b>${S.econ.gold.toLocaleString(ML.locale())}</b>`; el.title = t('gold_n', { n: S.econ.gold }); } }
+  // The chip says "Shop" for the first 14 days, so a new user knows what the coins are for
+  const shopNamed = () => { if (!S.firstSeen) { S.firstSeen = Math.min(Date.now(), ...(S.sessions || []).map(s => s.at)); save(); } return Date.now() - S.firstSeen < 14 * 864e5; };
+  function renderGold() { const el = $('gold-chip'); if (el) { el.innerHTML = `<span>◈</span><b>${S.econ.gold.toLocaleString(ML.locale())}</b>${shopNamed() ? `<em>${esc(t('shop'))}</em>` : ''}`; el.title = t('gold_n', { n: S.econ.gold }); } }
   $('gold-chip').onclick = () => { migrate(); ownerGifts(); grantCostumes(false); renderShop(); ML.openOverlay('shop'); spy(); };
   ML.openShop = () => $('gold-chip').click();
+  // End of a session: what the coins earned bring closer (the cheapest item not owned yet, among the ones with a name)
+  ML.addStrings({ fr: { end_gold: '+{g} ◈', end_shop_near: 'Plus que {n} ◈ pour {name}', end_shop_can: 'Tu peux acheter {name}', end_shop_go: 'Voir la boutique' }, en: { end_gold: '+{g} ◈', end_shop_near: '{n} ◈ left for {name}', end_shop_can: 'You can buy {name}', end_shop_go: 'See the shop' } });
+  function nextItem() {
+    migrate();
+    const PFX = { hat: 'hat_', ring: 'ring_', burst: 'burst_', familiar: 'fam_' }, all = [];
+    for (const [cat, pfx] of Object.entries(PFX)) for (const [k, price] of Object.entries(CATALOG[cat])) if (price && k !== 'hippo' && !(S.econ.owned[cat] || []).includes(k)) all.push({ name: t(pfx + k), price });
+    return all.sort((a, b) => a.price - b.price)[0];
+  }
+  const prevEnd = ML.endExtras;
+  ML.endExtras = s => {
+    const x = nextItem(), g = Math.floor((s.xp || 0) / 4), gold = S.econ.gold;
+    const line = x ? `<button type="button" class="end-shop" data-end="shop"><span>${g ? `<b>${esc(t('end_gold', { g }))}</b> ` : ''}${esc(gold >= x.price ? t('end_shop_can', { name: x.name }) : t('end_shop_near', { n: x.price - gold, name: x.name }))}</span><small>${esc(t('end_shop_go'))}</small></button>` : '';
+    return line + (prevEnd ? prevEnd(s) : '');
+  };
 
   /* ---------- Cosmetics: hats (header logo), seal rings (timer), bursts (juice.js reads equip.burst) ---------- */
   const HATS = {

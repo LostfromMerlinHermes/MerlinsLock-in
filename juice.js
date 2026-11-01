@@ -391,7 +391,7 @@
   /* ---------- Boss fight timer ---------- */
   const hud = document.createElement('div');
   hud.className = 'boss-hud'; hud.hidden = true;
-  document.querySelector('.ring-center').appendChild(hud);
+  document.querySelector('#sigil-card .ring-wrap').after(hud);
   on('tick', () => {
     const B = S.game && S.game.boss;
     const fighting = !!(B && !B.done && ML.running() && S.mode === 'focus' && S.activeId === B.taskId);
@@ -400,7 +400,7 @@
     if (!fighting) return;
     const spent = (S.total - Math.max(0, ML.remainingNow())) / 60;
     const hp = Math.max(0, B.max - B.dmg - spent);
-    hud.innerHTML = `<span>⚔ ${esc(t('boss_fight'))}</span><i><b style="width:${(hp / B.max * 100).toFixed(1)}%"></b></i><small>${Math.ceil(hp)}/${B.max} PV</small>`;
+    hud.innerHTML = `<span>${esc(t('boss_fight'))}</span><i><b style="width:${(hp / B.max * 100).toFixed(1)}%"></b></i><small>${Math.ceil(hp)}/${B.max} ${esc(t('boss_hp'))}</small>`;
   });
 
   /* ---------- Title screen (once a day) ----------

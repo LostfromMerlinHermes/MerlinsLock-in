@@ -30,6 +30,7 @@
       </svg>
       <div class="brand-text">
         <h1>Merlins<span>LockIN</span></h1>
+        <span class="m-title" id="m-title"></span>
         <button type="button" class="seq" id="seq-badge">
           <span id="seq-label">Sequence 9 · Seer</span>
           <i class="seq-bar"><b id="seq-fill"></b></i>
@@ -45,6 +46,9 @@
       </button>
       <button type="button" class="ghost icon-only" id="float-btn" data-i18n-title="float_timer">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1"/></svg>
+      </button>
+      <button type="button" class="ghost icon-only" id="quick-btn" data-i18n-title="qt_title">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h8M16 18h4"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="14" cy="18" r="2"/></svg>
       </button>
       <button type="button" class="ghost icon-only" id="mute-btn" aria-pressed="false" data-i18n-title="mute_all">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="mute-on" d="M16 9l5 6M21 9l-5 6"/><path class="mute-off" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
@@ -152,11 +156,21 @@
         <button type="button" role="tab" id="t-plan" aria-controls="tab-plan"><span data-i18n="tab_plan">Plan</span> <span class="count" id="park-count"></span></button>
         <button type="button" role="tab" id="t-day" aria-controls="tab-day" data-i18n="tab_day">Journée</button>
         <button type="button" role="tab" id="t-cal" aria-controls="tab-cal" data-i18n="tab_cal">Agenda</button>
-        <button type="button" role="tab" id="t-notes" aria-controls="tab-notes" data-i18n="tab_notes">Carnet</button>
-        <button type="button" role="tab" id="t-lib" aria-controls="tab-lib"><span data-i18n="tab_lib">Bibliothèque</span> <svg class="lock-ico" id="lib-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
-        <button type="button" role="tab" id="t-study" aria-controls="tab-study"><span data-i18n="tab_study">Étude</span> <svg class="lock-ico" id="study-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
-        <button type="button" role="tab" id="t-learn" aria-controls="tab-learn" data-i18n="tab_learn">Apprendre</button>
-        <button type="button" role="tab" id="t-grim" aria-controls="tab-grim" data-i18n="tab_grim">Grimoire</button>
+        <button type="button" role="tab" id="sp-study" data-space="study" data-i18n="sp_study">Étude</button>
+        <button type="button" role="tab" id="sp-you" data-space="you" data-i18n="sp_you">Toi</button>
+      </div>
+      <!-- Spaces (3.58): Study and You open this row of sub-tabs, so the bar above never grows -->
+      <div class="subtabs" id="subtabs" role="tablist" hidden>
+        <button type="button" role="tab" id="t-notes" data-sp="study" aria-controls="tab-notes" data-i18n="tab_notes">Carnet</button>
+        <button type="button" role="tab" id="t-lib" data-sp="study" aria-controls="tab-lib"><span data-i18n="tab_lib">Bibliothèque</span> <svg class="lock-ico" id="lib-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
+        <button type="button" role="tab" id="t-study" data-sp="study" aria-controls="tab-study"><span data-i18n="tab_cards">Cartes</span> <svg class="lock-ico" id="study-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
+        <button type="button" role="tab" id="t-subjects" data-sp="study" aria-controls="tab-subjects" data-i18n="tab_subjects">Matières</button>
+        <button type="button" role="tab" id="t-lectures" data-sp="study" aria-controls="tab-lectures" data-i18n="tab_lectures">Cours</button>
+        <button type="button" role="tab" id="t-learn" data-sp="study" aria-controls="tab-learn" data-i18n="tab_learn">Apprendre</button>
+        <button type="button" role="tab" id="t-grim" data-sp="you" aria-controls="tab-grim" data-i18n="tab_grim">Grimoire</button>
+        <button type="button" role="tab" id="t-room" data-sp="you" aria-controls="tab-room" data-i18n="tab_room">Salle</button>
+        <button type="button" id="t-shop" data-sp="you" data-i18n="shop">Boutique</button>
+        <button type="button" role="tab" id="t-guide" data-sp="you" aria-controls="tab-guide" data-i18n="tab_guide">Guide</button>
       </div>
 
       <div class="tabpanel" id="tab-plan" role="tabpanel">
@@ -201,6 +215,10 @@
       <div class="tabpanel" id="tab-study" role="tabpanel" hidden><div id="study"></div></div>
       <div class="tabpanel" id="tab-lib" role="tabpanel" hidden><div class="st-body" id="library"></div></div>
       <div class="tabpanel" id="tab-learn" role="tabpanel" hidden><div id="learn"></div></div>
+      <div class="tabpanel" id="tab-subjects" role="tabpanel" hidden><div id="subjects"></div></div>
+      <div class="tabpanel" id="tab-lectures" role="tabpanel" hidden><div id="lectures"></div></div>
+      <div class="tabpanel" id="tab-room" role="tabpanel" hidden><div class="st-body" id="room-root"></div></div>
+      <div class="tabpanel" id="tab-guide" role="tabpanel" hidden><div id="guide"></div></div>
     </section>
   </div>
   </div>
@@ -211,16 +229,6 @@
 <!-- Phone / side panel navigation (nav.js): a running-timer strip and a bottom bar, under 900px wide -->
 <button type="button" class="mnav-run" id="mnav-run" hidden></button>
 <nav class="mnav" id="mnav" aria-label="Navigation"></nav>
-<div class="overlay" id="more" hidden>
-  <div class="sheet more-sheet" role="dialog" aria-modal="true" aria-labelledby="more-h">
-    <div class="sheet-head">
-      <h2 id="more-h" data-i18n="nav_more"></h2>
-      <button type="button" class="ghost icon-only" data-close="more" data-i18n-title="close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    </div>
-    <div class="more-grid" id="more-grid"></div>
-  </div>
-</div>
-
 <div class="overlay" id="settings" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="set-h">
     <div class="sheet-head">
@@ -320,7 +328,13 @@
 <script src="economy.js"></script>
 <script src="companion.js"></script>
 <script src="hood.js"></script>
+<script src="expeditions.js"></script>
+<script src="subjects.js"></script>
+<script src="lecture.js"></script>
+<script src="mock.js"></script>
 <script src="nav.js"></script>
+<script src="quick.js"></script>
+<script src="guide.js"></script>
 <script src="endscreen.js"></script>
 <script src="legal.js"></script>
 <script src="config.js"></script>

@@ -336,7 +336,7 @@
     if (land) cx.drawImage(land, 0, 0, W, H);
     if (lv !== 'sobre') {
       // mist: drifting bands, then the veil that swallows the landscape during focus (it lifts on a pause)
-      const fogT = st === 'running' ? 1 : st === 'paused' ? .35 : st === 'break' ? .05 : lv === 'peint' ? .08 : .12;
+      const fogT = deep ? Math.max(.8, st === 'running' ? 1 : 0) : st === 'running' ? 1 : st === 'paused' ? .35 : st === 'break' ? .05 : lv === 'peint' ? .08 : .12; // full screen: the pillars stay away from the digits
       fog = still ? fogT : fog + (fogT - fog) * Math.min(1, dt / 2600);
       // (3.38.1) the bands and the veil are painted into a quarter-size layer, then laid over in one go: soft mist
       // needs no detail, and ten full-screen blends a frame were what made Washi lag on laptops
@@ -561,13 +561,14 @@
     root.style.setProperty('--ink-blot', `url(${inkBlot()})`);
     root.style.setProperty('--ink-fx', '0 0 / 0 0'); root.style.setProperty('--ink-app', '0 0 / 0 0');
     root.classList.add('ink-in'); cancelAnimationFrame(inkRaf);
-    const t0 = performance.now();
+    const t0 = performance.now(), finish = () => { cancelAnimationFrame(inkRaf); root.classList.remove('ink-in'); };
+    setTimeout(finish, 1800); // a window in the background gets no frames: the app must not stay hidden behind the blot
     const step = now => {
       const W = innerWidth, H = innerHeight, cx = W / 2, cy = H * .42, far = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy)) / .3; // the disc is ~0.64 of the image
-      const k = (d, dur) => easeIO((now - t0 - d) / dur), sa = far * k(0, 1700), sb = far * k(550, 1500), r = app.getBoundingClientRect();
+      const k = (d, dur) => easeIO((now - t0 - d) / dur), sa = far * k(0, 1000), sb = far * k(200, 950), r = app.getBoundingClientRect(); // short: the whole app waits behind it
       root.style.setProperty('--ink-fx', `${(cx - sa / 2).toFixed(1)}px ${(cy - sa / 2).toFixed(1)}px / ${sa.toFixed(1)}px ${sa.toFixed(1)}px`);
       root.style.setProperty('--ink-app', `${(cx - r.left - sb / 2).toFixed(1)}px ${(cy - r.top - sb / 2).toFixed(1)}px / ${sb.toFixed(1)}px ${sb.toFixed(1)}px`);
-      if (now - t0 < 2100) inkRaf = requestAnimationFrame(step); else root.classList.remove('ink-in');
+      if (now - t0 < 1250) inkRaf = requestAnimationFrame(step); else finish();
     };
     inkRaf = requestAnimationFrame(step);
   };

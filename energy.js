@@ -56,10 +56,16 @@
   // A canvas dial (Brouillard, Arcade) has no bitmap in the clone, and each world swaps its dial just after the theme changes:
   // while a dial is on screen, follow the real one.
   let mirrorT = 0;
+  // The dial's scale for the row it gets: its bezel reaches 14 % past the 290 px wrap
+  function fitDial(box) {
+    const stage = box.parentElement, s = Math.min(1, (Math.min(stage.clientWidth, stage.clientHeight) - 6) / 331).toFixed(3);
+    if (box.dataset.s !== s) { box.dataset.s = s; box.style.setProperty('--ep-s', s); }
+  }
   function mirrorDial() {
     mirrorT = 0; if (!st) return;
     const box = el.querySelector('.ep-dial'), src = document.querySelector('#sigil-card .ring-wrap');
     if (box && src) {
+      fitDial(box);
       const [mins, label] = dialNow(), text = clockOf(mins), sig = [...src.children].map(c => c.tagName + c.getAttribute('class')).join() + text;
       if (!ML.dialText || ML.dialText.time !== text) { ML.dialText = { time: text, label: t('ready').toUpperCase() }; if (ML.fogPaint) ML.fogPaint(); }
       if (box.dataset.sig !== sig) { box.dataset.sig = sig; box.innerHTML = dialHtml(mins, label); }

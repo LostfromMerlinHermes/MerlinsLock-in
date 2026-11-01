@@ -182,6 +182,33 @@
   });
   on('render', renderReading); on('tab', renderReading);
 
+  /* ---------- Mail to task (3.59): the first future date in an email, in French or English ---------- */
+  ML.addStrings({ fr: { cap_mail_title: 'Répondre au mail', cap_mail_due: 'Tâche ajoutée : {title}, pour le {d}' }, en: { cap_mail_title: 'Reply to the email', cap_mail_due: 'Task added: {title}, due {d}' } });
+  const MONTHS = { janvier: 1, jan: 1, january: 1, 'février': 2, fevrier: 2, 'fév': 2, fev: 2, february: 2, feb: 2, mars: 3, march: 3, mar: 3, avril: 4, april: 4, avr: 4, apr: 4, mai: 5, may: 5, juin: 6, june: 6, jun: 6, juillet: 7, july: 7, juil: 7, jul: 7, 'août': 8, aout: 8, august: 8, aug: 8, septembre: 9, september: 9, sept: 9, sep: 9, octobre: 10, october: 10, oct: 10, novembre: 11, november: 11, nov: 11, 'décembre': 12, decembre: 12, december: 12, 'déc': 12, dec: 12 };
+  const WEEKDAYS = { lundi: 1, monday: 1, mardi: 2, tuesday: 2, mercredi: 3, wednesday: 3, jeudi: 4, thursday: 4, vendredi: 5, friday: 5, samedi: 6, saturday: 6, dimanche: 0, sunday: 0 };
+  // Dates near "before / for / due" words come first: a mail often mentions other dates (its own, a past exam)
+  ML.findDate = (text, now = new Date()) => {
+    const s = String(text).toLowerCase().slice(0, 4000), base = dayOf(now), found = [];
+    const add = (y, m, d, at) => { if (m < 1 || m > 12 || d < 1 || d > 31) return; let yr = y || now.getFullYear(); let k = fmt(yr, m, d); if (!y && k < base) k = fmt(++yr, m, d); if (k >= base && new Date(yr, m - 1, d).getMonth() === m - 1) found.push({ k, at }); };
+    let m;
+    const reName = /\b(\d{1,2})(?:er|st|nd|rd|th)?\s+([a-zéûa-z]{3,9})\.?(?:\s+(20\d\d))?/g;
+    while ((m = reName.exec(s))) if (MONTHS[m[2]]) add(m[3] ? +m[3] : 0, MONTHS[m[2]], +m[1], m.index);
+    const reEn = /\b([a-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(20\d\d))?\b/g;
+    while ((m = reEn.exec(s))) if (MONTHS[m[1]]) add(m[3] ? +m[3] : 0, MONTHS[m[1]], +m[2], m.index);
+    const reNum = /\b(\d{1,2})[/.](\d{1,2})(?:[/.](20\d\d|\d\d))?\b/g;
+    while ((m = reNum.exec(s))) add(m[3] ? (m[3].length === 2 ? 2000 + +m[3] : +m[3]) : 0, +m[2], +m[1], m.index);
+    const reDay = /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/g;
+    while ((m = reDay.exec(s))) { const d = new Date(now), delta = ((WEEKDAYS[m[1]] - now.getDay() + 7) % 7) || 7; d.setDate(d.getDate() + delta); found.push({ k: dayOf(d), at: m.index }); }
+    const reRel = /\b(demain|tomorrow)\b/g;
+    while ((m = reRel.exec(s))) { const d = new Date(now); d.setDate(d.getDate() + 1); found.push({ k: dayOf(d), at: m.index }); }
+    if (!found.length) return null;
+    const near = at => /(avant|pour|d'ici|d’ici|jusqu'au|jusqu’au|au plus tard|rendu|rendre|limite|deadline|due|before|by|until|échéance)[^.!?\n]{0,30}$/.test(s.slice(Math.max(0, at - 40), at));
+    const keyed = found.filter(x => near(x.at));
+    return (keyed.length ? keyed : found).sort((a, b) => (keyed.length ? a.k.localeCompare(b.k) : a.at - b.at))[0].k;
+  };
+  const fmt = (y, m, d) => y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+  const dayOf = d => fmt(d.getFullYear(), d.getMonth() + 1, d.getDate());
+
   /* ---------- F2: what the right-click menu kept (extension, see background.js) ---------- */
   async function takeInbox() {
     if (!ML.IS_EXT || !chrome.storage || !chrome.storage.local || !S.tasks) return;
@@ -192,7 +219,16 @@
     let last = '';
     items.forEach(it => {
       const url = cleanUrl(it.url), title = String(it.title || '').slice(0, 120), text = String(it.text || '').trim().slice(0, 500);
-      if (it.kind === 'task') {
+      if (it.kind === 'mail') {
+        S.tasks = S.tasks.filter(x => !x.sample);
+        const clean = String(it.subject || title).replace(/\s*-\s*[^-]*(gmail|outlook)[^-]*$/i, '').trim();
+        const task = { id: uid(), title: (clean || text || t('cap_mail_title')).slice(0, 120), mins: 15, pri: 'med', done: false, created: it.at || Date.now() };
+        const due = ML.findDate(String(it.body || '') + ' ' + clean);
+        if (due) task.due = due;
+        if (url) task.links = [url];
+        if (it.body) task.notes = String(it.body).trim().slice(0, 600);
+        S.tasks.push(task); last = due ? t('cap_mail_due', { title: task.title, d: ML.parseDay(due).toLocaleDateString(ML.locale(), { day: 'numeric', month: 'long' }) }) : t('cap_task', { title: task.title });
+      } else if (it.kind === 'task') {
         S.tasks = S.tasks.filter(x => !x.sample);
         const task = { id: uid(), title: (text || title || host(url || '')).slice(0, 120), mins: 30, pri: 'med', done: false, created: it.at || Date.now() };
         if (url) task.links = [url];

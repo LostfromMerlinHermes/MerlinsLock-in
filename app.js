@@ -470,17 +470,32 @@
   armedButton($('clear-parked'), 'clear_all', () => { S.parked = []; save(); renderAll(); });
 
   /* ---------- Tabs ---------- */
-  const TABS = { plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'] };
+  const TABS = { plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'], subjects: ['t-subjects', 'tab-subjects'], lectures: ['t-lectures', 'tab-lectures'], room: ['t-room', 'tab-room'], guide: ['t-guide', 'tab-guide'] };
+  // Spaces (3.58): the bar has Plan, Day, Calendar, Study and You; Study and You keep their tabs in a second row
+  const SPACE = { notes: 'study', lib: 'study', study: 'study', subjects: 'study', lectures: 'study', learn: 'study', grim: 'you', room: 'you', guide: 'you' };
+  const SPACE_FIRST = { study: 'notes', you: 'grim' };
+  ML.SPACE = SPACE;
+  ML.addStrings({ fr: { sp_study: 'Étude', sp_you: 'Toi', tab_cards: 'Cartes' }, en: { sp_study: 'Study', sp_you: 'You', tab_cards: 'Cards' } });
   function setTab(name) {
     if (name === 'park') { S.plan.pview = 'inbox'; name = 'plan'; if (ML.renderTasks) ML.renderTasks(); } // Parked became the Plan's Inbox view (3.56)
     if (!TABS[name]) name = 'plan';
-    S.tab = name; save();
+    S.tab = name;
+    const sp = SPACE[name] || '';
+    if (sp) { S.spaceTab = Object.assign({}, S.spaceTab, { [sp]: name }); }
+    save();
     for (const [k, [b, p]] of Object.entries(TABS)) { $(b).setAttribute('aria-selected', k === name); $(p).hidden = k !== name; }
+    ['study', 'you'].forEach(k => $('sp-' + k).setAttribute('aria-selected', k === sp));
+    $('subtabs').hidden = !sp; $('subtabs').dataset.space = sp;
+    if (sp) { const r = $('subtabs'), b = $(TABS[name][0]); r.scrollLeft = b.offsetLeft - r.offsetLeft - (r.clientWidth - b.offsetWidth) / 2; } // a narrow row keeps the current tab in view
     if (name === 'grim') renderGrimoire();
     emit('tab', name);
   }
+  const spaceTab = sp => (S.spaceTab && S.spaceTab[sp]) || SPACE_FIRST[sp];
+  ML.spaceTab = spaceTab;
   for (const k of Object.keys(TABS)) $(TABS[k][0]).onclick = () => setTab(k);
-  $('seq-badge').onclick = () => { setTab('grim'); $('t-grim').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  ['study', 'you'].forEach(k => { $('sp-' + k).onclick = () => setTab(spaceTab(k)); });
+  $('t-shop').onclick = () => ML.openShop && ML.openShop();
+  $('seq-badge').onclick = () => { setTab('grim'); $('sp-you').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   ML.setTab = setTab;
 
   /* ---------- Timer ---------- */
@@ -998,7 +1013,7 @@
   });
 
   /* ---------- Keyboard shortcuts ---------- */
-  const KEYS = [['Espace / Space', 'key_space'], ['N', 'key_n'], ['P', 'key_p'], ['S', 'key_s'], ['C', 'key_c'], ['F', 'key_f'], ['1–8', 'key_tabs'], ['?', 'key_help'], ['Échap / Esc', 'key_esc']];
+  const KEYS = [['Espace / Space', 'key_space'], ['N', 'key_n'], ['P', 'key_p'], ['S', 'key_s'], ['C', 'key_c'], ['F', 'key_f'], ['1–5', 'key_tabs'], ['?', 'key_help'], ['Échap / Esc', 'key_esc']];
   function showHelp() {
     $('help-keys').innerHTML = [...KEYS, ...(ML.planKeys || [])].map(([k, d]) => `<dt><kbd>${esc(k)}</kbd></dt><dd>${esc(t(d))}</dd>`).join('');
     openOverlay('help');
@@ -1016,7 +1031,7 @@
     else if (k === 's') { emit('gesture'); emit('sound:toggle'); }
     else if (k === 'c') $('compact-btn').click();
     else if (k === 'f') openFloat();
-    else if ('12345678'.includes(k)) setTab(['plan', 'day', 'cal', 'notes', 'lib', 'study', 'learn', 'grim'][+k - 1]);
+    else if ('12345'.includes(k)) setTab(['plan', 'day', 'cal', spaceTab('study'), spaceTab('you')][+k - 1]);
     else if (e.key === '?') showHelp();
   });
 

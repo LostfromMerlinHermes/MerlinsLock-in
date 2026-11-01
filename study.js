@@ -114,8 +114,8 @@
   };
   ICONS.room = '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2.5 20c.5-3.5 2.8-5.5 5.5-5.5s5 2 5.5 5.5M11 15.5c1-.7 2.8-1 5-1 2.7 0 5 2 5.5 5.5"/>';
   ICONS.library = '<path d="M5 3.5h4v17H5zM10.5 3.5h4v17h-4z"/><path d="M16.2 4.6l3.8-1 3 16-3.8 1z" transform="translate(-1.2 .3)"/>';
-  const TOOLS = ['cards', 'search', 'translate', 'tools', 'room'];
-  const FEATS = ['cards', 'library', 'search', 'translate', 'tools', 'room']; // Library has its own tab since 3.55, same Premium page
+  const TOOLS = ['cards', 'search', 'translate', 'tools']; // Room has its own tab, free, since 3.58
+  const FEATS = ['cards', 'library', 'search', 'translate', 'tools']; // Library has its own tab since 3.55, same Premium page
   const multiline = s => esc(s).replace(/\n/g, '<br>');
 
   /* ---------- Rendering ---------- */
@@ -140,7 +140,6 @@
     }
     const el = $('st-body'); if (!el) return;
     const tool = ST().tool;
-    if (tool === 'room') { if (ML.Rooms) ML.Rooms.bind(el); return; }
     el.innerHTML = tool === 'search' ? searchHtml() : tool === 'translate' ? translateHtml() : tool === 'tools' ? toolsHtml() : cardsHtml();
     if (tool === 'search' && !sres) { const i = $('sr-q'); if (i && innerWidth >= 900) i.focus(); }
   }
@@ -647,20 +646,22 @@
     if (cur.trim()) out.push(cur);
     return out.flatMap(c => (c.length > 450 ? c.match(/[\s\S]{1,450}/g) : [c]));
   }
+  async function translateText(text, from, to) {
+    const res = [];
+    for (const c of chunks(text)) {
+      if (!c.trim()) { res.push(c); continue; }
+      const r = await tfetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(c)}&langpair=${from}|${to}`).then(x => x.json());
+      if (!r || !r.responseData || (r.responseStatus && +r.responseStatus !== 200)) throw new Error('tr');
+      res.push(textOf(r.responseData.translatedText));
+    }
+    return res.join(' ').replace(/\s+\n/g, '\n').trim();
+  }
+  ML.translateText = translateText;
   async function translate() {
     const text = trIn.trim(); if (!text) return;
     const { from, to } = ST().tr;
     trBusy = true; trErr = false; renderTool();
-    try {
-      const res = [];
-      for (const c of chunks(text)) {
-        if (!c.trim()) { res.push(c); continue; }
-        const r = await tfetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(c)}&langpair=${from}|${to}`).then(x => x.json());
-        if (!r || !r.responseData || (r.responseStatus && +r.responseStatus !== 200)) throw new Error('tr');
-        res.push(textOf(r.responseData.translatedText));
-      }
-      trOut = res.join(' ').replace(/\s+\n/g, '\n').trim();
-    } catch (e) { trErr = true; }
+    try { trOut = await translateText(text, from, to); } catch (e) { trErr = true; }
     trBusy = false;
     if (ST().tool === 'translate') renderTool();
   }
@@ -680,22 +681,22 @@
 
   /* ---------- Toolbox: dictionary, citations, unit converter ---------- */
   function toolsHtml() {
-    const sub = ST().sub || 'dict';
-    return `<div class="seg-toggle st-sub" role="group">${['exams', 'dict', 'cite', 'units', 'calc'].map(k => `<button type="button" data-stsub="${k}" aria-pressed="${sub === k}">${esc(t('tl_' + k))}</button>`).join('')}</div>
-      ${sub === 'cite' ? citeHtml() : sub === 'units' ? unitsHtml() : sub === 'exams' ? examsHtml() : sub === 'calc' ? calcHtml() : dictHtml()}`;
+    const sub = ST().sub && ST().sub !== 'exams' ? ST().sub : 'dict'; // exams moved to the Subjects tab (3.58)
+    return `<div class="seg-toggle st-sub" role="group">${['dict', 'cite', 'units', 'calc'].map(k => `<button type="button" data-stsub="${k}" aria-pressed="${sub === k}">${esc(t('tl_' + k))}</button>`).join('')}</div>
+      ${sub === 'cite' ? citeHtml() : sub === 'units' ? unitsHtml() : sub === 'calc' ? calcHtml() : dictHtml()}`;
   }
 
   // Exam planner: an exam date + hours of revision → spaced revision blocks in the Day planner and the exam in the calendar
   const OFFSETS = [21, 14, 10, 7, 5, 3, 2, 1];
   const daysTo = k => Math.round((ML.parseDay(k) - ML.parseDay(today())) / 864e5);
-  function planExam(name, date, hours, deckId) {
+  function planExam(name, date, hours, deckId, subject) {
     const left = daysTo(date); if (left < 1) return { n: 0 };
-    const id = uid(), ex = { id, name, date, hours, deckId: deckId || null, created: Date.now(), blocks: [], eventId: uid() };
+    const id = uid(), ex = { id, name, date, hours, deckId: deckId || null, subject: subject || null, created: Date.now(), blocks: [], eventId: uid() };
     S.events.push({ id: ex.eventId, title: t('ex_event', { name }), date, start: '', mins: 60, cat: 'deadline', repeat: 'none', remind: 1440, notes: '' });
-    let days = OFFSETS.filter(o => o <= left);
+    let days = hours > 0 ? OFFSETS.filter(o => o <= left) : []; // without hours: only the date and the countdown
     const maxSessions = Math.max(1, Math.round(hours * 60 / 30));
     if (days.length > maxSessions) days = days.slice(days.length - maxSessions); // keep the ones closest to the exam
-    const per = Math.min(180, Math.max(30, Math.round(hours * 60 / days.length / 15) * 15));
+    const per = days.length ? Math.min(180, Math.max(30, Math.round(hours * 60 / days.length / 15) * 15)) : 0;
     days.forEach(o => { const b = ML.planBlock ? ML.planBlock(addDays(date, -o), per, t('ex_block', { name }), { color: 8, exam: id }) : null; if (b) ex.blocks.push(b.id); });
     ST().exams = ST().exams || []; ST().exams.push(ex);
     save(); emit('events'); if (ML.renderAll) ML.renderAll();
@@ -706,27 +707,7 @@
     S.blocks = S.blocks.filter(b => b.exam !== id); S.events = S.events.filter(e => e.id !== ex.eventId);
     ST().exams = ST().exams.filter(x => x.id !== id); save(); emit('events'); if (ML.renderAll) ML.renderAll();
   }
-  function examsHtml() {
-    const list = (ST().exams || []).filter(x => daysTo(x.date) >= -1).sort((a, b) => a.date.localeCompare(b.date));
-    return `<p class="hint">${esc(t('ex_intro'))}</p>
-      <form class="fc-add" id="ex-form" autocomplete="off">
-        <input name="name" maxlength="60" placeholder="${esc(t('ex_name_ph'))}" required>
-        <div class="t-edit-row">
-          <label><span>${esc(t('ex_date'))}</span><input type="date" name="date" min="${addDays(today(), 1)}" required></label>
-          <label><span>${esc(t('ex_hours'))}</span><input type="number" name="hours" min="1" max="60" value="6" inputmode="numeric"></label>
-          <label><span>${esc(t('ex_deck'))}</span><select name="deck"><option value="">—</option>${ST().decks.map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select></label>
-        </div>
-        <button type="submit" class="primary small">${esc(t('ex_plan'))}</button>
-      </form>
-      ${list.length ? `<ul class="ex-list">${list.map(x => {
-        const left = daysTo(x.date), done = S.blocks.filter(b => b.exam === x.id && b.done).length, total = S.blocks.filter(b => b.exam === x.id).length;
-        return `<li><div class="ex-count ${left <= 3 ? 'soon' : ''}"><b>${left > 0 ? 'J-' + left : left === 0 ? t('today') : '✓'}</b></div>
-          <div class="ex-info"><b>${esc(x.name)}</b><small>${esc(ML.parseDay(x.date).toLocaleDateString(ML.locale(), { weekday: 'short', day: 'numeric', month: 'long' }))} · ${esc(t('ex_sessions', { d: done, n: total }))}</small>
-          <i class="ex-bar"><em style="width:${total ? (done / total * 100).toFixed(0) : 0}%"></em></i></div>
-          <div class="ex-acts">${x.deckId && ST().decks.some(d => d.id === x.deckId) ? `<button type="button" class="small" data-fc-review="${x.deckId}">${esc(t('fc_review'))}</button>` : ''}
-          <button type="button" class="icon-btn" data-exdel="${x.id}" aria-label="${esc(t('delete'))}">✕</button></div></li>`;
-      }).join('')}</ul>` : ''}`;
-  }
+  ML.planExam = planExam; ML.removeExam = removeExam; // the form and the list are in the Subjects tab (subjects.js)
 
   // fetch with a time limit, so a slow service never leaves a spinner forever
   const tfetch = (url, ms = 8000) => { const c = new AbortController(), tm = setTimeout(() => c.abort(), ms); return fetch(url, { signal: c.signal }).finally(() => clearTimeout(tm)); };
@@ -1044,7 +1025,6 @@
   listen('click', e => {
     const b = e.target.closest('button'); if (!b || ST().tool !== 'tools') return;
     if (b.dataset.stsub) { ST().sub = b.dataset.stsub; save(); renderTool(); return; }
-    if (b.dataset.exdel) { removeExam(b.dataset.exdel); toast(t('ex_deleted')); renderTool(); return; }
     if (b.dataset.fcReview) { e.stopImmediatePropagation(); ST().tool = 'cards'; save(); render(); startReview(b.dataset.fcReview); return; }
     if (b.dataset.dclang) { dlang = b.dataset.dclang; if (dq) define(dq); else renderTool(); return; }
     if (b.hasAttribute('data-dcsay') && dres) { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(dres.word); u.lang = dres.lang; speechSynthesis.speak(u); } catch (err) {} return; }
@@ -1060,13 +1040,6 @@
   });
   listen('submit', e => {
     const f = e.target;
-    if (f.id === 'ex-form') {
-      e.preventDefault(); e.stopImmediatePropagation();
-      const name = f.name.value.trim(), date = f.date.value, hours = Math.max(1, Math.min(60, +f.hours.value || 6));
-      if (!name || !date) return;
-      const r = planExam(name, date, hours, f.deck.value);
-      toast(r.n ? t('ex_done', { n: r.n, m: ML.fmtMins(r.per) }) : t('ex_none'), { ms: 5000 }); renderTool(); return;
-    }
     if (f.id === 'dc-form') { e.preventDefault(); e.stopImmediatePropagation(); const q = $('dc-q').value.trim(); if (q) define(q); }
     else if (f.id === 'ct-form') { e.preventDefault(); e.stopImmediatePropagation(); const q = $('ct-q').value.trim(); if (q) citeLookup(q); }
     else if (f.id === 'ct-manual') {
