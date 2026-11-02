@@ -154,6 +154,9 @@
     const label = d === td ? t('today') : d === ML.addDays(td, 1) ? t('tomorrow') : ML.parseDay(d).toLocaleDateString(ML.locale(), { day: 'numeric', month: 'short' });
     return `<span class="chip due ${cls}">${esc(d < td ? t('late') + ' · ' + label : label)}</span>`;
   }
+  // On a phone a task is two lines; one tap opens it (its steps, chips and buttons), one tap on its title then edits it
+  let mOpen = null;
+  const isPhone = () => document.documentElement.classList.contains('mnav-on');
   function taskHtml(task, isNext) {
     if (task.id === editingId) return editHtml(task);
     const active = task.id === S.activeId;
@@ -163,7 +166,7 @@
     const stepXp = Math.max(2, Math.round(ML.taskXp(task) / 10));
     const extra = ML.taskBadges ? ML.taskBadges(task) : '';
     const pinned = !!task.pin && !task.done;
-    return `<li class="task ${task.done ? 'done' : ''} ${active ? 'active' : ''} ${isNext && !active ? 'next' : ''} ${pinned ? 'pinned' : ''} ${extra.cls || ''}" data-id="${task.id}">
+    return `<li class="task ${task.done ? 'done' : ''} ${active ? 'active' : ''} ${isNext && !active ? 'next' : ''} ${pinned ? 'pinned' : ''} ${mOpen === task.id ? 'm-open' : ''} ${extra.cls || ''}" data-id="${task.id}">
       ${task.done ? '' : `<span class="t-grip" title="${esc(t('pl_drag'))}" aria-hidden="true"><i></i><i></i></span>`}
       <button type="button" class="check" data-act="toggle" aria-label="${esc(task.done ? t('mark_undone') : t('mark_done'))}">
         <svg viewBox="0 0 12 12"><path d="M2 6.5 L5 9 L10 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -260,6 +263,7 @@
   }
   ML.renderTasks = renderTasks;
   ML.editTask = id => { editingId = id; renderTasks(); }; // plan.js: a title tapped in the table opens the edit form in the list
+  ML.editingId = () => editingId;
   // Ticking a step earns a little XP once (a tenth of the task's XP, at least 2); the last step finishes the task.
   // Unticking a step of a finished task reopens it (its XP is not given twice).
   function setSubDone(task, sub, done) {
@@ -290,7 +294,13 @@
   ML.completeTask = completeTask;
 
   $('tasks').addEventListener('click', e => {
-    const btn = e.target.closest('[data-act]'); if (!btn) return;
+    const btn = e.target.closest('[data-act]');
+    if (isPhone()) {
+      const row = e.target.closest('.task:not(.editing)');
+      const tapRow = row && !row.closest('.selecting') && !e.target.closest('input, label, form, select, a') && (!btn ? !e.target.closest('button') : btn.dataset.act === 'edit' && mOpen !== row.dataset.id);
+      if (tapRow) { mOpen = mOpen === row.dataset.id ? null : row.dataset.id; renderTasks(); return; }
+    }
+    if (!btn) return;
     const act = btn.dataset.act;
     if (act === 'more') { S.showAll = !S.showAll; save(); renderTasks(); return; }
     const li = btn.closest('.task'); if (!li) return;
@@ -470,29 +480,33 @@
   armedButton($('clear-parked'), 'clear_all', () => { S.parked = []; save(); renderAll(); });
 
   /* ---------- Tabs ---------- */
-  const TABS = { plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'], subjects: ['t-subjects', 'tab-subjects'], lectures: ['t-lectures', 'tab-lectures'], room: ['t-room', 'tab-room'], guide: ['t-guide', 'tab-guide'] };
-  // Spaces (3.58): the bar has Plan, Day, Calendar, Study and You; Study and You keep their tabs in a second row
-  const SPACE = { notes: 'study', lib: 'study', study: 'study', subjects: 'study', lectures: 'study', learn: 'study', grim: 'you', room: 'you', guide: 'you' };
-  const SPACE_FIRST = { study: 'notes', you: 'grim' };
+  // today, shome and yhome are the phone's home pages (today.js): they have no tab button
+  const TABS = { today: [null, 'tab-today'], shome: [null, 'tab-shome'], yhome: [null, 'tab-yhome'], plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'], subjects: ['t-subjects', 'tab-subjects'], lectures: ['t-lectures', 'tab-lectures'], room: ['t-room', 'tab-room'], guide: ['t-guide', 'tab-guide'] };
+  // Spaces: Plan, Study and You. A computer lists a space's sections in a column, a phone opens its home page (3.60)
+  const SPACE = { plan: 'plan', day: 'plan', cal: 'plan', notes: 'study', lib: 'study', study: 'study', subjects: 'study', lectures: 'study', learn: 'study', shome: 'study', grim: 'you', room: 'you', guide: 'you', yhome: 'you', today: 'today' };
+  const SPACE_FIRST = { plan: 'plan', study: 'notes', you: 'grim' }, HOME_OF = { today: 'plan', shome: 'study', yhome: 'you' };
+  const wideNow = () => !document.documentElement.classList.contains('mnav-on') && matchMedia('(min-width: 900px)').matches;
   ML.SPACE = SPACE;
   ML.addStrings({ fr: { sp_study: 'Étude', sp_you: 'Toi', tab_cards: 'Cartes' }, en: { sp_study: 'Study', sp_you: 'You', tab_cards: 'Cards' } });
   function setTab(name) {
     if (name === 'park') { S.plan.pview = 'inbox'; name = 'plan'; if (ML.renderTasks) ML.renderTasks(); } // Parked became the Plan's Inbox view (3.56)
     if (!TABS[name]) name = 'plan';
+    if (HOME_OF[name] && wideNow()) name = spaceTab(HOME_OF[name]); // the home pages are for phones
     S.tab = name;
     const sp = SPACE[name] || '';
-    if (sp) { S.spaceTab = Object.assign({}, S.spaceTab, { [sp]: name }); }
+    if (sp && !HOME_OF[name]) { S.spaceTab = Object.assign({}, S.spaceTab, { [sp]: name }); }
     save();
-    for (const [k, [b, p]] of Object.entries(TABS)) { $(b).setAttribute('aria-selected', k === name); $(p).hidden = k !== name; }
+    for (const [k, [b, p]] of Object.entries(TABS)) { if (b) $(b).setAttribute('aria-selected', k === name); $(p).hidden = k !== name; }
+    $('t-plan').setAttribute('aria-selected', sp === 'plan');
     ['study', 'you'].forEach(k => $('sp-' + k).setAttribute('aria-selected', k === sp));
-    $('subtabs').hidden = !sp; $('subtabs').dataset.space = sp;
-    if (sp) { const r = $('subtabs'), b = $(TABS[name][0]); r.scrollLeft = b.offsetLeft - r.offsetLeft - (r.clientWidth - b.offsetWidth) / 2; } // a narrow row keeps the current tab in view
+    $('subtabs').hidden = !SPACE_FIRST[sp]; $('subtabs').dataset.space = sp;
     if (name === 'grim') renderGrimoire();
     emit('tab', name);
   }
-  const spaceTab = sp => (S.spaceTab && S.spaceTab[sp]) || SPACE_FIRST[sp];
+  function spaceTab(sp) { return (S.spaceTab && S.spaceTab[sp]) || SPACE_FIRST[sp]; }
   ML.spaceTab = spaceTab;
-  for (const k of Object.keys(TABS)) $(TABS[k][0]).onclick = () => setTab(k);
+  for (const k of Object.keys(TABS)) if (TABS[k][0]) $(TABS[k][0]).onclick = () => setTab(k);
+  $('t-plan').onclick = () => setTab(spaceTab('plan'));
   ['study', 'you'].forEach(k => { $('sp-' + k).onclick = () => setTab(spaceTab(k)); });
   $('t-shop').onclick = () => ML.openShop && ML.openShop();
   $('seq-badge').onclick = () => { setTab('grim'); $('sp-you').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
@@ -587,6 +601,29 @@
   }
   ML.lockIn = lockIn;
 
+  // Fits a time to the room it has: long times (1:30:00) and small screens shrink it instead of letting it run over the dial or off the screen
+  const fitMemo = new WeakMap();
+  function fitTime(el, room, tag) {
+    if (!el || !(room > 0)) return;
+    const key = el.textContent.length + '|' + Math.round(room) + '|' + (tag || '');
+    if (fitMemo.get(el) === key) return;
+    el.style.fontSize = '';
+    const r = document.createRange(); r.selectNodeContents(el);
+    const w = r.getBoundingClientRect().width; if (!w) return; // hidden screen: done when it shows
+    fitMemo.set(el, key);
+    if (w > room) el.style.fontSize = (parseFloat(getComputedStyle(el).fontSize) * room / w).toFixed(1) + 'px';
+  }
+  ML.fitTime = fitTime;
+  // The share of the dial the time may take is per world (--clock-room in app.css): it stays inside the graduations
+  function fitClock() {
+    const c = $('clock'), wrap = c.closest('.ring-wrap'), w = wrap.clientWidth; if (!w) return;
+    const html = document.documentElement;
+    fitTime(c, w * (parseFloat(getComputedStyle(wrap).getPropertyValue('--clock-room')) || .62), html.dataset.theme + (html.dataset.light || ''));
+  }
+  if (window.ResizeObserver) new ResizeObserver(fitClock).observe(document.querySelector('#sigil-card .ring-wrap')); // also fires when the Timer screen comes back on phones
+  new MutationObserver(fitClock).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-light'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fitMemo.delete($('clock')); fitClock(); });
+
   function isCompact() { return $('sigil-card').classList.contains('compact'); }
   function renderTimer() {
     const rem = remainingNow(), frac = Math.max(0, rem) / S.total;
@@ -599,6 +636,7 @@
     $('m-break').setAttribute('aria-pressed', S.mode === 'break');
     const clock = fmtClock(rem);
     $('clock').textContent = clock; $('c-clock').textContent = clock;
+    fitClock();
     $('arc').style.strokeDashoffset = ARC_C * (1 - frac);
     $('tip').setAttribute('transform', `rotate(${(frac * 360).toFixed(2)} 120 120)`); // chronograph pointer at "now" (shown by themes that want it)
     $('c-prog').style.width = ((1 - frac) * 100).toFixed(2) + '%';
@@ -1026,7 +1064,7 @@
     if (!$('settings').hidden) return;
     const k = e.key.toLowerCase();
     if (e.key === ' ') { e.preventDefault(); toggleTimer(); }
-    else if (k === 'n') { e.preventDefault(); setTab('plan'); $('new-title').focus(); }
+    else if (k === 'n') { e.preventDefault(); setTab('plan'); if (isPhone() && ML.planSheet) ML.planSheet(true); else $('new-title').focus(); }
     else if (k === 'p') { e.preventDefault(); $('park-input').focus(); }
     else if (k === 's') { emit('gesture'); emit('sound:toggle'); }
     else if (k === 'c') $('compact-btn').click();

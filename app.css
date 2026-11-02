@@ -204,7 +204,10 @@ h1 span { color: var(--accent); text-shadow: 0 0 18px var(--glow); }
 .cbar-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
 .cbar-btns .primary { font-family: var(--f-display); letter-spacing: .08em; text-transform: uppercase; font-size: 13px; }
 
-.ring-wrap { position: relative; width: min(100%, 290px); aspect-ratio: 1; max-width: 100%; margin: 0 auto; }
+.ring-wrap { position: relative; width: min(100%, 290px); aspect-ratio: 1; max-width: 100%; margin: 0 auto; --clock-room: .62; }
+:root[data-theme="arcade"] .ring-wrap { --clock-room: .54; } /* inside the numerals */
+:root[data-theme="sorcerer"]:not([data-light]) .ring-wrap { --clock-room: .58; } /* inside the runes */
+:root[data-theme="neoncity"]:not([data-light]) .ring-wrap { --clock-room: .6; }
 .ring { display: block; width: 100%; height: 100%; overflow: visible; } /* block: inline, its baseline gap made the wrap 6 px taller than wide and every dial sat off-centre */
 .runes { transform-origin: 120px 120px; animation: spin 140s linear infinite; animation-play-state: paused; }
 .running .runes { animation-play-state: running; }
@@ -1375,7 +1378,6 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-light="1"][data-theme="sanctuary"][data-washi-level="peint"] .overlay.deep { background: transparent; }
 /* opacity, not visibility: the dial's lit ticks carry visibility="visible" attributes (app.js) that would show through */
 :root.deep-on[data-light="1"][data-theme="sanctuary"][data-washi-level="peint"] .app, :root.deep-on[data-light="1"][data-theme="sanctuary"][data-washi-level="peint"] .mnav,
-:root.deep-on[data-light="1"][data-theme="sanctuary"][data-washi-level="peint"] .mnav-run { opacity: 0; pointer-events: none; }
 :root[data-light="1"][data-theme="sanctuary"][data-washi-level="peint"] .deep-aura, :root[data-light="1"][data-theme="sanctuary"][data-washi-level="peint"] .deep-dial svg { display: none; }
 .deep-dial canvas.dd-ink { position: absolute; left: 50%; top: 50%; width: 130%; height: 130%; translate: -50% -50%; pointer-events: none; }
 /* Washi's two settings (3.36, washi.js): a quiet capsule right after the World button in the header; on phones and the
@@ -2088,7 +2090,7 @@ html.ink-in .app { -webkit-mask: var(--ink-blot) var(--ink-app) no-repeat; mask:
   background: radial-gradient(ellipse 90% 55% at 50% 36%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 72%), color-mix(in srgb, var(--void) 62%, transparent); }
 .ep.out { opacity: 0; pointer-events: none; }
 html.ep-on .app { opacity: 0; } /* not visibility: the dial's lit ticks carry visibility="visible" attributes */
-html.ep-on .mnav, html.ep-on .mnav-run { visibility: hidden; }
+html.ep-on .mnav { visibility: hidden; }
 .ep-in { display: grid; grid-template-rows: auto minmax(190px, 1fr) auto; gap: 14px; /* the dial row: at least 190 px, the sheet scrolls on very short windows */ width: min(100%, 440px); min-height: 100%; margin: 0 auto;
   padding: calc(22px + env(safe-area-inset-top, 0px)) 20px calc(22px + env(safe-area-inset-bottom, 0px)); }
 .ep-top { position: relative; display: grid; justify-items: center; gap: 8px; text-align: center; }
@@ -2107,7 +2109,7 @@ html.ep-on .mnav, html.ep-on .mnav-run { visibility: hidden; }
 .ep-stage { position: relative; }
 .ep-dial { position: absolute; left: 50%; top: 50%; width: 290px; height: 290px; margin: -145px 0 0 -145px; transform: scale(var(--ep-s, .62)); }
 @media (pointer: coarse) { .deep-esc { display: none; } } /* no Esc key on a phone: the close button is there */
-.ep-dial .ring-wrap { width: 290px; margin: 0 !important; pointer-events: none; }
+:root .ep-dial .ring-wrap { width: 290px; margin: 0 !important; pointer-events: none; } /* :root: stays above the phone's dial width, or the clone sits off-centre */
 .ep-pick { display: grid; gap: 14px; }
 .ep-row { display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; align-items: center; gap: 8px; }
 .ep-arr { width: 48px; height: 48px; border-radius: 50%; }
@@ -2194,6 +2196,11 @@ html.deep-on body { overflow: hidden; }
 .deep-subs { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; text-align: left; }
 .deep-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .deep-btns .primary { min-width: 140px; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .08em; }
+@media (max-width: 480px) { /* the three buttons stay on one row on a phone */
+  .deep-btns { flex-wrap: nowrap; width: 100%; }
+  .deep-btns button { flex: 1 1 0; min-width: 0; padding-inline: 6px; font-size: 13px; line-height: 1.15; }
+  .deep-btns .primary { flex-grow: 1.3; min-width: 0; }
+}
 .deep-inner .park { width: 100%; grid-template-columns: minmax(0, 1fr) auto; }
 .deep-subs li label { display: flex; gap: 8px; align-items: center; color: var(--mist); }
 .deep-subs li:has(input:checked) span { text-decoration: line-through; opacity: .6; }
@@ -3129,7 +3136,7 @@ html:not(.mnav-on) .fc-viewpick { display: flex; }
 .fc-stage { position: fixed; inset: 0; z-index: 45; display: flex; flex-direction: column; color: var(--text); }
 .fc-stage[hidden] { display: none; }
 html.fc-stage-on { overflow: hidden; }
-html.fc-full .app, html.fc-full .mnav, html.fc-full .mnav-run { opacity: 0; pointer-events: none; }
+html.fc-full .app, html.fc-full .mnav { opacity: 0; pointer-events: none; }
 .fc-stage .fc-review { flex: 1; min-height: 0; grid-template-rows: auto minmax(0, 1fr) auto auto; }
 .fc-stage .fc-review.fc-done { flex: none; margin: auto; grid-template-rows: none; }
 .fc-stage .fc-card { min-height: 0; }
@@ -3357,9 +3364,8 @@ html.mnav-on .overlay.end-ov { place-items: end center; padding-bottom: max(10px
 html.mnav-on .end-sheet { border-bottom-left-radius: calc(var(--radius) + 2px); width: 100%; }
 
 /* =================== Phone / side panel navigation (nav.js, html.mnav-on under 900px) =================== */
-.mnav, .mnav-run { display: none; }
+.mnav { display: none; }
 html.mnav-on body { padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
-html.mnav-on.mnav-has-run body { padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
 html.mnav-on .tabs, html.mnav-on #compact-btn { display: none; }
 html.mnav-on[data-mview="timer"] .panel { display: none; }
 html.mnav-on[data-mview="tab"] .moodbar, html.mnav-on[data-mview="tab"] .sigil-card { display: none; }
@@ -3373,17 +3379,7 @@ html.mnav-on .mnav { display: grid; grid-template-columns: repeat(6, minmax(0, 1
 .mnav button[aria-current="page"]::before { content: ""; position: absolute; top: -7px; left: 30%; right: 30%; height: 3px; border-radius: 0 0 3px 3px; background: var(--accent); box-shadow: 0 0 10px var(--glow); }
 .mnav button:active svg { transform: scale(.88); }
 .mnav-dot { position: absolute; top: 2px; right: calc(50% - 20px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 99px; background: var(--accent-2); color: var(--ink); font: 700 10px/16px var(--f-mono); font-style: normal; }
-/* Running strip above the bar: tap = back to the dial, the round button = pause / resume */
-html.mnav-on .mnav-run:not([hidden]) { display: flex; align-items: center; gap: 10px; position: fixed; z-index: 39; left: 8px; right: 8px; bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  height: 42px; padding: 0 6px 0 14px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); border-radius: 14px; text-align: left;
   background: color-mix(in srgb, var(--panel-2) 92%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 8px 24px -10px rgba(0, 0, 0, .6), 0 0 18px -10px var(--glow); animation: pop-up .2s ease-out; }
-.mnav-run .mr-prog { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--accent); box-shadow: 0 0 8px var(--glow); }
-.mnav-run.brk .mr-prog { background: var(--accent-2); }
-.mnav-run .mr-clock { font-family: var(--f-mono); font-size: 16px; font-weight: 700; color: var(--accent); flex: none; }
-.mnav-run.paused .mr-clock { color: var(--mist); animation: caret 1.4s steps(1) infinite; }
-.mnav-run .mr-what { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 500; color: var(--text); }
-.mnav-run .mr-act { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--ink); }
-.mnav-run .mr-act svg { width: 15px; height: 15px; fill: currentColor; }
 /* the bottom bar (z 40) sits above the overlays (z 10): keep every sheet clear of it */
 html.mnav-on .overlay:not(.end-ov):not(.deep):not(#shop) { --ov-y: calc(92px + env(safe-area-inset-bottom, 0px) + env(safe-area-inset-top, 0px)); padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 /* ---------- Phone pass (3.58) ---------- */
@@ -3395,7 +3391,7 @@ html.mnav-on[data-mview="tab"] .logo { width: 32px; height: 32px; }
 html.mnav-on[data-mview="tab"] .brand-text h1, html.mnav-on[data-mview="tab"] .seq { display: none; }
 html.mnav-on[data-mview="tab"] .m-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--f-display); font-size: 20px; font-weight: 600; color: var(--text); }
 html.mnav-on[data-mview="tab"] .top-actions { flex-wrap: nowrap; flex: none; }
-html.mnav-on[data-mview="tab"] .top-actions > :not(#gold-chip, #quick-btn, #settings-btn) { display: none; }
+html.mnav-on[data-mview="tab"] .top-actions > :not(#search-btn, #quick-btn, #settings-btn) { display: none; }
 html.mnav-on[data-mview="tab"] #gold-chip em { display: none; }
 html.mnav-on[data-mview="tab"] .subtabs:not([hidden]) { margin: 0 -4px 6px; }
 html.mnav-on .subtabs button { min-height: 40px; font-size: 14px; padding: 4px 14px; }
@@ -3410,7 +3406,6 @@ html.mnav-on .pl-tray .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-wi
 html.mnav-on .pl-tray .tray-chip { flex: none; max-width: 70vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html.mnav-on .pl-tray .hint { display: none; }
 html.mnav-on .pl-scroll { max-height: calc(100dvh - 290px); min-height: 300px; }
-html.mnav-on.mnav-has-run .pl-scroll { max-height: calc(100dvh - 340px); }
 /* P4 Timer: the durations on one line; custom opens from a button; familiar and tower on one row */
 html.mnav-on .presets { display: flex; flex-wrap: wrap; gap: 4px; }
 html.mnav-on .presets > :not(button) { flex: 0 0 100%; }
@@ -3603,7 +3598,6 @@ html.mnav-on #custom-set { min-height: 42px; min-width: 48px; }
 html.mnav-on button.link:not(label .link, p .link) { min-height: 40px; display: inline-flex; align-items: center; } /* not the links inside a sentence */
 html.ep-on .toast { visibility: hidden; } /* it would show through the energy picker, behind its buttons */
 html.mnav-on .toast { bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
-html.mnav-on.mnav-has-run .toast { bottom: calc(128px + env(safe-area-inset-bottom, 0px)); }
 html.mnav-on .pl-pop { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); max-height: 60vh; }
 html.mnav-on[data-mview="tab"] .panel { animation: screen-in .22s ease-out; }
 html.mnav-on[data-mview="timer"] .sigil-card { animation: screen-in .22s ease-out; }
@@ -4066,3 +4060,183 @@ html.mnav-on .pl-projs .chip { flex: none; }
 .eye-line label { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
 .eye-line .icon-btn { min-width: 26px; min-height: 26px; }
 .ep-eyes { justify-self: center; align-self: center; margin: 2px auto; }
+
+/* =================== Navigation 3.60: today.js, search.js, gestures.js, nav.js =================== */
+/* ---------- The session and the work: two zones on a computer (O1) ---------- */
+.session { display: grid; gap: 14px; min-width: 0; }
+.subtabs [data-sp] { display: none; }
+.subtabs[data-space="plan"] [data-sp="plan"], .subtabs[data-space="study"] [data-sp="study"], .subtabs[data-space="you"] [data-sp="you"] { display: inline-flex; }
+.subtabs [hidden] { display: none !important; }
+.m-seg, .m-close, .m-back, .m-fab, .k-btn, #search-btn { display: none; }
+.sub-h { margin: 8px 0 2px; padding: 0 10px; font: 500 11px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mist); }
+.qa-wrap { display: grid; gap: inherit; }
+@media (min-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 360px) minmax(0, 1fr); }
+  .session { position: sticky; top: calc(10px + env(safe-area-inset-top, 0px)); max-height: calc(100vh - 20px); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; padding: 2px; }
+  .sigil-card { position: relative; top: auto; max-height: none; overflow: visible; scrollbar-gutter: auto; }
+  .moodbar { box-shadow: none; }
+  .mood-line { display: none; }
+  .mood-foot:not(:has(> :not(.mood-line))) { display: none; }
+  .moodbar .world-btn { width: 100%; justify-content: flex-start; }
+  .moodbar .world-car { margin-left: auto; }
+  .panel { grid-template-columns: 158px minmax(0, 1fr); column-gap: 18px; row-gap: 10px; align-items: start; }
+  .panel > .tabs { grid-column: 1 / -1; position: sticky; top: 0; z-index: 3; background: var(--veil); align-items: center; }
+  .panel > .subtabs { grid-column: 1; grid-row: 2; position: sticky; top: 48px; flex-direction: column; align-items: stretch; gap: 1px; padding: 0; max-height: calc(100vh - 60px); overflow-y: auto; scrollbar-width: thin; }
+  .panel > .subtabs button { width: 100%; justify-content: flex-start; min-height: 32px; padding: 4px 10px; border-radius: 6px; font-size: 13px; text-align: left; white-space: normal; }
+  .panel > .subtabs button[aria-selected=true] { border-color: transparent; }
+  .panel > .subtabs .count { margin-left: auto; }
+  .panel > .tabpanel { grid-column: 2; grid-row: 2; }
+  .panel > .subtabs .pl-side { display: grid; gap: 1px; }
+  .presets { display: flex; flex-wrap: wrap; gap: 4px; }
+  .presets > :not(button) { flex: 0 0 100%; }
+  .presets button { flex: 1 1 0; min-width: 0; padding-inline: 0; font-size: 12.5px; }
+  @media (hover: hover) { /* fewer buttons at rest: the secondary ones show on the row you are on */
+    .task:not(:hover):not(:focus-within) :is(.t-pin:not(.on), [data-act="del"], .subs-chip.ghosty) { visibility: hidden; }
+    .pgroup:not(:hover):not(:focus-within) > .pg-add { visibility: hidden; }
+  }
+  .panel > .subtabs:not([data-space="plan"]) .pl-side { display: none; }
+  .subtabs .pl-sit { display: flex; align-items: center; gap: 6px; }
+  .subtabs .pl-sit span:not(.pl-dot) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .subtabs .pl-sit small { margin-left: auto; }
+  .pl-cols, .pl-cols.pl-solo { grid-template-columns: minmax(0, 1fr); }
+  .pl-viewsrow { justify-content: flex-end; border: 0; }
+  .pl-viewsrow .pl-views { display: none; }
+  .pl-viewsrow:not(:has(.pl-tb)) { display: none; }
+  .pl-projs { display: none; }
+  .tabs .k-btn { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; min-height: 30px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 7px; font-family: var(--f-body); font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--mist); }
+  .tabs .k-btn:hover { color: var(--text); border-color: var(--line-2); }
+  .k-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+  .k-btn kbd { font: 500 10.5px var(--f-mono); padding: 1px 5px; border: 1px solid var(--line); border-radius: 4px; color: var(--mist); }
+}
+/* ---------- Search bar ---------- */
+.ksearch { position: fixed; inset: 0; z-index: 72; display: grid; justify-items: center; align-content: start; padding: 12vh 16px 16px; background: rgba(0, 0, 0, .5); }
+.ksearch[hidden] { display: none; }
+.k-box { display: grid; grid-template-rows: auto minmax(0, 1fr); width: min(600px, 100%); max-height: min(70vh, 560px); overflow: hidden; background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 12px; box-shadow: 0 24px 60px -20px rgba(0, 0, 0, .75); }
+.k-q { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); color: var(--mist); }
+.k-q svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.k-q input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 2px 0; background: none; box-shadow: none; color: var(--text); font-size: 16px; }
+.k-list { overflow-y: auto; padding: 6px; scrollbar-width: thin; }
+.k-h { margin: 8px 8px 3px; font: 500 11px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mist); }
+.k-it { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 40px; padding: 6px 10px; border: 0; border-radius: 7px; background: none; box-shadow: none; text-align: left; font-size: 14px; font-weight: 500; color: var(--text); }
+.k-it span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.k-it small { flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; font-weight: 400; color: var(--mist); }
+.k-it.on, .k-it:hover { background: var(--soft); }
+.k-it.on { box-shadow: inset 2px 0 0 var(--accent); }
+.k-none { margin: 0; padding: 18px 10px; text-align: center; color: var(--mist); }
+html.mnav-on .ksearch { padding: calc(8px + env(safe-area-inset-top, 0px)) 8px 8px; }
+html.mnav-on .k-box { max-height: min(66dvh, 560px); }
+/* ---------- Session mode (W): the time, the task and the course tools ---------- */
+.sess-tools { display: none; }
+html.sess .sess-tools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+html.sess .sess-tools button { min-width: 0; padding-inline: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
+html.sess .moodbar, html.sess #gold-chip, html.sess #buff-chip, html.sess #streak-pill, html.sess .seq, html.sess #quest-strip, html.sess .card-head .seg-toggle, html.sess .presets, html.sess .custom, html.sess .perch, html.sess .outside-tog, html.sess .task .chip.rar, html.sess .task .next-chip { display: none !important; }
+html.sess .card-head { justify-content: flex-end; }
+/* ---------- Phone header: one row ---------- */
+html.mnav-on .top { flex-wrap: nowrap; gap: 8px; }
+html.mnav-on .brand { min-width: 0; flex: 1; }
+html.mnav-on .brand-text { min-width: 0; }
+html.mnav-on .top-actions { flex-wrap: nowrap; flex: none; }
+html.mnav-on .top-actions > :not(#gold-chip, #search-btn, #quick-btn, #settings-btn, #install-btn) { display: none; }
+html.mnav-on #search-btn { display: inline-grid; }
+html.mnav-on #gold-chip em { display: none; }
+html.mnav-on[data-mview="timer"] .brand-text h1 { font-size: 17px; }
+html.mnav-on[data-mview="tab"] .m-title { font-size: 18px; }
+html.mnav-on[data-mview="tab"] .m-title { background: none; border: 0; box-shadow: none; padding: 0; min-width: 0; max-width: 100%; min-height: 0; text-align: left; }
+html.mnav-on[data-mview="tab"] .m-title:disabled { opacity: 1; cursor: default; }
+html.mnav-on[data-mview="tab"] .top { background: var(--veil); box-shadow: 0 0 0 8px var(--veil); } /* the title stays readable over any world */
+html.mnav-on .m-title.has-menu::after { content: ""; display: inline-block; width: 7px; height: 7px; margin: 0 2px 3px 8px; border: solid var(--mist); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+html.mnav-on .m-back:not([hidden]) { display: inline-grid; flex: none; }
+html.mnav-on .brand:has(.m-back:not([hidden])) .logo { display: none; }
+html.mnav-on[data-mview="tab"] .logo { display: none; }
+/* ---------- Bottom bar with the dial in the middle (T1) ---------- */
+html.mnav-on .mnav { grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: end; overflow: visible; }
+.mnav .mnav-dial { position: relative; justify-self: center; display: grid; place-items: center; width: 60px; height: 60px; min-height: 0; margin-top: -24px; padding: 0; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line-2); box-shadow: 0 6px 18px -6px rgba(0, 0, 0, .7); color: var(--text); --md: 0%; }
+.mnav .mnav-dial::before, .mnav .mnav-dial[aria-current="page"]::before { content: ""; position: absolute; top: -1px; left: -1px; right: -1px; bottom: -1px; height: auto; border-radius: 50%; box-shadow: none; background: conic-gradient(var(--accent) var(--md), var(--line) var(--md)); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px)); }
+.mnav-dial .md-ring { display: none; }
+.mnav-dial b { font: 600 13px var(--f-mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.mnav-dial.long b { font-size: 10.5px; }
+.mnav-dial.going b { color: var(--accent); }
+.mnav-dial.paused b { color: var(--mist); }
+.mnav-dial.brk { --accent: var(--accent-2); }
+.mnav-dial[aria-current="page"] { border-color: var(--accent); }
+html.mnav-on body { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
+html.mnav-on .toast { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+html.mnav-on .pl-scroll { max-height: calc(100dvh - 250px); }
+/* the Timer screen opens over the current screen and closes the same way */
+html.mnav-on .m-close { display: inline-grid; flex: none; }
+html.mnav-on .card-head { align-items: center; gap: 6px; }
+html.mnav-on .card-head .seg-toggle { flex: 1; min-width: 0; }
+html.mnav-on[data-mview="timer"] .session { animation: m-rise .2s ease-out; }
+@keyframes m-rise { from { transform: translateY(26px); opacity: 0; } }
+html.mnav-on[data-mview="timer"] .sigil-card { animation: none; }
+html.mnav-on[data-mview="tab"] .session { display: none; }
+html.mnav-on[data-mview="timer"] .ring-wrap { touch-action: pan-down; }
+/* ---------- Today and the home pages (E1) ---------- */
+.td { display: grid; gap: 10px; }
+.td-energy { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 50px; padding: 6px 12px; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); font-weight: 400; color: var(--text); }
+.td-energy .ep-ico { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; color: var(--mood-c, var(--accent)); background: var(--soft); }
+.td-energy .ep-ico svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.td-en-tx { flex: 1; min-width: 0; display: grid; line-height: 1.25; } .td-en-tx b { font-size: 14.5px; } .td-en-tx small { font-size: 12px; color: var(--mist); }
+.td-chg { font-size: 12.5px; color: var(--accent); }
+.td-next { display: grid; gap: 6px; padding: 14px; background: var(--panel-2); border: 1px solid var(--accent); border-radius: var(--radius); }
+.td-next small { font: 500 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.td-next b { font-size: 18px; line-height: 1.25; overflow-wrap: anywhere; }
+.td-next p { margin: 0; font-size: 13px; color: var(--mist); }
+.td-btns { display: grid; grid-auto-flow: column; grid-template-columns: minmax(0, 1fr); grid-auto-columns: auto; gap: 8px; margin-top: 4px; }
+.td-btns button { min-height: 44px; }
+.td-h { margin: 8px 2px 0; font: 500 11.5px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mist); }
+.td-list { display: grid; gap: 6px; }
+.td-hour { display: grid; grid-template-columns: 50px minmax(0, 1fr); align-items: center; gap: 8px; width: 100%; min-height: 48px; padding: 0; text-align: left; background: none; border: 0; box-shadow: none; font-weight: 400; color: var(--text); }
+.td-at { font: 500 12px var(--f-mono); color: var(--mist); }
+.td-hour.now .td-at { color: var(--accent); }
+.td-bl { display: grid; min-width: 0; padding: 7px 10px; background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; }
+.td-hour.ev .td-bl { border-left-color: var(--accent-2); }
+.td-hour.now .td-bl { border-color: var(--accent); }
+.td-bl b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
+.td-bl small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--mist); }
+.td-empty, .td-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 46px; padding: 6px 12px; text-align: left; font-weight: 400; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; }
+.td-empty span { color: var(--mist); font-size: 13.5px; } .td-empty b { flex: none; font-size: 13px; color: var(--accent); }
+.td-row b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; } .td-row small { flex: none; font-size: 12px; color: var(--mist); }
+.td-row.hot { border-left: 3px solid var(--warn); }
+#today-quests:empty { display: none; }
+.hb-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.hb-tile { display: grid; align-content: start; gap: 3px; min-height: 86px; padding: 12px; text-align: left; font-weight: 400; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); }
+.hb-tile b { font-size: 15.5px; font-weight: 600; }
+.hb-tile small { font-size: 12.5px; line-height: 1.3; color: var(--mist); }
+.hb-tile small.hot { color: var(--accent); }
+/* ---------- Plan on a phone (P2): the next task, then two-line rows ---------- */
+html.mnav-on .subtabs, html.mnav-on .pl-viewsrow, html.mnav-on .pl-projs, html.mnav-on #tab-plan #quest-strip { display: none !important; } /* on a phone the quests are on Today */
+html.mnav-on .m-seg:not([hidden]) { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 2px; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.m-seg button { min-height: 38px; padding: 4px; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--mist); font-size: 13.5px; font-weight: 500; }
+.m-seg button[aria-pressed="true"] { color: var(--text); background: var(--soft); }
+html.mnav-on .pl-today { grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 10px; padding: 12px; border-color: var(--accent); }
+html.mnav-on .pl-today > .check { grid-column: 1; grid-row: 1; align-self: start; margin-top: 2px; }
+html.mnav-on .pl-today .pl-today-tx { grid-column: 2; grid-row: 1; }
+html.mnav-on .pl-today [data-day="off"] { grid-column: 3; grid-row: 1; align-self: start; width: 32px; height: 32px; min-height: 0; }
+html.mnav-on .pl-today [data-day="go"] { grid-column: 1 / -1; grid-row: 2; min-height: 44px; }
+.pl-today-t { display: block; width: 100%; padding: 0; border: 0; background: none; box-shadow: none; min-height: 0; text-align: left; font-size: 16px; font-weight: 600; line-height: 1.25; color: var(--text); overflow-wrap: anywhere; }
+/* Rows */
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) { position: relative; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px 10px; padding: 7px 10px; min-height: 52px; touch-action: pan-y; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-actions, html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-grip, html.mnav-on .tasks:not(.single-card) .task:not(.m-open) .sub-prog { display: none; }
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-body { display: grid; gap: 1px; min-width: 0; }
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-title { display: block; min-height: 0; padding: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14.5px; }
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-meta { display: flex; flex-wrap: nowrap; align-items: baseline; gap: 6px; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12px; }
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-extra { display: contents; }
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-meta > .chip, html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-extra > .chip:not(.due):not(.proj), html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-extra > button { display: none; }
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-meta > .t-dur { display: inline; order: 3; margin-left: auto; flex: none; padding: 0; border: 0; background: none; font-family: var(--f-mono); font-size: 12px; color: var(--mist); }
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-extra > .chip.due, html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-extra > .chip.proj { display: inline; min-width: 0; overflow: hidden; text-overflow: ellipsis; padding: 0; border: 0; background: none; font-size: 12px; font-family: var(--f-body); color: var(--mist); }
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-extra > .chip.due.late { flex: none; color: var(--warn); font-weight: 600; }
+html.mnav-on .tasks:not(.single-card) .task:not(.editing):not(.m-open) .t-extra > .chip.proj i { display: none; }
+html.mnav-on .tasks:not(.single-card) .task.m-open:not(.editing) { border-color: var(--accent); }
+html.mnav-on .pg-add { display: none; }
+html.mnav-on .pg-head { min-height: 36px; }
+.task.swiping { transition: none; z-index: 1; }
+.task.sw-done { background: color-mix(in srgb, var(--good) 28%, var(--panel-2)); }
+.task.sw-lock { background: color-mix(in srgb, var(--accent) 28%, var(--panel-2)); }
+/* The add button and its sheet from the top */
+html.mnav-on .m-fab:not([hidden]) { display: grid; place-items: center; position: fixed; z-index: 38; right: 14px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); width: 50px; height: 50px; min-height: 0; padding: 0; border-radius: 50%; border: 0; background: var(--accent); color: var(--ink); font: 400 28px/1 var(--f-body); box-shadow: 0 8px 20px -6px rgba(0, 0, 0, .7); }
+html.mnav-on .qa-wrap { display: none; }
+html.mnav-on.qa-sheet .qa-wrap { display: grid; gap: 8px; position: fixed; z-index: 43; left: 0; right: 0; top: 0; padding: calc(12px + env(safe-area-inset-top, 0px)) 12px 12px; background: var(--panel-2); border-bottom: 1px solid var(--line-2); border-radius: 0 0 14px 14px; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .5); animation: m-drop .16s ease-out; }
+@keyframes m-drop { from { transform: translateY(-16px); opacity: 0; } }
+html.mnav-on.qa-sheet .m-fab:not([hidden]), html.k-on .m-fab:not([hidden]), html.deep-on .m-fab:not([hidden]), html.ep-on .m-fab:not([hidden]), html.fc-full .m-fab:not([hidden]), html.qt-on .m-fab:not([hidden]) { display: none; }
+@media (prefers-reduced-motion: reduce) { html.mnav-on[data-mview="timer"] .session, html.mnav-on.qa-sheet .qa-wrap { animation: none; } }

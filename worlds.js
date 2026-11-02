@@ -51,11 +51,10 @@
   /* ---------- Header button ---------- */
   const btn = document.createElement('button');
   btn.type = 'button'; btn.className = 'ghost world-btn'; btn.id = 'world-btn';
-  // Wide screens: in the header. Phones and the side panel (html.mnav-on): beside the energy pill, where the header has no room left
+  // Beside the energy pill on phones and the side panel, above the energies in the left zone of a computer (3.60)
   function place() {
-    const narrow = document.documentElement.classList.contains('mnav-on'), pill = $('ep-pill'), before = $('install-btn');
-    if (narrow && pill) { if (btn.previousElementSibling !== pill) pill.after(btn); }
-    else if (before && btn.parentNode !== before.parentNode) before.parentNode.insertBefore(btn, before); // (Washi's settings may follow it)
+    const pill = $('ep-pill');
+    if (pill && btn.previousElementSibling !== pill) pill.after(btn);
   }
   place();
   addEventListener('resize', () => setTimeout(place, 50));

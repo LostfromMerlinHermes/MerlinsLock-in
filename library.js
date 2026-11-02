@@ -331,6 +331,9 @@
   let cur = null, pane = 'doc', side = 'notes', release = null, from = null, url = null, pdfDoc = null, pdfMode = '', lastSel = '', obs = null, pageObs = null, zoomBase = 1, cardDraft = null, renderTok = 0;
   const isSheet = () => cur && cur.kind === 'sheet';
 
+  ML.libCount = () => (docs ? docs.length : 0);
+  ML.libDocs = () => load().then(() => docs || []); // the search bar (search.js)
+  ML.libOpen = id => { ML.setTab('lib'); openReader(id); };
   async function openReader(id, page) {
     const d = (docs || []).find(x => x.id === id); if (!d) return;
     if (cur) closeReader(true);

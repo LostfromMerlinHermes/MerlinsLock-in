@@ -203,7 +203,17 @@
   form.classList.add('qa-on');
   const chips = document.createElement('div'); chips.className = 'qa-chips'; chips.id = 'qa-chips';
   const prev = document.createElement('p'); prev.className = 'qa-prev'; prev.id = 'qa-prev'; prev.setAttribute('aria-live', 'polite');
-  form.after(chips); chips.after(prev);
+  // On a phone the add field is a sheet from the top, opened by the + button (at the top, the keyboard never covers it)
+  const qaWrap = document.createElement('div'); qaWrap.className = 'qa-wrap';
+  form.before(qaWrap); qaWrap.append(form, chips, prev);
+  const isPhone = () => document.documentElement.classList.contains('mnav-on');
+  ML.planSheet = onx => {
+    document.documentElement.classList.toggle('qa-sheet', !!onx);
+    if (onx) { if (S.tab !== 'plan') ML.setTab('plan'); field.focus({ preventScroll: true }); } else if (document.activeElement === field) field.blur();
+  };
+  document.addEventListener('pointerdown', e => { if (document.documentElement.classList.contains('qa-sheet') && !qaWrap.contains(e.target) && !pop.contains(e.target) && e.target.id !== 'm-fab') ML.planSheet(false); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.documentElement.classList.contains('qa-sheet') && pop.hidden) ML.planSheet(false); }, true);
+  form.addEventListener('submit', () => setTimeout(() => { if (isPhone()) ML.planSheet(false); }, 0));
   let draft = {}, lastQ = {}, writing = false;
   // P1 (3.56): the chips only show while a task is being written
   const isWriting = () => writing || !!field.value.trim() || Object.keys(draft).length > 0;
@@ -269,6 +279,7 @@
     else if (gm === 'project') draft.project = key || null;
     else if (gm === 'pri') draft.pri = key;
     renderChips();
+    if (isPhone()) { ML.planSheet(true); return; }
     form.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
     field.focus({ preventScroll: true });
   }
@@ -277,22 +288,37 @@
   const dayTask = () => { const id = ML.dayTaskId(); return id ? S.tasks.find(x => x.id === id) : null; };
   const card = document.createElement('div'); card.className = 'pl-today'; card.id = 'plan-today'; card.hidden = true;
   // Order of the tab (P1, 3.56): views, add field, quests, task of the day, then the list
-  const quests = $('quest-strip'); prev.after(quests); quests.after(card);
+  const quests = $('quest-strip'); qaWrap.after(quests); quests.after(card);
+  // A phone always shows the next task here, chosen by the energy, and takes it out of the list below (3.60). The cross
+  // hides it until tomorrow. A pinned task of the day still comes first, on every screen.
+  let cardId = null;
+  const nextForCard = () => {
+    const p = P();
+    if (!isPhone() || p.pview === 'inbox' || p.nextOff === today()) return null;
+    return ML.orderedOpen().find(x => !p.proj || x.project === p.proj) || null;
+  };
   function renderCard(single) {
-    const x = single ? null : dayTask();
-    card.hidden = !x; if (!x) { card.innerHTML = ''; return; }
+    const phone = isPhone(), editing = phone && ML.editingId && ML.editingId(); // while a task is being edited, it edits in the list
+    const pinned = single || editing ? null : dayTask(), x = pinned || (single || editing ? null : nextForCard());
+    cardId = x && phone ? x.id : null;
+    card.hidden = !x; if (!x) { card.innerHTML = ''; card.dataset.h = ''; return; }
     const bits = [x.project, fmtMins(x.mins), x.due && dayLabel(x.due)].filter(Boolean).map(esc).join(' · ');
-    const html = `<span class="pl-star" aria-hidden="true">${PIN_SVG}</span>
-      <div class="pl-today-tx"><span class="label">${esc(t('pl_day'))}</span><b>${esc(ML.titleOf(x))}</b><small>${bits}</small></div>
+    const offLabel = pinned ? t('pl_unpin') : t('close');
+    const html = `${phone ? `<button type="button" class="check" data-day="done" aria-label="${esc(t('mark_done'))}"><svg viewBox="0 0 12 12"><path d="M2 6.5 L5 9 L10 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>` : `<span class="pl-star" aria-hidden="true">${PIN_SVG}</span>`}
+      <div class="pl-today-tx"><span class="label">${esc(pinned ? t('pl_day') : t('td_next_e'))}</span>${phone ? `<button type="button" class="pl-today-t" data-day="edit">${esc(ML.titleOf(x))}</button>` : `<b>${esc(ML.titleOf(x))}</b>`}<small>${bits}</small></div>
       <button type="button" class="primary" data-day="go">${esc(x.id === S.activeId && ML.running() ? t('focusing') : t('lock_in'))}</button>
-      <button type="button" class="ghost icon-only" data-day="off" aria-label="${esc(t('pl_unpin'))}" title="${esc(t('pl_unpin'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+      <button type="button" class="ghost icon-only" data-day="off" aria-label="${esc(offLabel)}" title="${esc(offLabel)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
     if (card.dataset.h !== html) { card.innerHTML = html; card.dataset.h = html; }
   }
   card.addEventListener('click', e => {
     const b = e.target.closest('[data-day]'); if (!b) return;
-    const x = dayTask(); if (!x) return;
-    if (b.dataset.day === 'go') ML.lockIn({ taskId: x.id, mins: x.mins });
-    else { setPin(x, false); save(); ML.renderAll(); ML.toast(t('pl_unpinned'), { ms: 2000 }); }
+    const pinned = dayTask(), x = pinned || nextForCard(); if (!x) return;
+    const a = b.dataset.day;
+    if (a === 'go') ML.lockIn({ taskId: x.id, mins: x.mins });
+    else if (a === 'done') { ML.completeTask(x); save(); ML.renderAll(); }
+    else if (a === 'edit') ML.editTask(x.id);
+    else if (pinned) { setPin(x, false); save(); ML.renderAll(); ML.toast(t('pl_unpinned'), { ms: 2000 }); }
+    else { P().nextOff = today(); save(); ML.renderTasks(); }
   });
 
   /* ---------- Layout: toolbar, then [projects column | project page + list] ---------- */
@@ -305,7 +331,8 @@
   const side = document.createElement('nav'); side.className = 'pl-side'; side.setAttribute('aria-label', t('pl_v_projects'));
   const main = document.createElement('div'); main.className = 'pl-main';
   const phead = document.createElement('div'); phead.className = 'pl-phead'; phead.hidden = true;
-  main.append(phead, list); grid.append(side, main); layout.append(bar, grid, bulk);
+  main.append(phead, list); grid.append(main); layout.append(bar, grid, bulk);
+  side.dataset.sp = 'plan'; $('subtabs').append(side); // the projects sit in the column of the Plan's sections (3.60)
 
   /* ---------- Toolbar ---------- */
   const VIEWS = ['today', 'upcoming', 'projects', 'all'], GROUPS = ['moment', 'project', 'pri', 'none'], SORTS = ['energy', 'due', 'mins', 'pri', 'manual'];
@@ -327,17 +354,43 @@
     if (viewsRow.dataset.h !== html) { viewsRow.innerHTML = html; viewsRow.dataset.h = html; }
     tabPlan.classList.toggle('pl-inboxing', inbox);
     $('tab-park').hidden = !inbox;
+    // The same views in the computer's section column
+    document.querySelectorAll('#subtabs [data-pvw]').forEach(b => {
+      const v = b.dataset.pvw;
+      b.hidden = single ? v !== 'next' && v !== 'inbox' : v === 'next';
+      b.setAttribute('aria-selected', S.tab === 'plan' && (v === 'next' ? !inbox : p.pview === v));
+    });
+    $('sub-inbox').textContent = n || '';
   }
   ML.planRenderViews = renderViews;
+  function setPview(v) {
+    if (v === 'inbox') { if (P().pview !== 'inbox') backView = P().pview; P().pview = 'inbox'; } else P().pview = v === 'back' || v === 'next' ? backView : v;
+    save();
+    if (S.tab !== 'plan') ML.setTab('plan');
+    ML.renderTasks();
+  }
   viewsRow.addEventListener('click', e => {
     const w = e.target.closest('[data-pv2]'), tool = e.target.closest('[data-ptool]');
-    if (w) {
-      const v = w.dataset.pv2;
-      if (v === 'inbox') { if (P().pview !== 'inbox') backView = P().pview; P().pview = 'inbox'; } else P().pview = v === 'back' ? backView : v;
-      save(); ML.renderTasks();
-    }
+    if (w) setPview(w.dataset.pv2);
     if (tool) openDisplay(tool);
   });
+  $('subtabs').addEventListener('click', e => { const b = e.target.closest('[data-pvw]'); if (b) setPview(b.dataset.pvw); });
+  on('tab', renderViews);
+  // The menu under the screen's title on a phone: the views, the projects, and the display options
+  ML.planMenu = anchor => {
+    const p = P(), M = ML.MOODS[S.mood], single = M && M.single && !S.showAll, n = (S.parked || []).length, projs = ML.planProjects(), open = S.tasks.filter(x => !x.done);
+    const views = single ? [['next', t('pl_v_next')]] : VIEWS.map(v => [v, t('pl_v_' + v)]);
+    const html = `<div class="pp-list">${views.map(([v, l]) => item({ pv: v }, esc(l), S.tab === 'plan' && p.pview === v)).join('')}
+      ${item({ pv: 'inbox' }, esc(t('pl_v_inbox')), S.tab === 'plan' && p.pview === 'inbox', n ? String(n) : '')}
+      ${projs.length ? `<hr class="pp-sep">${item({ proj: '' }, esc(t('pl_all')), !p.proj, String(open.length))}${projs.map(x => item({ proj: x }, esc(x), p.proj === x, String(open.filter(y => y.project === x).length), projDot(x))).join('')}` : ''}
+      ${single ? '' : `<hr class="pp-sep">${item({ act: 'display' }, esc(t('pl_display')), false, '', ICON_DISPLAY)}`}</div>`;
+    openPop(anchor, html, r => {
+      if (!r) return;
+      if (r.pv) setPview(r.pv);
+      else if (r.proj !== undefined) { P().proj = r.proj; save(); if (S.tab !== 'plan') ML.setTab('plan'); ML.renderTasks(); }
+      else if (r.act === 'display') { if (S.tab !== 'plan') ML.setTab('plan'); openDisplay(anchor); }
+    });
+  };
   function renderBar(single) {
     if (single) { bar.hidden = true; return; }
     const p = P(), projs = ML.planProjects();
@@ -407,14 +460,14 @@
   let newProj = false;
   function renderSide() {
     const p = P(), projs = ML.planProjects(), open = S.tasks.filter(x => !x.done);
-    const html = `<button type="button" class="pl-sit ${!p.proj ? 'on' : ''}" data-pproj=""><span>${esc(t('pl_all'))}</span><small>${open.length}</small></button>
+    const html = `<p class="sub-h">${esc(t('pl_project'))}</p><button type="button" class="pl-sit ${!p.proj ? 'on' : ''}" data-pproj=""><span>${esc(t('pl_all'))}</span><small>${open.length}</small></button>
       ${projs.map(n => { const wk = weekMins(n); return `<button type="button" class="pl-sit ${p.proj === n ? 'on' : ''}" data-pproj="${esc(n)}" title="${esc(n)}${wk ? ' · ' + esc(t('pl_week_h', { h: fmtMins(wk) })) : ''}">${projDot(n)}<span>${esc(n)}</span><small>${open.filter(x => x.project === n).length}</small></button>`; }).join('')}
       ${newProj ? `<form class="pl-snew"><input type="text" maxlength="40" placeholder="${esc(t('pl_p_new_ph'))}" aria-label="${esc(t('pl_p_new'))}"><button type="submit" class="small">${esc(t('pl_ok'))}</button></form>` : `<button type="button" class="pl-sit pl-sadd" data-snew="1">${esc(t('pl_side_new'))}</button>`}`;
     if (side.dataset.h !== html) { side.innerHTML = html; side.dataset.h = html; if (newProj) side.querySelector('input').focus(); }
   }
   side.addEventListener('click', e => {
     const b = e.target.closest('[data-pproj]'), n = e.target.closest('[data-snew]');
-    if (b) { P().proj = b.dataset.pproj; save(); ML.renderTasks(); }
+    if (b) { P().proj = b.dataset.pproj; save(); if (S.tab !== 'plan') ML.setTab('plan'); ML.renderTasks(); }
     if (n) { newProj = true; renderSide(); }
   });
   side.addEventListener('submit', e => {
@@ -514,7 +567,7 @@
   const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const filt = arr => { const p = P(), q = norm(query.trim()); return arr.filter(x => (!p.proj || x.project === p.proj) && (!q || norm(ML.titleOf(x)).includes(q) || (x.project && norm(x.project).includes(q)))); };
   function groupsOf(open, done) {
-    const gm = gmOf(), shown = sorted(filt(open)), out = [];
+    const gm = gmOf(), shown = sorted(filt(open)).filter(x => x.id !== cardId), out = [];
     const pins = shown.filter(x => x.pin).sort((a, b) => a.pin - b.pin);
     if (pins.length) out.push({ key: 'pinned', label: t('pl_pinned'), items: pins, mins: pins.reduce((a, x) => a + x.mins, 0), pinned: true });
     const rest = shown.filter(x => !x.pin && inView(x));
@@ -544,7 +597,7 @@
     if (drag || renaming) return; // a drag or a rename is in progress: the next render draws the list
     let groups = groupsOf(open, done);
     const p = P(), nextId = open[0] && open[0].id, gm = gmOf();
-    const isEmptyToday = p.pview === 'today' && !query && !groups.some(g => !g.done && g.items.length);
+    const isEmptyToday = p.pview === 'today' && !query && !cardId && !groups.some(g => !g.done && g.items.length);
     if (isEmptyToday) groups = groups.filter(g => g.items.length);
     const table = p.view === 'table' && !editingId;
     ul.classList.add('grouped'); ul.classList.toggle('pl-tabled', table); ul.classList.toggle('selecting', selMode);

@@ -340,6 +340,9 @@
       $('pf-proof').textContent = t('pf_proof', { n, d: new Date().toLocaleDateString(ML.locale(), { day: '2-digit', month: '2-digit', year: 'numeric' }) });
       const last = todaysSessions().slice(-1)[0]; if (done && last) $('pf-seal').querySelector('b').textContent = last.mins;
     }
+    // The huge time never runs off a phone, even at 10:00:00 (dp-clock sits in the ring, the others in their column)
+    const big = deep.querySelector('#dp-clock, #nt-clock, #oc-time, #dl-time');
+    if (big) ML.fitTime(big, Math.min(big.parentElement.clientWidth * (big.id === 'dp-clock' ? .82 : .96), innerWidth - 24));
   }
   $('deep-btn').onclick = openDeep;
   on('tick', () => renderDeep(false));

@@ -46,7 +46,7 @@
     const tip = d.querySelector('.tip'); if (tip) tip.setAttribute('transform', 'rotate(360 120 120)');
     const q = s => d.querySelector(s);
     if (q('.state')) q('.state').textContent = t('ready');
-    if (q('.clock')) { q('.clock').textContent = clockOf(mins); q('.clock').removeAttribute('role'); }
+    if (q('.clock')) { q('.clock').textContent = clockOf(mins); q('.clock').removeAttribute('role'); q('.clock').style.fontSize = ''; } // the real dial's size was fitted to its own time
     if (q('.focus-on')) q('.focus-on').textContent = label || '';
     d.setAttribute('aria-hidden', 'true');
     return d.outerHTML.replace(REF, (m, a, id) => own.has(id) ? a + 'ep-' + id : m);

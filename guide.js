@@ -5,10 +5,10 @@
   'use strict';
   const { $, S, t, esc, on, save } = ML;
 
-  const VERSION = '3.59'; // bump with the features you add below
+  const VERSION = '3.60'; // bump with the features you add below
   // id, group, since, go: a tab name, or 'timer' / 'shop' / 'settings' / 'worlds' / 'energy' / 'quick'
   const GUIDE = [
-    ['energy', 'timer', '3.0', 'energy'], ['timer', 'timer', '3.0', 'timer'], ['deep', 'timer', '3.0', 'timer'], ['sound', 'timer', '3.30', 'timer'], ['quick', 'timer', '3.58', 'quick'],
+    ['energy', 'timer', '3.0', 'energy'], ['timer', 'timer', '3.0', 'timer'], ['deep', 'timer', '3.0', 'timer'], ['sound', 'timer', '3.30', 'timer'], ['quick', 'timer', '3.58', 'quick'], ['ksearch', 'timer', '3.60', 'search'], ['sess', 'timer', '3.60', 'settings'], ['gest', 'work', '3.60', 'plan'],
     ['plan', 'work', '3.0', 'plan'], ['inbox', 'work', '3.56', 'plan'], ['day', 'work', '3.0', 'day'], ['cal', 'work', '3.0', 'cal'], ['mail', 'work', '3.50', 'plan'],
     ['notes', 'study', '3.0', 'notes'], ['lib', 'study', '3.54', 'lib'], ['cards', 'study', '3.8', 'study'], ['subjects', 'study', '3.58', 'subjects'], ['exams', 'study', '3.58', 'subjects'], ['grades', 'study', '3.58', 'subjects'], ['lectures', 'study', '3.59', 'lectures'], ['mock', 'study', '3.59', 'subjects'], ['learn', 'study', '3.56', 'learn'],
     ['grim', 'you', '3.0', 'grim'], ['tower', 'you', '3.0', 'grim'], ['exped', 'you', '3.59', 'grim'], ['season', 'you', '3.59', 'grim'], ['boss', 'you', '3.0', 'plan'], ['room', 'you', '3.58', 'room'], ['shop', 'you', '3.0', 'shop'], ['worlds', 'you', '3.29', 'worlds'], ['sync', 'you', '3.0', 'settings'],
@@ -17,6 +17,7 @@
 
   ML.addStrings({
     fr: {
+      g_ksearch: 'Recherche', g_ksearch_d: 'Ctrl K sur ordinateur, la loupe sur téléphone. Trouve une section, une tâche, une note ou un paquet, et lance des actions : « 25 min », « ajouter réviser droit demain ».', g_sess: 'Mode séance', g_sess_d: 'Pendant un Lock in, l’écran garde le temps, la tâche et les outils du cours. Tout revient à la fin. Se désactive dans les réglages.', g_gest: 'Gestes', g_gest_d: 'Sur téléphone : glisse une tâche à droite pour la terminer, à gauche pour lancer un Lock in, appuie longuement pour la déplacer. Depuis le bord de l’écran, glisse pour changer d’espace. Tire le cadran vers le bas pour le fermer.',
       tab_guide: 'Guide', gd_search: 'Chercher une fonction', gd_new_h: 'Nouveau depuis ta dernière visite', gd_seen: 'Compris', gd_show: 'Montre-moi', gd_new: 'Nouveau', gd_none: 'Rien ne correspond à cette recherche.', gd_all: 'Tout', gd_g_timer: 'Minuteur', gd_g_work: 'Organisation', gd_g_study: 'Étude', gd_g_you: 'Toi',
       tip_ok: 'Compris', tip_guide: 'Ouvrir le guide',
       g_energy: 'Énergie', g_energy_d: 'Chaque jour, choisis ton énergie : elle change le monde, la durée des sessions et l’ordre des tâches.',
@@ -50,6 +51,7 @@
       tip_plan: 'Tes tâches du jour. Lock in lance le minuteur sur l’une d’elles.', tip_day: 'Place tes tâches sur la journée, ou touche Auto-planifier.', tip_cal: 'Événements et échéances. Un jour touché ouvre son détail.', tip_notes: 'Une page par jour et tes pages libres.', tip_lib: 'Importe un PDF, surligne, transforme en cartes.', tip_study: 'Crée un paquet ou importe un fichier, puis révise un peu chaque jour.', tip_subjects: 'Ajoute tes matières et tes examens : le temps, les notes et le compte à rebours s’y retrouvent.', tip_learn: 'Des méthodes courtes selon ce qui te bloque.', tip_grim: 'Tes statistiques et ta progression.', tip_room: 'Crée une salle et partage le code pour étudier à plusieurs.',
     },
     en: {
+      g_ksearch: 'Search', g_ksearch_d: 'Ctrl K on a computer, the magnifier on a phone. Finds a section, a task, a note or a deck, and runs actions: "25 min", "add revise law tomorrow".', g_sess: 'Session mode', g_sess_d: 'During a Lock in, the screen keeps the time, the task and the course tools. Everything comes back at the end. Turn it off in Settings.', g_gest: 'Gestures', g_gest_d: 'On a phone: swipe a task right to complete it, left to Lock in, press and hold to move it. From the edge of the screen, swipe to change space. Pull the dial down to close it.',
       tab_guide: 'Guide', gd_search: 'Search for a feature', gd_new_h: 'New since your last visit', gd_seen: 'Got it', gd_show: 'Show me', gd_new: 'New', gd_none: 'Nothing matches this search.', gd_all: 'All', gd_g_timer: 'Timer', gd_g_work: 'Planning', gd_g_study: 'Study', gd_g_you: 'You',
       tip_ok: 'Got it', tip_guide: 'Open the guide',
       g_energy: 'Energy', g_energy_d: 'Each day, pick your energy: it changes the world, the session length and the task order.',
@@ -98,8 +100,10 @@
     if (x === 'worlds') return ML.openWorlds && ML.openWorlds();
     if (x === 'energy') return ML.energyPicker.open({ cancellable: true });
     if (x === 'quick') return ML.quickTools.open();
+    if (x === 'search') return ML.openSearch();
     ML.setMobileView(x);
   }
+  ML.GUIDE = GUIDE; ML.guideGo = go; // the search bar (search.js) offers every feature
   const itemHtml = x => `<li class="gd-item"><div><b>${esc(t('g_' + x.id))}</b>${isNew(x) ? `<span class="gd-new">${esc(t('gd_new'))}</span>` : ''}<p>${esc(t('g_' + x.id + '_d'))}</p></div><button type="button" class="small" data-gd-go="${x.go}">${esc(t('gd_show'))}</button></li>`;
   function listHtml() {
     const n = q.trim().toLowerCase(), rows = GUIDE.filter(x => (!group || x.group === group) && (!n || (t('g_' + x.id) + ' ' + t('g_' + x.id + '_d')).toLowerCase().includes(n)));

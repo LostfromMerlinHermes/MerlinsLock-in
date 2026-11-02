@@ -1,74 +1,104 @@
-// Phone and side-panel navigation (under 900px wide): a bottom bar with Timer, Plan, Day, Calendar, Study and You.
-// Each item is a full screen: the Timer screen is the mood row + the dial, the others are one tab each, so nothing
-// sits three screens down. Study and You keep their tabs in the row of sub-tabs (Spaces, 3.58), like on a computer.
-// While a session runs, a thin strip above the bar shows it from any screen.
+// Phone and side-panel navigation (under 900px wide): a bottom bar with Today, Plan, the dial, Study and You (3.60).
+// The dial in the middle shows the time on every screen and opens the Timer screen; closing it brings you back where you
+// were, at the same scroll. Study and You open a home page (today.js), and their sections get a back arrow in the header.
 // The current screen is per device (localStorage), never synced.
 (() => {
   'use strict';
   const { $, S, t, esc, on, emit } = ML;
 
   ML.addStrings({
-    fr: { nav_timer: 'Minuteur', nav_shop: 'Boutique', nav_back_timer: 'Revenir au minuteur' },
-    en: { nav_timer: 'Timer', nav_shop: 'Shop', nav_back_timer: 'Back to the timer' },
+    fr: { nav_timer: 'Minuteur', nav_shop: 'Boutique', nav_today: 'Aujourd’hui', nav_back: 'Retour', nav_back_screen: 'Fermer le minuteur', nav_back_timer: 'Revenir au minuteur', nav_list: 'Liste', nav_month: 'Mois' },
+    en: { nav_timer: 'Timer', nav_shop: 'Shop', nav_today: 'Today', nav_back: 'Back', nav_back_screen: 'Close the timer', nav_back_timer: 'Back to the timer', nav_list: 'List', nav_month: 'Month' },
   });
 
   const KEY = 'mli-mview', OPEN_KEY = 'mli-folds';
   const mq = matchMedia('(max-width: 899px)');
   const root = document.documentElement;
-  const BAR = ['timer', 'plan', 'day', 'cal', 'study', 'you'];
+  const BAR = ['today', 'plan', 'timer', 'study', 'you'];
+  const ORDER = ['today', 'plan', 'study', 'you']; // the screens a swipe from the edge goes through (gestures.js)
+  const HOME = { today: 'today', study: 'shome', you: 'yhome' };
   const ICON = {
-    timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/>',
+    today: '<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-6h4v6"/>',
     plan: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11"/><circle cx="5" cy="18" r="1.3"/>',
-    day: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 8h16M8 12h5M8 16h8"/>',
-    cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="8" cy="14.5" r="1"/><circle cx="12" cy="14.5" r="1"/><circle cx="16" cy="14.5" r="1"/>',
     study: '<path d="M2.5 9L12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11v5c3 2.5 8 2.5 11 0v-5M21.5 9v5"/>',
     you: '<circle cx="12" cy="8" r="4"/><path d="M4.5 21c.8-4.4 3.8-6.5 7.5-6.5s6.7 2.1 7.5 6.5"/>',
   };
   const svg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>`;
-  const label = k => t(k === 'timer' ? 'nav_timer' : k === 'study' ? 'sp_study' : k === 'you' ? 'sp_you' : 'tab_' + k);
-  const tabName = k => t(k === 'lib' ? 'nav_lib' : k === 'study' ? 'tab_cards' : 'tab_' + k);
+  const label = k => t(k === 'today' ? 'nav_today' : k === 'timer' ? 'nav_timer' : k === 'study' ? 'sp_study' : k === 'you' ? 'sp_you' : 'tab_' + k);
+  const tabName = k => t(k === 'today' ? 'nav_today' : k === 'shome' ? 'sp_study' : k === 'yhome' ? 'sp_you' : k === 'lib' ? 'nav_lib' : k === 'study' ? 'tab_cards' : 'tab_' + k);
 
-  let view = 'timer';
-  try { view = localStorage.getItem(KEY) || 'timer'; } catch (e) {}
+  let view = null;
+  try { view = localStorage.getItem(KEY); } catch (e) {}
+  if (!view) view = 'tab'; // first visit: Today, not an empty dial
   const active = () => mq.matches;
+  const curSpace = () => (view === 'timer' ? 'timer' : ML.SPACE[S.tab] || S.tab);
+  // Scroll kept per screen, so closing the Timer screen brings you back to the same place
+  let tabScroll = 0;
 
   function setView(v, fromTab) {
+    const was = view;
+    if (was === 'tab' && v === 'timer') tabScroll = scrollY;
     view = v === 'timer' ? 'timer' : 'tab';
     try { localStorage.setItem(KEY, view); } catch (e) {}
-    if (view === 'tab' && !fromTab && v !== S.tab) ML.setTab(v); // setTab emits 'tab', which comes back here
+    if (view === 'tab' && !fromTab && v !== S.tab && v !== 'back') ML.setTab(v); // setTab emits 'tab', which comes back here
     apply();
-    if (active()) scrollTo({ top: 0, behavior: 'instant' });
+    if (active()) scrollTo({ top: v === 'back' ? tabScroll : 0, behavior: 'instant' });
   }
+  // Back from the Timer screen, to the screen and the scroll you left
+  const closeTimer = () => setView('back');
+  ML.closeTimer = closeTimer;
 
   function apply() {
-    const on = active();
-    root.classList.toggle('mnav-on', on);
-    root.dataset.mview = on ? view : '';
-    if (on && S.compact) { S.compact = false; ML.save(); ML.renderTimer && ML.renderTimer(); } // the Timer screen is always the full dial
-    const title = $('m-title'); if (title) title.textContent = on && view === 'tab' && S.tab ? tabName(S.tab) : '';
-    renderBar(); renderRun(); foldAll();
+    const onx = active();
+    root.classList.toggle('mnav-on', onx);
+    root.dataset.mview = onx ? view : '';
+    if (!onx && ['today', 'shome', 'yhome'].includes(S.tab)) ML.setTab(S.tab); // a home page on a computer goes to its space's section
+    if (onx && S.compact) { S.compact = false; ML.save(); ML.renderTimer && ML.renderTimer(); } // the Timer screen is always the full dial
+    renderHead(onx); renderBar(); renderDial(); foldAll();
+    $('m-fab').hidden = !(onx && view === 'tab' && S.tab === 'plan' && !(S.plan && S.plan.pview === 'inbox'));
+  }
+
+  function renderHead(onx) {
+    const title = $('m-title'), back = $('m-back'), seg = $('m-seg');
+    const sp = ML.SPACE[S.tab], inPlan = onx && view === 'tab' && sp === 'plan';
+    if (title) {
+      const M = ML.MOODS[S.mood], single = M && M.single && !S.showAll && (S.plan && S.plan.pview) !== 'inbox'; // Scattered shows one card: the next task
+      const pv = S.plan && S.plan.pview, name = !onx || view !== 'tab' || !S.tab ? '' : S.tab === 'plan' && pv ? t(single ? 'pl_v_next' : 'pl_v_' + pv) : tabName(S.tab);
+      title.textContent = S.tab === 'plan' && S.plan && S.plan.proj && onx ? S.plan.proj : name;
+      title.classList.toggle('has-menu', inPlan);
+      title.disabled = !inPlan;
+    }
+    if (back) back.hidden = !(onx && view === 'tab' && (sp === 'study' || sp === 'you') && S.tab !== 'shome' && S.tab !== 'yhome');
+    if (seg) {
+      seg.hidden = !inPlan;
+      if (inPlan) {
+        const html = [['plan', 'nav_list'], ['day', 'tab_day'], ['cal', 'nav_month']].map(([k, s]) => `<button type="button" data-seg="${k}" aria-pressed="${S.tab === k}">${esc(t(s))}</button>`).join('');
+        if (seg.dataset.h !== html) { seg.innerHTML = html; seg.dataset.h = html; }
+      }
+    }
   }
 
   function renderBar() {
     const el = $('mnav'); if (!el) return;
-    const cur = view === 'timer' ? 'timer' : ML.SPACE[S.tab] || S.tab;
-    const parked = (S.parked || []).length;
-    el.innerHTML = BAR.map(k => `<button type="button" data-mnav="${k}" aria-current="${k === cur ? 'page' : 'false'}">${svg(k)}<span>${esc(label(k))}</span>${k === 'plan' && parked ? `<i class="mnav-dot">${parked}</i>` : ''}</button>`).join('');
+    const cur = curSpace(), parked = (S.parked || []).length;
+    const sig = BAR.join() + cur + parked + S.lang;
+    if (el.dataset.h === sig) return;
+    el.dataset.h = sig;
+    el.innerHTML = BAR.map(k => k === 'timer'
+      ? `<button type="button" class="mnav-dial" id="mnav-dial" data-mnav="timer" aria-current="${cur === 'timer' ? 'page' : 'false'}"><i class="md-ring"></i><b id="md-clock"></b></button>`
+      : `<button type="button" data-mnav="${k}" aria-current="${k === cur ? 'page' : 'false'}">${svg(k)}<span>${esc(label(k))}</span>${k === 'plan' && parked ? `<i class="mnav-dot">${parked}</i>` : ''}</button>`).join('');
   }
 
-  // Running strip: visible on every screen but the Timer one while a session is going (or paused mid-way)
-  function renderRun() {
-    const el = $('mnav-run'); if (!el) return;
+  // The dial in the bar: the time and a ring that fills as the session goes
+  function renderDial() {
+    const b = $('mnav-dial'); if (!b) return;
     const rem = ML.remainingNow ? ML.remainingNow() : 0, going = ML.running && ML.running(), mid = !going && S.remaining < S.total;
-    const show = active() && view !== 'timer' && S.section !== 'sport' && (going || mid);
-    el.hidden = !show; root.classList.toggle('mnav-has-run', show);
-    if (!show) return;
-    const frac = S.total ? Math.max(0, Math.min(1, 1 - rem / S.total)) : 0;
+    const frac = S.total ? Math.max(0, Math.min(1, 1 - rem / S.total)) : 0, clock = MiniView.fmtClock(rem);
+    const c = $('md-clock'); if (c.textContent !== clock) { c.textContent = clock; b.classList.toggle('long', clock.length > 5); }
+    b.style.setProperty('--md', (frac * 100).toFixed(1) + '%');
+    b.className = 'mnav-dial' + (clock.length > 5 ? ' long' : '') + (going ? ' going' : mid ? ' paused' : '') + (S.mode === 'break' ? ' brk' : '');
     const what = S.mode === 'break' ? t('break') : (ML.activeTitle && ML.activeTitle()) || t('free_focus');
-    el.className = 'mnav-run ' + (going ? 'going' : 'paused') + (S.mode === 'break' ? ' brk' : '');
-    el.setAttribute('aria-label', t('nav_back_timer'));
-    el.innerHTML = `<i class="mr-prog" style="width:${(frac * 100).toFixed(1)}%"></i><b class="mr-clock">${esc(MiniView.fmtClock(rem))}</b><span class="mr-what">${esc(what)}</span>
-      <span class="mr-act" data-mr="toggle" role="button" aria-label="${esc(going ? t('pause') : t('resume'))}">${going ? '<svg viewBox="0 0 24 24"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'}</span>`;
+    b.setAttribute('aria-label', `${t('nav_timer')} · ${clock} · ${what}`);
   }
 
   /* ---------- Long screens fold on phones (Grimoire cards, Settings sections): one tap opens a section ---------- */
@@ -101,17 +131,27 @@
     host.addEventListener('click', toggle); host.addEventListener('keydown', toggle);
   });
 
+  // A tap on a space: its home page, or its last section for Plan
+  const goSpace = k => setView(k === 'plan' ? ML.spaceTab('plan') : HOME[k]);
   $('mnav').addEventListener('click', e => {
     const b = e.target.closest('[data-mnav]'); if (!b) return;
     const k = b.dataset.mnav;
     emit('gesture');
     if (S.section === 'sport') $('sec-work').click(); // the bar belongs to the Work section
-    setView(k === 'study' || k === 'you' ? ML.spaceTab(k) : k);
+    if (k === 'timer') { view === 'timer' ? closeTimer() : setView('timer'); return; }
+    goSpace(k);
   });
-  $('mnav-run').addEventListener('click', e => {
-    if (e.target.closest('[data-mr="toggle"]')) { $('start').click(); renderRun(); return; }
-    setView('timer');
-  });
+  $('m-close').onclick = closeTimer;
+  $('m-back').onclick = () => setView(ML.SPACE[S.tab] === 'you' ? 'yhome' : 'shome');
+  $('m-seg').addEventListener('click', e => { const b = e.target.closest('[data-seg]'); if (b) setView(b.dataset.seg); });
+  $('m-title').onclick = () => { if (ML.planMenu) ML.planMenu($('m-title')); };
+  $('m-fab').onclick = () => { emit('gesture'); if (ML.planSheet) ML.planSheet(true); };
+  // gestures.js: a swipe from the edge of the screen goes to the next or previous space
+  ML.swipeSpace = dir => {
+    if (view === 'timer') return;
+    const i = ORDER.indexOf(curSpace()), k = ORDER[i + dir];
+    if (i >= 0 && k) goSpace(k);
+  };
 
   let ready = false; // the boot's setTab(S.tab) must not leave the Timer screen
   on('tab', () => { if (ready && active() && view !== 'tab') { view = 'tab'; try { localStorage.setItem(KEY, view); } catch (e) {} } apply(); });
@@ -120,11 +160,17 @@
   on('timer', () => {
     const r = ML.running && ML.running();
     if (r && !wasRunning && active() && view !== 'timer') setView('timer');
-    wasRunning = r; renderRun();
+    wasRunning = r; renderDial();
   });
-  on('tick', renderRun);
+  on('tick', renderDial);
   on('render', apply);
-  on('started', () => { ready = true; wasRunning = ML.running && ML.running(); apply(); });
+  on('lang', apply);
+  on('tasks:render', () => { if (active()) renderHead(true); $('m-fab').hidden = !(active() && view === 'tab' && S.tab === 'plan' && !(S.plan && S.plan.pview === 'inbox')); });
+  on('started', () => {
+    ready = true; wasRunning = ML.running && ML.running();
+    try { if (!localStorage.getItem(KEY) && active()) ML.setTab('today'); } catch (e) {}
+    apply();
+  });
   mq.addEventListener ? mq.addEventListener('change', apply) : mq.addListener(apply);
   ML.setMobileView = setView;
 })();

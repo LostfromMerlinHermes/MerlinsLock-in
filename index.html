@@ -17,6 +17,7 @@
 <div class="app">
   <header class="top">
     <div class="brand">
+      <button type="button" class="ghost icon-only m-back" id="m-back" hidden data-i18n-title="nav_back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
       <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
         <defs>
           <linearGradient id="hatg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="hat-top"/><stop offset="1" class="hat-bottom"/></linearGradient>
@@ -30,7 +31,7 @@
       </svg>
       <div class="brand-text">
         <h1>Merlins<span>LockIN</span></h1>
-        <span class="m-title" id="m-title"></span>
+        <button type="button" class="m-title" id="m-title"></button>
         <button type="button" class="seq" id="seq-badge">
           <span id="seq-label">Sequence 9 · Seer</span>
           <i class="seq-bar"><b id="seq-fill"></b></i>
@@ -46,6 +47,9 @@
       </button>
       <button type="button" class="ghost icon-only" id="float-btn" data-i18n-title="float_timer">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1"/></svg>
+      </button>
+      <button type="button" class="ghost icon-only" id="search-btn" data-i18n-title="k_title">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
       </button>
       <button type="button" class="ghost icon-only" id="quick-btn" data-i18n-title="qt_title">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h8M16 18h4"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="14" cy="18" r="2"/></svg>
@@ -66,14 +70,16 @@
   </div>
 
   <div class="work-only" id="work-root">
-  <section class="moodbar" aria-label="Mood">
-    <div class="mood-chips" id="mood-chips" role="group"></div>
-    <div class="mood-foot"><p class="mood-line" id="mood-line"></p></div>
-  </section>
-
   <div class="layout">
+    <!-- Left zone on a computer (3.60): energy, world, dial, sound. It stays put while the work zone scrolls. -->
+    <div class="session" id="session">
+    <section class="moodbar" aria-label="Mood">
+      <div class="mood-chips" id="mood-chips" role="group"></div>
+      <div class="mood-foot"><p class="mood-line" id="mood-line"></p></div>
+    </section>
     <section class="sigil-card" id="sigil-card">
       <div class="card-head">
+        <button type="button" class="ghost icon-only m-close" id="m-close" data-i18n-title="nav_back_screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="seg-toggle" role="group">
           <button type="button" id="m-focus" aria-pressed="true" data-i18n="focus">Focus</button>
           <button type="button" id="m-break" aria-pressed="false" data-i18n="break">Pause</button>
@@ -139,6 +145,8 @@
         </div>
       </div>
 
+      <div class="sess-tools" id="sess-tools"></div>
+
       <form class="park" id="park-form" autocomplete="off">
         <input type="text" id="park-input" maxlength="140" data-i18n-ph="park_ph">
         <button type="submit" data-i18n="park">Parquer</button>
@@ -150,17 +158,27 @@
 
       <div class="deck" id="sound-deck"></div>
     </section>
+    </div>
 
     <section class="panel">
       <div class="tabs" role="tablist">
         <button type="button" role="tab" id="t-plan" aria-controls="tab-plan"><span data-i18n="tab_plan">Plan</span> <span class="count" id="park-count"></span></button>
-        <button type="button" role="tab" id="t-day" aria-controls="tab-day" data-i18n="tab_day">Journée</button>
-        <button type="button" role="tab" id="t-cal" aria-controls="tab-cal" data-i18n="tab_cal">Agenda</button>
         <button type="button" role="tab" id="sp-study" data-space="study" data-i18n="sp_study">Étude</button>
         <button type="button" role="tab" id="sp-you" data-space="you" data-i18n="sp_you">Toi</button>
+        <button type="button" class="k-btn" id="k-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span data-i18n="k_title"></span><kbd>Ctrl K</kbd></button>
       </div>
-      <!-- Spaces (3.58): Study and You open this row of sub-tabs, so the bar above never grows -->
+      <!-- Phone: List / Day / Month at the top of the Plan space -->
+      <div class="m-seg" id="m-seg" role="group" hidden></div>
+      <!-- Every section of the current space: a column on a computer (3.60). Phones have home pages instead (today.js). -->
       <div class="subtabs" id="subtabs" role="tablist" hidden>
+        <button type="button" data-sp="plan" data-pvw="next" data-i18n="pl_v_next"></button>
+        <button type="button" data-sp="plan" data-pvw="today" data-i18n="pl_v_today"></button>
+        <button type="button" data-sp="plan" data-pvw="upcoming" data-i18n="pl_v_upcoming"></button>
+        <button type="button" data-sp="plan" data-pvw="projects" data-i18n="pl_v_projects"></button>
+        <button type="button" data-sp="plan" data-pvw="all" data-i18n="pl_v_all"></button>
+        <button type="button" data-sp="plan" data-pvw="inbox"><span data-i18n="pl_v_inbox"></span> <span class="count" id="sub-inbox"></span></button>
+        <button type="button" role="tab" id="t-day" data-sp="plan" aria-controls="tab-day" data-i18n="tab_day">Journée</button>
+        <button type="button" role="tab" id="t-cal" data-sp="plan" aria-controls="tab-cal" data-i18n="tab_cal">Agenda</button>
         <button type="button" role="tab" id="t-notes" data-sp="study" aria-controls="tab-notes" data-i18n="tab_notes">Carnet</button>
         <button type="button" role="tab" id="t-lib" data-sp="study" aria-controls="tab-lib"><span data-i18n="tab_lib">Bibliothèque</span> <svg class="lock-ico" id="lib-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
         <button type="button" role="tab" id="t-study" data-sp="study" aria-controls="tab-study"><span data-i18n="tab_cards">Cartes</span> <svg class="lock-ico" id="study-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
@@ -173,6 +191,9 @@
         <button type="button" role="tab" id="t-guide" data-sp="you" aria-controls="tab-guide" data-i18n="tab_guide">Guide</button>
       </div>
 
+      <div class="tabpanel" id="tab-today" role="tabpanel" hidden><div id="today"></div></div>
+      <div class="tabpanel" id="tab-shome" role="tabpanel" hidden><div id="shome"></div></div>
+      <div class="tabpanel" id="tab-yhome" role="tabpanel" hidden><div id="yhome"></div></div>
       <div class="tabpanel" id="tab-plan" role="tabpanel">
         <div id="quest-strip"></div>
         <form class="add" id="add-form" autocomplete="off">
@@ -226,8 +247,8 @@
   <div class="sport-root" id="sport-root" hidden></div>
 </div>
 
-<!-- Phone / side panel navigation (nav.js): a running-timer strip and a bottom bar, under 900px wide -->
-<button type="button" class="mnav-run" id="mnav-run" hidden></button>
+<!-- Phone / side panel navigation (nav.js): the add button and the bottom bar with its dial, under 900px wide -->
+<button type="button" class="m-fab" id="m-fab" hidden data-i18n-title="add_task">+</button>
 <nav class="mnav" id="mnav" aria-label="Navigation"></nav>
 <div class="overlay" id="settings" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="set-h">
@@ -335,6 +356,9 @@
 <script src="nav.js"></script>
 <script src="quick.js"></script>
 <script src="guide.js"></script>
+<script src="today.js"></script>
+<script src="search.js"></script>
+<script src="gestures.js"></script>
 <script src="endscreen.js"></script>
 <script src="legal.js"></script>
 <script src="config.js"></script>
