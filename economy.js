@@ -97,11 +97,12 @@
     },
   });
 
+  const TREE_FREE = ['lf_season', 'br_bark', 'fl_gold', 'hg_none', 'gd_grass', 'sk_dusk'];
   ML.defaults(() => ({
     econ: {
       gold: 0,
-      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus', 'diver', 'spell', 'city', 'valley', 'worldtone', 'veil', 'incant'] },
-      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus', dialAbyss: 'diver', deepSorcerer: 'spell', bgNeon: 'city', arcadeSet: 'valley', arcadePal: 'worldtone', dialFog: 'veil', deepFog: 'incant' },
+      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus', 'diver', 'spell', 'city', 'valley', 'worldtone', 'veil', 'incant'], tree: TREE_FREE.slice() },
+      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus', dialAbyss: 'diver', deepSorcerer: 'spell', bgNeon: 'city', arcadeSet: 'valley', arcadePal: 'worldtone', dialFog: 'veil', deepFog: 'incant', treeSkin: 'oak', treeLeaf: 'lf_season', treeBark: 'br_bark', treeFlower: 'fl_gold', treeHang: 'hg_none', treeGround: 'gd_grass', treeSky: 'sk_dusk' },
       potions: { seal: 0, elixir: 0, scroll: 0 }, elixir: false, frozen: [], lastCheck: null,
     },
   }));
@@ -114,13 +115,15 @@
     potion: { seal: 150, elixir: 80, scroll: 40, midas: 120 },
     skin: { classic: 0, runic: 350, parchment: 300, gold: 450, ember: 300, holo: 600, astral: 800 },
     dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300, spell: 0, circle: 400, city: 0, supercar: 600, valley: 0, pier: 1200, orbit: 900, worldtone: 0, redcream: 300, veil: 0, rose: 800, skeleton: 1200, incant: 0, door: 500 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43); the Cyber sorcier's two full screens (3.48); the Ville néon's two backgrounds (3.49); the Arcade's three sets (background + dial + palette) and a palette (3.51)
+    tree: { lf_season: 0, lf_sakura: 250, lf_ember: 250, lf_jade: 250, lf_silver: 300, lf_violet: 300, lf_gold: 400, br_bark: 0, br_ash: 200, br_ebony: 200, br_ember: 250, br_verdigris: 250, br_gold: 400, fl_gold: 0, fl_plum: 200, fl_camellia: 250, fl_star: 350, hg_none: 0, hg_swing: 300, hg_birds: 350, hg_lanterns: 400, gd_grass: 0, gd_mush: 250, gd_stones: 300, gd_pond: 400, sk_dusk: 0, sk_night: 300, sk_dawn: 300, pine: 800 }, // the year tree (tree.js): looks only, gold never buys growth. Premium gating comes with the Premium pass, not yet
   };
+  const TREE_SLOT = { lf: 'treeLeaf', br: 'treeBark', fl: 'treeFlower', hg: 'treeHang', gd: 'treeGround', sk: 'treeSky' };
   // Each world keeps its own equipped dial: the Sanctuaire's in equip.dial (as before 3.43), the Abysses' in equip.dialAbyss
   const DIAL_WORLD = { lotus: 'sanctuary', moon: 'sanctuary', diver: 'abyss', nautilus: 'abyss', jelly: 'abyss', spell: 'sorcerer', circle: 'sorcerer', city: 'neoncity', supercar: 'neoncity', valley: 'arcade', pier: 'arcade', orbit: 'arcade', worldtone: 'arcade', redcream: 'arcade', veil: 'fog', rose: 'fog', skeleton: 'fog', incant: 'fog', door: 'fog' };
   const SLOT = { abyss: 'dialAbyss', sorcerer: 'deepSorcerer', neoncity: 'bgNeon', arcade: 'arcadeSet', fog: 'dialFog' };
   const ITEM_SLOT = { worldtone: 'arcadePal', redcream: 'arcadePal', incant: 'deepFog', door: 'deepFog' }; // the Arcade's palettes go over its set
   const WORLD_ORDER = ['arcade', 'fog', 'sanctuary', 'abyss', 'sorcerer', 'neoncity']; // the shop shows world items world by world
-  const slotOf = (cat, k) => (cat !== 'dial' ? cat : ITEM_SLOT[k] || SLOT[DIAL_WORLD[k]] || cat);
+  const slotOf = (cat, k) => (cat === 'tree' ? (k === 'pine' ? 'treeSkin' : TREE_SLOT[k.slice(0, 2)]) : cat !== 'dial' ? cat : ITEM_SLOT[k] || SLOT[DIAL_WORLD[k]] || cat);
   const PREMIUM_ONLY = { skin: ['holo', 'astral'], dial: ['pier', 'skeleton'] }; // need a Premium account to buy
   const premOnly = (cat, k) => (PREMIUM_ONLY[cat] || []).includes(k);
   // Categories added after launch: older saves lack them (nested defaults only merge one level deep)
@@ -136,6 +139,8 @@
     if (!E.equip.arcadeSet) E.equip.arcadeSet = 'valley'; if (!E.equip.arcadePal) E.equip.arcadePal = 'worldtone';
     if (!E.owned.dial.includes('veil')) E.owned.dial.push('veil'); if (!E.equip.dialFog) E.equip.dialFog = 'veil';
     if (!E.owned.dial.includes('incant')) E.owned.dial.push('incant'); if (!E.equip.deepFog) E.equip.deepFog = 'incant';
+    if (!Array.isArray(E.owned.tree)) E.owned.tree = []; for (const k of TREE_FREE) { if (!E.owned.tree.includes(k)) E.owned.tree.push(k); const sl = TREE_SLOT[k.slice(0, 2)]; if (!E.equip[sl]) E.equip[sl] = k; }
+    if (!E.equip.treeSkin) E.equip.treeSkin = 'oak';
   }
 
   /* ---------- Sequence costumes: earned by reaching each Sequence, never lost ----------
@@ -171,7 +176,7 @@
   // The chip says "Shop" for the first 14 days, so a new user knows what the coins are for
   const shopNamed = () => { if (!S.firstSeen) { S.firstSeen = Math.min(Date.now(), ...(S.sessions || []).map(s => s.at)); save(); } return Date.now() - S.firstSeen < 14 * 864e5; };
   function renderGold() { const el = $('gold-chip'); if (el) { el.innerHTML = `<span>◈</span><b>${S.econ.gold.toLocaleString(ML.locale())}</b>${shopNamed() ? `<em>${esc(t('shop'))}</em>` : ''}`; el.title = t('gold_n', { n: S.econ.gold }); } }
-  $('gold-chip').onclick = () => { migrate(); ownerGifts(); grantCostumes(false); renderShop(); ML.openOverlay('shop'); spy(); };
+  $('gold-chip').onclick = () => { migrate(); ownerGifts(); grantCostumes(false); renderShop(); ML.openOverlay('shop'); if (ML.treePrevs) ML.treePrevs($('shop-body')); spy(); };
   ML.openShop = () => $('gold-chip').click();
   // End of a session: what the coins earned bring closer (the cheapest item not owned yet, among the ones with a name)
   ML.addStrings({ fr: { end_gold: '+{g} ◈', end_shop_near: 'Plus que {n} ◈ pour {name}', end_shop_can: 'Tu peux acheter {name}', end_shop_go: 'Voir la boutique' }, en: { end_gold: '+{g} ◈', end_shop_near: '{n} ◈ left for {name}', end_shop_can: 'You can buy {name}', end_shop_go: 'See the shop' } });
@@ -280,6 +285,7 @@
     if (cat === 'burst') return `<span class="burst-swatch">${{ theme: '✦', coins: '◈', confetti: '▚', stars: '★', sakura: '❀' }[k]}</span>`;
     if (cat === 'familiar') return ML.familiarSvg ? ML.familiarSvg(k, 'idle') : '';
     if (cat === 'skin') return ML.sportSkinPreview ? ML.sportSkinPreview(k) : '';
+    if (cat === 'tree') return ML.treePrev ? ML.treePrev(k) : '';
     if (cat === 'dial') { const f = { abyss: ML.abyssDialSvg, sorcerer: ML.sorcererDeepSvg, neoncity: ML.neonShopPic, arcade: ML.arcadeShopPic, fog: ML.fogShopPic }[DIAL_WORLD[k]] || ML.sanctuaryDialSvg; return f ? f(k) : ''; }
     return `<span class="burst-swatch">${{ seal: '⛨', elixir: '⚗', scroll: '📜', midas: '♛' }[k]}</span>`;
   };
@@ -289,7 +295,7 @@
   const tier = p => (p <= 150 ? 'common' : p <= 300 ? 'rare' : p <= 500 ? 'epic' : 'legendary');
   const coin = (n, short) => `<span class="coin-pill ${short ? 'short' : ''}"><i>◈</i>${n.toLocaleString(ML.locale())}</span>`;
   let justBought = null;
-  const NAV = [['worlds', 'cat_worlds'], ['seq', 'cat_seq'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['dial', 'cat_dials'], ['burst', 'cat_bursts']]; // (character skins went with the Sport section, set aside in 3.25)
+  const NAV = [['worlds', 'cat_worlds'], ['seq', 'cat_seq'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['dial', 'cat_dials'], ['tree', 'cat_tree'], ['burst', 'cat_bursts']]; // (character skins went with the Sport section, set aside in 3.25)
   // Light skins (Premium, not bought with gold): one per mood, switched on from here or the sun / moon button
   const LIGHTS = [['drained', 'aube'], ['steady', 'atelier'], ['fired', 'tokyo'], ['scattered', 'cartouche']];
   function lightSection() {
@@ -379,8 +385,9 @@
       ${lightSection()}
       <h3 class="shop-h" id="shop-seq">${esc(t('cat_seq'))}</h3><p class="hint">${esc(t('seq_hint'))}</p>
       <div class="shop-grid seq-grid">${seqTile('none', -1)}${(ML.COSTUMES || []).map(seqTile).join('')}</div>
-      ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('dial', 'cat_dials', 'dial_hint')}${section('burst', 'cat_bursts')}`;
+      ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('dial', 'cat_dials', 'dial_hint')}${section('tree', 'cat_tree', 'tree_hint')}${section('burst', 'cat_bursts')}`;
     $('shop-body').querySelectorAll('.world-pic img, .world-free img').forEach(i => i.addEventListener('error', () => i.remove()));
+    if (ML.treePrevs && !$('shop').hidden) ML.treePrevs($('shop-body'));
     if (!$('shop').hidden) spy();
   }
   // The category row lights the section being read (the last heading that scrolled past the pinned header)

@@ -7,11 +7,11 @@
   const { $, S, t, esc, on, emit } = ML;
 
   ML.addStrings({
-    fr: { nav_timer: 'Minuteur', nav_shop: 'Boutique', nav_today: 'Aujourd’hui', nav_back: 'Retour', nav_back_screen: 'Fermer le minuteur', nav_back_timer: 'Revenir au minuteur', nav_list: 'Liste', nav_month: 'Mois' },
-    en: { nav_timer: 'Timer', nav_shop: 'Shop', nav_today: 'Today', nav_back: 'Back', nav_back_screen: 'Close the timer', nav_back_timer: 'Back to the timer', nav_list: 'List', nav_month: 'Month' },
+    fr: { nav_timer: 'Minuteur', nav_shop: 'Boutique', nav_today: 'Aujourd’hui', nav_back: 'Retour', nav_back_screen: 'Fermer le minuteur', nav_back_timer: 'Revenir au minuteur', nav_list: 'Liste', nav_month: 'Mois', grp_tasks: 'Tâches', grp_sched: 'Planning', rail_hide: 'Masquer la colonne', rail_show: 'Afficher la colonne', full_on: 'Plein écran', full_off: 'Quitter le plein écran (Échap)' },
+    en: { nav_timer: 'Timer', nav_shop: 'Shop', nav_today: 'Today', nav_back: 'Back', nav_back_screen: 'Close the timer', nav_back_timer: 'Back to the timer', nav_list: 'List', nav_month: 'Month', grp_tasks: 'Tasks', grp_sched: 'Schedule', rail_hide: 'Hide the column', rail_show: 'Show the column', full_on: 'Full screen', full_off: 'Leave full screen (Esc)' },
   });
 
-  const KEY = 'mli-mview', OPEN_KEY = 'mli-folds';
+  const KEY = 'mli-mview', OPEN_KEY = 'mli-folds', GROUP_KEY = 'mli-subgroups', RAIL_KEY = 'mli-rail-off';
   const mq = matchMedia('(max-width: 899px)');
   const root = document.documentElement;
   const BAR = ['today', 'plan', 'timer', 'study', 'you'];
@@ -173,4 +173,67 @@
   });
   mq.addEventListener ? mq.addEventListener('change', apply) : mq.addListener(apply);
   ML.setMobileView = setView;
+
+  /* ---------- Computer: the section column (3.61) ---------- */
+  // The Plan's sections fold into groups; a closed group names the section you are on
+  let groups = { tasks: true, progress: true, well: true, more: true };
+  try { groups = Object.assign(groups, JSON.parse(localStorage.getItem(GROUP_KEY))); } catch (e) {}
+  function renderGroups() {
+    document.querySelectorAll('#subtabs .sub-grp').forEach(b => {
+      const k = b.dataset.grp, fold = document.querySelector(`#subtabs [data-fold="${k}"]`), isOpen = !!groups[k];
+      fold.classList.toggle('closed', !isOpen);
+      b.setAttribute('aria-expanded', isOpen);
+      const cur = fold.querySelector('[aria-selected="true"]:not([hidden]), .pl-sit.on:not([data-pproj=""]) span:not(.pl-dot)');
+      b.querySelector('small').textContent = !isOpen && cur ? cur.textContent.trim() : '';
+    });
+  }
+  $('subtabs').addEventListener('click', e => {
+    const b = e.target.closest('.sub-grp'); if (!b) return;
+    groups[b.dataset.grp] = !groups[b.dataset.grp];
+    try { localStorage.setItem(GROUP_KEY, JSON.stringify(groups)); } catch (err) {}
+    renderGroups();
+  });
+  on('tab', renderGroups); on('tasks:render', renderGroups); on('render', renderGroups); on('lang', renderGroups); on('started', renderGroups);
+
+  // Two ways to give the section more room: hide the column (a tap on Plan, Study or You brings it back), or full screen
+  let railOff = false, fullOn = false, railBefore = false;
+  try { railOff = localStorage.getItem(RAIL_KEY) === '1'; } catch (e) {}
+  function renderRoom() {
+    root.classList.toggle('rail-off', railOff);
+    root.classList.toggle('panel-full', fullOn);
+    const r = $('rail-btn'), f = $('full-btn');
+    r.setAttribute('aria-pressed', railOff); r.title = t(railOff ? 'rail_show' : 'rail_hide'); r.setAttribute('aria-label', r.title);
+    f.setAttribute('aria-pressed', fullOn); f.title = t(fullOn ? 'full_off' : 'full_on'); f.setAttribute('aria-label', f.title);
+    renderTabClock();
+  }
+  function setRail(off) {
+    railOff = off;
+    if (fullOn) railBefore = off;
+    else try { localStorage.setItem(RAIL_KEY, off ? '1' : '0'); } catch (e) {}
+    renderRoom();
+  }
+  function setFull(want) {
+    if (want === fullOn) return;
+    fullOn = want;
+    if (want) { railBefore = railOff; railOff = true; }
+    else railOff = railBefore;
+    try {
+      if (want && root.requestFullscreen) root.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+      if (!want && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    } catch (e) {}
+    renderRoom();
+  }
+  // The timer zone is gone in full screen, so a running session keeps its time in the tab row
+  function renderTabClock() {
+    const c = $('tab-clock'), show = fullOn && S.mode === 'focus' && ML.running && ML.running();
+    c.hidden = !show;
+    if (show) { const v = MiniView.fmtClock(ML.remainingNow()); if (c.textContent !== v) c.textContent = v; }
+  }
+  $('rail-btn').onclick = () => setRail(!railOff);
+  $('full-btn').onclick = () => setFull(!fullOn);
+  ['t-plan', 'sp-study', 'sp-you'].forEach(id => $(id).addEventListener('click', () => { if (railOff) setRail(false); }));
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && fullOn) setFull(false); }); // Esc leaves the browser's full screen
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && fullOn && !document.fullscreenElement && !e.defaultPrevented) setFull(false); }); // where the browser refuses it
+  on('tick', renderTabClock); on('timer', renderTabClock); on('lang', renderRoom); on('started', renderRoom);
+  mq.addEventListener ? mq.addEventListener('change', () => { if (mq.matches) setFull(false); }) : 0;
 })();

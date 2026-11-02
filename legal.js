@@ -3,7 +3,7 @@
 (() => {
   'use strict';
   const { $, S, t, esc } = ML;
-  const LEGAL_VERSION = '2026-10-29';
+  const LEGAL_VERSION = '2026-11-02';
   ML.LEGAL_VERSION = LEGAL_VERSION;
   const CFG = () => window.MLI_CONFIG || {}; // config.js loads after this file
   const EMAIL = () => CFG().contactEmail || '—';
@@ -44,6 +44,7 @@
         <ul>
           <li><b>Supabase Inc.</b> héberge les comptes et les données synchronisées, dans ${esc(REGION())}. Les échanges sont chiffrés (HTTPS) et des règles de sécurité empêchent chaque utilisateur de lire les données des autres.</li>
           <li><b>GitHub Inc.</b> héberge le site. Comme tout hébergeur, il peut enregistrer l’adresse IP des visiteurs dans ses journaux techniques.</li>
+          <li><b>Santé et temps d’écran</b> (si tu les actives) : ton check du jour, le temps par site (le nom du site seulement), tes plans si-alors et le temps d’écran que tu notes restent dans un stockage séparé sur l’appareil. Ils ne sont ni synchronisés ni envoyés à personne, et tu peux tout effacer depuis ces pages. Ce n’est pas un service médical.</li>
           <li><b>Agenda en direct</b> (si tu l’actives) : dans l’app web, l’adresse de ton agenda passe par une fonction Supabase qui lit l’agenda et te le renvoie, sans rien garder. Les <b>mails</b> écrits dans l’app s’ouvrent dans Gmail, Outlook ou ton app Mail : nous ne les envoyons pas et ne les lisons pas.</li>
         </ul>
         <p>Les polices sont hébergées avec l’app : aucune requête n’est faite à Google. Le stockage local utilisé est strictement nécessaire au fonctionnement ; il n’y a pas de cookie publicitaire ni de mesure d’audience.</p>
@@ -98,6 +99,7 @@
         <ul>
           <li><b>Supabase Inc.</b> hosts accounts and synced data, in ${esc(REGION())}. Traffic is encrypted (HTTPS) and security rules stop each user from reading anyone else’s data.</li>
           <li><b>GitHub Inc.</b> hosts the website. Like any host, it may log visitors’ IP addresses.</li>
+          <li><b>Health and screen time</b> (if you turn them on): your daily check, time per site (the site’s name only), your if-then plans and the screen time you type stay in separate storage on your device. They are neither synced nor sent to anyone, and you can clear them from those pages. This is not a medical service.</li>
           <li><b>Live calendar</b> (if you turn it on): in the web app, your calendar’s address goes through a Supabase function that reads the calendar and returns it, keeping nothing. <b>Emails</b> written in the app open in Gmail, Outlook or your Mail app: we don’t send or read them.</li>
         </ul>
         <p>Fonts are hosted with the app: no requests go to Google. The local storage used is strictly necessary for the app to work; there are no advertising cookies and no analytics.</p>

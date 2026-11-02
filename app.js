@@ -481,10 +481,10 @@
 
   /* ---------- Tabs ---------- */
   // today, shome and yhome are the phone's home pages (today.js): they have no tab button
-  const TABS = { today: [null, 'tab-today'], shome: [null, 'tab-shome'], yhome: [null, 'tab-yhome'], plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'], subjects: ['t-subjects', 'tab-subjects'], lectures: ['t-lectures', 'tab-lectures'], room: ['t-room', 'tab-room'], guide: ['t-guide', 'tab-guide'] };
+  const TABS = { today: [null, 'tab-today'], shome: [null, 'tab-shome'], yhome: [null, 'tab-yhome'], plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], focus: ['t-focus', 'tab-focus'], tree: ['t-tree', 'tab-tree'], health: ['t-health', 'tab-health'], screen: ['t-screen', 'tab-screen'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'], subjects: ['t-subjects', 'tab-subjects'], lectures: ['t-lectures', 'tab-lectures'], room: ['t-room', 'tab-room'], guide: ['t-guide', 'tab-guide'] };
   // Spaces: Plan, Study and You. A computer lists a space's sections in a column, a phone opens its home page (3.60)
-  const SPACE = { plan: 'plan', day: 'plan', cal: 'plan', notes: 'study', lib: 'study', study: 'study', subjects: 'study', lectures: 'study', learn: 'study', shome: 'study', grim: 'you', room: 'you', guide: 'you', yhome: 'you', today: 'today' };
-  const SPACE_FIRST = { plan: 'plan', study: 'notes', you: 'grim' }, HOME_OF = { today: 'plan', shome: 'study', yhome: 'you' };
+  const SPACE = { plan: 'plan', day: 'plan', cal: 'plan', notes: 'study', lib: 'study', study: 'study', subjects: 'study', lectures: 'study', learn: 'study', shome: 'study', focus: 'you', tree: 'you', health: 'you', screen: 'you', grim: 'you', room: 'you', guide: 'you', yhome: 'you', today: 'today' };
+  const SPACE_FIRST = { plan: 'plan', study: 'notes', you: 'focus' }, HOME_OF = { today: 'plan', shome: 'study', yhome: 'you' };
   const wideNow = () => !document.documentElement.classList.contains('mnav-on') && matchMedia('(min-width: 900px)').matches;
   ML.SPACE = SPACE;
   ML.addStrings({ fr: { sp_study: 'Étude', sp_you: 'Toi', tab_cards: 'Cartes' }, en: { sp_study: 'Study', sp_you: 'You', tab_cards: 'Cards' } });
@@ -670,7 +670,7 @@
     // With the bottom bar (nav.js) the Timer screen is the full dial, and other screens get a running strip instead
     if (S.autoCompact && innerWidth < 900 && !document.documentElement.classList.contains('mnav-on') && S.mode === 'focus' && !S.compact) { S.compact = true; autoCompacted = true; }
     save(); loop(); bgSchedule();
-    if (S.mode === 'focus' && S.block.on) bgSend({ type: 'block', on: true, domains: S.block.domains });
+    if (S.mode === 'focus' && S.block.on && (!ML.blockInSession || ML.blockInSession())) bgSend({ type: 'block', on: true, domains: S.block.domains });
     try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(l => { wakeLock = l; }).catch(() => {}); } catch (e) {}
     emit('timer');
     if (fresh && S.mode === 'focus') emit('focus:start', { taskId: S.activeId, endAt: S.endAt, mins: Math.round(S.total / 60) }); // extras.js: task links, away message
@@ -714,7 +714,7 @@
       let longBreak = false;
       if (elapsed > 0) {
         const task = S.tasks.find(x => x.id === S.activeId);
-        const session = { at: endedAt, start: endedAt - elapsed * 60000, mins: elapsed, title: activeTitle() || t('free_focus'), taskId: S.activeId, mood: S.mood, rating: null, full: !early, pauses: S.pauses || 0, distractions: S.curDistr || 0 };
+        const session = { at: endedAt, start: endedAt - elapsed * 60000, mins: elapsed, title: activeTitle() || t('free_focus'), taskId: S.activeId, mood: S.mood, world: (ML.sessionWorld && ML.sessionWorld(S.mood)) || undefined, rating: null, full: !early, pauses: S.pauses || 0, distractions: S.curDistr || 0 };
         S.sessions.push(session);
         if (task) task.spent = (task.spent || 0) + elapsed;
         let xp = early ? elapsed : Math.round(elapsed * 1.25);

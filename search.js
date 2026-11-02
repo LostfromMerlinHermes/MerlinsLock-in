@@ -28,7 +28,7 @@
   const close = () => { el.hidden = true; document.documentElement.classList.remove('k-on'); if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); lastFocus = null; };
   let lastFocus = null, items = [], cur = 0, docs = [];
 
-  const SECTIONS = () => [['plan', 'tab_plan'], ['day', 'tab_day'], ['cal', 'tab_cal'], ['subjects', 'tab_subjects'], ['notes', 'tab_notes'], ['lib', 'nav_lib'], ['study', 'tab_cards'], ['lectures', 'tab_lectures'], ['learn', 'tab_learn'], ['grim', 'tab_grim'], ['room', 'tab_room'], ['guide', 'tab_guide']]
+  const SECTIONS = () => [['plan', 'tab_plan'], ['day', 'tab_day'], ['cal', 'tab_cal'], ['subjects', 'tab_subjects'], ['notes', 'tab_notes'], ['lib', 'nav_lib'], ['study', 'tab_cards'], ['lectures', 'tab_lectures'], ['learn', 'tab_learn'], ['focus', 'tab_focus'], ['tree', 'tab_tree'], ['health', 'tab_health'], ['screen', 'tab_screen'], ['grim', 'tab_grim'], ['room', 'tab_room'], ['guide', 'tab_guide']]
     .map(([k, s]) => ({ g: 'open', name: t(s), tag: t('k_section'), run: () => ML.setMobileView(k) }));
   const COMMANDS = () => [
     ['k_start', () => ML.toggleTimer()], ['k_deep', () => ML.openDeep()], ['k_mute', () => $('mute-btn').click()], ['k_float', () => $('float-btn').click()],

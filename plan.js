@@ -332,7 +332,7 @@
   const main = document.createElement('div'); main.className = 'pl-main';
   const phead = document.createElement('div'); phead.className = 'pl-phead'; phead.hidden = true;
   main.append(phead, list); grid.append(main); layout.append(bar, grid, bulk);
-  side.dataset.sp = 'plan'; $('subtabs').append(side); // the projects sit in the column of the Plan's sections (3.60)
+  side.dataset.sp = 'plan'; $('sub-proj').append(side); // the projects sit in the column of the Plan's sections (3.60), in their own group (3.61)
 
   /* ---------- Toolbar ---------- */
   const VIEWS = ['today', 'upcoming', 'projects', 'all'], GROUPS = ['moment', 'project', 'pri', 'none'], SORTS = ['energy', 'due', 'mins', 'pri', 'manual'];
@@ -460,7 +460,7 @@
   let newProj = false;
   function renderSide() {
     const p = P(), projs = ML.planProjects(), open = S.tasks.filter(x => !x.done);
-    const html = `<p class="sub-h">${esc(t('pl_project'))}</p><button type="button" class="pl-sit ${!p.proj ? 'on' : ''}" data-pproj=""><span>${esc(t('pl_all'))}</span><small>${open.length}</small></button>
+    const html = `<button type="button" class="pl-sit ${!p.proj ? 'on' : ''}" data-pproj=""><span>${esc(t('pl_all'))}</span><small>${open.length}</small></button>
       ${projs.map(n => { const wk = weekMins(n); return `<button type="button" class="pl-sit ${p.proj === n ? 'on' : ''}" data-pproj="${esc(n)}" title="${esc(n)}${wk ? ' · ' + esc(t('pl_week_h', { h: fmtMins(wk) })) : ''}">${projDot(n)}<span>${esc(n)}</span><small>${open.filter(x => x.project === n).length}</small></button>`; }).join('')}
       ${newProj ? `<form class="pl-snew"><input type="text" maxlength="40" placeholder="${esc(t('pl_p_new_ph'))}" aria-label="${esc(t('pl_p_new'))}"><button type="submit" class="small">${esc(t('pl_ok'))}</button></form>` : `<button type="button" class="pl-sit pl-sadd" data-snew="1">${esc(t('pl_side_new'))}</button>`}`;
     if (side.dataset.h !== html) { side.innerHTML = html; side.dataset.h = html; if (newProj) side.querySelector('input').focus(); }

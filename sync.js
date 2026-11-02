@@ -581,7 +581,11 @@
         try {
           clearTimeout(pushT); pushT = null;
           await api('/rest/v1/rpc/delete_my_account', { method: 'POST', body: {}, token: await token() });
-          try { [ML.storageKey(), 'mli-snaps:' + ML.storageKey(), 'mli-sync-base:' + user.id, 'mli-sync-ok:' + user.id].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+          try {
+            [ML.storageKey(), 'mli-snaps:' + ML.storageKey(), 'mli-sync-base:' + user.id, 'mli-sync-ok:' + user.id].forEach(k => localStorage.removeItem(k));
+            const priv = 'mli-private:' + ML.storageKey() + ':'; // health and screen time, kept out of the sync (focus.js)
+            Object.keys(localStorage).filter(k => k.startsWith(priv)).forEach(k => localStorage.removeItem(k));
+          } catch (e) {}
           writeSession(null); user = null; sess = null; ML.setStorageKey(null);
           toast(t('acc_deleted')); setTimeout(() => location.reload(), 1800);
         } catch (e) { toast(e.status === 404 ? t('del_missing') : errText(e)); }

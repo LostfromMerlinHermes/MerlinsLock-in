@@ -42,6 +42,7 @@
   const rest = (p, o) => ML.auth.rest(p, o);
   const isPrem = () => !!(ML.isPremium && ML.isPremium());
   let room = null, members = [], tasks = [], tasksOk = true, lastErr = false, pollT = null, tickT = null, lastStartAt = null;
+  let trees = [], treesOk = true, treeSent = null; // the shared grove (tree.js); its table is separate, so a server without it changes nothing else
   let quizSt = { id: null, i: 0, score: 0, shown: false }; // my progress in the room's quiz
   const ALPH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const newCode = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => ALPH[b % ALPH.length]).join('');
@@ -69,10 +70,24 @@
       if (!rows || !rows.length) { const was = R().code; R().code = null; room = null; members = []; tasks = []; save(); if (was) toast(t('rm_not_found')); renderIfOpen(); return; }
       room = rows[0]; members = mem || []; lastErr = false;
       try { tasks = await rest('/rest/v1/room_tasks?select=*&room_code=eq.' + R().code + '&order=created_at.asc') || []; tasksOk = true; } catch (e) { tasksOk = false; } // the update SQL may not have run yet
+      await syncTree();
       follow();
       await presence();
     } catch (e) { lastErr = true; }
     renderIfOpen();
+  }
+  const treeOpt = k => !(S.tree && S.tree[k] === false);
+  async function syncTree() {
+    try {
+      if (treeOpt('grove')) trees = await rest('/rest/v1/room_trees?select=user_id,data&room_code=eq.' + R().code) || [];
+      const data = treeOpt('share') && ML.treeShareData ? JSON.stringify(ML.treeShareData()) : '', sentKey = R().code + data;
+      if (sentKey !== treeSent) {
+        if (data) await rest('/rest/v1/room_trees?on_conflict=room_code,user_id', { method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal', body: { room_code: R().code, user_id: me().id, data: JSON.parse(data), updated_at: new Date().toISOString() } });
+        else await rest('/rest/v1/room_trees?room_code=eq.' + R().code + '&user_id=eq.' + me().id, { method: 'DELETE', prefer: 'return=minimal' });
+        treeSent = sentKey;
+      }
+      treesOk = true;
+    } catch (e) { treesOk = false; } // room-trees.sql may not have run yet
   }
   // Follow mode: when the host starts a focus round, start the local timer for the time left
   function follow() {
@@ -109,7 +124,7 @@
       if (isHost()) await rest('/rest/v1/study_rooms?code=eq.' + code, { method: 'DELETE', prefer: 'return=minimal' });
       else await rest('/rest/v1/room_members?room_code=eq.' + code + '&user_id=eq.' + me().id, { method: 'DELETE', prefer: 'return=minimal' });
     } catch (e) {}
-    R().code = null; room = null; members = []; tasks = []; save(); renderIfOpen();
+    R().code = null; room = null; members = []; tasks = []; trees = []; treeSent = null; save(); renderIfOpen();
   }
   // Shared tasks: anyone in the room adds, checks and removes
   async function addTask(title) {
@@ -188,6 +203,21 @@
       ${st.next && st.next > Date.now() ? `<div class="rm-row"><b>${esc(t('rm_next_at', { d: when(st.next) }))}</b>${isHost() ? `<button type="button" class="small ghost" data-rmnext-clear>${esc(t('rm_next_clear'))}</button>` : ''}</div>`
         : isHost() ? `<form class="sr-form" id="rm-next" autocomplete="off"><input type="datetime-local" id="rm-next-in" aria-label="${esc(t('rm_next'))}"><button type="submit" class="small">${esc(t('rm_next_set'))}</button></form>` : ''}</div>`;
   }
+  function groveHtml() {
+    return `<div class="rm-sec"><span class="label">${esc(t('gr_title'))}</span>
+      ${treeOpt('grove') ? '<div id="rm-grove"></div>' : ''}
+      ${!treesOk && treeOpt('grove') ? `<p class="hint">${esc(t('gr_sql'))}</p>` : ''}
+      <label class="opt"><input type="checkbox" id="rm-grove-show" ${treeOpt('grove') ? 'checked' : ''}> ${esc(t('gr_show'))}</label>
+      <label class="opt"><input type="checkbox" id="rm-grove-share" ${treeOpt('share') ? 'checked' : ''}> ${esc(t('gr_share'))}</label>
+      <p class="hint">${esc(t('gr_share_h'))}</p></div>`;
+  }
+  // My own tree comes from here, never from the server, so it shows even before the SQL has run
+  function mountGrove() {
+    const slot = $('rm-grove'); if (!slot || !ML.treeGrove) return;
+    const mine = me() && me().id, rows = {}; trees.forEach(x => { rows[x.user_id] = x.data; });
+    if (treeOpt('share') && ML.treeShareData) rows[mine] = ML.treeShareData(); else delete rows[mine];
+    ML.treeGrove.mount(slot, members.filter(m => rows[m.user_id]).map(m => ({ id: m.user_id, name: m.user_id === mine ? t('gr_you') : m.name, status: fresh(m) ? m.status : 'away', data: rows[m.user_id] })));
+  }
   function html() {
     if (!me()) return `<p class="hint">${esc(t('rm_intro'))}</p><p class="hint">${esc(t('rm_signin'))}</p><button type="button" class="small primary" id="rm-signin">${esc(t('rm_signin_btn'))}</button>`;
     if (!R().code || !room) return `<p class="hint">${esc(t('rm_intro'))}</p>
@@ -208,14 +238,15 @@
       ${tasksHtml()}${quizHtml()}${callHtml()}
       <span class="label">${esc(t('rm_members'))} · ${esc(t('rm_cap', { n: members.filter(fresh).length, m: capOf(room) }))}</span>
       <ul class="rm-members">${members.map(m => { const st = fresh(m) ? m.status : 'away'; return `<li class="st-${st}"><i></i><b>${esc(m.name)}</b>${m.user_id === room.host ? `<small>${esc(t('rm_host'))}</small>` : ''}<span>${esc(t('rm_' + st))}</span></li>`; }).join('')}</ul>
+      ${groveHtml()}
       ${historyHtml()}
       <button type="button" class="small ghost danger" id="rm-leave">${esc(isHost() ? t('rm_close') : t('rm_leave'))}</button>
     </div>`;
   }
   const host = $('room-root');
-  function renderIfOpen() { if (S.tab === 'room') ML.keepInputs(host, () => { host.innerHTML = html(); }); }
+  function renderIfOpen() { if (S.tab === 'room') { ML.keepInputs(host, () => { host.innerHTML = html(); }); mountGrove(); } }
   function bind() {
-    host.innerHTML = html();
+    host.innerHTML = html(); mountGrove();
     clearInterval(tickT);
     tickT = setInterval(() => { if (S.tab !== 'room') { clearInterval(tickT); return; } const c = $('rm-clock'); if (c && room && room.timer && room.timer.endAt > Date.now()) c.textContent = clockOf(room.timer); }, 1000);
     if (R().code && !room) pull();
@@ -251,6 +282,10 @@
   });
   host.addEventListener('change', e => {
     if (e.target.id === 'rm-follow') { R().follow = e.target.checked; save(); }
+    if (e.target.id === 'rm-grove-show' || e.target.id === 'rm-grove-share') {
+      S.tree = S.tree || {}; S.tree[e.target.id === 'rm-grove-show' ? 'grove' : 'share'] = e.target.checked; save();
+      renderIfOpen(); syncTree().then(renderIfOpen);
+    }
     if (e.target.dataset.rmtask) toggleTask(e.target.dataset.rmtask).catch(fail);
   });
 
@@ -259,5 +294,5 @@
   on('started', () => { if (S.tab === 'room') bind(); if (R().code && me()) { pull(); schedule(); } });
   // (S.room is only there once the state has loaded: the login screen comes before)
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && R() && R().code) { pull(); schedule(); } });
-  ML.Rooms = { pull };
+  ML.Rooms = { pull, mountGrove };
 })();

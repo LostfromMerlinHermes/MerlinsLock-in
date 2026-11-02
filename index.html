@@ -142,6 +142,7 @@
           <button type="button" id="reset" data-i18n="reset">Reset</button>
           <button type="button" class="primary" id="start"></button>
           <button type="button" id="skip" data-i18n="finish">Terminer</button>
+          <button type="button" class="link stuck-btn" id="stuck-btn" data-i18n="st_btn"></button>
         </div>
       </div>
 
@@ -166,29 +167,54 @@
         <button type="button" role="tab" id="sp-study" data-space="study" data-i18n="sp_study">Étude</button>
         <button type="button" role="tab" id="sp-you" data-space="you" data-i18n="sp_you">Toi</button>
         <button type="button" class="k-btn" id="k-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span data-i18n="k_title"></span><kbd>Ctrl K</kbd></button>
+        <span class="tab-clock" id="tab-clock" hidden></span>
+        <button type="button" class="tab-ico" id="rail-btn" aria-pressed="false" data-i18n-title="rail_hide"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M9.5 5v14"/></svg></button>
+        <button type="button" class="tab-ico" id="full-btn" aria-pressed="false" data-i18n-title="full_on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
       </div>
       <!-- Phone: List / Day / Month at the top of the Plan space -->
       <div class="m-seg" id="m-seg" role="group" hidden></div>
       <!-- Every section of the current space: a column on a computer (3.60). Phones have home pages instead (today.js). -->
       <div class="subtabs" id="subtabs" role="tablist" hidden>
-        <button type="button" data-sp="plan" data-pvw="next" data-i18n="pl_v_next"></button>
-        <button type="button" data-sp="plan" data-pvw="today" data-i18n="pl_v_today"></button>
-        <button type="button" data-sp="plan" data-pvw="upcoming" data-i18n="pl_v_upcoming"></button>
-        <button type="button" data-sp="plan" data-pvw="projects" data-i18n="pl_v_projects"></button>
-        <button type="button" data-sp="plan" data-pvw="all" data-i18n="pl_v_all"></button>
-        <button type="button" data-sp="plan" data-pvw="inbox"><span data-i18n="pl_v_inbox"></span> <span class="count" id="sub-inbox"></span></button>
-        <button type="button" role="tab" id="t-day" data-sp="plan" aria-controls="tab-day" data-i18n="tab_day">Journée</button>
-        <button type="button" role="tab" id="t-cal" data-sp="plan" aria-controls="tab-cal" data-i18n="tab_cal">Agenda</button>
-        <button type="button" role="tab" id="t-notes" data-sp="study" aria-controls="tab-notes" data-i18n="tab_notes">Carnet</button>
-        <button type="button" role="tab" id="t-lib" data-sp="study" aria-controls="tab-lib"><span data-i18n="tab_lib">Bibliothèque</span> <svg class="lock-ico" id="lib-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
-        <button type="button" role="tab" id="t-study" data-sp="study" aria-controls="tab-study"><span data-i18n="tab_cards">Cartes</span> <svg class="lock-ico" id="study-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
-        <button type="button" role="tab" id="t-subjects" data-sp="study" aria-controls="tab-subjects" data-i18n="tab_subjects">Matières</button>
-        <button type="button" role="tab" id="t-lectures" data-sp="study" aria-controls="tab-lectures" data-i18n="tab_lectures">Cours</button>
-        <button type="button" role="tab" id="t-learn" data-sp="study" aria-controls="tab-learn" data-i18n="tab_learn">Apprendre</button>
-        <button type="button" role="tab" id="t-grim" data-sp="you" aria-controls="tab-grim" data-i18n="tab_grim">Grimoire</button>
-        <button type="button" role="tab" id="t-room" data-sp="you" aria-controls="tab-room" data-i18n="tab_room">Salle</button>
-        <button type="button" id="t-shop" data-sp="you" data-i18n="shop">Boutique</button>
-        <button type="button" role="tab" id="t-guide" data-sp="you" aria-controls="tab-guide" data-i18n="tab_guide">Guide</button>
+        <!-- The Plan's sections fold into groups (nav.js) -->
+        <button type="button" class="sub-grp" data-in="plan" data-grp="tasks"><span data-i18n="grp_tasks"></span><small></small></button>
+        <div class="sub-fold" data-in="plan" data-fold="tasks">
+          <button type="button" data-sp="plan" data-pvw="next" data-i18n="pl_v_next"></button>
+          <button type="button" data-sp="plan" data-pvw="today" data-i18n="pl_v_today"></button>
+          <button type="button" data-sp="plan" data-pvw="upcoming" data-i18n="pl_v_upcoming"></button>
+          <button type="button" data-sp="plan" data-pvw="projects" data-i18n="pl_v_projects"></button>
+          <button type="button" data-sp="plan" data-pvw="all" data-i18n="pl_v_all"></button>
+          <button type="button" data-sp="plan" data-pvw="inbox"><span data-i18n="pl_v_inbox"></span> <span class="count" id="sub-inbox"></span></button>
+        </div>
+        <button type="button" class="sub-grp" data-in="plan" data-grp="sched"><span data-i18n="grp_sched"></span><small></small></button>
+        <div class="sub-fold" data-in="plan" data-fold="sched">
+          <button type="button" role="tab" id="t-day" data-sp="plan" aria-controls="tab-day" data-i18n="tab_day">Journée</button>
+          <button type="button" role="tab" id="t-cal" data-sp="plan" aria-controls="tab-cal" data-i18n="tab_cal">Agenda</button>
+        </div>
+        <button type="button" class="sub-grp" data-in="plan" data-grp="proj"><span data-i18n="pl_project"></span><small></small></button>
+        <div class="sub-fold" data-in="plan" data-fold="proj" id="sub-proj"></div>
+        <button type="button" role="tab" id="t-notes" data-sp="study" aria-controls="tab-notes"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16H6zM9 8h6M9 12h6"/></svg><span data-i18n="tab_notes">Carnet</span></button>
+        <button type="button" role="tab" id="t-lib" data-sp="study" aria-controls="tab-lib"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M10 4v16M15 5l4 15"/></svg><span data-i18n="tab_lib">Bibliothèque</span> <svg class="lock-ico" id="lib-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
+        <button type="button" role="tab" id="t-study" data-sp="study" aria-controls="tab-study"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="13" height="13" rx="2"/><path d="M8 4h12v12"/></svg><span data-i18n="tab_cards">Cartes</span> <svg class="lock-ico" id="study-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><em class="sub-n" id="sub-n-cards"></em></button>
+        <button type="button" role="tab" id="t-subjects" data-sp="study" aria-controls="tab-subjects"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span data-i18n="tab_subjects">Matières</span><em class="sub-n" id="sub-n-subjects"></em></button>
+        <button type="button" role="tab" id="t-lectures" data-sp="study" aria-controls="tab-lectures"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span data-i18n="tab_lectures">Cours</span></button>
+        <button type="button" role="tab" id="t-learn" data-sp="study" aria-controls="tab-learn"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span data-i18n="tab_learn">Apprendre</span></button>
+        <button type="button" class="sub-grp" data-in="you" data-grp="progress"><span data-i18n="grp_progress"></span><small></small></button>
+        <div class="sub-fold" data-in="you" data-fold="progress">
+          <button type="button" role="tab" id="t-focus" data-sp="you" aria-controls="tab-focus" data-i18n="tab_focus">Focus</button>
+          <button type="button" role="tab" id="t-tree" data-sp="you" aria-controls="tab-tree" data-i18n="tab_tree">Arbre</button>
+          <button type="button" role="tab" id="t-grim" data-sp="you" aria-controls="tab-grim" data-i18n="tab_grim">Grimoire</button>
+        </div>
+        <button type="button" class="sub-grp" data-in="you" data-grp="well"><span data-i18n="grp_well"></span><small></small></button>
+        <div class="sub-fold" data-in="you" data-fold="well">
+          <button type="button" role="tab" id="t-health" data-sp="you" aria-controls="tab-health" data-i18n="tab_health">Santé</button>
+          <button type="button" role="tab" id="t-screen" data-sp="you" aria-controls="tab-screen" data-i18n="tab_screen">Temps d’écran</button>
+        </div>
+        <button type="button" class="sub-grp" data-in="you" data-grp="more"><span data-i18n="grp_more"></span><small></small></button>
+        <div class="sub-fold" data-in="you" data-fold="more">
+          <button type="button" role="tab" id="t-room" data-sp="you" aria-controls="tab-room" data-i18n="tab_room">Salle</button>
+          <button type="button" id="t-shop" data-sp="you" data-i18n="shop">Boutique</button>
+          <button type="button" role="tab" id="t-guide" data-sp="you" aria-controls="tab-guide" data-i18n="tab_guide">Guide</button>
+        </div>
       </div>
 
       <div class="tabpanel" id="tab-today" role="tabpanel" hidden><div id="today"></div></div>
@@ -229,6 +255,10 @@
       <div class="tabpanel" id="tab-cal" role="tabpanel" hidden><div id="calendar"></div></div>
       <div class="tabpanel" id="tab-notes" role="tabpanel" hidden><div id="notes"></div></div>
 
+      <div class="tabpanel" id="tab-focus" role="tabpanel" hidden><div id="focus"></div></div>
+      <div class="tabpanel" id="tab-tree" role="tabpanel" hidden><div id="tree"></div></div>
+      <div class="tabpanel" id="tab-health" role="tabpanel" hidden><div id="health"></div></div>
+      <div class="tabpanel" id="tab-screen" role="tabpanel" hidden><div id="screen"></div></div>
       <div class="tabpanel" id="tab-grim" role="tabpanel" hidden>
         <div class="grim" id="grim"></div>
         <div class="grim" id="g-game"></div>
@@ -359,6 +389,11 @@
 <script src="today.js"></script>
 <script src="search.js"></script>
 <script src="gestures.js"></script>
+<script src="focus.js"></script>
+<script src="guard.js"></script>
+<script src="health.js"></script>
+<script src="tree-art.js"></script>
+<script src="tree.js"></script>
 <script src="endscreen.js"></script>
 <script src="legal.js"></script>
 <script src="config.js"></script>

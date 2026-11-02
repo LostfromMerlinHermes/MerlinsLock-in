@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15110c">
+<title>Pause · MerlinsLockIN</title>
+<style>
+:root { color-scheme: dark; --bg: #15110c; --card: #211a13; --line: #41352a; --text: #f3ebdf; --mist: #b9ab9a; --accent: #e8935a; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { display: grid; gap: 16px; width: min(100%, 440px); text-align: center; }
+.site { margin: 0; font: 500 13px ui-monospace, Consolas, monospace; letter-spacing: .06em; color: var(--mist); }
+h1 { margin: 0; font: 600 30px/1.15 Georgia, serif; text-wrap: balance; }
+.note { margin: 0; color: var(--mist); }
+.rule { padding: 12px 14px; text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.rule small { color: var(--mist); }
+.breath { justify-self: center; width: 84px; height: 84px; border-radius: 50%; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); animation: breath 8s ease-in-out infinite; }
+@keyframes breath { 0%, 100% { transform: scale(.72); } 50% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .breath { animation: none; } }
+.btns { display: grid; gap: 8px; }
+button { min-height: 46px; padding: 8px 16px; color: var(--text); font: 500 15px system-ui, sans-serif; background: var(--card); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+button.primary { color: #1c120a; font-weight: 600; background: var(--accent); border-color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.clock { margin: 0; font: 500 40px ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <p class="site" id="site"></p>
+  <div class="breath" aria-hidden="true"></div>
+  <h1 id="title"></h1>
+  <p class="note" id="task" hidden></p>
+  <div class="rule" id="rule" hidden></div>
+  <p class="clock" id="clock" role="timer" hidden></p>
+  <div class="btns" id="btns">
+    <button type="button" class="primary" id="back"></button>
+    <button type="button" id="urge"></button>
+    <button type="button" id="cont" disabled></button>
+  </div>
+  <p class="note" id="after" hidden></p>
+</main>
+<script src="pause.js"></script>
+</body>
+</html>
