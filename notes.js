@@ -90,6 +90,16 @@
     if (S.tab === 'notes') render();
   };
 
+  // Notes shared in a Room (rooms.js): what leaves is cleaned, and so is what comes in, because another member wrote it
+  ML.notesList = () => N().pages.filter(p => textOf(p.html).trim()).slice(0, 60).map(p => ({ id: p.id, title: p.title || t('rm_untitled') }));
+  ML.notesExport = id => { flush(); const p = page(id); return p ? { title: p.title || t('rm_untitled'), html: sanitize(p.html) } : null; };
+  ML.notesAddPage = (title, html) => {
+    const p = { id: uid(), date: null, title: String(title).slice(0, 120), html: sanitize(html), created: Date.now(), updated: Date.now(), pinned: false, mood: S.mood };
+    N().pages.unshift(p); save();
+    if (S.tab === 'notes') render();
+    return p;
+  };
+
   /* ---------- Rendering ---------- */
   let query = '', saveT = null;
   const TOOLS = [['b', 'bold', '<b>B</b>'], ['i', 'italic', '<i>I</i>'], ['u', 'underline', '<u>U</u>'], ['s', 'strikeThrough', '<s>S</s>'], ['|'],
@@ -133,6 +143,7 @@
           <div class="nb-body" id="nb-body" contenteditable="true" spellcheck="true" data-ph="${esc(t('nb_body_ph'))}">${sanitize(p.html)}</div>
           <div class="nb-actions">
             <button type="button" class="small ghost" id="nb-sum">✦ ${esc(t('nb_summary'))}</button>
+            ${ML.Rooms && ML.Rooms.active() ? `<button type="button" class="small ghost" data-room-note="${esc(p.id)}">${esc(t('rm_share_in'))}</button>` : ''}
             ${ML.NoteHelp && ML.isPremium && ML.isPremium() ? `<button type="button" class="small ghost" id="nb-resume">≡ ${esc(t('nh_sum'))}</button><button type="button" class="small ghost" id="nb-quiz">? ${esc(t('nh_quiz'))}</button>` : ''}
             <button type="button" class="small ghost" id="nb-pin">${esc(p.pinned ? t('nb_unpin') : t('nb_pin'))}</button>
             ${ML.CAN_DOWNLOAD ? `<button type="button" class="small ghost" id="nb-export">${esc(t('nb_export'))}</button>` : ''}

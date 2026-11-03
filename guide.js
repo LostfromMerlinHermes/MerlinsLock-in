@@ -5,13 +5,13 @@
   'use strict';
   const { $, S, t, esc, on, save } = ML;
 
-  const VERSION = '3.60'; // bump with the features you add below
+  const VERSION = '3.64'; // bump with the features you add below
   // id, group, since, go: a tab name, or 'timer' / 'shop' / 'settings' / 'worlds' / 'energy' / 'quick'
   const GUIDE = [
     ['energy', 'timer', '3.0', 'energy'], ['timer', 'timer', '3.0', 'timer'], ['deep', 'timer', '3.0', 'timer'], ['sound', 'timer', '3.30', 'timer'], ['quick', 'timer', '3.58', 'quick'], ['ksearch', 'timer', '3.60', 'search'], ['sess', 'timer', '3.60', 'settings'], ['gest', 'work', '3.60', 'plan'],
     ['plan', 'work', '3.0', 'plan'], ['inbox', 'work', '3.56', 'plan'], ['day', 'work', '3.0', 'day'], ['cal', 'work', '3.0', 'cal'], ['mail', 'work', '3.50', 'plan'],
     ['notes', 'study', '3.0', 'notes'], ['lib', 'study', '3.54', 'lib'], ['cards', 'study', '3.8', 'study'], ['subjects', 'study', '3.58', 'subjects'], ['exams', 'study', '3.58', 'subjects'], ['grades', 'study', '3.58', 'subjects'], ['lectures', 'study', '3.59', 'lectures'], ['mock', 'study', '3.59', 'subjects'], ['learn', 'study', '3.56', 'learn'],
-    ['fc', 'you', '3.62', 'focus'], ['tree', 'you', '3.63', 'tree'], ['stuck', 'you', '3.62', 'focus'], ['pd', 'you', '3.62', 'focus'], ['scr', 'you', '3.62', 'screen'], ['hl', 'you', '3.62', 'health'], ['grim', 'you', '3.0', 'grim'], ['tower', 'you', '3.0', 'grim'], ['exped', 'you', '3.59', 'grim'], ['season', 'you', '3.59', 'grim'], ['boss', 'you', '3.0', 'plan'], ['room', 'you', '3.58', 'room'], ['shop', 'you', '3.0', 'shop'], ['worlds', 'you', '3.29', 'worlds'], ['sync', 'you', '3.0', 'settings'],
+    ['fc', 'you', '3.62', 'focus'], ['tree', 'you', '3.63', 'tree'], ['stuck', 'you', '3.62', 'focus'], ['pd', 'you', '3.62', 'focus'], ['scr', 'you', '3.62', 'screen'], ['hl', 'you', '3.62', 'health'], ['grim', 'you', '3.0', 'grim'], ['tower', 'you', '3.0', 'grim'], ['exped', 'you', '3.59', 'grim'], ['season', 'you', '3.59', 'grim'], ['boss', 'you', '3.0', 'plan'], ['room', 'you', '3.58', 'room'], ['roomchat', 'you', '3.64', 'room'], ['shop', 'you', '3.0', 'shop'], ['worlds', 'you', '3.29', 'worlds'], ['sync', 'you', '3.0', 'settings'],
   ].map(([id, group, since, go]) => ({ id, group, since, go }));
   const TIPS = ['plan', 'day', 'cal', 'notes', 'lib', 'study', 'subjects', 'lectures', 'learn', 'grim', 'room'];
 
@@ -46,6 +46,7 @@
       g_tower: 'Tour', g_tower_d: 'Chaque session d’au moins 15 min ajoute un étage. Abandonner avant la moitié en fait tomber un.',
       g_boss: 'Boss de la semaine', g_boss_d: 'Marque ta plus grosse tâche comme boss dans sa fiche. Une barre de vie apparaît sous le minuteur.',
       g_room: 'Salle', g_room_d: 'Étudie à plusieurs avec un code : minuteur commun, tâches communes et lien d’appel. Avec un compte.',
+      g_roomchat: 'Chat et documents de salle', g_roomchat_d: 'Un chat qui peut attendre la pause, des liens épinglés, un paquet ou une note à copier en un tap, une note commune et un récap en fin de session.',
       g_shop: 'Boutique', g_shop_d: 'Dépense ton or : mondes, cadrans, familiers et potions.',
       g_worlds: 'Mondes', g_worlds_d: 'Chaque énergie a trois mondes : jour, nuit et clair (Premium).',
       g_sync: 'Compte et synchro', g_sync_d: 'Avec un compte, tes données te suivent sur tous tes appareils.',
@@ -81,7 +82,8 @@
       g_tower: 'Tower', g_tower_d: 'Each session of at least 15 min adds a floor. Quitting before halfway knocks one down.',
       g_boss: 'Weekly boss', g_boss_d: 'Mark your biggest task as the boss in its details. A health bar shows under the timer.',
       g_room: 'Room', g_room_d: 'Study together with a code: shared timer, shared tasks and a call link. With an account.',
-      g_shop: 'Shop', g_shop_d: 'Spend your gold: worlds, dials, familiars and potions.',
+      g_roomchat: 'Room chat and documents', g_roomchat_d: 'A chat that can wait for the break, pinned links, a deck or a note to copy in one tap, one shared note and a recap at the end of a session.',
+      g_shop: 'Shop',g_shop_d: 'Spend your gold: worlds, dials, familiars and potions.',
       g_worlds: 'Worlds', g_worlds_d: 'Each energy has three worlds: day, night and light (Premium).',
       g_sync: 'Account and sync', g_sync_d: 'With an account, your data follows you on all your devices.',
       tip_plan: 'Your tasks for today. Lock in starts the timer on one of them.', tip_day: 'Place your tasks on the day, or tap Auto-plan.', tip_cal: 'Events and deadlines. Tap a day to see its details.', tip_notes: 'One page per day and your free pages.', tip_lib: 'Import a PDF, highlight, turn it into cards.', tip_study: 'Create a deck or import a file, then review a little every day.', tip_subjects: 'Add your subjects and exams: time, grades and the countdown all live here.', tip_learn: 'Short methods for whatever is blocking you.', tip_grim: 'Your stats and progress.', tip_room: 'Create a room and share the code to study together.',

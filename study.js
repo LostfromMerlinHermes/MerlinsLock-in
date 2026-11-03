@@ -212,6 +212,7 @@
       </form>
       ${cs.length > 12 ? `<input type="search" id="fc-find" maxlength="80" placeholder="${esc(t('fc_find'))}" value="${esc(view.find || '')}" autocomplete="off">` : ''}
       <div id="fc-list-box">${cardListHtml(id)}</div>
+      ${ML.Rooms && ML.Rooms.active() ? `<button type="button" class="small" data-room-deck="${id}">${esc(t('rm_share_in'))}</button>` : ''}
       <button type="button" class="small ghost danger" id="fc-del-deck">${esc(t('fc_del_deck'))}</button>`;
   }
   // A long deck shows in pages, so an import of thousands of cards stays fast
@@ -469,10 +470,7 @@
   function importCommit() {
     const V = view, P = V.parsed, D = ST(); if (!P || !P.total) return;
     const size = P.decks.reduce((a, d) => a + d.cards.reduce((b, c) => b + c.front.length + c.back.length + 130, 0), 0);
-    // Cards live in S, so in localStorage (about 5 million characters per site). save() frees restore points when it must; the sync base is a second copy of S that grows too
-    let other = 0, hasBase = false;
-    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('mli-sync-base:')) hasBase = true; if (k !== ML.storageKey() && !/^mli-(snaps|corrupt):/.test(k)) other += k.length + localStorage.getItem(k).length; } } catch (e) {}
-    if (JSON.stringify(S).length + size + other + (hasBase ? size : 0) > 4.5e6) { toast(t('fi_full'), { ms: 6000 }); return; }
+    if (!roomFor(size)) { toast(t('fi_full'), { ms: 6000 }); return; }
     const one = P.decks.length === 1; let n = 0, last = null;
     P.decks.forEach(pd => {
       const name = (one ? (V.name || '').trim() : '') || pd.name || t('fi_new');
@@ -573,10 +571,25 @@
     turning = setTimeout(() => { turning = 0; if (view.kind === 'review') renderTool(); }, 150);
   }
   const FRONT_MAX = 2000, BACK_MAX = 4000;
+  // Cards live in S, so in localStorage (about 5 million characters per site). save() frees restore points when it must; the sync base is a second copy of S that grows too
+  function roomFor(size) {
+    let other = 0, hasBase = false;
+    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('mli-sync-base:')) hasBase = true; if (k !== ML.storageKey() && !/^mli-(snaps|corrupt):/.test(k)) other += k.length + localStorage.getItem(k).length; } } catch (e) {}
+    return JSON.stringify(S).length + size + other + (hasBase ? size : 0) <= 4.5e6;
+  }
   function addCard(deck, front, back) {
     const c = { id: uid(), deck, front: front.trim().slice(0, FRONT_MAX), back: back.trim().slice(0, BACK_MAX), due: today(), ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: Date.now() };
     ST().cards.push(c); return c;
   }
+  // A deck shared in a Room: only what a copy needs, never the review progress (rooms.js). The copy is always a new deck.
+  ML.studyDeckExport = id => { const d = ST().decks.find(x => x.id === id); return d ? { name: d.name, cards: deckCards(id).slice(0, 2000).map(c => ({ front: c.front, back: c.back })) } : null; };
+  ML.studyImportDeck = (name, cards) => {
+    const size = cards.reduce((a, c) => a + String(c.front).length + String(c.back).length + 130, 0);
+    if (!roomFor(size)) { toast(t('fi_full'), { ms: 6000 }); return null; }
+    const deck = { id: uid(), name: String(name).slice(0, 60) || t('fi_new'), created: Date.now() };
+    ST().decks.push(deck); cards.forEach(c => addCard(deck.id, String(c.front), String(c.back))); save();
+    return deck;
+  };
   // Used by the Notebook ("highlight → flashcard") and the translator
   ML.studyDecks = () => ST().decks.map(d => ({ id: d.id, name: d.name }));
   ML.studyDeckInfo = id => ({ cards: deckCards(id).slice().reverse(), due: queueFor(id).length, exists: ST().decks.some(d => d.id === id) });

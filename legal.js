@@ -42,8 +42,10 @@
         </ul>
         <h4>Prestataires</h4>
         <ul>
-          <li><b>Supabase Inc.</b> héberge les comptes et les données synchronisées, dans ${esc(REGION())}. Les échanges sont chiffrés (HTTPS) et des règles de sécurité empêchent chaque utilisateur de lire les données des autres.</li>
+          <li><b>Supabase Inc.</b> héberge les comptes et les données synchronisées, dans ${esc(REGION())}. Les échanges sont chiffrés (HTTPS) et des règles de sécurité empêchent chaque utilisateur de lire les données des autres, sauf ce que tu mets toi-même dans une salle d’étude.</li>
           <li><b>GitHub Inc.</b> héberge le site. Comme tout hébergeur, il peut enregistrer l’adresse IP des visiteurs dans ses journaux techniques.</li>
+          <li><b>Salles d’étude</b> (si tu en rejoins une) : les membres de la salle voient ton pseudo, ton état (concentré, en pause), tes messages, ce que tu y partages (liens, paquets, notes, note commune, tâches), ta ligne de récap et ton arbre si tu le partages. Seuls les membres peuvent lire une salle. Une salle garde ses 200 derniers messages ; tout disparaît quand l’hôte la ferme ou après une longue inactivité. Tes messages restent après ton départ, sauf si toi ou l’hôte les retirez. Un élément signalé est copié pour la modération, lisible par l’éditeur seul, et effacé après 180 jours.</li>
+          <li><b>Appels</b> : le bouton Lancer un appel ouvre le service Jitsi Meet (meet.jit.si) dans un nouvel onglet. Meet, Zoom et les liens épinglés mènent aussi à des services tiers, avec leurs propres conditions. Nous n’y envoyons rien d’autre que l’ouverture de la page.</li>
           <li><b>Santé et temps d’écran</b> (si tu les actives) : ton check du jour, le temps par site (le nom du site seulement), tes plans si-alors et le temps d’écran que tu notes restent dans un stockage séparé sur l’appareil. Ils ne sont ni synchronisés ni envoyés à personne, et tu peux tout effacer depuis ces pages. Ce n’est pas un service médical.</li>
           <li><b>Agenda en direct</b> (si tu l’actives) : dans l’app web, l’adresse de ton agenda passe par une fonction Supabase qui lit l’agenda et te le renvoie, sans rien garder. Les <b>mails</b> écrits dans l’app s’ouvrent dans Gmail, Outlook ou ton app Mail : nous ne les envoyons pas et ne les lisons pas.</li>
         </ul>
@@ -97,8 +99,10 @@
         </ul>
         <h4>Providers</h4>
         <ul>
-          <li><b>Supabase Inc.</b> hosts accounts and synced data, in ${esc(REGION())}. Traffic is encrypted (HTTPS) and security rules stop each user from reading anyone else’s data.</li>
+          <li><b>Supabase Inc.</b> hosts accounts and synced data, in ${esc(REGION())}. Traffic is encrypted (HTTPS) and security rules stop each user from reading anyone else’s data, except what you put in a study room yourself.</li>
           <li><b>GitHub Inc.</b> hosts the website. Like any host, it may log visitors’ IP addresses.</li>
+          <li><b>Study rooms</b> (if you join one): the room’s members see your name in the room, your status (focusing, on a break), your messages, what you share there (links, decks, notes, the shared note, tasks), your recap line and your tree if you share it. Only members can read a room. A room keeps its last 200 messages; everything goes when the host closes it or after a long time without activity. Your messages stay after you leave, unless you or the host remove them. A reported item is copied for moderation, readable by the publisher only, and erased after 180 days.</li>
+          <li><b>Calls</b>: the Start a call button opens the Jitsi Meet service (meet.jit.si) in a new tab. Meet, Zoom and pinned links also lead to third-party services with their own terms. We send them nothing beyond opening the page.</li>
           <li><b>Health and screen time</b> (if you turn them on): your daily check, time per site (the site’s name only), your if-then plans and the screen time you type stay in separate storage on your device. They are neither synced nor sent to anyone, and you can clear them from those pages. This is not a medical service.</li>
           <li><b>Live calendar</b> (if you turn it on): in the web app, your calendar’s address goes through a Supabase function that reads the calendar and returns it, keeping nothing. <b>Emails</b> written in the app open in Gmail, Outlook or your Mail app: we don’t send or read them.</li>
         </ul>
