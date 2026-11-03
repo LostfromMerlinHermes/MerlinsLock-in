@@ -8,7 +8,7 @@
   const VERSION = '3.64'; // bump with the features you add below
   // id, group, since, go: a tab name, or 'timer' / 'shop' / 'settings' / 'worlds' / 'energy' / 'quick'
   const GUIDE = [
-    ['energy', 'timer', '3.0', 'energy'], ['timer', 'timer', '3.0', 'timer'], ['deep', 'timer', '3.0', 'timer'], ['sound', 'timer', '3.30', 'timer'], ['quick', 'timer', '3.58', 'quick'], ['ksearch', 'timer', '3.60', 'search'], ['sess', 'timer', '3.60', 'settings'], ['gest', 'work', '3.60', 'plan'],
+    ['energy', 'timer', '3.0', 'energy'], ['timer', 'timer', '3.0', 'timer'], ['deep', 'timer', '3.0', 'timer'], ['sound', 'timer', '3.30', 'sound'], ['quick', 'timer', '3.58', 'quick'], ['ksearch', 'timer', '3.60', 'search'], ['sess', 'timer', '3.60', 'settings'], ['gest', 'work', '3.60', 'plan'],
     ['plan', 'work', '3.0', 'plan'], ['inbox', 'work', '3.56', 'plan'], ['day', 'work', '3.0', 'day'], ['cal', 'work', '3.0', 'cal'], ['mail', 'work', '3.50', 'plan'],
     ['notes', 'study', '3.0', 'notes'], ['lib', 'study', '3.54', 'lib'], ['cards', 'study', '3.8', 'study'], ['subjects', 'study', '3.58', 'subjects'], ['exams', 'study', '3.58', 'subjects'], ['grades', 'study', '3.58', 'subjects'], ['lectures', 'study', '3.59', 'lectures'], ['mock', 'study', '3.59', 'subjects'], ['learn', 'study', '3.56', 'learn'],
     ['fc', 'you', '3.62', 'focus'], ['tree', 'you', '3.63', 'tree'], ['stuck', 'you', '3.62', 'focus'], ['pd', 'you', '3.62', 'focus'], ['scr', 'you', '3.62', 'screen'], ['hl', 'you', '3.62', 'health'], ['grim', 'you', '3.0', 'grim'], ['tower', 'you', '3.0', 'grim'], ['exped', 'you', '3.59', 'grim'], ['season', 'you', '3.59', 'grim'], ['boss', 'you', '3.0', 'plan'], ['room', 'you', '3.58', 'room'], ['roomchat', 'you', '3.64', 'room'], ['shop', 'you', '3.0', 'shop'], ['worlds', 'you', '3.29', 'worlds'], ['sync', 'you', '3.0', 'settings'],
@@ -24,7 +24,7 @@
       g_energy: 'Énergie', g_energy_d: 'Chaque jour, choisis ton énergie : elle change le monde, la durée des sessions et l’ordre des tâches.',
       g_timer: 'Minuteur', g_timer_d: 'Choisis une durée, appuie sur Lock in. À la fin : de l’XP, de l’or et un étage de plus à ta tour.',
       g_deep: 'Plein écran', g_deep_d: 'Le bouton aux quatre coins cache tout sauf le temps et ta tâche.',
-      g_sound: 'Son', g_sound_d: 'Musique et ambiances générées dans l’app. Sur ordinateur sous le minuteur, sur téléphone dans les outils rapides.',
+      g_sound: 'Musique et son', g_sound_d: 'Musique et ambiances générées dans l’app. Sur ordinateur sous le minuteur, sur téléphone le bouton note de musique en haut de l’écran.',
       g_quick: 'Outils rapides', g_quick_d: 'Inbox, note, traduction et calculatrice, sans changer d’onglet. La poignée à droite sur ordinateur, le bouton en haut sur téléphone.',
       g_plan: 'Plan', g_plan_d: 'Tes tâches, triées selon ton énergie. Lock in lance le minuteur sur une tâche. Touche son titre pour la modifier.',
       g_inbox: 'Inbox', g_inbox_d: 'Une pensée parasite pendant une session ? Garde-la ici et trie-la plus tard : tâche, note, ou à oublier.',
@@ -60,7 +60,7 @@
       g_energy: 'Energy', g_energy_d: 'Each day, pick your energy: it changes the world, the session length and the task order.',
       g_timer: 'Timer', g_timer_d: 'Pick a length and press Lock in. At the end: XP, gold and a new floor on your tower.',
       g_deep: 'Full screen', g_deep_d: 'The four-corners button hides everything but the time and your task.',
-      g_sound: 'Sound', g_sound_d: 'Music and ambiences made in the app. Under the timer on a computer, in Quick tools on a phone.',
+      g_sound: 'Music and sound', g_sound_d: 'Music and ambiences made in the app. Under the timer on a computer, the music note button at the top of the screen on a phone.',
       g_quick: 'Quick tools', g_quick_d: 'Inbox, note, translate and calculator without changing tab. The handle on the right on a computer, the top button on a phone.',
       g_plan: 'Plan', g_plan_d: 'Your tasks, sorted by your energy. Lock in starts the timer on a task. Tap its title to edit it.',
       g_inbox: 'Inbox', g_inbox_d: 'A stray thought during a session? Keep it here and sort it later: task, note or let go.',
@@ -104,6 +104,7 @@
     if (x === 'worlds') return ML.openWorlds && ML.openWorlds();
     if (x === 'energy') return ML.energyPicker.open({ cancellable: true });
     if (x === 'quick') return ML.quickTools.open();
+    if (x === 'sound') return ML.openSound();
     if (x === 'search') return ML.openSearch();
     ML.setMobileView(x);
   }

@@ -29,7 +29,7 @@
     const tr = (S.study && S.study.tr) || { from: 'fr', to: 'en' };
     const langSel = (id, cur) => `<select id="${id}" aria-label="${esc(t('qt_translate'))}">${LANGS.map(l => `<option value="${l}" ${l === cur ? 'selected' : ''}>${l.toUpperCase()}</option>`).join('')}</select>`;
     return `<header class="qt-head"><h2>${esc(t('qt_title'))}</h2><button type="button" class="ghost icon-only qt-mute" data-qt="mute" aria-label="${esc(t('mute_all'))}" aria-pressed="${$('mute-btn').getAttribute('aria-pressed')}">${$('mute-btn').innerHTML}</button><button type="button" class="ghost icon-only" data-qt="close" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-      <div class="qt-sound" id="qt-sound"></div>
+      <div class="qt-sound"><span class="label">${esc(t('snd_title'))}</span><div id="qt-sound"></div></div>
       <form class="qt-sec" id="qt-inbox" autocomplete="off"><label for="qt-inbox-in" class="label">${esc(t('qt_inbox'))}</label><div class="qt-row"><input type="text" id="qt-inbox-in" maxlength="140" placeholder="${esc(t('qt_inbox_ph'))}"><button type="submit" class="small">${esc(t('qt_add'))}</button></div></form>
       <form class="qt-sec" id="qt-note" autocomplete="off"><label for="qt-note-in" class="label">${esc(t('qt_note'))}</label><textarea id="qt-note-in" rows="3" maxlength="2000" placeholder="${esc(t('qt_note_ph'))}">${esc(draft.note || '')}</textarea><button type="submit" class="small">${esc(t('qt_add'))}</button></form>
       <form class="qt-sec" id="qt-tr" autocomplete="off"><label for="qt-tr-in" class="label">${esc(t('qt_translate'))}</label>

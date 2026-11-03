@@ -37,7 +37,7 @@
       gd_electronic: 'Électro régulière', gd_grooves: 'Basse funky et piano électrique', gd_synthwave: 'Synthés années 80, basse qui pulse', gd_chiptune: 'Console 8 bits',
       gd_heroic: 'Cordes, cuivres, timbales, un thème au cor', gd_darkchoir: 'Nappes, voix lointaines, battement lent', gd_cinematic: 'Nappes, piano, timbales, cloches',
       gd_mine: 'Tes propres fichiers audio', gd_none: 'Seulement les bruits de fond',
-      snd_title: 'Son', snd_world: 'Ambiance du monde', snd_mixes: 'Mes ambiances', snd_save: 'Enregistrer celle-ci', snd_music: 'Musique', snd_noise: 'Bruits de fond',
+      snd_title: 'Musique et son', snd_world: 'Ambiance du monde', snd_mixes: 'Mes ambiances', snd_save: 'Enregistrer celle-ci', snd_music: 'Musique', snd_noise: 'Bruits de fond',
       snd_on_n: '{n} actif(s)', snd_adv: 'Réglages avancés', snd_open: 'Ouvrir le son', snd_no_mix: 'Aucune ambiance enregistrée pour l’instant.', snd_world_on: 'Ambiance du monde',
     },
     en: {
@@ -72,7 +72,7 @@
       gd_electronic: 'Steady electronic', gd_grooves: 'Funky bass and electric piano', gd_synthwave: '80s synths, pulsing bass', gd_chiptune: '8-bit console',
       gd_heroic: 'Strings, brass, timpani, a horn theme', gd_darkchoir: 'Pads, distant voices, a slow heartbeat', gd_cinematic: 'Pads, piano, timpani, bells',
       gd_mine: 'Your own audio files', gd_none: 'Background sounds only',
-      snd_title: 'Sound', snd_world: 'World ambience', snd_mixes: 'My mixes', snd_save: 'Save this one', snd_music: 'Music', snd_noise: 'Background sounds',
+      snd_title: 'Music and sound', snd_world: 'World ambience', snd_mixes: 'My mixes', snd_save: 'Save this one', snd_music: 'Music', snd_noise: 'Background sounds',
       snd_on_n: '{n} on', snd_adv: 'Advanced settings', snd_open: 'Open sound', snd_no_mix: 'No saved mix yet.', snd_world_on: 'World ambience',
     },
   });
@@ -1156,6 +1156,7 @@
   }
   function renderDeck() {
     const el = $('sound-deck'); if (!el) return;
+    $('sound-btn').classList.toggle('on', playing);
     const sm = summary();
     el.innerHTML = `<div class="snd-mini">
         <button type="button" class="snd-art" data-snd="open" aria-label="${esc(t('snd_open'))}">${artHtml()}</button>
@@ -1233,8 +1234,9 @@
         </div></details>
     </div>`;
   }
-  function openSheet() { savingMix = false; renderSheet(); ML.openOverlay('sound'); }
+  function openSheet() { if (ML.quickTools) ML.quickTools.close(); savingMix = false; renderSheet(); ML.openOverlay('sound'); }
   ML.openSound = openSheet;
+  $('sound-btn').onclick = openSheet; // phones and the side panel: the plain way to the music, from any screen
   sheetOv.addEventListener('toggle', e => { if (e.target.id === 'snd-adv') advOpen = e.target.open; }, true);
 
   function onClick(e) {

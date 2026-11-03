@@ -334,7 +334,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 18px var(--glow); }
 .subtabs button:hover { color: var(--text); }
 .subtabs button[aria-selected=true] { color: var(--text); border-color: var(--line-2); background: var(--soft); }
 .m-title { display: none; }
-#quick-btn { display: none; } /* a computer has the handle on the right edge */
+#quick-btn, #sound-btn { display: none; } /* a computer has the handle on the right edge and the player under the timer */
 #gold-chip em { font-style: normal; font-weight: 600; margin-left: 5px; padding-left: 6px; border-left: 1px solid currentColor; }
 .count { font-family: var(--f-mono); font-size: 11px; color: var(--accent-2); }
 .tabpanel { min-width: 0; display: grid; gap: 10px; align-content: start; }
@@ -3384,14 +3384,17 @@ html.mnav-on .mnav { display: grid; grid-template-columns: repeat(6, minmax(0, 1
 html.mnav-on .overlay:not(.end-ov):not(.deep):not(#shop) { --ov-y: calc(92px + env(safe-area-inset-bottom, 0px) + env(safe-area-inset-top, 0px)); padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 /* ---------- Phone pass (3.58) ---------- */
 /* P1 One-line header off the Timer: the screen's name, the gold, Quick tools, Settings */
-html.mnav-on #quick-btn { display: inline-grid; }
+html.mnav-on #quick-btn, html.mnav-on #sound-btn { display: inline-grid; }
+#sound-btn.on { color: var(--accent); }
+html.mnav-on .overlay.snd-ov { z-index: 43; } /* over the bottom bar, so the end of the sheet can be reached */
+@media (max-width: 459px) { html.mnav-on[data-mview="timer"] #search-btn, html.mnav-on[data-mview="timer"] .brand-text h1 { display: none; } html.mnav-on[data-mview="timer"] #seq-label { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } html.mnav-on[data-mview="timer"] .seq { width: 100%; grid-template-columns: minmax(0, 1fr); } html.mnav-on[data-mview="timer"] .brand-text { flex: 1; } html.mnav-on[data-mview="timer"] .seq-bar { width: 100%; } } /* the header keeps one line: the music button stays, search is on every other screen */
 html.mnav-on #mute-btn { display: none; } /* in Quick tools, next to the sound */
 html.mnav-on[data-mview="tab"] .top { flex-wrap: nowrap; }
 html.mnav-on[data-mview="tab"] .logo { width: 32px; height: 32px; }
 html.mnav-on[data-mview="tab"] .brand-text h1, html.mnav-on[data-mview="tab"] .seq { display: none; }
 html.mnav-on[data-mview="tab"] .m-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--f-display); font-size: 20px; font-weight: 600; color: var(--text); }
 html.mnav-on[data-mview="tab"] .top-actions { flex-wrap: nowrap; flex: none; }
-html.mnav-on[data-mview="tab"] .top-actions > :not(#search-btn, #quick-btn, #settings-btn) { display: none; }
+html.mnav-on[data-mview="tab"] .top-actions > :not(#search-btn, #sound-btn, #quick-btn, #settings-btn) { display: none; }
 html.mnav-on[data-mview="tab"] #gold-chip em { display: none; }
 html.mnav-on[data-mview="tab"] .subtabs:not([hidden]) { margin: 0 -4px 6px; }
 html.mnav-on .subtabs button { min-height: 40px; font-size: 14px; padding: 4px 14px; }
@@ -3448,7 +3451,8 @@ html.mnav-on .qt-handle, html.deep-on .qt-handle, html.qt-on .qt-handle, html.ep
 .qt-sec > button { justify-self: end; }
 .qt-out { margin: 0; padding: 8px 10px; border-radius: var(--radius); background: var(--soft); overflow-wrap: anywhere; }
 .qt-lock { margin: 0; }
-.qt-sound:empty { display: none; }
+.qt-sound { display: grid; gap: 7px; }
+.qt-sound:not(:has(#sound-deck)) { display: none; }
 html.mnav-on .qt { left: 0; top: auto; right: 0; bottom: 0; width: auto; max-height: 82dvh; z-index: 42; padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px)); border-left: 0; border-top: 1px solid var(--line-2); border-radius: 16px 16px 0 0; animation: qt-up .18s ease-out; }
 @keyframes qt-up { from { transform: translateY(30px); opacity: 0; } }
 html.mnav-on .qt-shade { z-index: 41; }
@@ -4166,7 +4170,7 @@ html.mnav-on .top { flex-wrap: nowrap; gap: 8px; }
 html.mnav-on .brand { min-width: 0; flex: 1; }
 html.mnav-on .brand-text { min-width: 0; }
 html.mnav-on .top-actions { flex-wrap: nowrap; flex: none; }
-html.mnav-on .top-actions > :not(#gold-chip, #search-btn, #quick-btn, #settings-btn, #install-btn) { display: none; }
+html.mnav-on .top-actions > :not(#gold-chip, #search-btn, #sound-btn, #quick-btn, #settings-btn, #install-btn) { display: none; }
 html.mnav-on #search-btn { display: inline-grid; }
 html.mnav-on #gold-chip em { display: none; }
 html.mnav-on[data-mview="timer"] .brand-text h1 { font-size: 17px; }
