@@ -472,8 +472,411 @@
     return pTree(g, weeks, cx, gy, o);
   }
 
+  /* ---------- The dark worlds' trees (3.65, from proposals/you/arbres-v3): one world tree each, earned after 25 h in its world, and one sold in the shop ---------- */
+  const FAR = (w, cx, y0) => w.out.tips.reduce((a, b) => (hypot(b.x - cx, b.y - y0) > hypot(a.x - cx, a.y - y0) ? b : a), w.out.tips[0]);
+  const glow = (g, x, y, r, c, a = 1) => { const h = g.createRadialGradient(x, y, 0, x, y, r); h.addColorStop(0, c); h.addColorStop(1, c.slice(0, 7) + '00'); g.globalAlpha = a; g.fillStyle = h; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); g.globalAlpha = 1; };
+  const ln = (g, pts, c, w) => { g.strokeStyle = c; g.lineWidth = w; g.beginPath(); pts.forEach((p, i) => (i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y))); g.stroke(); };
+  const vgrad = (g, y0, y1, stops) => { const s = g.createLinearGradient(0, y0, 0, y1); stops.forEach(([k, c]) => s.addColorStop(k, c)); return s; };
+  const dust = (g, R, W, h, n, c, big = .08) => { g.fillStyle = c; for (let i = 0; i < n; i++) { g.globalAlpha = .18 + R() * .7; g.beginPath(); g.arc(R() * W, R() * h, R() < big ? 1.5 : .8, 0, TAU); g.fill(); } g.globalAlpha = 1; };
+  const byOrder = w => w.out.limbs.slice().sort((a, b) => b.order - a.order);
+  const layers = (tr, back, mid, front) => { tr.weeks.filter(w => w.behind).forEach(back); mid(); tr.weeks.filter(w => !w.behind).forEach(front); };
+  // A tree's foot: buttresses leave the flanks of the trunk and run into the ground, so a trunk never stops on a flat line
+  function buttresses(cx, gy, w0, seed) { const R = rng(seed), out = []; [-1, -.6, -.24, .3, .66, 1].forEach(u => { const x0 = cx + u * w0 * .36, y0 = gy - w0 * (.86 - .3 * abs(u)), x1 = cx + u * w0 * (1.25 + R() * .85), y1 = gy + 2 + R() * 10 * (1.1 - abs(u)), w = w0 * (.3 + R() * .1), pts = []; for (let i = 0; i <= 12; i++) { const q = i / 12; pts.push({ x: lerp(x0, x1, q * q * .62 + q * .38), y: lerp(y0, y1, 1 - (1 - q) * (1 - q)), w: lerp(w, max(1.4, w * .1), q) }); } out.push({ pts, order: 1 }); }); return out; }
+  // A root's first limb starts on the flank of the trunk, as wide as a buttress, and narrows into its own line
+  const rootHead = (l, cx, gy, w0) => { if (l.order) return l; const p = l.pts, e = p[p.length - 1], sd = e.x < cx ? -1 : 1, k = min(1, p.length - 1), T = p[k], head = []; for (let i = 0; i < 7; i++) { const q = i / 7; head.push({ x: lerp(cx + sd * w0 * .28, T.x, q), y: lerp(gy - w0 * .7, T.y, q * q), w: lerp(max(T.w * 1.7, w0 * .36), T.w, q) }); } return { ...l, pts: head.concat(p.slice(k)) }; };
+  
+  /* ---------- Observatoire O1: the planetary. A brass orrery that grew like a tree. ---------- */
+  const O_SEA = [['#ffd59a', '#c8622c', '#3f170c'], ['#eef6f8', '#7ea3b8', '#1b3042'], ['#ffd9e0', '#b7647f', '#3a1729'], ['#aeeacd', '#2d8a6a', '#0c3024']];
+  function planet(g, x, y, r, P, f) {
+    glow(g, x, y, r * 2.4, P[1] + '55');
+    if (f > 0) { g.strokeStyle = '#b9a58c'; g.lineWidth = max(1, r * .14); g.beginPath(); g.ellipse(x, y, r * 1.75, r * .46, -.35, Math.PI + .1, TAU - .1); g.stroke(); }
+    const s = g.createRadialGradient(x - r * .38, y - r * .42, r * .08, x, y, r); s.addColorStop(0, P[0]); s.addColorStop(.55, P[1]); s.addColorStop(1, P[2]); g.fillStyle = s; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+    g.globalAlpha = .28; g.strokeStyle = P[2]; g.lineWidth = max(.7, r * .08); for (const k of [-.3, .22]) { g.beginPath(); g.ellipse(x, y + k * r, r * sqrt(1 - k * k) * .96, r * .13, -.1, 0, Math.PI); g.stroke(); } g.globalAlpha = 1;
+    if (f > 0) { g.strokeStyle = '#e4d6c0'; g.lineWidth = max(1, r * .14); g.beginPath(); g.ellipse(x, y, r * 1.75, r * .46, -.35, -.1, Math.PI + .1); g.stroke(); }
+    for (let k = 1; k < min(f, 3); k++) { const a = k * 2.2 + x; g.fillStyle = '#f1e3b8'; g.beginPath(); g.arc(x + cos(a) * r * 2.1, y + sin(a) * r * 1.2, max(1.2, r * .17), 0, TAU); g.fill(); }
+  }
+  
+  function orrery(g, W, H, weeks, o) {
+    const gy = 588, cx = W / 2 - 6, R = rng(3), n = weeks.length;
+    g.fillStyle = vgrad(g, 0, gy, [[0, '#060a18'], [.7, '#101a30'], [1, '#1c2238']]); g.fillRect(0, 0, W, gy); dust(g, R, W, gy * .9, 190, '#e8e4d0');
+    const hy = 280; g.strokeStyle = '#a8947c30'; g.lineWidth = 1; for (let r = 90; r < 560; r += 74) { g.beginPath(); g.ellipse(cx, hy, r, r * .84, -.1, 0, TAU); g.stroke(); }
+    for (let a = 0; a < 72; a++) { const q = a / 72 * TAU, r = 386; g.strokeStyle = a % 6 ? '#a8947c44' : '#d2bfa688'; g.beginPath(); g.moveTo(cx + cos(q - .1) * r, hy + sin(q - .1) * r * .84); g.lineTo(cx + cos(q - .1) * (r + (a % 6 ? 6 : 13)), hy + sin(q - .1) * (r + (a % 6 ? 6 : 13)) * .84); g.stroke(); }
+    // The floor: dark polished slate with a bronze meridian circle inlaid around the foot, which catches the light of the planets
+    g.fillStyle = vgrad(g, gy, H, [[0, '#171d2c'], [.45, '#0e121d'], [1, '#05070c']]); g.fillRect(0, gy, W, H - gy);
+    const fy = gy + 26; g.save(); g.beginPath(); g.rect(0, gy, W, H - gy); g.clip();
+    const pool = g.createRadialGradient(cx, fy, 10, cx, fy, 340); pool.addColorStop(0, '#6f86a838'); pool.addColorStop(1, '#6f86a800'); g.save(); g.translate(cx, fy); g.scale(1, .24); g.translate(-cx, -fy); g.fillStyle = pool; g.beginPath(); g.arc(cx, fy, 340, 0, TAU); g.fill(); g.restore();
+    g.strokeStyle = '#0a0d15'; g.lineWidth = 1.2; for (let k = 0; k < 8; k++) { const y = gy + k * k * 2.6 + k * 7; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); } for (let x = -W; x < W * 2; x += 96) { g.beginPath(); g.moveTo(cx + (x - cx) * .5, gy); g.lineTo(cx + (x - cx) * 1.7, H); g.stroke(); }
+    [[318, '#8d7a64', 1.6], [298, '#6d5e4e', 1], [214, '#6d5e4e', 1], [150, '#8d7a64', 1.3]].forEach(([r, c, w]) => { g.strokeStyle = c; g.lineWidth = w; g.beginPath(); g.ellipse(cx, fy, r, r * .24, 0, 0, TAU); g.stroke(); });
+    for (let a = 0; a < 48; a++) { const q = a / 48 * TAU, c = cos(q), s = sin(q), big = a % 4 === 0; g.strokeStyle = big ? '#a8947c' : '#6d5e4e'; g.lineWidth = big ? 1.3 : .8; g.beginPath(); g.moveTo(cx + c * 298, fy + s * 298 * .24); g.lineTo(cx + c * 318, fy + s * 318 * .24); g.stroke(); }
+    for (let a = 0; a < 12; a++) { const q = a / 12 * TAU, c = cos(q), s = sin(q); g.strokeStyle = '#6d5e4e66'; g.lineWidth = 1; g.beginPath(); g.moveTo(cx + c * 150, fy + s * 150 * .24); g.lineTo(cx + c * 298, fy + s * 298 * .24); g.stroke(); }
+    g.restore();
+    g.fillStyle = '#6a5b4a'; g.fillRect(0, gy, W, 1.6);
+    const tr0 = yearTree(weeks, cx, gy, { max: 2 });
+    if (o.roots) { roots(g, cx, gy + 4, n, o.roots, (l0, col) => { const l = rootHead(l0, cx, gy, tr0.w0), e = taper(g, l.pts, '#6f5c49'); if (l.pts[0].w > 2) { g.strokeStyle = col; g.lineWidth = 1.2; path(g, e.L); g.strokeStyle = '#20170f'; path(g, e.R); } }); rootLabels(g, W, H, o.rootNames); }
+    // Aged bronze rather than yellow brass: brown body, pale worn edges, a little verdigris
+    const tr = yearTree(weeks, cx, gy, { max: 2 }), B = ['#33251b', '#7d6450', '#dcc9ad', '#1c130d'];
+    const rod = w => { byOrder(w).forEach(l => { const shift = l.pts.map(p => ({ x: p.x, y: p.y - .5 })); ln(g, l.pts, w.W.empty ? '#4c4a4a' : '#57453a', l.order ? 1.3 : 2.4); if (!w.W.empty) ln(g, shift, l.order ? '#927a64' : '#cdb79c', l.order ? .55 : .9); }); };
+    const fruit = (w, far) => {
+      const { W: wk, out, sc } = w; if (!out.tips.length) return; const p = FAR(w, cx, gy - tr.top);
+      out.tips.forEach(t => { if (t === p) return; g.fillStyle = wk.empty ? '#4c4a4a' : '#a89079'; g.beginPath(); g.arc(t.x, t.y, 1.9 * sc, 0, TAU); g.fill(); });
+      if (wk.empty) { g.strokeStyle = '#7b756c'; g.lineWidth = 1.2; g.beginPath(); g.arc(p.x, p.y, 5 * sc, 0, TAU); g.stroke(); return; }
+      const r = (5 + min(wk.s, 16) * .85) * sc; g.strokeStyle = (far ? '#a18c7644' : '#cdb99f66'); g.lineWidth = 1; g.beginPath(); g.ellipse(p.x, p.y, r * 3.2, r * 1.1, -.28, 0, TAU); g.stroke();
+      if (wk.rare) planet(g, p.x, p.y, r * 1.3, ['#f2fbff', '#9fd0ff', '#223c66'], wk.f); else planet(g, p.x, p.y, r, O_SEA[wk.season], wk.f);
+      if (wk.back) { const t = out.tips.find(q => q !== p) || p; glow(g, t.x, t.y, 14 * sc, '#9ff2d8aa'); g.fillStyle = '#c9ffe9'; g.beginPath(); g.arc(t.x, t.y, 3.4 * sc, 0, TAU); g.fill(); }
+    };
+    const lay = far => w => { rod(w); fruit(w, far); };
+    layers(tr, lay(true), () => {
+      const hd = tr.trunk[tr.trunk.length - 1], sr = 8 + 13 * min(1, sqrt(n / 40)), sy = hd.y - sr * 1.5; glow(g, hd.x, sy, sr * 6, '#ffb878', .34); const su = g.createRadialGradient(hd.x - sr * .3, sy - sr * .35, sr * .08, hd.x, sy, sr); su.addColorStop(0, '#fff3dc'); su.addColorStop(.5, '#f0b070'); su.addColorStop(1, '#8a4a22'); g.fillStyle = su; g.beginPath(); g.arc(hd.x, sy, sr, 0, TAU); g.fill();
+      tr.boughs.forEach(l => { const e = taper(g, l.pts, B[1]); g.lineWidth = 1; g.strokeStyle = B[2]; path(g, e.L); g.strokeStyle = B[3]; path(g, e.R); });
+      const legs = [[-1, .55], [1, .55], [0, 1]]; legs.forEach(([d, k]) => { const x1 = cx + d * (70 + tr.w0 * 1.6), y1 = gy + 8 * k; g.strokeStyle = '#2a1e16'; g.lineWidth = 9; g.beginPath(); g.moveTo(cx, gy - 34); g.quadraticCurveTo(cx + d * 22, gy - 6, x1, y1); g.stroke(); g.strokeStyle = '#a58c74'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(cx, gy - 36); g.quadraticCurveTo(cx + d * 22, gy - 8, x1, y1 - 2); g.stroke(); g.fillStyle = '#a58c74'; g.beginPath(); g.arc(x1, y1, 6, 0, TAU); g.fill(); });
+      const s = g.createLinearGradient(cx - tr.w0, 0, cx + tr.w0, 0); s.addColorStop(0, B[0]); s.addColorStop(.35, B[1]); s.addColorStop(.62, B[2]); s.addColorStop(.8, B[1]); s.addColorStop(1, B[0]); taper(g, tr.trunk, s);
+      const Rv = rng(17); tr.trunk.forEach((p, i) => { if (i % 2 || p.w < 8) return; if (Rv() < .5) { g.fillStyle = '#5f9a8a' + (Rv() < .5 ? '40' : '26'); g.beginPath(); g.ellipse(p.x + (Rv() - .5) * p.w * .8, p.y, 2 + Rv() * p.w * .14, 1.5 + Rv() * 4, 0, 0, TAU); g.fill(); } });
+      // Cast bronze: flutes run up the column and die out before the boughs. No collars around the trunk.
+      const up = tr.trunk.slice(0, Math.max(2, floor(tr.trunk.length * .82)));
+      [-.34, -.17, 0, .17, .34].forEach(u => { const line = d => up.map(p => ({ x: p.x + u * p.w + d, y: p.y })); ln(g, line(0), '#21170f', 1.5); ln(g, line(1.5), '#c9b49a55', .8); });
+    }, lay(false));
+    return hitsOf(tr);
+  }
+  
+  /* ---------- Observatoire O2: the star atlas. The tree is a constellation on an old chart. ---------- */
+  const ATLAS = ['#ffe2bd', '#d5e3fb', '#fbdcdc', '#d9efd9']; // pale, close to the chart's ink, so stars and engraved tree read as one drawing
+  function star(g, x, y, r, c) { glow(g, x, y, r * 3.6, c + '66'); g.fillStyle = c; g.beginPath(); for (let i = 0; i < 8; i++) { const a = i / 8 * TAU, q = i % 2 ? r * .32 : r * (i % 4 ? 1.1 : 1.9); g.lineTo(x + cos(a) * q, y + sin(a) * q); } g.closePath(); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, r * .3, 0, TAU); g.fill(); }
+  function atlas(g, W, H, weeks, o) {
+    const gy = 604, cx = W / 2, R = rng(11), n = weeks.length, INK = '#d6b873', hy = 318;
+    const bg = g.createRadialGradient(cx, hy, 40, cx, hy, 700); bg.addColorStop(0, '#14224a'); bg.addColorStop(.7, '#0a1330'); bg.addColorStop(1, '#060b1f'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    dust(g, R, W, gy, 260, '#dfe6ff', .05);
+    g.strokeStyle = INK + '2e'; g.lineWidth = 1; for (let r = 80; r <= 400; r += 80) { g.beginPath(); g.arc(cx, hy, r, 0, TAU); g.stroke(); }
+    for (let a = 0; a < 12; a++) { const q = a / 12 * TAU; g.beginPath(); g.moveTo(cx, hy); g.lineTo(cx + cos(q) * 400, hy + sin(q) * 400); g.stroke(); }
+    [-210, 0, 210].forEach(d => { g.beginPath(); g.ellipse(cx, hy, abs(d) || 1, 400, 0, 0, TAU); g.stroke(); });
+    g.strokeStyle = INK + '99'; g.lineWidth = 1.6; g.beginPath(); g.arc(cx, hy, 400, 0, TAU); g.stroke(); g.lineWidth = 1; g.beginPath(); g.arc(cx, hy, 426, 0, TAU); g.stroke();
+    for (let a = 0; a < 120; a++) { const q = a / 120 * TAU, l = a % 10 ? 7 : 26; g.strokeStyle = INK + (a % 10 ? '66' : 'bb'); g.beginPath(); g.moveTo(cx + cos(q) * 400, hy + sin(q) * 400); g.lineTo(cx + cos(q) * (400 + l), hy + sin(q) * (400 + l)); g.stroke(); }
+    g.font = '500 13px ui-monospace, Consolas, monospace'; g.fillStyle = INK + 'cc'; g.textAlign = 'center'; g.textBaseline = 'middle'; ['SEP', 'OCT', 'NOV', 'DEC', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG'].forEach((m, i) => { const q = -Math.PI / 2 + (i + .5) / 12 * TAU; g.save(); g.translate(cx + cos(q) * 413, hy + sin(q) * 413); g.rotate(q + Math.PI / 2); g.fillText(m, 0, 0); g.restore(); }); g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+    g.fillStyle = vgrad(g, gy, H, [[0, '#0a1020'], [1, '#04070f']]); g.beginPath(); g.moveTo(0, gy + 8); for (let x = 0; x <= W; x += 8) g.lineTo(x, gy + sin(x * .012) * 7 + sin(x * .04) * 2); g.lineTo(W, H); g.lineTo(0, H); g.fill();
+    g.strokeStyle = INK + 'aa'; g.lineWidth = 1.2; g.beginPath(); for (let x = 0; x <= W; x += 8) g.lineTo(x, gy + sin(x * .012) * 7 + sin(x * .04) * 2); g.stroke();
+    g.lineWidth = .8; g.strokeStyle = INK + '40'; for (let i = 0; i < 150; i++) { const x = R() * W, y = gy + 12 + R() * R() * 140, l = 8 + R() * 26; g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y + R() * 1.5); g.stroke(); }
+    const dx = W * .84, dy = gy - 2; g.fillStyle = '#0a1020'; g.strokeStyle = INK + 'cc'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(dx - 34, dy); g.lineTo(dx - 34, dy - 22); g.arc(dx, dy - 22, 34, Math.PI, 0); g.lineTo(dx + 34, dy); g.closePath(); g.fill(); g.stroke(); g.beginPath(); g.moveTo(dx - 8, dy - 54); g.lineTo(dx + 24, dy - 84); g.moveTo(dx + 2, dy - 56); g.lineTo(dx + 30, dy - 78); g.stroke();
+    if (o.roots) { roots(g, cx, gy + 6, n, o.roots, (l, col) => { g.setLineDash([2, 6]); ln(g, l.pts, col, max(1, l.pts[0].w * .22)); g.setLineDash([]); l.pts.forEach((p, i) => { if (i % 5 === 4) { g.fillStyle = col; g.beginPath(); g.arc(p.x, p.y, 1.6, 0, TAU); g.fill(); } }); }); rootLabels(g, W, H, o.rootNames); }
+    const tr = yearTree(weeks, cx, gy, { max: 2 });
+    const eT = taper(g, tr.trunk, '#0a1226'); g.strokeStyle = INK; g.lineWidth = 1.2; path(g, eT.L); path(g, eT.R);
+    const Rb = rng(6); g.lineWidth = .7; tr.trunk.forEach(p => { if (p.w < 5) return; const c = floor(p.w / 4); for (let k = 0; k < c; k++) { if (Rb() < .45) continue; const u = -.44 + k / c * .88, l = 6 + Rb() * 10; g.strokeStyle = INK + (u > 0 ? '44' : '99'); g.beginPath(); g.moveTo(p.x + u * p.w, p.y); g.lineTo(p.x + u * p.w, p.y - l); g.stroke(); } });
+    tr.boughs.forEach(l => { const e = taper(g, l.pts, '#0a1226'); g.strokeStyle = INK + 'cc'; g.lineWidth = .9; path(g, e.L); path(g, e.R); });
+    // The tree turns into the sky: the engraved line thins, then goes on dotted to its stars, in the same ink as the constellation it reaches
+    tr.weeks.forEach(w => { byOrder(w).forEach(l => { const col = w.W.empty ? INK + '30' : INK + '8c', cut = floor(l.pts.length * (l.order ? .25 : .6)); ln(g, l.pts.slice(0, cut + 1), col, l.order ? .8 : 1.3); g.setLineDash([1.5, 4]); ln(g, l.pts.slice(cut), col, l.order ? .8 : 1); g.setLineDash([]); }); });
+    // Small engraved stars sit on the boughs, so the wood already carries what the crown is made of
+    tr.boughs.forEach(l => l.pts.forEach((p, i) => { if (i % 7 !== 3) return; g.fillStyle = INK; g.beginPath(); for (let k = 0; k < 8; k++) { const q = k / 8 * TAU, r = k % 2 ? .9 : 3; g.lineTo(p.x + cos(q) * r, p.y + sin(q) * r); } g.closePath(); g.fill(); }));
+    tr.weeks.forEach(w => {
+      const { W: wk, out, sc } = w, T = out.tips; if (!T.length) return;
+      if (wk.empty) { g.setLineDash([3, 5]); ln(g, T, INK + '66', 1); g.setLineDash([]); T.forEach(t => { g.strokeStyle = INK + 'aa'; g.lineWidth = 1; g.beginPath(); g.arc(t.x, t.y, 2.6 * sc, 0, TAU); g.stroke(); }); return; }
+      const order = T.slice().sort((a, b) => atan2(a.y - T[0].y, a.x - T[0].x) - atan2(b.y - T[0].y, b.x - T[0].x)); ln(g, order, INK + 'b8', 1);
+      T.forEach((t, i) => { const lit = i < wk.f, r = (1.8 + min(wk.s, 16) * .22 + (lit ? 2 : 0)) * sc; star(g, t.x, t.y, r, lit ? '#ffe9a8' : ATLAS[wk.season]); });
+      if (wk.back) star(g, T[T.length - 1].x, T[T.length - 1].y, 6 * sc, '#9ff2d8'); if (wk.rare) star(g, T[0].x, T[0].y, 11 * sc, '#9fd0ff');
+    });
+    return hitsOf(tr);
+  }
+  
+  /* ---------- Abysses A1: the sea fan. One flat coral lace, each week one ray of the fan. ---------- */
+  const FAN = ['#6d1c3a', '#a93150', '#d95c66', '#f58d7c'];
+  function sea(g, W, H, gy, R) {
+    g.fillStyle = vgrad(g, 0, gy, [[0, '#0d4a66'], [.28, '#07293f'], [.72, '#031426'], [1, '#020b18']]); g.fillRect(0, 0, W, H);
+    for (let i = 0; i < 5; i++) { const x = W * (.12 + i * .2) + R() * 40, w = 30 + R() * 70, s = g.createLinearGradient(0, 0, 0, gy * .9); s.addColorStop(0, '#9fdcea26'); s.addColorStop(1, '#9fdcea00'); g.fillStyle = s; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + w, 0); g.lineTo(x + w * 2.4 - 120, gy * .9); g.lineTo(x + w * .4 - 150, gy * .9); g.fill(); }
+  }
+  function seabed(g, W, H, gy, R, c1, c2) { const pts = []; for (let x = 0; x <= W; x += 14) pts.push([x, gy + sin(x * .011) * 16 + sin(x * .037 + 2) * 8 + (R() - .5) * 5]); g.fillStyle = vgrad(g, gy - 20, H, [[0, c1], [1, c2]]); g.beginPath(); g.moveTo(0, H); pts.forEach(p => g.lineTo(p[0], p[1])); g.lineTo(W, H); g.fill(); g.strokeStyle = '#2e5868'; g.lineWidth = 1.2; g.beginPath(); pts.forEach(p => g.lineTo(p[0], p[1])); g.stroke(); }
+  function fish(g, x, y, s, d, c) { g.fillStyle = c; g.beginPath(); g.ellipse(x, y, 9 * s, 3.4 * s, 0, 0, TAU); g.fill(); g.beginPath(); g.moveTo(x - d * 8 * s, y); g.lineTo(x - d * 15 * s, y - 4 * s); g.lineTo(x - d * 15 * s, y + 4 * s); g.fill(); }
+  function gorgon(g, W, H, weeks, o) {
+    const gy = 606, cx = W / 2, R = rng(23), n = weeks.length, G = min(1.05, sqrt(n / 40)); sea(g, W, H, gy, R);
+    for (let k = 0; k < 7; k++) { const d = { limbs: [], tips: [] }, x = k < 3 ? 60 + k * 90 : W - 60 - (k - 3) * 78; grow(rng(k + 40), x, gy + 4, -Math.PI / 2 + (R() - .5) * .5, 80 + R() * 90, 7, 0, { up: -Math.PI / 2, trop: .02, wig: .3, fork: .28, max: 2 }, d, 0); d.limbs.forEach(l => taper(g, l.pts, '#07283a')); }
+    for (let k = 0; k < 16; k++) fish(g, 720 + (k % 4) * 30 + R() * 90, 150 + (k % 5) * 18 + R() * 40, .55 + R() * .3, -1, '#0e4058');
+    seabed(g, W, H, gy, R, '#0d2230', '#03090f');
+    for (let i = 0; i < 24; i++) { const x = R() * W, y = gy + 34 + R() * (H - gy - 40), r = 5 + R() * 16; g.fillStyle = '#10293a'; g.beginPath(); g.ellipse(x, y, r, r * .55, R(), 0, TAU); g.fill(); }
+    if (o.roots) { roots(g, cx, gy + 2, n, o.roots, (l, col) => { ln(g, l.pts, col + '33', l.pts[0].w + 5); ln(g, l.pts, col, max(1, l.pts[0].w * .4)); }); rootLabels(g, W, H, o.rootNames); }
+    const stem = 40 + 34 * G, hx = cx, hy = gy - stem, wS = 9 + 22 * G, tp = []; for (let h = 0; h <= stem; h += 4) tp.push({ x: cx + sin(h * .05) * 3, y: gy - h, w: lerp(wS, wS * .55, h / stem) * (1 + .9 * exp(-h / 12)) });
+    const rays = [];
+    for (let i = 0; i < n; i++) {
+      const W_ = weeks[i], Rr = rng(1300 + i * 61), fan = ((i * .618034) % 1) * 2 - 1, ang = -Math.PI / 2 + fan * 1.3, s = min(W_.s, 16), age = (n - 1 - i) / 40;
+      const len = (86 + 196 * G) * (W_.empty ? .55 : .8 + s * .012) * (1 + .1 * sqrt(age)), parts = { limbs: [], tips: [] };
+      grow(Rr, hx + fan * wS * .4, hy, ang, len, (W_.empty ? 2 : 2.8 + s * .17) * (.7 + .5 * G), 0, { up: ang, trop: .05, wig: .17, wob: .05, fork: W_.empty ? 0 : .2, max: W_.empty ? 1 : 2 }, parts, i);
+      rays.push({ W: W_, fan, parts, R: Rr, main: parts.limbs.find(l => l.order === 0) || parts.limbs[0] });
+    }
+    const sorted = rays.slice().sort((a, b) => a.fan - b.fan);
+    glow(g, hx, hy - 170 * G, 340 * G + 60, '#a93150', .22);
+    // The lace: thin bridges between neighbouring rays, which make a net of one fan and not a bouquet of sticks
+    for (let i = 1; i < sorted.length; i++) { const a = sorted[i - 1].main.pts, b = sorted[i].main.pts; if (abs(sorted[i].fan - sorted[i - 1].fan) > .45) continue; [.36, .48, .6, .72, .84, .94].forEach(q => { const p = a[floor(q * (a.length - 1))], r = b[floor(q * (b.length - 1))]; g.strokeStyle = FAN[2] + 'aa'; g.lineWidth = .9; g.beginPath(); g.moveTo(p.x, p.y); g.quadraticCurveTo((p.x + r.x) / 2, (p.y + r.y) / 2 - 3, r.x, r.y); g.stroke(); }); }
+    rays.forEach(r => r.parts.limbs.slice().sort((a, b) => b.order - a.order).forEach(l => { const c = r.W.empty ? '#6f7880' : FAN[min(3, l.order)]; taper(g, l.pts, c); }));
+    rays.forEach(r => { const { W: wk, parts: p, R: Rr } = r; if (wk.empty) return; p.limbs.forEach(l => { if (l.order < 1) return; l.pts.forEach((q, i) => { if (i % 3) return; g.fillStyle = Rr() < .25 ? '#ffe3cf' : '#ffb79c'; g.beginPath(); g.arc(q.x + (Rr() - .5) * 2.4, q.y + (Rr() - .5) * 2.4, .9 + Rr() * .9, 0, TAU); g.fill(); }); });
+      for (let i = 0; i < min(wk.f, 3) && i < p.tips.length; i++) { const t = p.tips[floor(Rr() * p.tips.length)]; glow(g, t.x, t.y, 20, '#7ff0ff99'); g.fillStyle = '#e6fdff'; for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; g.beginPath(); g.ellipse(t.x + cos(a) * 4, t.y + sin(a) * 4, 3.4, 1.1, a, 0, TAU); g.fill(); } g.fillStyle = '#7ff0ff'; g.beginPath(); g.arc(t.x, t.y, 2, 0, TAU); g.fill(); }
+      if (wk.back) { const t = p.tips[0]; glow(g, t.x, t.y, 15, '#9ff2d8aa'); g.fillStyle = '#c9ffe9'; g.beginPath(); g.ellipse(t.x, t.y, 3.4, 5.6, .3, 0, TAU); g.fill(); }
+      if (wk.rare) { const t = p.tips[p.tips.length - 1]; glow(g, t.x, t.y, 34, '#9fd0ffaa'); g.fillStyle = '#e4f3ff'; for (let k = 0; k < 12; k++) { const a = k / 12 * TAU; g.beginPath(); g.ellipse(t.x + cos(a) * 7.5, t.y + sin(a) * 7.5, 6, 1.6, a, 0, TAU); g.fill(); } } });
+    taper(g, tp, FAN[0]); const hl = tp.map(p => ({ x: p.x - p.w * .2, y: p.y })); ln(g, hl, FAN[2] + '99', 1.4);
+    const r3 = rng(4); g.fillStyle = '#ffffff'; for (let i = 0; i < 170; i++) { g.globalAlpha = .08 + r3() * .3; g.beginPath(); g.arc(r3() * W, r3() * gy, .6 + r3() * .9, 0, TAU); g.fill(); } g.globalAlpha = 1;
+    return rays.flatMap(r => r.parts.tips.map(t => ({ i: r.W.i, x: t.x, y: t.y })));
+  }
+  
+  /* ---------- Abysses A2: black coral and its jellyfish. Each week frees one jellyfish above a branch. ---------- */
+  const JEL = [['#ffd0a0', '#e86f5a'], ['#d6f1ff', '#4f97d8'], ['#ffd0ef', '#b75dcc'], ['#b4f8e2', '#2aa08f']];
+  function jelly(g, x, y, r, P, f, R, soft) {
+    glow(g, x, y + r * .2, r * 3, P[1] + '66', soft ? .7 : 1);
+    const tent = 7 + floor(r / 3); for (let i = 0; i < tent; i++) { const u = (i + .5) / tent * 2 - 1, x0 = x + u * r * .92, l = r * (1.5 + R() * 1.4), ph = R() * 9; g.strokeStyle = P[1] + 'aa'; g.lineWidth = max(.6, r * .045); g.beginPath(); g.moveTo(x0, y + r * .18); for (let k = 1; k <= 9; k++) { const q = k / 9; g.lineTo(x0 + sin(q * 6 + ph) * r * .17 * q + u * r * .2 * q, y + r * .18 + l * q); } g.stroke(); }
+    g.strokeStyle = P[0] + 'cc'; g.lineWidth = max(.8, r * .09); for (const u of [-.3, 0, .3]) { const ph = R() * 9; g.beginPath(); g.moveTo(x + u * r * .5, y + r * .2); for (let k = 1; k <= 8; k++) { const q = k / 8; g.lineTo(x + u * r * .5 + sin(q * 4.5 + ph) * r * .24 * q, y + r * .2 + r * 1.35 * q); } g.stroke(); }
+    const b = g.createRadialGradient(x, y - r * .3, r * .05, x, y, r * 1.05); b.addColorStop(0, P[0] + 'f0'); b.addColorStop(.6, P[1] + 'cc'); b.addColorStop(1, P[1] + '66'); g.fillStyle = b;
+    g.beginPath(); g.moveTo(x - r, y + r * .2); g.bezierCurveTo(x - r * 1.05, y - r * .95, x + r * 1.05, y - r * .95, x + r, y + r * .2); for (let i = 7; i >= 0; i--) { const q = i / 8; g.quadraticCurveTo(x - r + 2 * r * (q + 1 / 16), y + r * .38, x - r + 2 * r * q, y + r * .2); } g.fill();
+    g.fillStyle = '#ffffffb0'; g.beginPath(); g.ellipse(x - r * .32, y - r * .4, r * .17, r * .1, -.5, 0, TAU); g.fill();
+    g.fillStyle = P[0] + 'aa'; for (let i = 0; i < 4; i++) { g.beginPath(); g.ellipse(x + (i - 1.5) * r * .33, y - r * .02, r * .13, r * .19, 0, 0, TAU); g.fill(); }
+    for (let i = 0; i < min(f, 3); i++) { const a = i * 2.2; glow(g, x + cos(a) * r * .5, y - r * .25 + sin(a) * r * .22, r * .55, '#fff4c8ee'); g.fillStyle = '#fff'; g.beginPath(); g.arc(x + cos(a) * r * .5, y - r * .25 + sin(a) * r * .22, max(1, r * .08), 0, TAU); g.fill(); }
+  }
+  function coralJelly(g, W, H, weeks, o) {
+    const gy = 606, cx = W / 2 - 6, R = rng(61), n = weeks.length; sea(g, W, H, gy, R);
+    glow(g, cx, 300, 460, '#1c7f9a', .3);
+    // Far reef walls in blue haze, each layer paler, so the water has depth
+    [[gy - 150, '#0a3347', .006, 58, 1], [gy - 84, '#072738', .011, 38, 2], [gy - 38, '#051c2a', .017, 24, 3]].forEach(([y, c, f, a, k]) => { const Rr = rng(k * 31); g.fillStyle = c; g.beginPath(); g.moveTo(0, gy + 30); for (let x = 0; x <= W; x += 10) { const gap = 1 - .75 * exp(-pow((x - cx) / (250 - k * 30), 2)); g.lineTo(x, y + (1 - gap) * (gy - y) * .7 + sin(x * f + k) * a * gap + sin(x * f * 3.3 + k * 2) * a * .3 * gap + (Rr() - .5) * 3); } g.lineTo(W, gy + 30); g.fill(); });
+    for (let k = 0; k < 9; k++) { const d = { limbs: [], tips: [] }, x = k < 5 ? 34 + k * 62 : W - 34 - (k - 5) * 70; grow(rng(k + 140), x, gy - 16, -Math.PI / 2 + (R() - .5) * .4, 44 + R() * 74, 5, 0, { up: -Math.PI / 2, trop: .03, wig: .36, fork: .3, max: 2 }, d, 0); d.limbs.forEach(l => taper(g, l.pts, '#04202e')); }
+    for (let i = 0; i < 9; i++) { const Rj = rng((i + 77) * 9973); Rj(); jelly(g, Rj() * W, 60 + Rj() * 300, 5 + Rj() * 6, ['#3b8aa5', '#1d5a78'], 0, Rj, true); }
+    // The ground: pale sand under the light, ripples that break and bend, stones that catch the light from above
+    const sandY = x => gy + sin(x * .011) * 16 + sin(x * .037 + 2) * 8;
+    g.fillStyle = vgrad(g, gy - 20, H, [[0, '#3c6a72'], [.3, '#1d3f4a'], [1, '#050e14']]); g.beginPath(); g.moveTo(0, H); for (let x = 0; x <= W; x += 8) g.lineTo(x, sandY(x)); g.lineTo(W, H); g.fill();
+    const lit = g.createRadialGradient(cx, gy + 34, 8, cx, gy + 34, 380); lit.addColorStop(0, '#9fd6d44d'); lit.addColorStop(1, '#9fd6d400'); g.save(); g.translate(cx, gy + 34); g.scale(1, .3); g.translate(-cx, -gy - 34); g.fillStyle = lit; g.beginPath(); g.arc(cx, gy + 34, 380, 0, TAU); g.fill(); g.restore();
+    const Rs = rng(29); for (let k = 0; k < 34; k++) { const y0 = gy + 26 + k * k * .13 + Rs() * 6; let x = Rs() * 60 - 60; while (x < W) { const l = 40 + Rs() * 120, ph = Rs() * 9, bend = (x + l / 2 - cx) * .012 * (1 - k / 40); g.strokeStyle = k % 2 ? '#0c2630aa' : '#5c9098' + (k < 16 ? '66' : '33'); g.lineWidth = .9 + k * .03; g.beginPath(); for (let u = 0; u <= 1.001; u += .1) { const px = x + u * l, py = y0 + sin(u * 3.14) * bend + sin(px * .03 + ph) * 1.6; u ? g.lineTo(px, py) : g.moveTo(px, py); } g.stroke(); x += l + 12 + Rs() * 60; } }
+    for (let i = 0; i < 26; i++) { const x = Rs() * W, y = gy + 26 + Rs() * Rs() * (H - gy - 34), r = (3 + Rs() * 12) * (.6 + (y - gy) / 200), rot = (Rs() - .5) * .5; if (abs(x - cx) < 70 && y < gy + 50) continue; g.fillStyle = '#04101666'; g.beginPath(); g.ellipse(x + r * .25, y + r * .42, r * 1.1, r * .32, 0, 0, TAU); g.fill(); g.fillStyle = '#17323c'; g.beginPath(); g.ellipse(x, y, r, r * .58, rot, 0, TAU); g.fill(); g.fillStyle = '#4c7880'; g.beginPath(); g.ellipse(x - r * .16, y - r * .24, r * .56, r * .2, rot, 0, TAU); g.fill(); }
+    for (let i = 0; i < 12; i++) { const x = (i % 2 ? W * .68 + Rs() * W * .3 : Rs() * W * .3), y = gy + 18 + Rs() * 60, N = 4 + floor(Rs() * 4); for (let k = 0; k < N; k++) { const a = -Math.PI / 2 + (k - N / 2) * .2, l = 12 + Rs() * 24, sw = (Rs() - .5) * 14; g.strokeStyle = k % 2 ? '#1c5a58' : '#2b7a70'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x + k * 2, y); g.quadraticCurveTo(x + k * 2 + cos(a) * l * .6 + sw, y + sin(a) * l * .6, x + k * 2 + cos(a) * l + sw * .5, y + sin(a) * l); g.stroke(); } }
+    g.fillStyle = '#02060a55'; g.beginPath(); g.ellipse(cx, gy + 8, 150, 15, 0, 0, TAU); g.fill();
+    const tr = yearTree(weeks, cx, gy, { max: 2 }), C = ['#05070c', '#0a0e16', '#2f5d78', '#020305'];
+    if (o.roots) { roots(g, cx, gy + 2, n, o.roots, (l0, col) => { const l = rootHead(l0, cx, gy, tr.w0), e = taper(g, l.pts, C[1]); if (l.pts[0].w > 2) { g.lineWidth = .9; g.strokeStyle = C[2]; path(g, e.L); const m = l.pts.slice(l0.order ? 0 : 7).map(p => ({ x: p.x - p.w * .1, y: p.y })); if (m.length > 1) ln(g, m, col, 1); } }); rootLabels(g, W, H, o.rootNames); }
+    const limb = w => byOrder(w).forEach(l => { const e = taper(g, l.pts, w.W.empty ? '#222a30' : C[1]); if (l.pts[0].w > 1.6) { g.lineWidth = .9; g.strokeStyle = C[2]; path(g, e.L); } });
+    const jel = (w, back) => { const { W: wk, out, sc, R: Rw } = w; if (wk.empty || !out.tips.length) return; const p = FAR(w, cx, gy - tr.top), r = (8 + min(wk.s, 16) * 1.05) * sc * (back ? .86 : 1), tx = p.x + (Rw() - .5) * 14, ty = p.y - r * 1.2 - Rw() * 8; g.strokeStyle = '#8fd0dc44'; g.lineWidth = .8; g.setLineDash([2, 4]); g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(tx, ty + r); g.stroke(); g.setLineDash([]); if (wk.rare) jelly(g, tx, ty, r * 1.3, ['#eaf6ff', '#7fb8ff'], wk.f, Rw); else jelly(g, tx, ty, r, JEL[wk.season], wk.f, Rw); out.tips.forEach(t => { if (t === p) return; g.fillStyle = JEL[wk.season][0]; g.globalAlpha = .75; g.beginPath(); g.arc(t.x, t.y, 2 * sc, 0, TAU); g.fill(); g.globalAlpha = 1; }); if (wk.back) { const t = out.tips.find(q => q !== p) || p; jelly(g, t.x, t.y - 8 * sc, 5 * sc, ['#e0fff4', '#6fe5bd'], 0, Rw); } };
+    layers(tr, w => { limb(w); }, () => { tr.boughs.forEach(l => { const e = taper(g, l.pts, C[1]); g.lineWidth = 1; g.strokeStyle = C[2]; path(g, e.L); }); const s = g.createLinearGradient(cx - tr.w0, 0, cx + tr.w0, 0); s.addColorStop(0, '#2f5d78'); s.addColorStop(.22, '#0d141d'); s.addColorStop(1, '#040609'); taper(g, tr.trunk, s); const Rp = rng(5); tr.trunk.forEach(p => { if (p.w < 7) return; for (let k = 0; k < p.w / 7; k++) { g.fillStyle = '#233a48'; g.beginPath(); g.arc(p.x + (Rp() - .5) * p.w * .86, p.y + Rp() * 3, .9 + Rp() * .8, 0, TAU); g.fill(); } }); buttresses(tr.trunk[0].x, gy, tr.w0, 37).forEach(l => { const e = taper(g, l.pts, C[1]); g.lineWidth = .9; g.strokeStyle = C[2]; path(g, e.L); }); }, limb);
+    tr.weeks.filter(w => w.behind).forEach(w => jel(w, true)); tr.weeks.filter(w => !w.behind).forEach(w => jel(w, false));
+    const r3 = rng(4); g.fillStyle = '#fff'; for (let i = 0; i < 140; i++) { g.globalAlpha = .08 + r3() * .28; g.beginPath(); g.arc(r3() * W, r3() * gy, .6 + r3() * .9, 0, TAU); g.fill(); } g.globalAlpha = 1;
+    return hitsOf(tr);
+  }
+  
+  /* ---------- Cyber sorcier C1: the crystal tree. Its high clusters float free of the wood. ---------- */
+  const CRY = [['#2a1250', '#6a35c4', '#ad7cff', '#f0dfff'], ['#1c1a58', '#4c55c8', '#90a4ff', '#e6edff'], ['#451252', '#a83ab8', '#e67be0', '#ffe2fb'], ['#172a5e', '#3a6fd0', '#73c2f5', '#def6ff']];
+  function shard(g, x, y, a, l, w, P) {
+    const cs = cos(a), sn = sin(a), nx = -sn, ny = cs, P0 = [x + nx * w * .5, y + ny * w * .5], P1 = [x - nx * w * .5, y - ny * w * .5], m = .68, S0 = [x + cs * l * m + nx * w, y + sn * l * m + ny * w], S1 = [x + cs * l * m - nx * w, y + sn * l * m - ny * w], C = [x + cs * l * m, y + sn * l * m], T = [x + cs * l, y + sn * l], poly = (q, c) => { g.fillStyle = c; g.beginPath(); q.forEach((v, i) => (i ? g.lineTo(v[0], v[1]) : g.moveTo(v[0], v[1]))); g.closePath(); g.fill(); };
+    poly([P0, S0, C, [x, y]], P[1]); poly([P1, S1, C, [x, y]], P[0]); poly([S0, T, C], P[3]); poly([S1, T, C], P[2]);
+    g.strokeStyle = P[3] + '88'; g.lineWidth = .7; g.beginPath(); g.moveTo(P0[0], P0[1]); g.lineTo(S0[0], S0[1]); g.lineTo(T[0], T[1]); g.lineTo(S1[0], S1[1]); g.lineTo(P1[0], P1[1]); g.stroke();
+  }
+  function runes(g, cx, cy, r, c, R) { g.strokeStyle = c; g.lineWidth = 1.2; [1, .94, .68, .62].forEach(k => { g.beginPath(); g.arc(cx, cy, r * k, 0, TAU); g.stroke(); }); const N = 34; for (let i = 0; i < N; i++) { const q = i / N * TAU; g.save(); g.translate(cx + cos(q) * r * .81, cy + sin(q) * r * .81); g.rotate(q + Math.PI / 2); g.beginPath(); const h = r * .05; for (let k = 0; k < 3; k++) { g.moveTo((R() - .5) * h * 1.3, (R() - .5) * h * 2.2); g.lineTo((R() - .5) * h * 1.3, (R() - .5) * h * 2.2); } g.stroke(); g.restore(); } g.beginPath(); for (let i = 0; i <= 7; i++) { const q = -Math.PI / 2 + i * 3 / 7 * TAU; g.lineTo(cx + cos(q) * r * .62, cy + sin(q) * r * .62); } g.stroke(); }
+  function book(g, x, y, s, c, a) { g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = '#3a2360'; g.beginPath(); g.moveTo(-15 * s, 2 * s); g.quadraticCurveTo(-7 * s, -3 * s, 0, 2 * s); g.quadraticCurveTo(7 * s, -3 * s, 15 * s, 2 * s); g.lineTo(15 * s, 6 * s); g.quadraticCurveTo(7 * s, 1 * s, 0, 7 * s); g.quadraticCurveTo(-7 * s, 1 * s, -15 * s, 6 * s); g.fill(); g.fillStyle = c; g.beginPath(); g.moveTo(-13.5 * s, 0); g.quadraticCurveTo(-7 * s, -5 * s, 0, 0); g.quadraticCurveTo(7 * s, -5 * s, 13.5 * s, 0); g.lineTo(13.5 * s, 3.5 * s); g.quadraticCurveTo(7 * s, -1.5 * s, 0, 4 * s); g.quadraticCurveTo(-7 * s, -1.5 * s, -13.5 * s, 3.5 * s); g.fill(); g.strokeStyle = '#6a4fa099'; g.lineWidth = .7; for (const k of [-1, 1]) for (let i = 0; i < 3; i++) { g.beginPath(); g.moveTo(k * 2.5 * s, (.6 + i * 1) * s - 1 * s); g.quadraticCurveTo(k * 7 * s, (-2.5 + i) * s, k * 12 * s, (.6 + i) * s - 1 * s); g.stroke(); } g.restore(); }
+  function stoneFloor(g, W, H, gy) { g.fillStyle = vgrad(g, gy, H, [[0, '#2a2438'], [.5, '#141020'], [1, '#07050d']]); g.fillRect(0, gy, W, H - gy); g.strokeStyle = '#0a0812'; g.lineWidth = 2; for (let r = 0; r < 8; r++) { const y = gy + r * r * 3 + r * 8; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); for (let x = (r % 2) * 40; x < W; x += 80 + r * 12) { g.beginPath(); g.moveTo(x, y); g.lineTo(x - (x - W / 2) * .06, y + r * 6 + 8); g.stroke(); } } g.strokeStyle = '#594c70'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, gy); g.lineTo(W, gy); g.stroke(); }
+  // A limb cut like a gem: straight facets, a lit side and a dark side, a bright ridge, a joint where it bends
+  function prism(g, pts, P, lit = true) {
+    const q = pts.filter((_, i) => i % 3 === 0 || i === pts.length - 1); if (q.length < 2) return;
+    const side = (u, v) => { const L = [], Rr = []; q.forEach((p, i) => { const a = q[min(i + 1, q.length - 1)], b = q[max(i - 1, 0)], an = atan2(a.y - b.y, a.x - b.x) + Math.PI / 2; L.push([p.x + cos(an) * p.w * u, p.y + sin(an) * p.w * u]); Rr.push([p.x + cos(an) * p.w * v, p.y + sin(an) * p.w * v]); }); return [L, Rr]; };
+    const band = (u, v, c) => { const [A, B] = side(u, v); g.fillStyle = c; g.beginPath(); A.forEach((m, i) => (i ? g.lineTo(m[0], m[1]) : g.moveTo(m[0], m[1]))); B.reverse().forEach(m => g.lineTo(m[0], m[1])); g.closePath(); g.fill(); };
+    band(-.55, -.12, P[0]); band(-.12, .22, P[1]); band(.22, .55, lit ? P[2] : P[1]);
+    const [Rd] = side(.22, .22); g.strokeStyle = P[3]; g.lineWidth = max(.6, q[0].w * .07); g.beginPath(); Rd.forEach((m, i) => (i ? g.lineTo(m[0], m[1]) : g.moveTo(m[0], m[1]))); g.stroke();
+    if (q[0].w > 5) { g.strokeStyle = P[3] + '55'; g.lineWidth = .7; q.forEach((p, i) => { if (!i || i === q.length - 1 || i % 2) return; const a = q[i + 1], b = q[i - 1], an = atan2(a.y - b.y, a.x - b.x) + Math.PI / 2; g.beginPath(); g.moveTo(p.x + cos(an) * p.w * .55, p.y + sin(an) * p.w * .55); g.lineTo(p.x + cos(an) * p.w * .22 + cos(an - Math.PI / 2) * 3, p.y + sin(an) * p.w * .22 + sin(an - Math.PI / 2) * 3); g.lineTo(p.x - cos(an) * p.w * .55, p.y - sin(an) * p.w * .55); g.stroke(); }); }
+  }
+  // The trunk is one big crystal: a mesh of triangles, each face its own shade, with an uneven cut outline
+  function gemTrunk(g, T, seed) {
+    const Rg = rng(seed), US = [-.5, -.24, .04, .3, .5], rows = [], step = 4; const COL = ['#1d0c3e', '#34187a', '#6a3cd0', '#b891ff', '#2a1260'];
+    for (let i = 0; i < T.length; i += step) { const p = T[i], kick = (Rg() - .5) * p.w * .08; rows.push(US.map((u, k) => ({ x: p.x + u * p.w * (1 + (k === 0 || k === 4 ? (Rg() - .5) * .16 : 0)) + (k && k < 4 ? kick + (Rg() - .5) * p.w * .05 : 0), y: p.y + (k && k < 4 ? (Rg() - .5) * 8 : 0) }))); }
+    const tri = (a, b, c, col) => { g.fillStyle = col; g.strokeStyle = col; g.lineWidth = .5; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(c.x, c.y); g.closePath(); g.fill(); g.stroke(); };
+    for (let r = 0; r < rows.length - 1; r++) for (let k = 0; k < 4; k++) { const a = rows[r][k], b = rows[r][k + 1], c = rows[r + 1][k + 1], d = rows[r + 1][k], base = COL[k + (Rg() < .22 ? 1 : 0)], alt = COL[max(0, k - (Rg() < .4 ? 1 : 0))]; if ((r + k) % 2) { tri(a, b, c, base); tri(a, c, d, alt); } else { tri(a, b, d, base); tri(b, c, d, alt); } }
+    g.strokeStyle = '#ece0ff66'; g.lineWidth = .9; for (let r = 0; r < rows.length - 1; r++) { const a = rows[r][2], b = rows[r + 1][3]; if (r % 2) { g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); } const m = rows[r][3], m2 = rows[r + 1][3]; g.strokeStyle = '#f4ecff99'; g.beginPath(); g.moveTo(m.x, m.y); g.lineTo(m2.x, m2.y); g.stroke(); g.strokeStyle = '#ece0ff66'; }
+    const mid = T[floor(T.length * .45)]; if (mid) { g.save(); g.globalCompositeOperation = 'lighter'; glow(g, mid.x + mid.w * .08, mid.y, mid.w * 1.1, '#a06cff', .3); g.restore(); }
+  }
+  // The foot: a true druse. Crystals of the trunk's own colour push out of the stone at their own angles, tall near the trunk, small and scattered further out
+  function druse(g, x, gy, w0, G) {
+    const Rd = rng(53), list = [], P = ['#1d0c3e', '#34187a', '#8a5ce0', '#d9c6ff'], P2 = ['#17123e', '#2b2e80', '#6f7ce0', '#d6e0ff'];
+    for (let i = 0; i < 26; i++) { const near = i < 12, u = near ? (i / 11 - .5) * 2 : (Rd() < .5 ? -1 : 1) * (.9 + Rd() * 1.7), dist = abs(u); list.push({ x: x + u * (w0 * .62 + 34 * G), y: gy + 2 + Rd() * (near ? 8 : 22), a: -Math.PI / 2 + u * .34 + (Rd() - .5) * .42, l: (near ? 42 + Rd() * 58 : 12 + Rd() * 26) * (.45 + .55 * G) * (1 - min(dist, 1.6) * .22), w: (near ? 9 + Rd() * 8 : 4 + Rd() * 4) * (.55 + .45 * G), P: Rd() < .3 ? P2 : P }); }
+    g.save(); g.globalCompositeOperation = 'lighter'; g.translate(x, gy + 8); g.scale(1, .22); glow(g, 0, 0, 170 + 120 * G, '#7f4be0', .4); g.restore();
+    list.sort((a, b) => a.y - b.y).forEach(c => { g.fillStyle = '#05030c88'; g.beginPath(); g.ellipse(c.x, c.y + 2, c.w * 1.25, c.w * .36, 0, 0, TAU); g.fill(); shard(g, c.x, c.y, c.a, c.l, c.w, c.P); });
+  }
+  function farIsle(g, x, y, s, tower) {
+    const Rf = rng(x | 0), top = [], low = [], N = 9; for (let i = 0; i <= N; i++) { const u = i / N * 2 - 1; top.push([x + u * 50 * s, y - (1 - u * u) * 3 * s]); low.push([x + u * 50 * s, y + (1 - abs(u)) * (30 + Rf() * 22) * s + 3 * s]); }
+    g.fillStyle = '#2b1c66'; g.beginPath(); top.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]))); low.reverse().forEach(p => g.lineTo(p[0], p[1])); g.closePath(); g.fill();
+    g.strokeStyle = '#a58cf0aa'; g.lineWidth = 1.2; g.beginPath(); top.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]))); g.stroke();
+    if (!tower) return;
+    glow(g, x, y - 46 * s, 90 * s, '#a07cff', .3); g.fillStyle = '#35247a'; g.beginPath(); g.moveTo(x - 10 * s, y); g.lineTo(x - 7 * s, y - 66 * s); g.lineTo(x + 7 * s, y - 66 * s); g.lineTo(x + 10 * s, y); g.fill();
+    g.fillRect(x - 22 * s, y - 24 * s, 13 * s, 24 * s); g.beginPath(); g.moveTo(x - 24 * s, y - 24 * s); g.lineTo(x - 15.5 * s, y - 40 * s); g.lineTo(x - 7 * s, y - 24 * s); g.fill();
+    g.beginPath(); g.moveTo(x - 11 * s, y - 66 * s); g.lineTo(x, y - 94 * s); g.lineTo(x + 11 * s, y - 66 * s); g.fill();
+    g.fillStyle = '#ffd9a0'; [[0, -56], [-3, -42], [3, -30], [-16, -14]].forEach(([a, b]) => g.fillRect(x + a * s - 1, y + b * s, 2.2, 4)); 
+  }
+  function crystal(g, W, H, weeks, o) {
+    const gy = 590, cx = W / 2 - 4, R = rng(71), n = weeks.length;
+    g.fillStyle = vgrad(g, 0, gy, [[0, '#0a0420'], [.7, '#1a0b3c'], [1, '#2a1258']]); g.fillRect(0, 0, W, gy); dust(g, R, W, gy * .85, 170, '#e0d2ff');
+    glow(g, cx, 290, 460, '#7f3be0', .34); runes(g, cx, 290, 372, '#9e78ff55', rng(2));
+    [[92, 190, -.2], [842, 130, .16], [120, 400, .1], [858, 390, -.14]].forEach(([x, y, a], i) => { glow(g, x, y, 42, '#a07cff55'); book(g, x, y, .95 - i * .06, '#d9cdf0', a); });
+    // Far off, the world's floating tower and two rocks, small and dim, so the back has a place and not only a ridge
+    farIsle(g, 806, 462, 1, true); farIsle(g, 898, 494, .42, false); farIsle(g, 92, 486, .62, false);
+    g.fillStyle = '#0d0820'; g.beginPath(); g.moveTo(0, gy); for (let x = 0; x <= W; x += 12) g.lineTo(x, gy - 52 - sin(x * .009 + 1) * 22 - sin(x * .027) * 8); g.lineTo(W, gy); g.fill();
+    stoneFloor(g, W, H, gy);
+    if (o.roots) { roots(g, cx, gy + 2, n, o.roots, (l, col) => { prism(g, l.pts.map(p => ({ x: p.x, y: p.y, w: max(1.6, p.w * 1.05) })), ['#1d0c3e', '#34187a', '#8a5ce0', col]); }); rootLabels(g, W, H, o.rootNames); }
+    const tr = yearTree(weeks, cx, gy, { max: 1 }), P0 = CRY[0], top = gy - tr.top;
+    const limb = w => byOrder(w).forEach(l => { const floats = w.float, pts = floats ? l.pts.slice(0, Math.max(2, floor(l.pts.length * .62))) : l.pts; if (w.W.empty) { ln(g, pts, '#4a4258', 1.4); return; } const PL = w.W.rare ? ['#1c3f68', '#5da6e8', '#b9e4ff', '#ffffff'] : CRY[w.W.season]; prism(g, pts.map(p => ({ x: p.x, y: p.y, w: max(1.8, p.w * 1.25) })), PL, !w.behind); });
+    const cluster = (w, far) => { const { W: wk, out, sc, R: Rw } = w; const P = wk.rare ? ['#1c3f68', '#5da6e8', '#b9e4ff', '#ffffff'] : CRY[wk.season]; if (wk.empty) { const p = out.tips[0]; if (p) shard(g, p.x, p.y, -1.4, 13 * sc, 3 * sc, ['#23202c', '#3a3644', '#5b5668', '#7b7688']); return; }
+      out.tips.forEach((t, ti) => { const dy = w.float ? -(16 + (w.W.i % 3) * 9) * sc : 0, x = t.x, y = t.y + dy, s = min(wk.s, 16), N = 2 + round(s * .22), base = t.a; if (w.float) { g.strokeStyle = P[2] + '88'; g.lineWidth = 1; g.beginPath(); g.ellipse(x, y + 9 * sc, 15 * sc, 4 * sc, 0, 0, TAU); g.stroke(); } glow(g, x, y - 6, (22 + s) * sc, P[1] + '66', far ? .55 : 1);
+        for (let i = 0; i < N; i++) { const a = base + (i / max(1, N - 1) - .5) * 1.75 + (Rw() - .5) * .2, l = (19 + s * 1.5 + Rw() * 11) * sc * (far ? .8 : 1), wd = (3.8 + s * .2) * sc; shard(g, x, y, a, l, wd, P); }
+        if (ti < wk.f) { const a = base, tx = x + cos(a) * (24 + s) * sc, ty = y + sin(a) * (24 + s) * sc; glow(g, tx, ty, 13 * sc, '#ff8aef'); g.fillStyle = '#fff'; g.beginPath(); for (let k = 0; k < 8; k++) { const q = k / 8 * TAU, r = (k % 2 ? 1.2 : 7) * sc; g.lineTo(tx + cos(q) * r, ty + sin(q) * r); } g.fill(); }
+        if (wk.back && ti === 0) { const b2 = -Math.PI / 2; shard(g, x, y, b2, 18 * sc, 4 * sc, ['#0f5a48', '#2ca88a', '#8ff2d0', '#e6fff5']); glow(g, x, y - 12, 14, '#9ff2d8aa'); } }); };
+    tr.weeks.forEach(w => { w.float = !w.W.empty && (w.out.tips[0] && w.out.tips[0].y < top + 40) && w.W.i % 2 === 0; });
+    layers(tr, w => { limb(w); cluster(w, true); }, () => {
+      tr.boughs.forEach(l => prism(g, l.pts.map(p => ({ x: p.x, y: p.y, w: p.w * 1.1 })), ['#1d0c3e', '#4a23a0', '#8a5ce0', '#efe2ff']));
+      gemTrunk(g, tr.trunk, 41);
+      druse(g, tr.trunk[0].x, gy, tr.w0, min(1.05, sqrt(n / 40)));
+    }, w => { limb(w); cluster(w, false); });
+    return hitsOf(tr);
+  }
+  
+  /* ---------- Cyber sorcier C2: the page tree. A twisted wood in a round library, whose leaves are pages. ---------- */
+  const PAGE = [['#d9bf8e', '#8d6a3e'], ['#cfd3ea', '#6b74a6'], ['#e4bccb', '#94597a'], ['#b9dcc6', '#558a70']];
+  function grimoire(g, W, H, weeks, o) {
+    const gy = 590, cx = W / 2, R = rng(13), n = weeks.length;
+    g.fillStyle = '#0a0618'; g.fillRect(0, 0, W, gy);
+    const cols = 15; for (let c = 0; c < cols; c++) { const u = (c + .5) / cols * 2 - 1, x0 = cx + sin(u * 1.45) / sin(1.45) * (W / 2 + 40), x1 = cx + sin((u + 2 / cols) * 1.45) / sin(1.45) * (W / 2 + 40), wd = x1 - x0, shade = .35 + .5 * abs(u); for (let r = 0; r < 9; r++) { const y = 18 + r * 64, h = 56; g.fillStyle = '#160e2a'; g.fillRect(x0, y, wd, h); let x = x0 + 2; while (x < x1 - 3) { const sw = max(2, (4 + R() * 8) * (1 - abs(u) * .55)), bh = h * (.62 + R() * .32); g.fillStyle = pickOf(R, ['#3f2a6a', '#5a2f58', '#2c3a6e', '#6a4a2c', '#2f5a5a', '#4a2f7a', '#74304a']); g.fillRect(x, y + h - bh, sw, bh); if (R() < .3) { g.fillStyle = '#d4b66a55'; g.fillRect(x, y + h - bh + 6, sw, 1.4); } x += sw + .7; } g.fillStyle = '#34224a'; g.fillRect(x0, y + h, wd, 6); } g.fillStyle = '#2a1a40'; g.fillRect(x0 - 1.5, 0, 3, gy); g.fillStyle = `rgba(6,3,14,${shade * .55 + .2})`; g.fillRect(x0, 0, wd + 1, gy); }
+    const v = g.createRadialGradient(cx, 300, 60, cx, 300, 520); v.addColorStop(0, '#8450e03d'); v.addColorStop(.55, '#3a1e7a18'); v.addColorStop(1, '#05030c00'); g.fillStyle = v; g.fillRect(0, 0, W, gy); glow(g, cx, 240, 300, '#b48cff', .12);
+    stoneFloor(g, W, H, gy);
+    // The tree stands at the very centre of the floor circle
+    const base = gy + 44, B = ['#39344c', '#6e6a88', '#c4c2da', '#1a1726'];
+    g.strokeStyle = '#a77cff88'; g.lineWidth = 1.3; [1, .84].forEach(k => { g.beginPath(); g.ellipse(cx, base, 300 * k, 42 * k, 0, 0, TAU); g.stroke(); }); const Rr = rng(5); for (let i = 0; i < 26; i++) { const q = i / 26 * TAU, x = cx + cos(q) * 276, y = base + sin(q) * 38.5; g.beginPath(); g.moveTo(x - 3, y - 2 * Rr()); g.lineTo(x + 3 * Rr(), y + 2); g.stroke(); }
+    g.fillStyle = '#05030c70'; g.beginPath(); g.ellipse(cx, base + 3, 96, 13, 0, 0, TAU); g.fill();
+    // Roots of the same twisted wood as the trunk; only a thin vein keeps each one's colour
+    const tr = yearTree(weeks, cx, base, { max: 2 });
+    if (o.roots) { roots(g, cx, base - 2, n, o.roots, (l0, col) => { const l = rootHead({ ...l0, pts: l0.pts.map(p => ({ x: p.x, y: p.y, w: p.w * 1.1 })) }, cx, base, tr.w0); woodLimb(g, l, B); if (l0.pts[0].w > 2.6) { const m = l.pts.slice(l0.order ? 0 : 7).map(p => ({ x: p.x + sin(p.y * .09) * p.w * .22, y: p.y })); g.globalAlpha = .55; if (m.length > 1) ln(g, m, col, .9); g.globalAlpha = 1; } }); rootLabels(g, W, H, o.rootNames); }
+    const leaf = (x, y, a, s, P, dim) => { g.save(); g.translate(x, y); g.rotate(a); g.transform(1, 0, -.28, 1, 0, 0); g.fillStyle = dim ? P[1] : P[0]; g.fillRect(-s * .72, -s, s * 1.44, s * 2); g.fillStyle = dim ? '#00000040' : P[1] + 'cc'; for (let k = 0; k < 4; k++) g.fillRect(-s * .5, -s * .66 + k * s * .4, s * (k === 3 ? .55 : 1), max(.6, s * .07)); g.restore(); };
+    const lay = dim => w => { const { W: wk, out, R: Rw, sc } = w; byOrder(w).forEach(l => woodLimb(g, l, wk.empty ? ['#3a3844', '#67646f', '#92909a', '#2a2830'] : B)); if (wk.empty) return; const P = PAGE[wk.season], N = dim ? 3 : 3; out.tips.forEach(t => { const rad = (14 + min(wk.s, 16) * .95) * sc; for (let i = 0; i < N + min(wk.s, 16) * .16; i++) { const a = Rw() * TAU, r = sqrt(Rw()) * rad; leaf(t.x + cos(a) * r, t.y + sin(a) * r * .85, (Rw() - .5) * 1.5, (4.6 + Rw() * 2.4) * sc, P, dim); } }); };
+    layers(tr, lay(true), () => { tr.boughs.forEach(l => woodLimb(g, l, B)); const s = g.createLinearGradient(cx - tr.w0, 0, cx + tr.w0, 0); s.addColorStop(0, B[3]); s.addColorStop(.6, B[1]); s.addColorStop(1, B[2]); taper(g, tr.trunk, s); for (let k = 0; k < 5; k++) { const ph = k * 1.26; g.strokeStyle = k % 2 ? '#a77cff66' : B[3]; g.lineWidth = 1.6 + (k % 2) * 1.4; g.beginPath(); tr.trunk.forEach((p, i) => { const x = p.x + sin(i * .17 + ph) * p.w * .44; i ? g.lineTo(x, p.y) : g.moveTo(x, p.y); }); g.stroke(); } buttresses(tr.trunk[0].x, base, tr.w0, 43).forEach(l => woodLimb(g, l, B)); }, lay(false));
+    tr.weeks.forEach(w => { const { W: wk, out, R: Rw, sc } = w; if (wk.empty || !out.tips.length) return; for (let i = 0; i < min(wk.f, 2); i++) { const t = out.tips[floor(Rw() * out.tips.length)], y = t.y - 15 * sc; glow(g, t.x, y, 18 * sc, '#c79bff66'); book(g, t.x, y, .72 * sc + .25, '#fff8e6', (Rw() - .5) * .4); } if (wk.back) { const t = out.tips[0]; glow(g, t.x, t.y, 15, '#9ff2d8aa'); leaf(t.x, t.y, .2, 5 * sc, ['#e6fff5', '#8ff2c8'], false); } if (wk.rare) { const t = out.tips[out.tips.length - 1]; glow(g, t.x, t.y - 20 * sc, 36 * sc, '#9fd0ffbb'); book(g, t.x, t.y - 20 * sc, 1.1 * sc + .3, '#e4f3ff', 0); } });
+    const Rd = rng(84), crown = base - tr.top - 120 * sqrt(n / 40); for (let i = 0; i < min(20, n); i++) { const q = i / 20; leaf(cx + (Rd() - .5) * 420 * sqrt(n / 40), crown - Rd() * 130 * sqrt(n / 40) - 10, Rd() * 1.8 - .9, 3.8, PAGE[i % 4], false); }
+    return hitsOf(tr);
+  }
+  
+  /* ---------- Ville néon: shared pieces. Glass tubes, the hillside city, the wet roof the user liked. ---------- */
+  const NEON = ['#ffb14a', '#7fd6ff', '#ff78c4', '#49ffc2'];
+  function tube(g, pts, c, w) { ln(g, pts, c + '1f', w * 7); ln(g, pts, c + '4d', w * 3.2); ln(g, pts, c, w * 1.25); g.globalAlpha = .9; ln(g, pts, '#ffffff', max(.6, w * .42)); g.globalAlpha = 1; }
+  function hillCity(g, W, y, R) {
+    g.fillStyle = '#231337'; g.beginPath(); g.moveTo(0, y + 40); for (let x = 0; x <= W; x += 10) g.lineTo(x, y - 86 * exp(-pow((x - W * .58) / 280, 2)) + sin(x * .02) * 5); g.lineTo(W, y + 40); g.fill();
+    for (let i = 0; i < 90; i++) { const x = R() * W, hb = y - 86 * exp(-pow((x - W * .58) / 280, 2)), h = 16 + R() * R() * 150 * (1 - abs(x - W * .58) / W), w = 12 + R() * 22, top = hb - h + 12; g.fillStyle = pickOf(R, ['#1a1030', '#201438', '#17122c', '#2a1a40']); g.fillRect(x, top, w, h + 40); for (let yy = top + 5; yy < hb + 26; yy += 7) for (let xx = x + 3; xx < x + w - 3; xx += 5) if (R() < .28) { g.fillStyle = pickOf(R, ['#ffcf7a', '#7fd6ff', '#ff9ad0', '#f4e8c8']); g.globalAlpha = .55 + R() * .4; g.fillRect(xx, yy, 2.2, 2.8); g.globalAlpha = 1; } if (R() < .22) { const c = pickOf(R, ['#ff5ab4', '#3fe0ff']); g.fillStyle = c; g.fillRect(x + 2, top - 1, w - 4, 1.8); glow(g, x + w / 2, top, 26, c, .25); } }
+  }
+  function rainLines(g, R, W, H) { g.strokeStyle = '#bcd8ff10'; g.lineWidth = 1; for (let i = 0; i < 180; i++) { const x = R() * (W + 80), y = R() * H, l = 14 + R() * 30; g.beginPath(); g.moveTo(x, y); g.lineTo(x - l * .22, y + l); g.stroke(); } }
+  
+  /* ---------- Ville néon N3: the wired tree. A flat-topped tree of bundled city cables on the wet roof; each week is one strung line of LEDs. ---------- */
+  function wired(g, W, H, weeks, o) {
+    const gy = 566, cx = W / 2 - 10, R = rng(47), n = weeks.length, G = min(1.05, sqrt(n / 40));
+    g.fillStyle = vgrad(g, 0, 470, [[0, '#090818'], [.55, '#1e1036'], [.85, '#55235a'], [1, '#a13f6a']]); g.fillRect(0, 0, W, 470); dust(g, R, W, 200, 60, '#d9cff0');
+    hillCity(g, W, 470, R);
+    g.fillStyle = vgrad(g, 440, 520, [[0, '#ff5ab400'], [1, '#c85ad040']]); g.fillRect(0, 440, W, 80);
+    g.fillStyle = '#17131f'; g.fillRect(0, 500, W, 30); g.fillStyle = '#39324a'; g.fillRect(0, 498, W, 4); for (let x = 0; x < W; x += 92) { g.fillStyle = '#0f0c16'; g.fillRect(x, 502, 2, 28); }
+    g.fillStyle = vgrad(g, 530, H, [[0, '#2a2534'], [.35, '#17131f'], [1, '#07060b']]); g.fillRect(0, 530, W, H - 530);
+    const hx = 96; g.fillStyle = '#2a2736'; g.fillRect(hx - 62, 448, 124, 90); g.fillStyle = '#3d394c'; g.fillRect(hx - 62, 448, 124, 8); g.strokeStyle = '#17141f'; g.lineWidth = 2; for (let y = 464; y < 532; y += 7) { g.beginPath(); g.moveTo(hx - 54, y); g.lineTo(hx + 54, y); g.stroke(); } g.fillStyle = '#ff5a6a'; g.fillRect(hx + 40, 456, 7, 3); glow(g, hx + 43, 458, 12, '#ff5a6a', .8);
+    // The crown is flat like an acacia's: heights above the fork are squashed and pushed out, the whole crown lifted on a long bare bundle
+    const tr = yearTree(weeks, cx, gy, { max: 1 }), lift = 56 + 176 * G, fork = gy - tr.top * .72, sq = .4;
+    const P = p => (p.y < fork ? { x: cx + (p.x - cx) * 1.2, y: fork - (fork - p.y) * sq - lift, w: p.w } : { x: p.x, y: p.y - lift, w: p.w });
+    const cable = (pts, w, rim) => { ln(g, pts, '#05040a', w + 1.6); ln(g, pts, '#1d1a28', w); const hi = pts.map(p => ({ x: p.x - w * .22, y: p.y - w * .22 })); ln(g, hi, rim || '#6d6484', max(.5, w * .2)); };
+    const boughs = tr.boughs.map(b => b.pts.filter((_, i) => i % 2 === 0).map(P));
+    // The bundle: one group of cables per bough, wound together from the roof, opening where each bough leaves
+    const lines = [], NC = 4 + round(14 * G);
+    for (let k = 0; k < NC; k++) { const u = (k + .5) / NC * 2 - 1, b = boughs[k % max(1, boughs.length)], end = b ? b[0] : { x: cx, y: gy - lift }, pts = [], Rk = rng(610 + k * 7), ph = Rk() * TAU, hTop = gy - end.y, foot = u * (34 + 92 * G); for (let i = 0; i <= 22; i++) { const q = i / 22, sp = (5 + 21 * G) * (1 - pow(q, 6)), xx = lerp(cx + foot * exp(-q * 10) + u * sp, end.x, pow(q, 5)) + sin(q * 7 + ph) * (1 - pow(q, 3)) * (2.5 + 5 * G); pts.push({ x: xx, y: gy + 10 * exp(-q * 7) * abs(u) - hTop * q }); } lines.push(pts); }
+    // A health root is one more cable run across the roof, leaving from the foot of the bundle, with a lit core
+    if (o.roots) { roots(g, cx, gy + 4, n, o.roots, (l, col) => { if (l.order > 1) return; const q = l.pts.map(p => ({ x: cx + (p.x - cx) * 1.25, y: gy + 4 + (p.y - gy - 4) * .62 })), Wd = max(1.8, l.pts[0].w * .42), head = l.order ? [] : [{ x: q[0].x, y: gy - 14 }]; const pts = head.concat(q); cable(pts, Wd); ln(g, pts, col, .9); }); }
+    const week = (w, lit) => {
+      const { W: wk, out, R: Rw, sc } = w, c = wk.rare ? '#9fd0ff' : NEON[wk.season], lim = out.limbs.map(l => ({ ...l, q: l.pts.filter((_, i) => i % 2 === 0 || i === l.pts.length - 1).map(P) }));
+      const tips0 = out.tips[0]; lim.filter(l => l.order === 0 || (tips0 && l.pts[l.pts.length - 1].x === tips0.x)).forEach(l => cable(l.q, max(1, l.pts[0].w * (l.order ? .3 : .42)), lit ? (wk.empty ? '#55505f' : '#8a7fa4') : '#3a3548'));
+      const main = lim.find(l => l.order === 0) || lim[0], from = main.q[0], tips = out.tips.map(P);
+      tips.slice(0, wk.empty ? 1 : wk.s >= 8 ? 2 : 1).forEach((t, ti) => {
+        const sag = (wk.empty ? 10 : 16 + min(wk.s, 16) * 2.3) * sc + ti * 7, wire = []; for (let i = 0; i <= 18; i++) { const q = i / 18; wire.push({ x: lerp(t.x, from.x, q * .62), y: lerp(t.y, from.y, q * .62) + sin(q * Math.PI) * sag }); }
+        if (wk.empty) { ln(g, wire, '#4a4556', 1); g.fillStyle = '#6a6474'; g.beginPath(); g.arc(t.x, t.y, 2.2 * sc, 0, TAU); g.fill(); return; }
+        if (!lit) { ln(g, wire, c + '30', 1); wire.forEach((p, i) => { if (i % 3 === 0) { g.fillStyle = c + '66'; g.beginPath(); g.arc(p.x, p.y, 1, 0, TAU); g.fill(); } }); return; }
+        ln(g, wire, c + '1c', 6); ln(g, wire, '#0b0910', 1); const Rl = rng(wk.i * 31 + ti); wire.forEach((p, i) => { if (i === 0 || i % 2) return; g.fillStyle = c + '2a'; g.beginPath(); g.arc(p.x, p.y + 1.4, 4.6 + min(wk.s, 16) * .12, 0, TAU); g.fill(); g.fillStyle = c; g.globalAlpha = .7 + Rl() * .3; g.beginPath(); g.arc(p.x, p.y + 1.4, 1.5 + min(wk.s, 16) * .05 + Rl() * .4, 0, TAU); g.fill(); g.globalAlpha = 1; g.fillStyle = '#fff'; g.beginPath(); g.arc(p.x, p.y + 1.1, .7, 0, TAU); g.fill(); });
+        for (let fi = 0; fi < (ti ? 0 : min(wk.f, 3)); fi++) { const m = wire[6 + fi * 4]; glow(g, m.x, m.y + 2, 9 * sc, '#ff4fc8', .9); g.save(); g.translate(m.x, m.y + 2); g.rotate(Math.PI / 4); g.fillStyle = '#ffd6f0'; g.fillRect(-2.4 * sc, -2.4 * sc, 4.8 * sc, 4.8 * sc); g.restore(); }
+      });
+      if (!lit || wk.empty || !tips.length) return;
+      if (wk.back) { const t = tips[0]; glow(g, t.x, t.y, 15, '#d6fff0'); g.fillStyle = '#fff'; g.beginPath(); g.arc(t.x, t.y, 3, 0, TAU); g.fill(); }
+      if (wk.rare) { const t = tips[tips.length - 1]; glow(g, t.x, t.y, 34, '#9fd0ff'); g.strokeStyle = '#e4f3ff'; g.lineWidth = 2; g.beginPath(); g.arc(t.x, t.y, 8 * sc, 0, TAU); g.stroke(); }
+    };
+    // A wide, low haze lit by the crown, so the tree reads against the city behind it
+    const crownY = fork - lift - 30 * G; g.save(); g.translate(cx, crownY); g.scale(1, .42); glow(g, -60 * G, 0, 120 + 300 * G, '#ff78c4', .16); glow(g, 70 * G, -20, 100 + 260 * G, '#7fd6ff', .13); g.restore();
+    tr.weeks.filter(w => w.behind).forEach(w => week(w, false));
+    lines.forEach((p, k) => cable(p, 2.6 + 3.2 * G, k % 3 === 0 ? '#ff78c488' : k % 3 === 1 ? '#7fd6ff66' : '#6d6484'));
+    boughs.forEach(b => cable(b.map(p => ({ x: p.x, y: p.y })), 2.4 + 3 * G, '#8a7fa4'));
+    // Two tubes run up the bundle, so the tree is lit from inside and reads against the roof
+    [lines[0], lines[floor(NC / 2)]].forEach((p, k) => { if (p) tube(g, p.slice(1, 18), k ? '#7fd6ff' : '#ff78c4', .75); });
+    tr.weeks.filter(w => !w.behind).forEach(w => week(w, true));
+    // The wet roof mirrors the tree: thin strips copied upside down, each nudged sideways by the ripples, fading with distance
+    const T0 = g.getTransform(), cvs = g.canvas, ax = gy + 4, sx = T0.a || 1;
+    if (cvs && T0.b === 0 && T0.c === 0) {
+      const Rq = rng(91); g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+      for (let y = ax + 2; y < H - 4; y += 3) { const src = 2 * ax - y; if (src < 0) break; const d = (y - ax) / (H - ax), dx = sin(y * .21) * (1.5 + 5 * d) + (Rq() - .5) * 1.4; g.globalAlpha = .46 * (1 - d) + .05; g.drawImage(cvs, T0.e, (src * sx + T0.f), W * sx, 3 * sx, T0.e + dx * sx, y * sx + T0.f, W * sx, 3 * sx); }
+      g.restore(); g.globalAlpha = 1;
+    }
+    // The tree's colours run in the wet roof
+    const Rr = rng(77); tr.weeks.forEach(w => { if (w.W.empty || !w.out.tips.length) return; const c = w.W.rare ? '#9fd0ff' : NEON[w.W.season], x = P(w.out.tips[0]).x, rw = 14 + Rr() * 34; for (let k = 0; k < 2; k++) { const y = gy + 40 + Rr() * 120; g.globalAlpha = .05 + Rr() * .07; g.fillStyle = c; g.beginPath(); g.ellipse(x + (Rr() - .5) * 26, y, rw * (1 + (y - gy) / 160), 1.6 + Rr() * 3, 0, 0, TAU); g.fill(); } g.globalAlpha = 1; });
+    // A dark lip where the roof meets the foot of the bundle, so the tree stands on it rather than floating over its reflection
+    g.save(); g.translate(cx, gy + 6); g.scale(1, .16); glow(g, 0, 0, 90 + 110 * G, '#05040a', .8); g.restore();
+    rainLines(g, R, W, H);
+    if (o.roots) rootLabels(g, W, H, o.rootNames);
+    const out = []; tr.weeks.forEach(w => w.out.tips.forEach(t => { const p = P(t); out.push({ i: w.W.i, x: p.x, y: p.y }); }));
+    return out;
+  }
+  /* ---------- Brouillard F1: the silver tree. Bare wood in grey fog; crimson berries are the only colour. ---------- */
+  function fogBank(g, R, W, y0, y1, c, a, n, gr = 1) { for (let i = 0; i < n; i++) { const x = R() * W, y = lerp(y0, y1, R()), rx = (100 + R() * 240) * gr, ry = (20 + R() * 46) * gr; g.save(); g.translate(x, y); g.scale(1, ry / rx); const h = g.createRadialGradient(0, 0, 0, 0, 0, rx); h.addColorStop(0, c + 'ff'); h.addColorStop(.55, c + '88'); h.addColorStop(1, c + '00'); g.globalAlpha = a * (.5 + R() * .5); g.fillStyle = h; g.beginPath(); g.arc(0, 0, rx, 0, TAU); g.fill(); g.restore(); } g.globalAlpha = 1; }
+  function shardRock(g, x, y, s, R) { g.fillStyle = '#4c4d52'; g.beginPath(); const N = 7; for (let i = 0; i < N; i++) { const a = i / N * TAU, q = s * (.65 + R() * .5) * (sin(a) > 0 ? 1.3 : .7); g.lineTo(x + cos(a) * q * 1.2, y + sin(a) * q); } g.closePath(); g.fill(); g.strokeStyle = '#a03a3a88'; g.lineWidth = 1; g.stroke(); g.fillStyle = '#6b6c70'; g.beginPath(); g.ellipse(x - s * .2, y - s * .28, s * .5, s * .2, -.2, 0, TAU); g.fill(); }
+  function silver(g, W, H, weeks, o) {
+    const gy = 590, cx = W / 2 - 10, R = rng(37), n = weeks.length, lift = min(1, n / 40);
+    g.fillStyle = vgrad(g, 0, H, [[0, '#2c2e33'], [.45, '#585a5f'], [.8, '#6e7075'], [1, '#34363a']]); g.fillRect(0, 0, W, H);
+    const hx = W * .72, hy = 170; g.strokeStyle = '#dcdcd088'; g.lineWidth = 2; g.beginPath(); g.arc(hx, hy, 76, 0, TAU); g.stroke(); glow(g, hx, hy, 190, '#e8e8dc', .24); g.strokeStyle = '#dcdcd033'; g.lineWidth = 1; g.beginPath(); g.arc(hx, hy, 96, 0, TAU); g.stroke();
+    fogBank(g, R, W, 60, 330, '#7d7f84', .28, 18);
+    [[120, 170, 22], [214, 100, 11], [812, 330, 16], [876, 240, 9], [70, 300, 11], [760, 90, 8]].forEach(([x, y, s]) => shardRock(g, x, y, s, R));
+    [[gy - 96, '#4a4c52', .007, 28], [gy - 56, '#3b3d43', .013, 18]].forEach(([y, c, f, a], k) => { g.fillStyle = c; g.beginPath(); g.moveTo(0, gy + 20); for (let x = 0; x <= W; x += 8) g.lineTo(x, y + sin(x * f + k * 2) * a + sin(x * f * 3 + k) * a * .3); g.lineTo(W, gy + 20); g.fill(); });
+    fogBank(g, R, W, gy - 130, gy - 10, '#8c8e93', .42, 26);
+    g.fillStyle = vgrad(g, gy, H, [[0, '#232327'], [.5, '#17171a'], [1, '#0a0a0c']]); g.beginPath(); g.moveTo(0, H); for (let x = 0; x <= W; x += 10) g.lineTo(x, gy + 14 * sin(x * .009 + 2) + 5 * sin(x * .05)); g.lineTo(W, H); g.fill();
+    if (o.roots) { roots(g, cx, gy + 4, n, o.roots, (l, col) => { const e = taper(g, l.pts, '#55565c'); if (l.pts[0].w > 2) { g.strokeStyle = col; g.lineWidth = 1; path(g, e.L); } }); rootLabels(g, W, H, o.rootNames); }
+    const tr = yearTree(weeks, cx, gy, { max: 3 }), B = ['#50525a', '#9ca0a8', '#eef0f2', '#26272c'], FAR_B = ['#4a4c52', '#7b7e85', '#a8abb0', '#35363b'];
+    const lay = far => w => { const { W: wk } = w; byOrder(w).forEach(l => woodLimb(g, l, wk.empty ? ['#34353a', '#55565c', '#74757a', '#26272c'] : far ? FAR_B : B)); };
+    const bare = tr.weeks;
+    layers(tr, lay(true), () => { tr.boughs.forEach(l => woodLimb(g, l, B)); drawTrunk(g, tr, B); const Rk = rng(9); tr.trunk.forEach((p, i) => { if (i % 3 || p.w < 8) return; if (Rk() < .4) { g.strokeStyle = '#2a2b30'; g.lineWidth = 1 + Rk() * 1.6; const u = (Rk() - .5) * p.w * .7; g.beginPath(); g.moveTo(p.x + u, p.y); g.lineTo(p.x + u + (Rk() - .5) * 6, p.y - 12 - Rk() * 16); g.stroke(); } }); }, lay(false));
+    bare.forEach(w => { const { W: wk, out, R: Rw, sc } = w; if (wk.empty || !out.tips.length) return; const berries = 1 + floor(min(wk.s, 16) * .22); out.tips.forEach((t, ti) => { if (ti % 2) return; const N = berries; for (let i = 0; i < N; i++) { const x = t.x + (Rw() - .5) * 15 * sc, y = t.y + (Rw() - .2) * 13 * sc, r = (1.7 + Rw() * 1.1) * sc; g.strokeStyle = '#3a3a40'; g.lineWidth = .7; g.beginPath(); g.moveTo(t.x, t.y); g.lineTo(x, y); g.stroke(); g.fillStyle = '#6e1420'; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); g.fillStyle = '#b02c3a'; g.beginPath(); g.arc(x - r * .25, y - r * .3, r * .55, 0, TAU); g.fill(); } });
+      for (let i = 0; i < min(wk.f, 3); i++) { const t = out.tips[floor(Rw() * out.tips.length)], x = t.x, y = t.y; glow(g, x, y, 11 * sc, '#ff3a3a77'); g.fillStyle = '#c21a2c'; g.beginPath(); g.arc(x, y, 3.4 * sc, 0, TAU); g.fill(); g.fillStyle = '#ff9a8a'; g.beginPath(); g.arc(x - 1.4 * sc, y - 1.6 * sc, 1.5 * sc, 0, TAU); g.fill(); }
+      if (wk.back) { const t = out.tips[0]; glow(g, t.x, t.y, 13 * sc, '#e8ffe0aa'); g.fillStyle = '#e8ffe0'; g.beginPath(); g.ellipse(t.x, t.y, 2.8 * sc, 5 * sc, .3, 0, TAU); g.fill(); }
+      if (wk.rare) { const t = out.tips[out.tips.length - 1]; glow(g, t.x, t.y, 34 * sc, '#ff3a3a'); g.fillStyle = '#ffd8c8'; g.beginPath(); for (let k = 0; k < 8; k++) { const q = k / 8 * TAU, r = (k % 2 ? 2 : 10) * sc; g.lineTo(t.x + cos(q) * r, t.y + sin(q) * r); } g.fill(); } });
+    // The fog lies low in front of the tree, and sinks as the year fills up
+    fogBank(g, rng(55), W, gy - 90 + lift * 62, gy + 26, '#a4a6aa', lerp(.72, .42, lift), 30);
+    fogBank(g, rng(56), W, 200, 480, '#9a9ca1', lerp(.15, .06, lift), 12);
+    if (o.roots) rootLabels(g, W, H, o.rootNames);
+    return hitsOf(tr);
+  }
+  
+  /* ---------- Brouillard F2: the hanging tree. It grows downward from a floating rock, above a sea of fog. ---------- */
+  function hanging(g, W, H, weeks, o) {
+    const cx = W / 2 + 6, hang = 214, R = rng(83), n = weeks.length, sea0 = 628, f = .4 + .6 * min(1, n / 30);
+    g.fillStyle = vgrad(g, 0, H, [[0, '#1c1a1e'], [.3, '#34312f'], [.64, '#6a6764'], [.84, '#8f8d8a'], [1, '#55534f']]); g.fillRect(0, 0, W, H); dust(g, R, W, 220, 90, '#e8d8c8', .04);
+    [[82, 88, 1.2], [870, 64, 1.7], [738, 34, 1.2], [196, 40, 1.2], [640, 92, 1], [310, 76, .9]].forEach(([x, y, s]) => { glow(g, x, y, 6 * s, '#c5303a'); g.fillStyle = '#ff6a6a'; g.beginPath(); g.arc(x, y, s, 0, TAU); g.fill(); });
+    fogBank(g, R, W, 110, 430, '#74716e', .24, 14);
+    [[90, 412, 15], [850, 278, 19], [790, 470, 9], [60, 250, 8]].forEach(([x, y, s]) => shardRock(g, x, y, s, R));
+    // The rock, seen hanging; its underside faces the viewer
+    const rx = 150 + 82 * f, top = 158, pts = []; const Rk = rng(9); for (let i = 0; i <= 26; i++) { const u = i / 26 * 2 - 1; pts.push([cx + u * rx, top + 52 * (1 - u * u) + (Rk() - .5) * 18 + 8]); }
+    // Roots rise above the rock into the air
+    if (o.roots) { roots(g, cx, top + 12, n, o.roots, (l, col) => { const flip = l.pts.map(p => ({ x: p.x, y: top + 12 - (p.y - top - 12) * .62, w: p.w })); const e = taper(g, flip, '#4a3a26'); if (flip[0].w > 2) { g.strokeStyle = col; g.lineWidth = 1.2; path(g, e.L); } }); g.font = MONO; g.textAlign = 'center'; o.rootNames.forEach((nm, i) => { g.fillStyle = ROOT_COL[i]; g.fillText(nm, W / 2 + (i - 1) * 180, 26); }); g.textAlign = 'left'; }
+    g.fillStyle = vgrad(g, top, top + 88, [[0, '#4f5137'], [.12, '#3d3c34'], [1, '#17151a']]); g.beginPath(); g.moveTo(cx - rx, top); g.bezierCurveTo(cx - rx * .4, top - 12, cx + rx * .4, top - 14, cx + rx, top); pts.slice().reverse().forEach(p => g.lineTo(p[0], p[1])); g.fill();
+    g.strokeStyle = '#17151a'; g.lineWidth = 1.3; for (let k = 0; k < 16; k++) { const x = cx + (Rk() - .5) * rx * 1.6, y = top + 8 + Rk() * 36; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (Rk() - .5) * 18, y + 12 + Rk() * 24); g.stroke(); }
+    for (let i = 0; i < 10; i++) { const u = i / 9 * 2 - 1, x = cx + u * rx * .9 + (Rk() - .5) * 12, y = top + 50 * (1 - u * u) + 6, l = 12 + Rk() * 32; g.fillStyle = '#17151a'; g.beginPath(); g.moveTo(x - 8, y); g.lineTo(x + (Rk() - .5) * 5, y + l); g.lineTo(x + 8, y); g.fill(); }
+    const dropsR = rng(19); g.strokeStyle = '#d6e4e6aa'; g.lineWidth = 1.5; for (let i = 0; i < 7; i++) { const x = cx - rx * .8 + dropsR() * rx * 1.6, y0 = 80 + dropsR() * 60, l = 8 + dropsR() * 26; g.beginPath(); g.moveTo(x, y0 + l); g.lineTo(x, y0); g.stroke(); }
+    fogBank(g, rng(58), W, sea0 - 60, sea0 + 40, '#a6a4a0', .5, 26);
+    const tr = yearTree(weeks, 0, 0, { max: 3 }), B = ['#2c1d10', '#6a4a22', '#b8934a', '#190f07'], LEAF = ['#402e16', '#7c5a24', '#b78a3a', '#e1c478'], DEEP = ['#2e2212', '#4c3819', '#6f5228', '#957038'];
+    const k = min(1.02, (sea0 - hang + 26) / ((tr.top || 1) + 300 * sqrt(n / 40) + 40)), T = g.getTransform();
+    const place = () => { g.setTransform(T); g.translate(cx, hang); g.scale(k, -k); };
+    // A faint twin stands in the fog below, the way a reflection would
+    g.save(); g.setTransform(T); g.translate(cx, sea0 + 26); g.scale(k * .9, k * .55); g.globalAlpha = .13; ln(g, tr.trunk, '#2c2a28', tr.w0 * .8); tr.boughs.forEach(l => ln(g, l.pts, '#2c2a28', 4)); tr.weeks.forEach(w => w.out.limbs.forEach(l => ln(g, l.pts, '#2c2a28', 2.4))); g.restore(); g.globalAlpha = 1;
+    const pal = far => far ? DEEP : LEAF;
+    const lay = far => w => { const { W: wk, out, R: Rw, sc } = w; const P = pal(far); byOrder(w).forEach(l => woodLimb(g, l, wk.empty ? ['#3c3a38', '#6b6864', '#8f8c86', '#292725'] : B)); if (wk.empty) return; out.tips.forEach(t => { const rad = (12 + min(wk.s, 16) * .85) * sc; for (let i = 0; i < 13; i++) { const a = Rw() * TAU, r = sqrt(Rw()) * rad, x = t.x + cos(a) * r, y = t.y + sin(a) * r * .85, lit = (y - t.y) / rad * .85 + (Rw() - .5) * .5; g.fillStyle = lit > .4 ? P[3] : lit > -.1 ? P[2] : lit > -.5 ? P[1] : P[0]; g.beginPath(); g.ellipse(x, y, (2.4 + Rw() * 2.6) * sc, (1.2 + Rw()) * sc, Rw() * TAU, 0, TAU); g.fill(); } }); };
+    g.save(); place();
+    layers(tr, lay(true), () => { tr.boughs.forEach(l => woodLimb(g, l, B)); drawTrunk(g, tr, B); }, lay(false));
+    tr.weeks.forEach(w => { const { W: wk, out, R: Rw, sc } = w; if (wk.empty || !out.tips.length) return; for (let i = 0; i < min(wk.f, 3); i++) { const t = out.tips[floor(Rw() * out.tips.length)]; glow(g, t.x, t.y, 10 * sc, '#ff3a3a77'); g.fillStyle = '#c21a2c'; g.beginPath(); for (let q = 0; q < 8; q++) { const a = q / 8 * TAU, r = (q % 2 ? 1.3 : 5) * sc; g.lineTo(t.x + cos(a) * r, t.y + sin(a) * r); } g.fill(); } if (wk.back) { const t = out.tips[0]; glow(g, t.x, t.y, 13 * sc, '#e8ffe0aa'); g.fillStyle = '#e8ffe0'; g.beginPath(); g.ellipse(t.x, t.y, 2.8 * sc, 5 * sc, .3, 0, TAU); g.fill(); } if (wk.rare) { const t = out.tips[out.tips.length - 1]; glow(g, t.x, t.y, 34 * sc, '#ff3a3a'); g.fillStyle = '#ffd8c8'; g.beginPath(); for (let q = 0; q < 8; q++) { const a = q / 8 * TAU, r = (q % 2 ? 2.4 : 12) * sc; g.lineTo(t.x + cos(a) * r, t.y + sin(a) * r); } g.fill(); } });
+    g.restore(); g.setTransform(T);
+    fogBank(g, rng(59), W, sea0 - 14, H, '#b4b2ae', .6, 34);
+    const out = []; tr.weeks.forEach(w => w.out.tips.forEach(t => out.push({ i: w.W.i, x: cx + t.x * k, y: hang - t.y * k })));
+    return out;
+  }
+
   /* ---------- Public ---------- */
+  // The world trees were drawn with round line ends
+  const roundEnds = f => (g, ...a) => { g.lineCap = 'round'; g.lineJoin = 'round'; return f(g, ...a); };
+  const WORLD = { orrery, atlas, fan: gorgon, coral: coralJelly, crystal, pages: grimoire, wired, silver, hanging };
   const SCENE = { oak, plate, willow, pine, holo, pixel };
+  for (const k in WORLD) SCENE[k] = roundEnds(WORLD[k]);
+  // In the Room's grove, a world tree stands as the oak dressed in that world's colours
+  const GROVE_LOOK = { orrery: ['lf_gold', 'br_verdigris'], atlas: ['lf_silver', 'br_ebony'], fan: ['lf_ember', 'br_ember'], coral: ['lf_jade', 'br_ebony'], crystal: ['lf_violet', 'br_ebony'], pages: ['lf_gold', 'br_ash'], wired: ['lf_violet', 'br_ebony'], silver: ['lf_silver', 'br_ash'], hanging: ['lf_gold', 'br_bark'] };
   const SIZE = k => (k === 'pixel' ? [200, 160] : [960, 760]);
   const safe = k => (SCENE[k] ? k : 'oak');
   // Whole scene, at the skin's own size. opts: roots ([sleep, water, moved] 0-1, or null), rootNames, title, leaf, bark, flower, hang, ground, sky
@@ -494,7 +897,8 @@
       return;
     }
     g.save(); g.translate(cx, gy); g.scale(sc, sc);
-    if (k === 'oak') oakTree(g, weeks, 0, 0, o);
+    if (GROVE_LOOK[k]) oakTree(g, weeks, 0, 0, Object.assign(o, { leaf: o.leaf || GROVE_LOOK[k][0], bark: o.bark || GROVE_LOOK[k][1] }));
+    else if (k === 'oak') oakTree(g, weeks, 0, 0, o);
     else if (k === 'plate') plateTree(g, weeks, 0, 0, o);
     else if (k === 'willow') willowTree(g, weeks, 0, 0, o);
     else if (k === 'pine') pineTree(g, weeks, 0, -14, o);

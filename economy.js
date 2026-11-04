@@ -115,15 +115,16 @@
     potion: { seal: 150, elixir: 80, scroll: 40, midas: 120 },
     skin: { classic: 0, runic: 350, parchment: 300, gold: 450, ember: 300, holo: 600, astral: 800 },
     dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300, spell: 0, circle: 400, city: 0, supercar: 600, valley: 0, pier: 1200, orbit: 900, worldtone: 0, redcream: 300, veil: 0, rose: 800, skeleton: 1200, incant: 0, door: 500 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43); the Cyber sorcier's two full screens (3.48); the Ville néon's two backgrounds (3.49); the Arcade's three sets (background + dial + palette) and a palette (3.51)
-    tree: { lf_season: 0, lf_sakura: 250, lf_ember: 250, lf_jade: 250, lf_silver: 300, lf_violet: 300, lf_gold: 400, br_bark: 0, br_ash: 200, br_ebony: 200, br_ember: 250, br_verdigris: 250, br_gold: 400, fl_gold: 0, fl_plum: 200, fl_camellia: 250, fl_star: 350, hg_none: 0, hg_swing: 300, hg_birds: 350, hg_lanterns: 400, gd_grass: 0, gd_mush: 250, gd_stones: 300, gd_pond: 400, sk_dusk: 0, sk_night: 300, sk_dawn: 300, pine: 800 }, // the year tree (tree.js): looks only, gold never buys growth. Premium gating comes with the Premium pass, not yet
+    tree: { lf_season: 0, lf_sakura: 250, lf_ember: 250, lf_jade: 250, lf_silver: 300, lf_violet: 300, lf_gold: 400, br_bark: 0, br_ash: 200, br_ebony: 200, br_ember: 250, br_verdigris: 250, br_gold: 400, fl_gold: 0, fl_plum: 200, fl_camellia: 250, fl_star: 350, hg_none: 0, hg_swing: 300, hg_birds: 350, hg_lanterns: 400, gd_grass: 0, gd_mush: 250, gd_stones: 300, gd_pond: 400, sk_dusk: 0, sk_night: 300, sk_dawn: 300, pine: 800, atlas: 800, coral: 800, crystal: 800, hanging: 800 }, // the year tree (tree.js): looks only, gold never buys growth. The last five are whole trees (3.63, 3.65). Premium gating comes with the Premium pass, not yet
   };
   const TREE_SLOT = { lf: 'treeLeaf', br: 'treeBark', fl: 'treeFlower', hg: 'treeHang', gd: 'treeGround', sk: 'treeSky' };
+  const TREE_SKINS = ['pine', 'atlas', 'coral', 'crystal', 'hanging'];
   // Each world keeps its own equipped dial: the Sanctuaire's in equip.dial (as before 3.43), the Abysses' in equip.dialAbyss
   const DIAL_WORLD = { lotus: 'sanctuary', moon: 'sanctuary', diver: 'abyss', nautilus: 'abyss', jelly: 'abyss', spell: 'sorcerer', circle: 'sorcerer', city: 'neoncity', supercar: 'neoncity', valley: 'arcade', pier: 'arcade', orbit: 'arcade', worldtone: 'arcade', redcream: 'arcade', veil: 'fog', rose: 'fog', skeleton: 'fog', incant: 'fog', door: 'fog' };
   const SLOT = { abyss: 'dialAbyss', sorcerer: 'deepSorcerer', neoncity: 'bgNeon', arcade: 'arcadeSet', fog: 'dialFog' };
   const ITEM_SLOT = { worldtone: 'arcadePal', redcream: 'arcadePal', incant: 'deepFog', door: 'deepFog' }; // the Arcade's palettes go over its set
   const WORLD_ORDER = ['arcade', 'fog', 'sanctuary', 'abyss', 'sorcerer', 'neoncity']; // the shop shows world items world by world
-  const slotOf = (cat, k) => (cat === 'tree' ? (k === 'pine' ? 'treeSkin' : TREE_SLOT[k.slice(0, 2)]) : cat !== 'dial' ? cat : ITEM_SLOT[k] || SLOT[DIAL_WORLD[k]] || cat);
+  const slotOf = (cat, k) => (cat === 'tree' ? (TREE_SKINS.includes(k) ? 'treeSkin' : TREE_SLOT[k.slice(0, 2)]) : cat !== 'dial' ? cat : ITEM_SLOT[k] || SLOT[DIAL_WORLD[k]] || cat);
   const PREMIUM_ONLY = { skin: ['holo', 'astral'], dial: ['pier', 'skeleton'] }; // need a Premium account to buy
   const premOnly = (cat, k) => (PREMIUM_ONLY[cat] || []).includes(k);
   // Categories added after launch: older saves lack them (nested defaults only merge one level deep)
@@ -176,8 +177,14 @@
   // The chip says "Shop" for the first 14 days, so a new user knows what the coins are for
   const shopNamed = () => { if (!S.firstSeen) { S.firstSeen = Math.min(Date.now(), ...(S.sessions || []).map(s => s.at)); save(); } return Date.now() - S.firstSeen < 14 * 864e5; };
   function renderGold() { const el = $('gold-chip'); if (el) { el.innerHTML = `<span>◈</span><b>${S.econ.gold.toLocaleString(ML.locale())}</b>${shopNamed() ? `<em>${esc(t('shop'))}</em>` : ''}`; el.title = t('gold_n', { n: S.econ.gold }); } }
-  $('gold-chip').onclick = () => { migrate(); ownerGifts(); grantCostumes(false); renderShop(); ML.openOverlay('shop'); if (ML.treePrevs) ML.treePrevs($('shop-body')); spy(); };
-  ML.openShop = () => $('gold-chip').click();
+  // The shop opens on its window of shelves, or straight on a shelf (ML.openShop('tree')) or the tree's fitting room (ML.openShop('tree', 'fit'))
+  function openShop(cat, view) {
+    migrate(); ownerGifts(); grantCostumes(false);
+    shelf = SHELVES.includes(cat) ? cat : null; fitting = shelf === 'tree' && view === 'fit'; filter = 'all'; tried = null; justBought = null;
+    renderShop(); ML.openOverlay('shop'); $('shop-body').parentElement.scrollTop = 0;
+  }
+  $('gold-chip').onclick = () => openShop();
+  ML.openShop = openShop;
   // End of a session: what the coins earned bring closer (the cheapest item not owned yet, among the ones with a name)
   ML.addStrings({ fr: { end_gold: '+{g} ◈', end_shop_near: 'Plus que {n} ◈ pour {name}', end_shop_can: 'Tu peux acheter {name}', end_shop_go: 'Voir la boutique' }, en: { end_gold: '+{g} ◈', end_shop_near: '{n} ◈ left for {name}', end_shop_can: 'You can buy {name}', end_shop_go: 'See the shop' } });
   function nextItem() {
@@ -294,8 +301,20 @@
   // Price sets the card's rarity frame, like task rarity: common / rare / epic / legendary
   const tier = p => (p <= 150 ? 'common' : p <= 300 ? 'rare' : p <= 500 ? 'epic' : 'legendary');
   const coin = (n, short) => `<span class="coin-pill ${short ? 'short' : ''}"><i>◈</i>${n.toLocaleString(ML.locale())}</span>`;
-  let justBought = null;
-  const NAV = [['worlds', 'cat_worlds'], ['seq', 'cat_seq'], ['potion', 'cat_potions'], ['hat', 'cat_hats'], ['familiar', 'cat_familiars'], ['ring', 'cat_rings'], ['dial', 'cat_dials'], ['tree', 'cat_tree'], ['burst', 'cat_bursts']]; // (character skins went with the Sport section, set aside in 3.25)
+  // The shop's state: which shelf is open (null = the window of shelves), the filter, the tree's fitting room and what is being tried on it
+  let justBought = null, shelf = null, filter = 'all', fitting = false, tried = null, fitTab = 'leaf';
+  const SHELVES = ['tree', 'worlds', 'dial', 'familiar', 'seq', 'hat', 'ring', 'burst', 'potion']; // (character skins went with the Sport section, set aside in 3.25)
+  const SHELF_NAME = { tree: 'cat_tree', worlds: 'cat_worlds', dial: 'cat_dials', familiar: 'cat_familiars', seq: 'cat_seq', hat: 'cat_hats', ring: 'cat_rings', burst: 'cat_bursts', potion: 'cat_potions' };
+  ML.addStrings({
+    fr: { sh_shelves: 'Rayons', sh_back: 'Rayons', sh_all: 'Tout', sh_tobuy: 'À acheter', sh_owned: 'Possédés', sh_count: '{a} sur {b}', sh_your_tree: 'Ton arbre', sh_your_tree_d: 'Essaie des feuilles, des branches, des fleurs, un sol et un ciel sur ton chêne avant d’acheter.', sh_try: 'Essayer',
+      sh_other_trees: 'Autres arbres', sh_world_trees: 'Les arbres des mondes ne s’achètent pas : ils se gagnent dans l’onglet Arbre, après 25 h dans leur monde.', sh_trying: 'À l’essai', sh_free: 'Rien n’est dépensé.', sh_try_hint: 'Touche une option pour l’essayer sur ton arbre.', sh_cancel: 'Annuler', sh_buy_n: 'Acheter', sh_use: 'Utiliser',
+      sh_none: 'Rien ici avec ce filtre.', sh_prev: 'Article précédent', sh_next: 'Article suivant', sh_play: 'Voir l’effet', sh_with: 'Avec ton costume', sh_oak_only: 'Le chêne porte tout ; les autres arbres de base prennent les feuilles, les branches et les fleurs.', sh_bought_n: '{n} articles achetés', sh_xp: '{n} XP',
+      ft_leaf: 'Feuilles', ft_bark: 'Branches', ft_flower: 'Fleurs', ft_hang: 'Dans l’arbre', ft_ground: 'Sol', ft_sky: 'Ciel' },
+    en: { sh_shelves: 'Shelves', sh_back: 'Shelves', sh_all: 'All', sh_tobuy: 'To buy', sh_owned: 'Owned', sh_count: '{a} of {b}', sh_your_tree: 'Your tree', sh_your_tree_d: 'Try leaves, branches, flowers, a ground and a sky on your oak before buying.', sh_try: 'Try on',
+      sh_other_trees: 'Other trees', sh_world_trees: 'World trees aren’t sold: you earn them in the Tree tab, after 25 h in their world.', sh_trying: 'Trying on', sh_free: 'Nothing is spent.', sh_try_hint: 'Tap an option to try it on your tree.', sh_cancel: 'Cancel', sh_buy_n: 'Buy', sh_use: 'Use',
+      sh_none: 'Nothing here with this filter.', sh_prev: 'Previous item', sh_next: 'Next item', sh_play: 'See the effect', sh_with: 'With your costume', sh_oak_only: 'The oak wears everything; the other base trees take leaves, branches and flowers.', sh_bought_n: '{n} items bought', sh_xp: '{n} XP',
+      ft_leaf: 'Leaves', ft_bark: 'Branches', ft_flower: 'Flowers', ft_hang: 'In the tree', ft_ground: 'Ground', ft_sky: 'Sky' },
+  });
   // Light skins (Premium, not bought with gold): one per mood, switched on from here or the sun / moon button
   const LIGHTS = [['drained', 'aube'], ['steady', 'atelier'], ['fired', 'tokyo'], ['scattered', 'cartouche']];
   function lightSection() {
@@ -348,71 +367,134 @@
     } else if (b.dataset.wunlock) toast(t('w_soon'));
   });
   on('trial:end', () => toast(t('w_trial_end'), { key: 'trial', ms: 2500 }));
-  function renderShop() {
+  /* ---------- Shop UI (3.65): a window of shelves (R2), short tiles that open a sheet (D1), the tree's fitting room (T1),
+     a filter (X1), and the sheet as a try-on: the item worn with what you have, arrows to go through the shelf (X3). Nothing is spent before Buy. ---------- */
+  const isPrem = () => !!(ML.isPremium && ML.isPremium());
+  const FILTERED = ['tree', 'dial', 'familiar', 'hat', 'ring', 'burst'];
+  // Every shelf as a list of [cat, key]. Costumes are earned with the Sequences, never bought
+  function itemsOf(c) {
+    if (c === 'seq') return ['none', ...(ML.COSTUMES || [])].map(k => ['costume', k]);
+    if (c === 'tree') return TREE_SKINS.map(k => ['tree', k]);
+    if (c === 'dial') return WORLD_ORDER.flatMap(w => Object.keys(CATALOG.dial).filter(k => DIAL_WORLD[k] === w)).map(k => ['dial', k]);
+    return Object.keys(CATALOG[c] || {}).map(k => [c, k]);
+  }
+  function stateOf(cat, k) {
     const E = S.econ;
-    // world items (dials, backgrounds, full screens, palettes) come world by world, the world's name over its group
-    const section = (cat, title, hint) => `<h3 class="shop-h" id="shop-${cat}">${esc(t(title))}</h3>${hint ? `<p class="hint">${esc(t(hint))}</p>` : ''}${cat === 'dial'
-      ? WORLD_ORDER.map(w => `<h4 class="shop-world">${esc(t('th_' + w))}</h4><div class="shop-grid">${items(cat, Object.keys(CATALOG.dial).filter(k => DIAL_WORLD[k] === w))}</div>`).join('')
-      : `<div class="shop-grid">${items(cat, Object.keys(CATALOG[cat]))}</div>`}`;
-    const items = (cat, keys) => keys.map(k => [k, CATALOG[cat][k]]).map(([k, price]) => {
-      const own = cat !== 'potion' && E.owned[cat].includes(k), eq = cat !== 'potion' && E.equip[slotOf(cat, k)] === k, short = !own && E.gold < price;
-      let btn;
-      if (cat === 'potion') btn = `<button type="button" class="small buy" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(price, E.gold < price)}</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" class="small" data-use="elixir">${esc(t('use'))}</button>` : '')
-        + (k === 'midas' && E.potions.midas > 0 && !(E.midas > 0) ? `<button type="button" class="small" data-use="midas">${esc(t('use'))}</button>` : '');
-      else if (eq) btn = `<span class="eq-tag">✓ ${esc(t('equipped'))}</span>`;
-      else if (own) btn = `<button type="button" class="small" data-equip="${cat}:${k}">${esc(t('equip'))}</button>`;
-      else if (premOnly(cat, k) && !(ML.isPremium && ML.isPremium())) btn = `<button type="button" class="small" disabled>${esc(t('premium_only'))}</button>`;
-      else btn = `<button type="button" class="small buy" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(price, short)}</button>`;
-      return `<div class="shop-item t-${price ? tier(price) : 'common'} ${eq ? 'is-eq' : ''} ${own && !eq ? 'is-own' : ''} ${cat !== 'potion' && short ? 'poor' : ''} ${justBought === cat + ':' + k ? 'just' : ''}">
-        <div class="shop-prev">${preview(cat, k)}</div>
-        <b>${esc(label(cat, k))}${premOnly(cat, k) ? `<span class="prem-badge">Premium</span>` : ''}</b><small>${esc(desc(cat, k))}</small>
-        ${cat === 'potion' ? `<small class="stock">${esc(t('in_stock', { n: E.potions[k] || 0 }))}${k === 'elixir' && E.elixir ? ' · ' + esc(t('elixir_on')) : ''}${k === 'midas' && E.midas > 0 ? ' · ' + esc(t('midas_on', { n: E.midas })) : ''}</small>` : ''}
-        <div class="shop-btns">${btn}</div></div>`;
-    }).join('');
-    // Sequence costumes first: earned ones show the familiar wearing them, the others a black silhouette
-    const seqTile = (k, i) => {
-      const own = k === 'none' || E.owned.costume.includes(k), eq = (E.equip.costume || 'none') === k;
-      const name = k === 'none' ? t('cs_none') : csName(k), num = 9 - i;
-      return `<div class="shop-item ${eq ? 'is-eq' : ''} ${own ? '' : 'locked'}">
-        ${k === 'none' ? '<span class="seq-num">&nbsp;</span>' : `<span class="seq-num">${esc(t('sequence'))} ${num}</span>`}
-        <div class="shop-prev">${ML.costumeSvg ? ML.costumeSvg(k === 'none' ? null : k) : ''}</div>
-        <b>${esc(name)}</b><small>${esc(own ? t('cs_' + k + '_d') : t('seq_reach', { n: num }))}</small>
-        <div class="shop-btns">${eq ? `<button type="button" class="small" disabled>${esc(t('equipped'))}</button>` : own ? `<button type="button" class="small" data-equip="costume:${k}">${esc(t('equip'))}</button>` : `<button type="button" class="small" disabled>🔒 ${esc(ML.SEQUENCES[i][0].toLocaleString(ML.locale()))} XP</button>`}</div></div>`;
-    };
-    $('shop-body').innerHTML = `
-      <div class="shop-top"><div class="shop-gold"><span>◈</span><b>${E.gold.toLocaleString(ML.locale())}</b></div><p class="hint">${esc(t('shop_hint'))}</p></div>
-      <nav class="shop-nav chips">${NAV.map(([c, l]) => `<button type="button" class="chip-btn" data-shopgo="${c}">${esc(t(l))}</button>`).join('')}</nav>
-      ${lightSection()}
-      <h3 class="shop-h" id="shop-seq">${esc(t('cat_seq'))}</h3><p class="hint">${esc(t('seq_hint'))}</p>
-      <div class="shop-grid seq-grid">${seqTile('none', -1)}${(ML.COSTUMES || []).map(seqTile).join('')}</div>
-      ${section('potion', 'cat_potions')}${section('hat', 'cat_hats')}${section('familiar', 'cat_familiars')}${section('ring', 'cat_rings')}${section('dial', 'cat_dials', 'dial_hint')}${section('tree', 'cat_tree', 'tree_hint')}${section('burst', 'cat_bursts')}`;
-    $('shop-body').querySelectorAll('.world-pic img, .world-free img').forEach(i => i.addEventListener('error', () => i.remove()));
-    if (ML.treePrevs && !$('shop').hidden) ML.treePrevs($('shop-body'));
-    if (!$('shop').hidden) spy();
+    if (cat === 'costume') { const own = k === 'none' || E.owned.costume.includes(k); return { own, eq: (E.equip.costume || 'none') === k, price: 0, seq: (ML.COSTUMES || []).indexOf(k) }; }
+    const price = CATALOG[cat][k];
+    if (cat === 'potion') return { own: false, eq: false, price };
+    const own = (E.owned[cat] || []).includes(k);
+    return { own, eq: own && E.equip[slotOf(cat, k)] === k, price, locked: !own && premOnly(cat, k) && !isPrem() };
   }
-  // The category row lights the section being read (the last heading that scrolled past the pinned header)
-  const sheet = $('shop-body').parentElement;
-  function spy() {
-    const top = sheet.getBoundingClientRect().top + 120; let cur = null;
-    const hs = [...$('shop-body').querySelectorAll('.shop-h')];
-    for (const h of hs) { if (h.getBoundingClientRect().top <= top) cur = h.id.slice(5); else break; }
-    if (hs.length && sheet.scrollTop + sheet.clientHeight >= sheet.scrollHeight - 4) cur = hs[hs.length - 1].id.slice(5); // the last section is too short to reach the top
-    $('shop-body').querySelectorAll('[data-shopgo]').forEach(b => {
-      const on = b.dataset.shopgo === (cur || 'worlds'); if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
-      // keep the lit chip in view (scrollLeft, not scrollIntoView, which would cut the sheet's own smooth scroll short)
-      if (on) { const n = b.parentElement; if (b.offsetLeft < n.scrollLeft + 20 || b.offsetLeft + b.offsetWidth > n.scrollLeft + n.clientWidth - 28) n.scrollLeft = b.offsetLeft - 40; }
-    });
+  const passes = (cat, k) => { if (filter === 'all') return true; const st = stateOf(cat, k); return filter === 'own' ? st.own : !st.own; };
+  const shelfList = c => itemsOf(c).filter(([a, k]) => !FILTERED.includes(c) || passes(a, k));
+  const nameOf = (cat, k) => (cat === 'costume' ? (k === 'none' ? t('cs_none') : csName(k)) : label(cat, k));
+  const descOf = (cat, k) => { if (cat !== 'costume') return desc(cat, k); const st = stateOf(cat, k); return st.own ? t('cs_' + k + '_d') : t('seq_reach', { n: 9 - st.seq }); };
+  const picOf = (cat, k) => (cat === 'costume' ? (ML.costumeSvg ? ML.costumeSvg(k === 'none' ? null : k) : '') : preview(cat, k));
+  const goldNow = () => S.econ.gold.toLocaleString(ML.locale());
+
+  /* The window: one big picture per shelf */
+  const shelfPic = c => ({ tree: '<img class="tree-prev" data-tp="skin:oak" alt="">', worlds: '<img src="world-atelier.jpg" alt="" loading="lazy">', dial: preview('dial', 'nautilus'), familiar: preview('familiar', 'fox'), seq: picOf('costume', (ML.COSTUMES || [])[2] || 'none'), hat: hatSvg('crown'), ring: ringPreview('aurora'), burst: '<span class="burst-swatch">★</span>', potion: '<span class="burst-swatch">⚗</span>' }[c] || '');
+  function countOf(c) {
+    if (c === 'worlds') return String(LIGHTS.length + FREE.length);
+    const list = c === 'tree' ? Object.keys(CATALOG.tree).map(k => ['tree', k]) : itemsOf(c);
+    if (c === 'potion') return String(list.length);
+    return t('sh_count', { a: list.filter(([a, k]) => stateOf(a, k).own).length, b: list.length });
   }
-  sheet.addEventListener('scroll', spy, { passive: true });
-  $('shop-body').addEventListener('click', e => {
-    const E = S.econ, b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.light) { if (ML.isPremium && ML.isPremium() && ML.setDayNight) { ML.setDayNight(b.dataset.light); renderShop(); } return; }
-    if (b.dataset.world) { openWorld(b.dataset.world); return; }
-    if (b.dataset.shopgo) { const h = $('shop-' + b.dataset.shopgo); if (h) h.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-    justBought = null;
+  const home = () => `<div class="shop-top"><div class="shop-gold"><span>◈</span><b>${goldNow()}</b></div><p class="hint">${esc(t('shop_hint'))}</p></div>
+    <div class="shop-shelves">${SHELVES.map(c => `<button type="button" class="shop-shelf" data-shelf="${c}"><span class="pic">${shelfPic(c)}</span><span class="nm"><b>${esc(t(SHELF_NAME[c]))}</b><small>${esc(countOf(c))}</small></span></button>`).join('')}</div>`;
+  const bar = (title, back) => `<div class="shop-bar"><button type="button" class="shop-back" data-back>‹ ${esc(back || t('sh_back'))}</button><b>${esc(title)}</b><span class="gold"><span>◈</span><b>${goldNow()}</b></span></div>`;
+  const filters = () => `<div class="chips shop-filter" role="group">${[['all', 'sh_all'], ['buy', 'sh_tobuy'], ['own', 'sh_owned']].map(([f, l]) => `<button type="button" class="chip-btn" data-filter="${f}" aria-pressed="${filter === f}">${esc(t(l))}</button>`).join('')}</div>`;
+
+  /* A shelf: short tiles (picture, name, price or state) */
+  function tile(cat, k) {
+    const E = S.econ, st = stateOf(cat, k), short = !st.own && E.gold < st.price, tr = st.price ? tier(st.price) : 'common';
+    const tag = cat === 'potion' ? coin(st.price, short) + (E.potions[k] ? ` <small>× ${E.potions[k]}</small>` : '')
+      : st.eq ? `<span class="eq-tag">${esc(t('equipped'))}</span>`
+      : st.own ? `<small class="own-tag">${esc(t('owned'))}</small>`
+      : cat === 'costume' ? `<small>${esc(t('sh_xp', { n: (ML.SEQUENCES[st.seq] || [0])[0].toLocaleString(ML.locale()) }))}</small>`
+      : st.locked ? `<small>${esc(t('premium_only'))}</small>` : coin(st.price, short);
+    return `<button type="button" class="shop-tile t-${tr} ${st.eq ? 'is-eq' : ''} ${cat === 'costume' && !st.own ? 'locked' : ''} ${cat !== 'potion' && short ? 'poor' : ''} ${justBought === cat + ':' + k ? 'just' : ''}" data-item="${cat}:${k}"><span class="shop-prev">${picOf(cat, k)}</span><b>${esc(nameOf(cat, k))}</b>${tag}</button>`;
+  }
+  function shelfView(c) {
+    if (c === 'worlds') return bar(t('cat_worlds')) + lightSection();
+    const list = shelfList(c), tiles = l => `<div class="shop-tiles">${l.map(([a, k]) => tile(a, k)).join('')}</div>`;
+    let grid = c === 'dial' ? WORLD_ORDER.map(w => { const l = list.filter(([, k]) => DIAL_WORLD[k] === w); return l.length ? `<h4 class="shop-world">${esc(t('th_' + w))}</h4>${tiles(l)}` : ''; }).join('') : tiles(list);
+    if (!list.length) grid = `<p class="hint">${esc(t('sh_none'))}</p>`;
+    const hint = c === 'dial' ? t('dial_hint') : c === 'seq' ? t('seq_hint') : '';
+    const hero = c === 'tree' ? `<button type="button" class="shop-hero" data-fit><span class="shop-prev"><img class="tree-prev" data-tp="skin:oak" alt=""></span><span><b>${esc(t('sh_your_tree'))}</b><small>${esc(t('sh_your_tree_d'))}</small><i>${esc(t('sh_try'))}</i></span></button><h4 class="shop-world">${esc(t('sh_other_trees'))}</h4>` : '';
+    return bar(t(SHELF_NAME[c])) + (FILTERED.includes(c) ? filters() : '') + (hint ? `<p class="hint">${esc(hint)}</p>` : '') + hero + grid + (c === 'tree' ? `<p class="hint">${esc(t('sh_world_trees'))}</p>` : '');
+  }
+
+  /* T1: the tree's fitting room. Trying changes a copy only; leaving without buying leaves the tree as it was */
+  const FIT = [['leaf', 'lf', 'treeLeaf'], ['bark', 'br', 'treeBark'], ['flower', 'fl', 'treeFlower'], ['hang', 'hg', 'treeHang'], ['ground', 'gd', 'treeGround'], ['sky', 'sk', 'treeSky']];
+  const SWATCH = { lf_season: 'conic-gradient(#8fbf5a, #e0a93c, #c9542a, #ea8fae, #8fbf5a)', br_bark: '#5e4630', hg_none: '#2a2342', hg_swing: 'linear-gradient(#94734f 24%, #2a2342 24%)', hg_birds: 'radial-gradient(circle at 42% 42%, #c5563c 24%, #2a2342 27%)', hg_lanterns: 'radial-gradient(circle, #ffb14a 32%, #2a2342 36%)',
+    gd_grass: '#4f7a3a', gd_mush: 'radial-gradient(circle at 50% 35%, #b84a3a 30%, #4f7a3a 33%)', gd_stones: '#6d6b70', gd_pond: '#30405a', sk_dusk: 'linear-gradient(#3a2640, #d58a5a)', sk_night: 'linear-gradient(#070a18, #1c2542)', sk_dawn: 'linear-gradient(#7a7ea0, #f4d9a8)' };
+  const swatch = k => { if (SWATCH[k]) return SWATCH[k]; const A = ML.TreeArt || {}; return (A.LEAVES && A.LEAVES[k] && A.LEAVES[k][2]) || (A.BARKS && A.BARKS[k] && A.BARKS[k][1]) || (A.FLOWERS && A.FLOWERS[k] && A.FLOWERS[k][0]) || '#555'; };
+  const worn = () => { const q = S.econ.equip, o = {}; FIT.forEach(([s, , slot]) => { o[s] = q[slot]; }); return o; };
+  const triedList = () => { const w = worn(); return FIT.filter(([s]) => tried[s] !== w[s]).map(([s]) => tried[s]); };
+  function fitView() {
+    if (!tried) tried = worn();
+    const E = S.econ, w = worn(), list = triedList(), buy = list.filter(k => !E.owned.tree.includes(k)), total = buy.reduce((a, k) => a + CATALOG.tree[k], 0), tab = FIT.find(f => f[0] === fitTab) || FIT[0];
+    const sws = Object.keys(CATALOG.tree).filter(k => k.slice(0, 2) === tab[1]).map(k => { const own = E.owned.tree.includes(k); return `<button type="button" class="fit-sw" data-try="${k}" aria-pressed="${tried[tab[0]] === k}"><i style="background:${swatch(k)}"></i><b>${esc(label('tree', k))}</b>${own ? `<small class="own-tag">${esc(t('owned'))}</small>` : coin(CATALOG.tree[k], E.gold < CATALOG.tree[k])}</button>`; }).join('');
+    const foot = list.length
+      ? `<div class="fit-bar"><span><b>${esc(t('sh_trying'))}</b> · ${list.map(k => esc(label('tree', k))).join(', ')}${total ? ' · ' + coin(total, E.gold < total) : ''}. ${esc(t('sh_free'))}</span><span class="fit-acts"><button type="button" class="small ghost" data-untry>${esc(t('sh_cancel'))}</button><button type="button" class="small primary" data-fitbuy>${esc(total ? t('sh_buy_n') : t('sh_use'))}</button></span></div>`
+      : `<div class="fit-bar"><span>${esc(t('sh_try_hint'))}</span></div>`;
+    return bar(t('sh_your_tree'), t('cat_tree')) + `<div class="fit"><div class="fit-stage"><canvas id="fit-cv"></canvas>${list.length ? `<span class="fit-badge">${esc(t('sh_trying'))}</span>` : ''}</div>
+      <div class="fit-side"><div class="chips fit-tabs" role="group">${FIT.map(([s]) => `<button type="button" class="chip-btn" data-fittab="${s}" aria-pressed="${s === tab[0]}">${esc(t('ft_' + s))}${tried[s] !== w[s] ? ' ·' : ''}</button>`).join('')}</div>
+      <div class="fit-sws">${sws}</div><p class="hint">${esc(t('sh_oak_only'))}</p></div></div>${foot}`;
+  }
+  // The canvas stays the same element across renders, so trying an option only repaints when the look changed
+  const fitCv = document.createElement('canvas'); fitCv.id = 'fit-cv'; fitCv.setAttribute('role', 'img');
+  let fitKey = '', fitT = 0;
+  function mountFit() {
+    const ph = $('fit-cv'); if (!ph) return;
+    if (ph !== fitCv) ph.replaceWith(fitCv);
+    fitCv.setAttribute('aria-label', t('sh_your_tree'));
+    const key = JSON.stringify(tried); if (key === fitKey && fitCv.width) return;
+    clearTimeout(fitT); fitT = setTimeout(() => { if (ML.treeFit) { ML.treeFit(fitCv, tried); fitKey = key; } }, 20);
+  }
+
+  function renderShop() {
+    const body = $('shop-body');
+    body.innerHTML = fitting ? fitView() : shelf ? shelfView(shelf) : home();
+    body.querySelectorAll('.world-pic img, .world-free img, .shop-shelf img:not(.tree-prev)').forEach(i => i.addEventListener('error', () => i.remove()));
+    if (fitting) mountFit();
+    if (ML.treePrevs) ML.treePrevs(body);
+    if (itemOpen && !ish.hidden) renderItem();
+  }
+
+  /* D1 + X3: the item's sheet. The picture is the item as you'd wear it (a familiar keeps your costume), the arrows go through the shelf */
+  const ish = document.createElement('div'); ish.className = 'overlay item-ov'; ish.id = 'shopitem'; ish.hidden = true; document.body.appendChild(ish);
+  let itemOpen = null;
+  function renderItem() {
+    if (!itemOpen) return;
+    const [cat, k] = itemOpen, E = S.econ, st = stateOf(cat, k), list = shelf ? shelfList(shelf) : [], short = E.gold < st.price, cos = E.equip.costume && E.equip.costume !== 'none' ? E.equip.costume : null;
+    let cta;
+    if (cat === 'potion') cta = `<button type="button" class="primary" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(st.price, short)}</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" data-use="elixir">${esc(t('use'))}</button>` : '') + (k === 'midas' && E.potions.midas > 0 && !(E.midas > 0) ? `<button type="button" data-use="midas">${esc(t('use'))}</button>` : '');
+    else if (st.eq) cta = `<button type="button" disabled>${esc(t('equipped'))}</button>`;
+    else if (st.own) cta = `<button type="button" class="primary" data-equip="${cat}:${k}">${esc(t('equip'))}</button>`;
+    else if (cat === 'costume') cta = `<button type="button" disabled>${esc(t('seq_reach', { n: 9 - st.seq }))}</button>`;
+    else if (st.locked) cta = `<button type="button" disabled>${esc(t('premium_only'))}</button>`;
+    else cta = `<button type="button" class="primary" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(st.price, short)}</button>`;
+    if (cat === 'burst') cta = `<button type="button" data-play="${k}">${esc(t('sh_play'))}</button>` + cta;
+    const pic = cat === 'familiar' && ML.familiarSvg ? ML.familiarSvg(k, 'idle', cos) : picOf(cat, k);
+    const stock = cat === 'potion' ? `<p class="stock">${esc(t('in_stock', { n: E.potions[k] || 0 }))}${k === 'elixir' && E.elixir ? ' · ' + esc(t('elixir_on')) : ''}${k === 'midas' && E.midas > 0 ? ' · ' + esc(t('midas_on', { n: E.midas })) : ''}</p>` : '';
+    const nav = d => (list.length > 1 ? `<button type="button" class="icon-btn item-nav" data-step="${d}" aria-label="${esc(t(d < 0 ? 'sh_prev' : 'sh_next'))}">${d < 0 ? '‹' : '›'}</button>` : '');
+    ish.innerHTML = `<div class="sheet item-sheet t-${st.price ? tier(st.price) : 'common'}" role="dialog" aria-modal="true" aria-labelledby="item-h">
+      <div class="sheet-head"><h2 id="item-h">${esc(nameOf(cat, k))}${premOnly(cat, k) ? '<span class="prem-badge">Premium</span>' : ''}</h2><button type="button" class="ghost icon-only" data-close="shopitem" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="item-stage cat-${cat}">${nav(-1)}<span class="item-pic">${pic}</span>${nav(1)}${cat === 'familiar' && cos ? `<small class="item-note">${esc(t('sh_with'))}</small>` : ''}</div>
+      <p>${esc(descOf(cat, k))}</p>${stock}<div class="item-cta">${cta}</div></div>`;
+    if (ML.treePrevs) ML.treePrevs(ish);
+  }
+  function openItem(cat, k) { itemOpen = [cat, k]; ish.hidden = false; renderItem(); ML.openOverlay('shopitem'); }
+
+  // Buying, equipping and using, from a sheet
+  function act(b) {
+    const E = S.econ;
     if (b.dataset.buy) {
       const [cat, k] = b.dataset.buy.split(':'), price = CATALOG[cat][k];
-      if (premOnly(cat, k) && !(ML.isPremium && ML.isPremium())) return;
+      if (premOnly(cat, k) && !isPrem()) return;
       if (E.gold < price) { toast(t('not_enough', { n: price - E.gold })); return; }
       E.gold -= price;
       if (cat === 'potion') E.potions[k] = (E.potions[k] || 0) + 1;
@@ -430,6 +512,37 @@
       if (!(E.potions.midas > 0)) return; E.potions.midas--; E.midas = 100; toast(t('midas_on', { n: 100 }));
     } else return;
     save(); renderShop(); renderGold(); ML.renderAll();
+  }
+  ish.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.step && itemOpen) {
+      const list = shelf ? shelfList(shelf) : [], i = list.findIndex(([a, k]) => a === itemOpen[0] && k === itemOpen[1]);
+      if (list.length) { itemOpen = list[(i + +b.dataset.step + list.length) % list.length]; renderItem(); }
+      return;
+    }
+    if (b.dataset.play) { if (ML.burst) ML.burst(b.dataset.play === 'theme' ? document.documentElement.dataset.theme : b.dataset.play); return; }
+    act(b);
+  });
+  $('shop-body').addEventListener('click', e => {
+    const E = S.econ, b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.light) { if (isPrem() && ML.setDayNight) { ML.setDayNight(b.dataset.light); renderShop(); } return; }
+    if (b.dataset.world) { openWorld(b.dataset.world); return; }
+    const top = () => { $('shop-body').parentElement.scrollTop = 0; };
+    if (b.dataset.shelf) { shelf = b.dataset.shelf; filter = 'all'; fitting = false; justBought = null; renderShop(); top(); return; }
+    if (b.hasAttribute('data-back')) { if (fitting) fitting = false; else shelf = null; justBought = null; renderShop(); top(); return; }
+    if (b.dataset.filter) { filter = b.dataset.filter; renderShop(); return; }
+    if (b.dataset.item) { const [cat, k] = b.dataset.item.split(':'); openItem(cat, k); return; }
+    if (b.hasAttribute('data-fit')) { fitting = true; tried = worn(); renderShop(); top(); return; }
+    if (b.dataset.fittab) { fitTab = b.dataset.fittab; renderShop(); return; }
+    if (b.dataset.try) { const k = b.dataset.try, s = (FIT.find(f => f[1] === k.slice(0, 2)) || [])[0]; if (!s) return; tried[s] = tried[s] === k ? worn()[s] : k; renderShop(); return; }
+    if (b.hasAttribute('data-untry')) { tried = worn(); renderShop(); return; }
+    if (b.hasAttribute('data-fitbuy')) {
+      const list = triedList(), buy = list.filter(k => !E.owned.tree.includes(k)), total = buy.reduce((a, k) => a + CATALOG.tree[k], 0);
+      if (E.gold < total) { toast(t('not_enough', { n: total - E.gold })); return; }
+      E.gold -= total; buy.forEach(k => E.owned.tree.push(k)); list.forEach(k => { E.equip[TREE_SLOT[k.slice(0, 2)]] = k; });
+      if (buy.length) { ML.sfx && ML.sfx('buy'); toast(buy.length > 1 ? t('sh_bought_n', { n: buy.length }) : t('bought', { name: label('tree', buy[0]) })); if (ML.burst) ML.burst('coins'); }
+      tried = worn(); save(); applyCosmetics(); renderShop(); renderGold(); ML.renderAll();
+    }
   });
 
   on('render', renderGold);
