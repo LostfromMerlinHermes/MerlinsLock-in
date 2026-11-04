@@ -80,7 +80,7 @@
 
   function renderSeq() {
     const s = seqInfo();
-    $('seq-label').textContent = `${t('sequence')} ${s.num} · ${s.name}`;
+    $('seq-label').innerHTML = `${esc(t('sequence'))} ${s.num}<span class="seq-nm"> · ${esc(s.name)}</span>`; // the name hides on narrow phones
     $('seq-fill').style.width = (s.frac * 100).toFixed(1) + '%';
     $('seq-badge').title = s.next ? t('seq_title', { xp: S.xp, left: s.next - S.xp, next: s.nextName }) : t('seq_title_top', { xp: S.xp });
     const st = streaks();
@@ -179,7 +179,7 @@
           <span class="chip t-dur">${task.spent ? fmtMins(task.spent) + ' / ' : ''}${fmtMins(task.mins)}</span>
           <span class="chip p-${task.pri}">${esc(t('pri_' + task.pri))}</span>
           <span class="t-extra">${task.project && ML.projChip ? ML.projChip(task.project) : ''}${dueChip(task)}
-          ${task.repeat ? `<span class="chip" title="${esc(t('repeat_' + task.repeat))}">↻ ${esc(t('repeat_' + task.repeat))}</span>` : ''}
+          ${task.repeat ? `<span class="chip">↻ ${esc(ML.repeatLabel(task))}</span>` : ''}
           ${subs.length ? `<button type="button" class="chip subs-chip" data-act="subs" aria-expanded="${open}">☰ ${subDone}/${subs.length}</button>` : task.done ? '' : `<button type="button" class="chip subs-chip ghosty" data-act="subs" aria-expanded="${open}">+ ${esc(t('step'))}</button>`}
           ${task.notes ? `<span class="chip" title="${esc(task.notes)}">✎</span>` : ''}
           ${task.sample ? `<span class="chip sample">${esc(t('example'))}</span>` : ''}</span>
@@ -205,8 +205,9 @@
         <label><span>${esc(t('priority'))}</span><select name="pri">${['high', 'med', 'low'].map(p => `<option value="${p}" ${p === task.pri ? 'selected' : ''}>${esc(t('pri_' + p))}</option>`).join('')}</select></label>
         <label><span>${esc(t('due'))}</span><input type="date" name="due" value="${esc(task.due || '')}"></label>
         <label><span>${esc(t('pl_project'))}</span><input type="text" name="project" maxlength="40" list="pl-projects" value="${esc(task.project || '')}"><datalist id="pl-projects">${(ML.planProjects ? ML.planProjects() : []).map(p => `<option value="${esc(p)}">`).join('')}</datalist></label>
-        <label><span>${esc(t('repeat'))}</span><select name="repeat">${['', 'daily', 'weekdays', 'weekly'].map(r => `<option value="${r}" ${r === (task.repeat || '') ? 'selected' : ''}>${esc(r ? t('repeat_' + r) : t('repeat_none'))}</option>`).join('')}</select></label>
+        <label><span>${esc(t('repeat'))}</span><select name="repeat">${['', 'daily', 'weekdays', 'weekly', 'days'].map(r => `<option value="${r}" ${r === (task.repeat || '') ? 'selected' : ''}>${esc(r ? t('repeat_' + r) : t('repeat_none'))}</option>`).join('')}</select></label>
       </div>
+      <fieldset class="t-days"><legend>${esc(t('repeat_days'))}</legend>${ML.WD_ORDER.map(d => `<label><input type="checkbox" name="rday" value="${d}" ${(task.days || []).includes(d) ? 'checked' : ''}><span>${esc(ML.wdName(d))}</span></label>`).join('')}</fieldset>
       <div class="t-edit-subs">
         <span class="label">${esc(t('subtasks'))}</span>
         <ul>${(task.subs || []).map(s => `<li><input type="checkbox" data-esub-done="${s.id}" ${s.done ? 'checked' : ''} aria-label="done"><input type="text" data-esub="${s.id}" value="${esc(s.text)}" maxlength="100"><button type="button" class="icon-btn" data-esub-del="${s.id}" aria-label="${esc(t('delete'))}">✕</button></li>`).join('')}</ul>
@@ -256,7 +257,7 @@
     }
     cardFx(ul, M.single && !S.showAll ? ul.querySelector(':scope > .task:not(.editing)') : null);
     $('sort-note').innerHTML = S.tasks.length && (M.single || !ML.planRender) ? t('sorted_for', { mood: `<b>${esc(t('mood_' + S.mood))}</b>`, sort: esc(t('sort_' + M.sort)) }) + (M.single ? ' ' + esc(t('only_next')) : '') : '';
-    $('foot-note').textContent = S.tasks.length ? t('open_planned', { n: open.length, m: fmtMins(open.reduce((a, x) => a + x.mins, 0)) }) : '';
+    $('foot-note').textContent = S.tasks.length ? tn('open_planned', open.length, { m: fmtMins(open.reduce((a, x) => a + x.mins, 0)) }) : '';
     const ed = ul.querySelector('.t-edit input[name=title]');
     if (ed && document.activeElement === document.body) ed.focus();
     emit('tasks:render');
@@ -378,8 +379,12 @@
     task.mins = +fd.get('mins'); task.pri = fd.get('pri');
     task.due = fd.get('due') || null;
     task.project = String(fd.get('project') || '').trim() || null;
-    task.repeat = fd.get('repeat') || '';
-    if (task.repeat === 'weekly') task.wd = new Date().getDay();
+    const rep = fd.get('repeat') || '', days = fd.getAll('rday').map(Number);
+    if (rep !== task.repeat || rep === 'days') {
+      task.repeat = rep === 'days' && !days.length ? '' : rep;
+      if (task.repeat === 'weekly') task.wd = (task.due ? ML.parseDay(task.due) : new Date()).getDay();
+      if (task.repeat === 'days') task.days = days; else delete task.days;
+    }
     task.notes = String(fd.get('notes') || '').trim();
     const ns = String(fd.get('newsub') || '').trim();
     if (ns) (task.subs || (task.subs = [])).push({ id: uid(), text: ns, done: false });
@@ -404,16 +409,27 @@
   ML.planClearDone = () => { S.tasks = S.tasks.filter(x => !x.done || x.repeat); save(); renderAll(); };
   ML.planClearAll = () => { S.tasks = []; S.activeId = null; save(); renderAll(); };
 
-  // Repeating tasks come back undone on the days they repeat
+  // Repeating tasks: daily, weekdays, weekly (on task.wd) or chosen days (task.days, 0 = Sunday)
+  const repeatsOn = (task, day) => {
+    if (!task.repeat) return false;
+    const wd = ML.parseDay(day).getDay();
+    return task.repeat === 'daily' || (task.repeat === 'weekdays' && wd >= 1 && wd <= 5)
+      || (task.repeat === 'weekly' && wd === (task.wd ?? wd)) || (task.repeat === 'days' && (task.days || []).includes(wd));
+  };
+  ML.repeatsOn = repeatsOn;
+  const WD_ORDER = [1, 2, 3, 4, 5, 6, 0];
+  ML.WD_ORDER = WD_ORDER;
+  ML.wdName = (wd, style = 'short') => new Date(2024, 0, 7 + wd).toLocaleDateString(ML.locale(), { weekday: style }); // 2024-01-07 is a Sunday
+  ML.repeatLabel = task => !task.repeat ? '' : task.repeat === 'days' ? WD_ORDER.filter(d => (task.days || []).includes(d)).map(d => ML.wdName(d)).join(' ')
+    : task.repeat === 'weekly' && task.wd != null ? t('repeat_weekly_on', { d: ML.wdName(task.wd, 'long') }) : t('repeat_' + task.repeat);
+  // They come back undone on the days they repeat
   function resetRepeating() {
-    const td = today(), wd = new Date().getDay();
+    const td = today();
     S.tasks.forEach(task => {
       if (!task.repeat || !task.done || !task.doneAt) return;
       const doneDay = dayKey(new Date(task.doneAt));
       if (doneDay >= td) return;
-      const back = task.repeat === 'daily'
-        || (task.repeat === 'weekdays' && wd >= 1 && wd <= 5)
-        || (task.repeat === 'weekly' && (wd === (task.wd ?? wd) || doneDay <= ML.addDays(td, -7)));
+      const back = repeatsOn(task, td) || (task.repeat === 'weekly' && doneDay <= ML.addDays(td, -7));
       if (back) { task.done = false; task.xpGiven = false; task.spent = 0; (task.subs || []).forEach(s => s.done = false); }
     });
   }
@@ -724,8 +740,13 @@
   function toggleTimer() { emit('gesture'); if (running()) { if (S.mode === 'focus') S.pauses = (S.pauses || 0) + 1; stop(); } else start(); renderTimer(); }
   ML.toggleTimer = toggleTimer;
   $('start').onclick = toggleTimer; $('c-start').onclick = toggleTimer;
+  // Cancel throws the session away: a second tap within 3 s confirms it (it sits next to Pause)
+  let resetArmed = 0;
   $('reset').onclick = () => {
-    const spent = (S.total - Math.max(0, remainingNow())) / 60;
+    const b = $('reset'), spent = (S.total - Math.max(0, remainingNow())) / 60;
+    if (!running() && spent <= 0) return;
+    if (!resetArmed) { b.textContent = t('pl_sel_sure'); b.classList.add('armed'); resetArmed = setTimeout(() => { resetArmed = 0; b.textContent = t('reset'); b.classList.remove('armed'); }, 3000); return; }
+    clearTimeout(resetArmed); resetArmed = 0; b.textContent = t('reset'); b.classList.remove('armed');
     if (S.mode === 'focus' && spent >= 5) emit('abandon', { mins: spent });
     stop(); S.remaining = S.total; save(); renderTimer();
   };
@@ -741,6 +762,8 @@
     if (early && S.mode === 'focus' && elapsed >= 1 && elapsed < S.total / 60 / 2) emit('abandon', { mins: elapsed });
     if (timedOut && document.visibilityState === 'visible') bgSend({ type: 'handled', when: S.endAt });
     stop(!early);
+    // Under a minute nothing is counted: say so and stay on the focus timer instead of jumping to a break
+    if (S.mode === 'focus' && elapsed < 1) { S.remaining = S.total; S.pauses = 0; toast(t('session_short'), { key: 'short' }); save(); renderAll(); return; }
     if (S.mode === 'focus') {
       let longBreak = false;
       if (elapsed > 0) {

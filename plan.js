@@ -12,6 +12,7 @@
 
   ML.addStrings({
     fr: {
+      pl_added_where: 'Ajoutée dans {g}.', pl_for_today: 'Pour aujourd’hui', pl_close: 'Fermer',
       pl_list: 'Liste', pl_table: 'Tableau', pl_group: 'Grouper', pl_sort: 'Trier', pl_all: 'Toutes',
       pl_g_moment: 'Moment', pl_g_project: 'Projet', pl_g_pri: 'Priorité', pl_g_none: 'Aucun',
       pl_s_energy: 'Suggéré', pl_s_due: 'Date', pl_s_mins: 'Durée', pl_s_pri: 'Priorité', pl_s_added: 'Ajout', pl_s_xp: 'XP', pl_s_spent: 'Temps passé', pl_s_manual: 'À la main',
@@ -32,6 +33,7 @@
       pl_proj_prog: '{d} / {n} finies', pl_proj_del: 'Retirer le projet', pl_proj_deleted: 'Projet retiré (les tâches restent).', pl_no_match: 'Aucune tâche ne correspond.',
     },
     en: {
+      pl_added_where: 'Added to {g}.', pl_for_today: 'For today', pl_close: 'Close',
       pl_list: 'List', pl_table: 'Table', pl_group: 'Group', pl_sort: 'Sort', pl_all: 'All',
       pl_g_moment: 'Moment', pl_g_project: 'Project', pl_g_pri: 'Priority', pl_g_none: 'None',
       pl_s_energy: 'Suggested', pl_s_due: 'Date', pl_s_mins: 'Duration', pl_s_pri: 'Priority', pl_s_added: 'Added', pl_s_xp: 'XP', pl_s_spent: 'Time spent', pl_s_manual: 'By hand',
@@ -174,6 +176,9 @@
     mins: cur => [15, 25, 30, 45, 60, 90, 120, 180].map(m => item(m, esc(fmtMins(m)), cur === m)).join('')
       + `<form class="pp-form" data-pk="mins"><input type="text" inputmode="text" maxlength="8" placeholder="${esc(t('pl_m_custom'))}" aria-label="${esc(t('pl_m_custom'))}"><button type="submit" class="small">${esc(t('pl_ok'))}</button></form>`,
     pri: cur => ['high', 'med', 'low'].map(p => item(p, esc(t('pri_' + p)), cur === p, '', `<i class="pp-pri p-${p}"></i>`)).join(''),
+    // cur: { repeat, days }. The day buttons stay open and toggle; picking one switches to "chosen days"
+    repeat: cur => ['', 'daily', 'weekdays', 'weekly'].map(r => item({ r }, esc(r ? t('repeat_' + r) : t('repeat_none')), (cur.repeat || '') === r)).join('')
+      + `<div class="pp-days" role="group" aria-label="${esc(t('repeat_days'))}"><span>${esc(t('repeat_days'))}</span><div>${ML.WD_ORDER.map(d => { const onx = cur.repeat === 'days' && (cur.days || []).includes(d); return `<button type="button" class="pp-day ${onx ? 'on' : ''}" data-pv="${pv({ day: d })}" data-keep="1" aria-pressed="${onx}" aria-label="${esc(ML.wdName(d, 'long'))}">${esc(ML.wdName(d, 'narrow'))}</button>`; }).join('')}</div></div>`,
   };
   const dayShort = d => ML.parseDay(d).toLocaleDateString(ML.locale(), { weekday: 'short', day: 'numeric' });
   function openPicker(kind, anchor, cur, apply) { openPop(anchor, `<div class="pp-list pp-${kind}">${PICK[kind](cur)}</div>`, apply); }
@@ -205,7 +210,10 @@
   const prev = document.createElement('p'); prev.className = 'qa-prev'; prev.id = 'qa-prev'; prev.setAttribute('aria-live', 'polite');
   // On a phone the add field is a sheet from the top, opened by the + button (at the top, the keyboard never covers it)
   const qaWrap = document.createElement('div'); qaWrap.className = 'qa-wrap';
-  form.before(qaWrap); qaWrap.append(form, chips, prev);
+  // The sheet stays open after each task (several tasks in a row); Close or a tap outside shuts it
+  const qaClose = document.createElement('button'); qaClose.type = 'button'; qaClose.className = 'ghost small qa-close'; qaClose.dataset.i18n = 'pl_close'; qaClose.textContent = t('pl_close');
+  form.before(qaWrap); qaWrap.append(form, chips, prev, qaClose);
+  qaClose.onclick = () => ML.planSheet(false);
   const isPhone = () => document.documentElement.classList.contains('mnav-on');
   ML.planSheet = onx => {
     document.documentElement.classList.toggle('qa-sheet', !!onx);
@@ -213,7 +221,7 @@
   };
   document.addEventListener('pointerdown', e => { if (document.documentElement.classList.contains('qa-sheet') && !qaWrap.contains(e.target) && !pop.contains(e.target) && e.target.id !== 'm-fab') ML.planSheet(false); }, true);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.documentElement.classList.contains('qa-sheet') && pop.hidden) ML.planSheet(false); }, true);
-  form.addEventListener('submit', () => setTimeout(() => { if (isPhone()) ML.planSheet(false); }, 0));
+  form.addEventListener('submit', () => setTimeout(() => { if (isPhone() && document.documentElement.classList.contains('qa-sheet')) field.focus({ preventScroll: true }); }, 0));
   let draft = {}, lastQ = {}, writing = false;
   // P1 (3.56): the chips only show while a task is being written
   const isWriting = () => writing || !!field.value.trim() || Object.keys(draft).length > 0;
@@ -229,6 +237,7 @@
       due: has('due') ? draft.due : q.due || null,
       mins: draft.mins || q.mins || +$('new-mins').value,
       pri: draft.pri || q.pri || $('new-pri').value,
+      repeat: { repeat: draft.repeat || '', days: draft.days || [] },
       pin: !!draft.pin, q,
     };
   }
@@ -243,12 +252,26 @@
       + chip('due', esc(e.due ? cap(dayLabel(e.due)) : t('pl_c_date')), !!e.due, 'aria-haspopup="true" aria-expanded="false"')
       + chip('mins', esc(fmtMins(e.mins)), !!(draft.mins || e.q.mins), 'aria-haspopup="true" aria-expanded="false"')
       + chip('pri', `<i class="pp-pri p-${e.pri}"></i>${esc(t('pri_' + e.pri))}`, e.pri !== 'med', 'aria-haspopup="true" aria-expanded="false"')
+      + chip('repeat', '↻ ' + esc(e.repeat.repeat ? ML.repeatLabel(e.repeat) : t('repeat')), !!e.repeat.repeat, 'aria-haspopup="true" aria-expanded="false"')
       + chip('pin', PIN_SVG + esc(t('pl_c_pin')), e.pin, `aria-pressed="${e.pin}"`);
   }
   chips.addEventListener('click', ev => {
     const b = ev.target.closest('[data-qa]'); if (!b) return;
     const k = b.dataset.qa, e = eff();
     if (k === 'pin') { draft.pin = !draft.pin; renderChips(); return; }
+    if (k === 'repeat') {
+      openPicker(k, b, e.repeat, (v, btn) => {
+        if (v.day == null) { draft.repeat = v.r; delete draft.days; renderChips(); return; }
+        const days = new Set(draft.repeat === 'days' ? draft.days : []);
+        days.has(v.day) ? days.delete(v.day) : days.add(v.day);
+        draft.days = [...days]; draft.repeat = days.size ? 'days' : '';
+        pop.querySelectorAll('.pp-day').forEach(d => { const onx = days.has(JSON.parse(d.dataset.pv).day); d.classList.toggle('on', onx); d.setAttribute('aria-pressed', onx); });
+        pop.querySelectorAll('.pp-it').forEach(d => d.classList.toggle('on', !days.size && JSON.parse(d.dataset.pv).r === ''));
+        const c = chips.querySelector('[data-qa="repeat"]');
+        if (c) { c.classList.toggle('on', !!days.size); c.textContent = '↻ ' + (days.size ? ML.repeatLabel({ repeat: 'days', days: draft.days }) : t('repeat')); }
+      });
+      return;
+    }
     openPicker(k, b, e[k], v => { draft[k] = v; renderChips(); const nb = chips.querySelector(`[data-qa="${k}"]`); if (nb && document.activeElement === document.body) nb.focus(); });
   });
   function renderPreview() { prev.innerHTML = !field.value.trim() && document.activeElement === field ? `<span class="qa-tip">${esc(t('pl_qa_tip'))}</span>` : ''; }
@@ -267,7 +290,21 @@
     if (e.due) task.due = e.due; else delete task.due;
     if (e.project) task.project = e.project; else delete task.project;
     if (e.pin) setPin(task, true);
+    if (e.repeat.repeat) {
+      task.repeat = e.repeat.repeat;
+      if (task.repeat === 'days') task.days = e.repeat.days.slice();
+      if (task.repeat === 'weekly') task.wd = (task.due ? ML.parseDay(task.due) : new Date()).getDay();
+    }
   };
+  // A new task the current view doesn't show (no date in Today, a filter…): say where it went, offer today
+  on('task:added', task => {
+    if (!task || S.tab !== 'plan' || task.pin) return;
+    const p = P(), hidden = (p.proj && task.project !== p.proj) || !inView(task) || p.pview === 'inbox';
+    if (!hidden) return;
+    const where = task.due ? cap(dayLabel(task.due)) : t('pl_m_nodate');
+    ML.toast(t('pl_added_where', { g: where }), { key: 'pladd', action: task.due ? { label: t('pl_see_all'), fn: () => { p.pview = 'all'; p.proj = ''; save(); ML.renderTasks(); } }
+      : { label: t('pl_for_today'), fn: () => { task.due = today(); save(); ML.renderAll(); } } });
+  });
   // "+ Add to …" under a group: the field takes that group's date / project / priority / pin
   function addIn(gm, key) {
     draft = {};
@@ -529,11 +566,15 @@
   /* ---------- Views, grouping and sorting ---------- */
   // gm: how the open tasks are grouped in the current view
   const gmOf = () => { const v = P().pview; return v === 'today' ? 'today' : v === 'upcoming' ? 'days' : v === 'projects' ? 'project' : P().group; };
-  const momentOf = x => { if (!x.due) return 'nodate'; const td = today(); return x.due <= td ? 'today' : x.due <= addDays(td, 7) ? 'week' : 'later'; };
+  // a repeating task counts as due today on the days it repeats (from its date on)
+  const dueOf = x => { const td = today(); return x.repeat && !x.done && (!x.due || x.due <= td) && ML.repeatsOn && ML.repeatsOn(x, td) ? td : x.due; };
+  ML.planDueOf = dueOf;
+  const momentOf = x => { const due = dueOf(x); if (!due) return 'nodate'; const td = today(); return due <= td ? 'today' : due <= addDays(td, 7) ? 'week' : 'later'; };
   function keyOf(gm, x) {
     const td = today();
-    if (gm === 'today') return x.due && x.due < td ? 'late' : 'today';
-    if (gm === 'days') return !x.due || x.due <= td ? td : x.due <= addDays(td, 6) ? x.due : 'later';
+    const due = dueOf(x);
+    if (gm === 'today') return due && due < td ? 'late' : 'today';
+    if (gm === 'days') return !due || due <= td ? td : due <= addDays(td, 6) ? due : 'later';
     return gm === 'moment' ? momentOf(x) : gm === 'project' ? (x.project || '') : gm === 'pri' ? x.pri : 'all';
   }
   function orderOf(gm, items) {
@@ -554,8 +595,8 @@
   // which open tasks a view shows
   function inView(x) {
     const v = P().pview, td = today();
-    if (v === 'today') return (x.due && x.due <= td) || x.id === S.activeId;
-    if (v === 'upcoming') return !!x.due;
+    if (v === 'today') { const due = dueOf(x); return (due && due <= td) || x.id === S.activeId; }
+    if (v === 'upcoming') return !!dueOf(x);
     return true;
   }
   function sorted(open) {
@@ -567,16 +608,18 @@
   const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const filt = arr => { const p = P(), q = norm(query.trim()); return arr.filter(x => (!p.proj || x.project === p.proj) && (!q || norm(ML.titleOf(x)).includes(q) || (x.project && norm(x.project).includes(q)))); };
   function groupsOf(open, done) {
-    const gm = gmOf(), shown = sorted(filt(open)).filter(x => x.id !== cardId), out = [];
+    const gm = gmOf(), shown = sorted(filt(open)).filter(x => x.id !== cardId), out = [], cardT = cardId ? filt(open).find(x => x.id === cardId) : null;
     const pins = shown.filter(x => x.pin).sort((a, b) => a.pin - b.pin);
     if (pins.length) out.push({ key: 'pinned', label: t('pl_pinned'), items: pins, mins: pins.reduce((a, x) => a + x.mins, 0), pinned: true });
     const rest = shown.filter(x => !x.pin && inView(x));
     for (const k of orderOf(gm, rest)) {
       const items = rest.filter(x => keyOf(gm, x) === k);
       if (!items.length && !keepEmpty(gm, k)) continue;
-      const late = gm === 'moment' || gm === 'days' ? items.filter(x => x.due && x.due < today()).length : 0;
+      const late = gm === 'moment' || gm === 'days' ? items.filter(x => { const due = dueOf(x); return due && due < today(); }).length : 0;
       const wk = gm === 'project' && k ? weekMins(k) : 0;
-      out.push({ key: k, label: labelOf(gm, k), items, mins: items.reduce((a, x) => a + x.mins, 0), late, wk, proj: gm === 'project' && k });
+      // the phone's next-task card takes its task out of the list, but the group's count and time still include it
+      const withCard = cardT && !cardT.pin && inView(cardT) && keyOf(gm, cardT) === k ? cardT : null;
+      out.push({ key: k, label: labelOf(gm, k), items, n: items.length + (withCard ? 1 : 0), mins: items.reduce((a, x) => a + x.mins, 0) + (withCard ? withCard.mins : 0), late, wk, proj: gm === 'project' && k });
     }
     const v = P().pview, td = today();
     const dn = filt(done).filter(x => v !== 'today' || (x.doneAt && ML.dayKey(new Date(x.doneAt)) === td));
@@ -605,7 +648,7 @@
       if (gm === 'none' && !gr.done && !gr.pinned) return '';
       const r = gr.done ? '' : [fmtMins(gr.mins), gr.late ? `<em>${esc(t('pl_late', { n: gr.late }))}</em>` : '', gr.wk ? esc(t('pl_week_h', { h: fmtMins(gr.wk) })) : ''].filter(Boolean).join(' · ');
       const fid = (gr.done ? 'done' : gr.pinned ? 'pinned' : gm) + ':' + (gr.pinned || gr.done ? '' : gr.key), folded = p.fold[fid] ?? !!gr.done;
-      return { html: `<button type="button" class="pg-head ${gr.pinned ? 'pg-pinned' : ''}" data-fold="${esc(fid)}" aria-expanded="${!folded}">${gr.pinned ? `<span class="pg-pin">${PIN_SVG}</span>` : gr.proj ? projDot(gr.proj) : ''}<b>${esc(gr.label)}</b><span class="pg-n">${gr.items.length}</span><span class="pg-r">${r}</span><svg class="pg-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>`, folded };
+      return { html: `<button type="button" class="pg-head ${gr.pinned ? 'pg-pinned' : ''}" data-fold="${esc(fid)}" aria-expanded="${!folded}">${gr.pinned ? `<span class="pg-pin">${PIN_SVG}</span>` : gr.proj ? projDot(gr.proj) : ''}<b>${esc(gr.label)}</b><span class="pg-n">${gr.n ?? gr.items.length}</span><span class="pg-r">${r}</span><svg class="pg-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>`, folded };
     };
     const openCount = groups.filter(g => !g.done).reduce((a, g) => a + g.items.length, 0);
     let html;

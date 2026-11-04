@@ -1062,8 +1062,8 @@ kbd { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px
 :root[data-theme="netrunner"]:not([data-light]) .top-actions > #gold-chip, :root[data-theme="netrunner"]:not([data-light]) .top-actions > #buff-chip,
 :root[data-theme="netrunner"]:not([data-light]) .top-actions > #streak-pill { border-radius: 0; min-height: 34px; background: var(--veil); }
 :root[data-theme="netrunner"]:not([data-light]) .top-actions > #buff-chip, :root[data-theme="netrunner"]:not([data-light]) .top-actions > #streak-pill { margin-left: -5px; }
-/* the process list (wide screens; phones keep the rows) */
-@media (min-width: 900px) {
+/* the process list (wide screens; phones keep the rows). From 1440 px: below, the Plan column is too narrow for its 7 columns */
+@media (min-width: 1440px) {
   :root[data-theme="netrunner"]:not([data-light]):not(.mnav-on) .task:not(.editing):not(.card) {
     display: grid; grid-template-columns: 26px minmax(0, 1fr) 76px 30px 64px 56px auto; column-gap: 12px; row-gap: 4px; align-items: center; }
   :root[data-theme="netrunner"]:not([data-light]):not(.mnav-on) .task:not(.editing):not(.card) :is(.t-body, .t-meta, .chip.rar) { display: contents; }
@@ -4547,3 +4547,35 @@ html.mod-off-game [data-mod="game"], html.mod-off-wellbeing [data-mod="wellbeing
   .yh-tree { width: calc(100% + 32px); margin-inline: -16px; border-radius: 0; }
   .pg .y-btns { display: grid; } .pg .y-btns button { width: 100%; }
 }
+
+/* ---------- 3.67: repeat chip, add sheet that stays open ---------- */
+.qa-close { display: none; }
+html.mnav-on.qa-sheet .qa-close { display: block; justify-self: end; min-height: 44px; padding: 0 16px; }
+.pp-days { display: grid; gap: 6px; padding: 8px 6px 4px; border-top: 1px solid var(--line); margin-top: 4px; font-size: 13px; color: var(--mist); }
+.pp-days > div { display: flex; gap: 4px; }
+.pp-day { width: 36px; height: 36px; min-height: 0; padding: 0; border-radius: 50%; border: 1px solid var(--line-2); background: none; color: var(--text); font-size: 13px; }
+.pp-day.on { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+.t-days { display: none; flex-wrap: wrap; gap: 4px 10px; margin: 0; padding: 0; border: 0; font-size: 13px; color: var(--mist); }
+.t-days legend { width: 100%; padding: 0 0 2px; }
+.t-days label { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; }
+.t-edit:has(select[name="repeat"] option[value="days"]:checked) .t-days { display: flex; }
+html.qa-sheet .toast { z-index: 44; }
+.td-live .td-left { margin: 0; font: 600 28px/1.1 var(--f-mono); font-variant-numeric: tabular-nums; color: var(--text); }
+/* The page title takes the room left in the header (it was squeezed to 55 px next to Back and the hood) */
+html.mnav-on .brand-text { flex: 1 1 auto; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+/* On a sub-page (Back shown) the hood steps aside so the title fits */
+html.mnav-on .brand:has(.m-back:not([hidden])) { gap: 6px; }
+html.mnav-on .brand:has(.m-back:not([hidden])) .hood-b { display: none; }
+@media (max-width: 459px) { html.mnav-on .seq-nm { display: none; } }
+/* A date field shows its whole placeholder (jj/mm/aaaa) */
+input[type=date] { min-width: 8.6em; }
+/* The last task clears the + button on phones */
+html.mnav-on #tab-plan { padding-bottom: 84px; }
+/* B3: 44 px touch targets on phones; the drawn box keeps its size, the tap area grows around it */
+html.mnav-on .check { position: relative; }
+html.mnav-on .check::after { content: ""; position: absolute; inset: -12px; }
+html.mnav-on .task .ghost.icon-only, html.mnav-on .top-actions .ghost.icon-only { min-width: 44px; min-height: 44px; }
+html.mnav-on .m-title { min-height: 44px; }
+html.mnav-on .seq, html.mnav-on .gold { min-height: 44px; }
+/* The task list never grows past its column (Netrunner rows pushed it 47 px out at 1024 px) */
+#tasks, .pl-main > *, #tasks > li, .pg-list > li { min-width: 0; max-width: 100%; }

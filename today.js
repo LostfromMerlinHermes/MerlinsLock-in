@@ -8,12 +8,12 @@
 
   ML.addStrings({
     fr: {
-      td_next: 'Prochaine', td_next_e: 'Prochaine, selon ton énergie', td_hours: 'Heures du jour', td_coming: 'À venir', td_quests: 'Quêtes du jour', td_nothing: 'Rien de prévu pour l’instant.', td_add: 'Ajouter une tâche', td_plan: 'Placer dans la journée', td_empty_h: 'Aucun créneau placé aujourd’hui.', td_late: '{n} en retard', td_due: '{n} cartes à réviser', td_due_one: '1 carte à réviser', td_inbox: '{n} dans l’Inbox', td_in: 'dans {n} j', td_today: 'aujourd’hui', td_change: 'Changer', td_now: 'Maintenant', td_done: 'Terminer',
+      td_next: 'Prochaine', td_next_e: 'Prochaine, selon ton énergie', td_hours: 'Heures du jour', td_coming: 'À venir', td_quests: 'Quêtes du jour', td_nothing: 'Rien de prévu pour l’instant.', td_add: 'Ajouter une tâche', td_plan: 'Placer dans la journée', td_empty_h: 'Aucun créneau placé aujourd’hui.', td_late: '{n} en retard', td_due: '{n} cartes à réviser', td_due_one: '1 carte à réviser', td_inbox: '{n} dans l’Inbox', td_in: 'dans {n} j', td_today: 'aujourd’hui', td_change: 'Changer', td_now: 'Maintenant', td_done: 'Terminer', td_paused: 'En pause', td_open_timer: 'Ouvrir le minuteur',
       hb_review: 'Réviser', hb_open: 'Ouvrir', hb_subjects: '{n} matières', hb_nosubj: 'Ajoute tes matières', hb_exam: '{name} · {left}', hb_nocards: 'Aucune à réviser', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Page du jour', hb_docs: '{n} documents', hb_nodocs: 'Importe un PDF', hb_lect: '{n} enregistrements', hb_nolect: 'Enregistre un cours', hb_learn: 'Méthodes par situation', hb_streak: 'Série de {n} j', hb_gold: '{n} or', hb_room_on: 'Salle {c}', hb_room: 'Étudier à plusieurs', hb_worlds: 'Mondes', hb_worlds_d: '{w}', hb_guide: 'Toutes les fonctions', hb_settings: 'Compte, son, langue', hb_grim: 'Stats et progression', hb_start: 'Examen', hb_health: 'Check du jour', hb_screen: 'Sites, blocage, pause', yh_prog: 'Série de {n} jours, niveau {lv}', yh_prog0: 'Niveau {lv}', yh_game: 'Tour, expéditions, saison', yh_well_off: 'Point santé et temps d’écran', yh_well_todo: 'Point santé du jour à faire', yh_well_done: 'Point santé du jour fait',
       ss_title: 'Mode séance', ss_tools: 'Outils', ss_opt: 'Mode séance : pendant un Lock in, retirer XP, quêtes, boutique et énergies de l’écran',
     },
     en: {
-      td_next: 'Next', td_next_e: 'Next, for your energy', td_hours: 'Hours today', td_coming: 'Coming up', td_quests: 'Daily quests', td_nothing: 'Nothing planned yet.', td_add: 'Add a task', td_plan: 'Place in the day', td_empty_h: 'Nothing placed today.', td_late: '{n} late', td_due: '{n} cards to review', td_due_one: '1 card to review', td_inbox: '{n} in the Inbox', td_in: 'in {n} d', td_today: 'today', td_change: 'Change', td_now: 'Now', td_done: 'Complete',
+      td_next: 'Next', td_next_e: 'Next, for your energy', td_hours: 'Hours today', td_coming: 'Coming up', td_quests: 'Daily quests', td_nothing: 'Nothing planned yet.', td_add: 'Add a task', td_plan: 'Place in the day', td_empty_h: 'Nothing placed today.', td_late: '{n} late', td_due: '{n} cards to review', td_due_one: '1 card to review', td_inbox: '{n} in the Inbox', td_in: 'in {n} d', td_today: 'today', td_change: 'Change', td_now: 'Now', td_done: 'Complete', td_paused: 'Paused', td_open_timer: 'Open timer',
       hb_review: 'Review', hb_open: 'Open', hb_subjects: '{n} subjects', hb_nosubj: 'Add your subjects', hb_exam: '{name} · {left}', hb_nocards: 'None to review', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Today’s page', hb_docs: '{n} documents', hb_nodocs: 'Import a PDF', hb_lect: '{n} recordings', hb_nolect: 'Record a lecture', hb_learn: 'Methods by situation', hb_streak: '{n}-day streak', hb_gold: '{n} gold', hb_room_on: 'Room {c}', hb_room: 'Study together', hb_worlds: 'Worlds', hb_worlds_d: '{w}', hb_guide: 'Every feature', hb_settings: 'Account, sound, language', hb_grim: 'Stats and progress', hb_start: 'Exam', hb_health: 'Daily check', hb_screen: 'Sites, blocking, pause', yh_prog: '{n}-day streak, level {lv}', yh_prog0: 'Level {lv}', yh_game: 'Tower, expeditions, season', yh_well_off: 'Health check and screen time', yh_well_todo: 'Today’s check not done yet', yh_well_done: 'Today’s check done',
       ss_title: 'Session mode', ss_tools: 'Tools', ss_opt: 'Session mode: during a Lock in, take XP, quests, shop and energies off the screen',
     },
@@ -53,14 +53,19 @@
     if (inbox) rows.push(['inbox', t('td_inbox', { n: inbox }), t('pl_v_inbox')]);
     return rows.map(([go, a, b, hot]) => `<button type="button" class="td-row ${hot ? 'hot' : ''}" data-go="${go}"><b>${esc(a)}</b><small>${esc(b)}</small></button>`).join('');
   }
+  const clock = () => MiniView.fmtClock(Math.max(0, Math.ceil(ML.remainingNow())));
   function renderToday() {
     const el = $('today'); if (!el || S.tab !== 'today') return;
-    const x = ML.orderedOpen()[0], M = ML.MOODS[S.mood], coming = comingHtml(), go = x && x.id === S.activeId && ML.running();
+    const x = ML.orderedOpen()[0], M = ML.MOODS[S.mood], coming = comingHtml();
+    // A focus session in progress (running or paused) replaces the next task: its time, Open timer, Pause / Resume
+    const live = S.mode === 'focus' && (ML.running() || ML.remainingNow() < S.total);
     const bits = x ? [fmtMins(x.mins), x.due && ML.planDayLabel(x.due), x.project].filter(Boolean).map(esc).join(' · ') : '';
+    const card = live ? `<div class="td-next td-live"><small>${esc(t(ML.running() ? 'focusing' : 'td_paused'))}</small><b>${esc(ML.activeTitle() || t('free_focus'))}</b><p class="td-left">${esc(clock())}</p><div class="td-btns"><button type="button" class="primary" data-go="timer">${esc(t('td_open_timer'))}</button><button type="button" class="ghost" data-go="pause">${esc(t(ML.running() ? 'pause' : 'resume'))}</button></div></div>`
+      : x ? `<div class="td-next"><small>${esc(t('td_next_e'))}</small><b>${esc(ML.titleOf(x))}</b><p>${bits}</p><div class="td-btns"><button type="button" class="primary" data-lock="${x.id}">${esc(t('lock_in'))}</button><button type="button" class="ghost" data-done="${x.id}">${esc(t('td_done'))}</button></div></div>`
+      : `<div class="td-next"><b>${esc(t('td_nothing'))}</b><div class="td-btns"><button type="button" class="primary" data-go="add">${esc(t('td_add'))}</button></div></div>`;
     const html = `<div class="td">
       <button type="button" class="td-energy" data-go="energy"><span class="ep-ico" style="--mood-c:${M.color}">${ML.svgIcon ? ML.svgIcon(M.icon) : ''}</span><span class="td-en-tx"><b>${esc(t('mood_' + S.mood))}</b><small>${esc(ML.worldName(S.mood))}</small></span><span class="td-chg">${esc(t('td_change'))}</span></button>
-      ${x ? `<div class="td-next"><small>${esc(t('td_next_e'))}</small><b>${esc(ML.titleOf(x))}</b><p>${bits}</p><div class="td-btns"><button type="button" class="primary" data-lock="${x.id}">${esc(go ? t('focusing') : t('lock_in'))}</button><button type="button" class="ghost" data-done="${x.id}">${esc(t('td_done'))}</button></div></div>`
-    : `<div class="td-next"><b>${esc(t('td_nothing'))}</b><div class="td-btns"><button type="button" class="primary" data-go="add">${esc(t('td_add'))}</button></div></div>`}
+      ${card}
       <h2 class="td-h">${esc(t('td_hours'))}</h2><div class="td-list">${hoursHtml()}</div>
       ${coming ? `<h2 class="td-h">${esc(t('td_coming'))}</h2><div class="td-list">${coming}</div>` : ''}
       <div id="today-quests"></div>
@@ -138,6 +143,8 @@
     ML.emit('gesture');
     const go = b.dataset.go;
     if (go === 'energy') return ML.energyPicker.open({ cancellable: true });
+    if (go === 'pause') return ML.toggleTimer();
+    if (go === 'timer') { if (document.documentElement.classList.contains('mnav-on') && ML.setMobileView) ML.setMobileView('timer'); else $('start').focus(); return; }
     if (go === 'add') { ML.setTab('plan'); return ML.planSheet && ML.planSheet(true); }
     if (go === 'late') { S.plan.pview = 'all'; save(); ML.setTab('plan'); return ML.renderTasks(); }
     if (go === 'inbox') { S.plan.pview = 'inbox'; save(); ML.setTab('plan'); return ML.renderTasks(); }
@@ -153,6 +160,8 @@
   on('tab', () => { renderHomes(); placeQuests(); });
   on('render', renderHomes); on('minute', renderHomes); on('tasks:render', renderHomes); on('lang', renderHomes); on('mood', renderHomes); on('world', renderHomes); on('premium', renderHomes);
   on('started', () => { renderHomes(); placeQuests(); });
+  on('timer', renderToday);
+  on('tick', () => { const e = S.tab === 'today' && document.querySelector('#today .td-left'); if (e) e.textContent = clock(); });
   matchMedia('(max-width: 899px)').addEventListener('change', () => setTimeout(placeQuests, 0));
 
   /* ---------- Session mode ---------- */

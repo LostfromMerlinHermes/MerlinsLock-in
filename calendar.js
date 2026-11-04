@@ -100,7 +100,7 @@
       <div class="cal-grid">${wd.map(w => `<span class="cal-wd">${esc(w)}</span>`).join('')}${cells}</div>
       <div class="cal-day">
         <h3>${esc(sel.toLocaleDateString(ML.locale(), { weekday: 'long', day: 'numeric', month: 'long' }))}</h3>
-        ${evs.length ? `<ul class="ev-list">${evs.map(evRow).join('')}</ul>` : `<p class="hint">${esc(t('day_empty'))}</p>`}
+        ${evs.length ? `<ul class="ev-list">${evs.map(evRow).join('')}</ul>` : dues.length || blocks.length ? '' : `<p class="hint">${esc(t('day_empty'))}</p>`}
         ${dues.length ? `<p class="label">${esc(t('due_tasks'))}</p><ul class="ev-list">${dues.map(x => `<li><span class="ev-time">✓</span><span class="ev-title">${esc(ML.titleOf(x))}</span></li>`).join('')}</ul>` : ''}
         <div class="cal-day-foot">
           ${blocks.length ? `<span class="hint">${esc(tn('blocks_planned', blocks.length, { m: fmtMins(blocks.reduce((a, b) => a + b.mins, 0)) }))}</span>` : '<span></span>'}
