@@ -9,12 +9,12 @@
   ML.addStrings({
     fr: {
       td_next: 'Prochaine', td_next_e: 'Prochaine, selon ton énergie', td_hours: 'Heures du jour', td_coming: 'À venir', td_quests: 'Quêtes du jour', td_nothing: 'Rien de prévu pour l’instant.', td_add: 'Ajouter une tâche', td_plan: 'Placer dans la journée', td_empty_h: 'Aucun créneau placé aujourd’hui.', td_late: '{n} en retard', td_due: '{n} cartes à réviser', td_due_one: '1 carte à réviser', td_inbox: '{n} dans l’Inbox', td_in: 'dans {n} j', td_today: 'aujourd’hui', td_change: 'Changer', td_now: 'Maintenant', td_done: 'Terminer',
-      hb_review: 'Réviser', hb_open: 'Ouvrir', hb_subjects: '{n} matières', hb_nosubj: 'Ajoute tes matières', hb_exam: '{name} · {left}', hb_nocards: 'Aucune à réviser', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Page du jour', hb_docs: '{n} documents', hb_nodocs: 'Importe un PDF', hb_lect: '{n} enregistrements', hb_nolect: 'Enregistre un cours', hb_learn: 'Méthodes par situation', hb_streak: 'Série de {n} j', hb_gold: '{n} or', hb_room_on: 'Salle {c}', hb_room: 'Étudier à plusieurs', hb_worlds: 'Mondes', hb_worlds_d: '{w}', hb_guide: 'Toutes les fonctions', hb_settings: 'Compte, son, langue', hb_grim: 'Stats et progression', hb_start: 'Examen', hb_health: 'Check du jour', hb_screen: 'Sites, blocage, pause',
+      hb_review: 'Réviser', hb_open: 'Ouvrir', hb_subjects: '{n} matières', hb_nosubj: 'Ajoute tes matières', hb_exam: '{name} · {left}', hb_nocards: 'Aucune à réviser', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Page du jour', hb_docs: '{n} documents', hb_nodocs: 'Importe un PDF', hb_lect: '{n} enregistrements', hb_nolect: 'Enregistre un cours', hb_learn: 'Méthodes par situation', hb_streak: 'Série de {n} j', hb_gold: '{n} or', hb_room_on: 'Salle {c}', hb_room: 'Étudier à plusieurs', hb_worlds: 'Mondes', hb_worlds_d: '{w}', hb_guide: 'Toutes les fonctions', hb_settings: 'Compte, son, langue', hb_grim: 'Stats et progression', hb_start: 'Examen', hb_health: 'Check du jour', hb_screen: 'Sites, blocage, pause', yh_prog: 'Série de {n} jours, niveau {lv}', yh_prog0: 'Niveau {lv}', yh_game: 'Tour, expéditions, saison', yh_well_off: 'Point santé et temps d’écran', yh_well_todo: 'Point santé du jour à faire', yh_well_done: 'Point santé du jour fait',
       ss_title: 'Mode séance', ss_tools: 'Outils', ss_opt: 'Mode séance : pendant un Lock in, retirer XP, quêtes, boutique et énergies de l’écran',
     },
     en: {
       td_next: 'Next', td_next_e: 'Next, for your energy', td_hours: 'Hours today', td_coming: 'Coming up', td_quests: 'Daily quests', td_nothing: 'Nothing planned yet.', td_add: 'Add a task', td_plan: 'Place in the day', td_empty_h: 'Nothing placed today.', td_late: '{n} late', td_due: '{n} cards to review', td_due_one: '1 card to review', td_inbox: '{n} in the Inbox', td_in: 'in {n} d', td_today: 'today', td_change: 'Change', td_now: 'Now', td_done: 'Complete',
-      hb_review: 'Review', hb_open: 'Open', hb_subjects: '{n} subjects', hb_nosubj: 'Add your subjects', hb_exam: '{name} · {left}', hb_nocards: 'None to review', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Today’s page', hb_docs: '{n} documents', hb_nodocs: 'Import a PDF', hb_lect: '{n} recordings', hb_nolect: 'Record a lecture', hb_learn: 'Methods by situation', hb_streak: '{n}-day streak', hb_gold: '{n} gold', hb_room_on: 'Room {c}', hb_room: 'Study together', hb_worlds: 'Worlds', hb_worlds_d: '{w}', hb_guide: 'Every feature', hb_settings: 'Account, sound, language', hb_grim: 'Stats and progress', hb_start: 'Exam', hb_health: 'Daily check', hb_screen: 'Sites, blocking, pause',
+      hb_review: 'Review', hb_open: 'Open', hb_subjects: '{n} subjects', hb_nosubj: 'Add your subjects', hb_exam: '{name} · {left}', hb_nocards: 'None to review', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Today’s page', hb_docs: '{n} documents', hb_nodocs: 'Import a PDF', hb_lect: '{n} recordings', hb_nolect: 'Record a lecture', hb_learn: 'Methods by situation', hb_streak: '{n}-day streak', hb_gold: '{n} gold', hb_room_on: 'Room {c}', hb_room: 'Study together', hb_worlds: 'Worlds', hb_worlds_d: '{w}', hb_guide: 'Every feature', hb_settings: 'Account, sound, language', hb_grim: 'Stats and progress', hb_start: 'Exam', hb_health: 'Daily check', hb_screen: 'Sites, blocking, pause', yh_prog: '{n}-day streak, level {lv}', yh_prog0: 'Level {lv}', yh_game: 'Tower, expeditions, season', yh_well_off: 'Health check and screen time', yh_well_todo: 'Today’s check not done yet', yh_well_done: 'Today’s check done',
       ss_title: 'Session mode', ss_tools: 'Tools', ss_opt: 'Session mode: during a Lock in, take XP, quests, shop and energies off the screen',
     },
   });
@@ -94,25 +94,32 @@
       ${tile('lib', t('nav_lib'), prem ? (docs ? t('hb_docs', { n: docs }) : t('hb_nodocs')) : t('hb_premium'))}
       ${tile('lectures', t('tab_lectures'), prem ? (lect ? t('hb_lect', { n: lect }) : t('hb_nolect')) : t('hb_premium'))}
       ${tile('learn', t('tab_learn'), t('hb_learn'))}
+      ${tile('room', t('tab_room'), S.room && S.room.code ? t('hb_room_on', { c: S.room.code }) : t('hb_room'))}
     </div></div>`;
     if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
   }
+  // You on a phone (3.66, A1): the tree edge to edge, this week against its goal, the Sunday review and the subject left
+  // aside when there is one, then Progress, The game and Wellbeing as rows; the Shop and the Guide as two links
   function renderYou() {
     const el = $('yhome'); if (!el || S.tab !== 'yhome') return;
-    const st = ML.streaks ? ML.streaks() : { cur: 0 }, gold = (S.econ && S.econ.gold) || 0, code = S.room && S.room.code;
-    const html = `<div class="td"><div class="hb-grid">
-      ${tile('focus', t('tab_focus'), t('pd_' + ML.period()))}
-      ${tile('tree', t('tab_tree'), t('hb_tree'))}
-      ${tile('health', t('tab_health'), t('hb_health'))}
-      ${tile('screen', t('tab_screen'), t('hb_screen'))}
-      ${tile('grim', t('tab_grim'), st.cur && S.goalProfile !== 'start' ? t('hb_streak', { n: st.cur }) : t('hb_grim'))}
-      ${tile('shop', t('shop'), t('hb_gold', { n: gold.toLocaleString(ML.locale()) }))}
-      ${tile('room', t('tab_room'), code ? t('hb_room_on', { c: code }) : t('hb_room'))}
-      ${tile('worlds', t('hb_worlds'), ML.worldName(S.mood))}
-      ${tile('guide', t('tab_guide'), t('hb_guide'))}
-      ${tile('settings', t('settings'), t('hb_settings'))}
-    </div></div>`;
+    const st = ML.streaks ? ML.streaks() : { cur: 0 }, lv = ML.seqInfo(), gold = (S.econ && S.econ.gold) || 0;
+    const prog = st.cur && S.goalProfile !== 'start' ? t('yh_prog', { n: st.cur, lv: lv.name }) : t('yh_prog0', { lv: lv.name });
+    const hc = ML.priv ? ML.priv.get('healthCfg', { on: false }) : { on: false }, hDone = hc.on && ML.priv && (ML.priv.get('health', {}) || {})[today()];
+    const well = !hc.on ? t('yh_well_off') : hDone ? t('yh_well_done') : t('yh_well_todo');
+    const row = (go, name, sub) => `<button type="button" class="td-row yh-row" data-go="${go}"><span><b>${esc(name)}</b><small>${esc(sub)}</small></span><svg class="yh-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`;
+    const html = `<div class="td yh">
+      <button type="button" class="yh-tree" data-go="tree" aria-label="${esc(t('tab_tree'))}"><span class="yh-stage" id="yh-stage"></span></button>
+      ${ML.treeWeekLine ? ML.treeWeekLine(true) : ''}
+      ${ML.youCards ? ML.youCards() : ''}
+      <div class="td-list">
+        ${row('focus', t('tab_focus'), prog)}
+        ${ML.modOn('game') ? row('grim', t('tab_grim'), t('yh_game')) : ''}
+        ${ML.modOn('wellbeing') ? row('health', t('tab_health'), well) : ''}
+      </div>
+      <div class="yh-links"><button type="button" class="ghost" data-go="shop">${esc(t('shop'))} <small>${esc(t('hb_gold', { n: gold.toLocaleString(ML.locale()) }))}</small></button><button type="button" class="ghost" data-go="guide">${esc(t('tab_guide'))}</button></div>
+    </div>`;
     if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
+    if (ML.treeMount) ML.treeMount($('yh-stage'));
   }
   // The Study column on a computer: a number only when something is waiting
   function renderSubCounts() {
@@ -126,6 +133,7 @@
     const lock = e.target.closest('[data-lock]'), done = e.target.closest('[data-done]'), b = e.target.closest('[data-go]');
     if (lock) { const x = S.tasks.find(y => y.id === lock.dataset.lock); if (x) ML.lockIn({ taskId: x.id, mins: x.mins }); return; }
     if (done) { const x = S.tasks.find(y => y.id === done.dataset.done); if (x) { ML.completeTask(x); save(); ML.renderAll(); } return; }
+    if (ML.youCardsClick && e.currentTarget.id === 'yhome' && ML.youCardsClick(e)) return;
     if (!b) return;
     ML.emit('gesture');
     const go = b.dataset.go;

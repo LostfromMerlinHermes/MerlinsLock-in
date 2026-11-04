@@ -13,7 +13,7 @@
       sc_today: 'Aujourd’hui', sc_insess: 'Hors travail pendant une session', sc_none: 'Rien de mesuré pour l’instant.', sc_cat_work: 'Travail', sc_cat_neutral: 'Neutre', sc_cat_dist: 'Distraction', sc_cat_tip: 'Changer de catégorie',
       sc_block_h: 'Blocage', sc_block_on: 'Bloquer les sites de ma liste', sc_m_off: 'Jamais', sc_m_session: 'Pendant les sessions', sc_m_hours: 'Selon des horaires', sc_from: 'De', sc_to: 'à', sc_list: 'Sites à bloquer', sc_redir: 'Pour l’instant, un site bloqué affiche une erreur du navigateur. Pour avoir l’écran de pause à la place, l’extension doit pouvoir agir sur tous les sites. Elle ne lit pas leur contenu.', sc_grant: 'Utiliser l’écran de pause',
       if_h: 'Plans si-alors', if_p: 'Écris ta règle à froid. Elle revient sur l’écran de pause.', if_if: 'Si…', if_then: 'alors…', if_ph1: 'j’ai envie d’ouvrir YouTube après 20 h', if_ph2: 'je fais une carte de plus et je me lève', if_add: 'Ajouter', if_del: 'Supprimer',
-      ur_h: 'Urge timer', ur_p: 'L’envie monte, puis redescend. Trois minutes sans agir.', ur_go: 'Lancer 3 minutes', ur_stats: '{n} fois, l’envie a baissé {d} fois.', ur_pause: 'Écran de pause : {b} demi-tours sur {n}.', ur_watch: 'Rien d’autre à faire qu’observer.', ur_q: 'L’envie a baissé ?', ur_yes: 'Oui', ur_no: 'Non', ur_stop: 'Arrêter',
+      ur_h: 'Laisser passer l’envie', ur_p: 'L’envie monte, puis redescend. Trois minutes sans agir.', ur_go: 'Lancer 3 minutes', ur_stats: '{n} fois, l’envie a baissé {d} fois.', ur_pause: 'Écran de pause : {b} demi-tours sur {n}.', ur_watch: 'Rien d’autre à faire qu’observer.', ur_q: 'L’envie a baissé ?', ur_yes: 'Oui', ur_no: 'Non', ur_stop: 'Arrêter',
     },
     en: {
       sc_phone_h: 'Phone', sc_phone_p: 'Yesterday’s number, from Settings, Screen Time. Nothing is read for you.', sc_phone_l: 'Screen time yesterday (minutes)', sc_saved: 'Saved.', sc_target: 'Marker for this period: {m}', sc_avg: '7-day average: {m}',
@@ -22,7 +22,7 @@
       sc_today: 'Today', sc_insess: 'Off-work during a session', sc_none: 'Nothing measured yet.', sc_cat_work: 'Work', sc_cat_neutral: 'Neutral', sc_cat_dist: 'Distraction', sc_cat_tip: 'Change category',
       sc_block_h: 'Blocking', sc_block_on: 'Block the sites on my list', sc_m_off: 'Never', sc_m_session: 'During sessions', sc_m_hours: 'On a schedule', sc_from: 'From', sc_to: 'to', sc_list: 'Sites to block', sc_redir: 'For now, a blocked site shows a browser error. To get the pause screen instead, the extension needs access to all sites. It does not read their content.', sc_grant: 'Use the pause screen',
       if_h: 'If-then plans', if_p: 'Write your rule while calm. It comes back on the pause screen.', if_if: 'If…', if_then: 'then…', if_ph1: 'I want to open YouTube after 8 pm', if_ph2: 'I do one more card and stand up', if_add: 'Add', if_del: 'Delete',
-      ur_h: 'Urge timer', ur_p: 'The urge rises, then falls. Three minutes without acting.', ur_go: 'Start 3 minutes', ur_stats: '{n} times, the urge dropped {d} times.', ur_pause: 'Pause screen: {b} turned back out of {n}.', ur_watch: 'Nothing to do but watch it.', ur_q: 'Did the urge drop?', ur_yes: 'Yes', ur_no: 'No', ur_stop: 'Stop',
+      ur_h: 'Let the urge pass', ur_p: 'The urge rises, then falls. Three minutes without acting.', ur_go: 'Start 3 minutes', ur_stats: '{n} times, the urge dropped {d} times.', ur_pause: 'Pause screen: {b} turned back out of {n}.', ur_watch: 'Nothing to do but watch it.', ur_q: 'Did the urge drop?', ur_yes: 'Yes', ur_no: 'No', ur_stop: 'Stop',
     },
   });
   ML.defaults(() => ({ blockSched: { term: { m: 'session', from: 8, to: 20 }, exams: { m: 'hours', from: 8, to: 20 }, light: { m: 'session', from: 8, to: 20 }, holidays: { m: 'off', from: 8, to: 20 } } }));
@@ -99,7 +99,7 @@
       ${log.length ? `<p class="insight">${esc(t('ur_stats', { n: log.length, d: log.filter(x => x.dropped).length }))}</p>` : ''}${u.length ? `<p class="insight">${esc(t('ur_pause', { b: back, n: u.length }))}</p>` : ''}</div>`;
   }
   function render() {
-    const el = $('screen'); if (!el || S.tab !== 'screen') return;
+    const el = $('screen'); if (!el || S.tab !== 'health') return; // Screen time sits under Health on the Wellbeing page (3.66)
     const html = `<div class="y-page">${webCard()}${phoneCard()}${blockCard()}${ifCard()}${urgeCard()}</div>`;
     if (el.dataset.h === html) return;
     ML.keepInputs(el, () => { el.innerHTML = html; el.dataset.h = html; });
@@ -152,8 +152,8 @@
   }
   ML.openUrge = openUrge;
 
-  on('tab', n => { if (n === 'screen') { pull(); render(); } });
+  on('tab', n => { if (n === 'health') { pull(); render(); } });
   on('render', render); on('lang', () => { push(); render(); }); on('period', () => { push(); render(); }); on('timer', push);
-  on('minute', () => { if (S.tab === 'screen') pull(); });
+  on('minute', () => { if (S.tab === 'health') pull(); });
   on('started', async () => { if (hasChrome) { await pull(); push(); } });
 })();

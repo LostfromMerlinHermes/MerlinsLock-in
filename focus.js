@@ -7,14 +7,18 @@
 
   ML.addStrings({
     fr: {
-      tab_focus: 'Focus', tab_health: 'Santé', tab_screen: 'Temps d’écran', grp_progress: 'Progression', grp_well: 'Bien-être', grp_more: 'Plus',
-      fc_deep: 'Heures profondes', fc_flow: 'Flow, 7 jours', fc_chain: 'Bonus', fc_chain_h: 'Chain', fc_chain_n: '{n} de suite', fc_chain_0: 'La prochaine session propre lance la chaîne.',
+      tab_focus: 'Progrès', tab_health: 'Bien-être', tab_screen: 'Temps d’écran', grp_progress: 'Progression', grp_well: 'Bien-être', grp_more: 'Plus',
+      pg_since: 'depuis la rentrée, sur {n} semaines', pg_none: 'Ta première session lancera tes progrès.', pg_days: '{n} jours (record {b})', pg_flow_wk: 'Sessions Flow cette semaine', pg_of: '{a} sur {b}',
+      pg_span: 'Durée sans décrocher', pg_span_was: '(il y a un mois : {m})', pg_span_none: 'encore quelques sessions', pg_bonus: 'Bonus de Flow en cours', pg_bonus_0: 'pas encore',
+      pg_level: 'Niveau', pg_xp_left: '{n} XP avant {name}.', pg_ach: 'Succès, {a} sur {b}', pg_set_h: 'Objectif et affichage', gp_set: 'Ce que tu cherches', gp_p: 'Ça règle ton objectif du jour et ce que Toi met en avant. Tu peux changer dans Réglages.', gp_skip: 'Passer',
+      fc_style_h: 'Animé : les chiffres montent, le défi de la semaine et l’arbre qui pousse en fin de session.',
+      fc_deep: 'Heures profondes', fc_flow: 'Flow, 7 jours', fc_chain: 'Bonus', fc_chain_h: 'Chaîne', fc_chain_n: '{n} de suite', fc_chain_0: 'La prochaine session propre lance la chaîne.',
       fc_rule: 'Une session Flow : 25 min ou plus, finie, sans pause ni décrochage, notée 4 ou 5 si tu la notes.',
       fc_back_h: 'Retours', fc_back_p: 'Revenir après un trou compte double. Ton record ne s’efface jamais.', fc_record: 'Record', fc_returns: 'Retours', fc_streak: 'Série',
-      fc_span_h: 'Focus span', fc_span_p: 'La durée que tu tiens sans décrocher, sur tes dernières sessions.', fc_span_ago: 'Il y a un mois : {m}.', fc_span_try: 'Essayer {m}', fc_span_none: 'Quelques sessions de plus et ta durée s’affichera ici.',
+      fc_span_h: 'Durée sans décrocher', fc_span_p: 'La durée que tu tiens sans décrocher, sur tes dernières sessions.', fc_span_ago: 'Il y a un mois : {m}.', fc_span_try: 'Essayer une session de {m}', fc_span_none: 'Quelques sessions de plus et ta durée s’affichera ici.',
       fc_today: 'Aujourd’hui', fc_goal: '{m} sur {g}', fc_nogoal: '{m}, sans objectif',
-      fc_style: 'Affichage', fc_calm: 'Calm', fc_lively: 'Lively',
-      pd_title: 'Période', pd_term: 'Term', pd_exams: 'Exams', pd_light: 'Light', pd_holidays: 'Holidays', pd_auto: 'Passer en Exams 14 jours avant un examen', pd_auto_on: 'Période Exams activée : {name} dans {n} j.', pd_exam_line: '{name} dans {n} j',
+      fc_style: 'Affichage', fc_calm: 'Calme', fc_lively: 'Animé',
+      pd_title: 'Période', pd_term: 'Cours', pd_exams: 'Examens', pd_light: 'Léger', pd_holidays: 'Vacances', pd_auto: 'Passer en Examens 14 jours avant un examen', pd_auto_on: 'Période Examens activée : {name} dans {n} j.', pd_exam_line: '{name} dans {n} j',
       pd_h_term: 'Objectif 3 h par jour.', pd_h_exams: 'Objectif 5 h par jour.', pd_h_light: 'Objectif 1 h par jour.', pd_h_holidays: 'Pas d’objectif, ta série est gelée.',
       gp_q: 'Que cherches-tu ici ?', gp_further: 'Aller plus loin', gp_start: 'Réussir à commencer', gp_phone: 'Moins de téléphone', gp_change: 'Objectif : {g}',
       fl_toast: 'Flow · +{xp} XP', cb_toast: 'Tu es revenu. Session doublée · +{xp} XP',
@@ -24,11 +28,15 @@
       ov_set: 'Arrêter les bonus et proposer de s’arrêter après une longue journée',
     },
     en: {
-      tab_focus: 'Focus', tab_health: 'Health', tab_screen: 'Screen time', grp_progress: 'Progress', grp_well: 'Wellbeing', grp_more: 'More',
+      tab_focus: 'Progress', tab_health: 'Wellbeing', tab_screen: 'Screen time', grp_progress: 'Progress', grp_well: 'Wellbeing', grp_more: 'More',
+      pg_since: 'since the school year began, over {n} weeks', pg_none: 'Your first session starts your progress.', pg_days: '{n} days (record {b})', pg_flow_wk: 'Flow sessions this week', pg_of: '{a} of {b}',
+      pg_span: 'You hold without a distraction', pg_span_was: '(a month ago: {m})', pg_span_none: 'a few more sessions', pg_bonus: 'Current Flow bonus', pg_bonus_0: 'not yet',
+      pg_level: 'Level', pg_xp_left: '{n} XP to {name}.', pg_ach: 'Achievements, {a} of {b}', pg_set_h: 'Goal and display', gp_set: 'What you are here for', gp_p: 'It sets your daily goal and what You puts first. You can change it in Settings.', gp_skip: 'Skip',
+      fc_style_h: 'Lively: numbers climb, a weekly challenge and the tree growing at the end of a session.',
       fc_deep: 'Deep hours', fc_flow: 'Flow, 7 days', fc_chain: 'Bonus', fc_chain_h: 'Chain', fc_chain_n: '{n} in a row', fc_chain_0: 'Your next clean session starts the chain.',
       fc_rule: 'A Flow session: 25 min or more, finished, no pause or distraction, rated 4 or 5 if you rate it.',
       fc_back_h: 'Comebacks', fc_back_p: 'Coming back after a gap counts double. Your record is never erased.', fc_record: 'Record', fc_returns: 'Comebacks', fc_streak: 'Streak',
-      fc_span_h: 'Focus span', fc_span_p: 'How long you hold without a distraction, over your last sessions.', fc_span_ago: 'A month ago: {m}.', fc_span_try: 'Try {m}', fc_span_none: 'A few more sessions and your span shows here.',
+      fc_span_h: 'Focus span', fc_span_p: 'How long you hold without a distraction, over your last sessions.', fc_span_ago: 'A month ago: {m}.', fc_span_try: 'Try a {m} session', fc_span_none: 'A few more sessions and your span shows here.',
       fc_today: 'Today', fc_goal: '{m} of {g}', fc_nogoal: '{m}, no goal',
       fc_style: 'Display', fc_calm: 'Calm', fc_lively: 'Lively',
       pd_title: 'Period', pd_term: 'Term', pd_exams: 'Exams', pd_light: 'Light', pd_holidays: 'Holidays', pd_auto: 'Switch to Exams 14 days before an exam', pd_auto_on: 'Exams period on: {name} in {n} d.', pd_exam_line: '{name} in {n} d',
@@ -144,31 +152,53 @@
   function setProfile(g) { S.goalProfile = g; S.youStyle = g === 'start' ? 'lively' : 'calm'; save(); applyLook(); render(); emit('render'); }
   const dayGoal = () => (S.goalProfile === 'start' ? Math.min(30, ML.periodInfo().goal) : ML.periodInfo().goal);
 
-  /* ---------- The page ---------- */
-  const seg = (attr, items, cur) => `<div class="y-seg" role="group">${items.map(([k, l]) => `<button type="button" data-${attr}="${k}" aria-pressed="${k === cur}">${esc(l)}</button>`).join('')}</div>`;
+  /* ---------- Progress (3.66): Focus and the Grimoire's stats on one page, written as lines ---------- */
+  // One big number (the school year), then one line per fact, each said once in the whole app. Settings (period,
+  // goal, display) moved to Settings; the goal question is asked once, in a sheet.
+  const fmtDur = m => { m = Math.round(m); return m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ' ' + String(m % 60).padStart(2, '0') : ''}` : `${m} min`; };
+  ML.fmtDur = fmtDur;
+  ML.dayGoal = () => dayGoal();
+  const dec = (v, n) => v.toLocaleString(ML.locale(), { minimumFractionDigits: 0, maximumFractionDigits: n });
+  const openDet = new Set();
   function render() {
     const el = $('focus'); if (!el || S.tab !== 'focus') return;
-    const week = S.sessions.filter(s => s.at >= Date.now() - 7 * 864e5), flows = week.filter(isFlow);
-    const n = chainOf(S.sessions), st = ML.streaks(), sp = span(), m = minsOn(today()), g = dayGoal(), pd = period(), x = nextExam();
-    const dots = Array.from({ length: 10 }, (_, i) => `<i class="${i < Math.min(n, 10) ? 'on' : ''}" style="--i:${i}"></i>`).join('');
-    const tryM = sp.now ? Math.min(120, Math.ceil((sp.now + 1) / 5) * 5) : 0, deep = flows.reduce((a, s) => a + s.mins, 0);
-    const blocks = {
-      goal: S.goalProfile ? '' : `<div class="g-card"><h2>${esc(t('gp_q'))}</h2><div class="y-btns">${['further', 'start', 'phone'].map(k => `<button type="button" class="small" data-gp="${k}">${esc(t('gp_' + k))}</button>`).join('')}</div></div>`,
-      today: `<div class="g-card"><div class="y-row"><h2>${esc(t('fc_today'))}</h2><span class="insight">${esc(g ? t('fc_goal', { m: fmtMins(m), g: fmtMins(g) }) : t('fc_nogoal', { m: fmtMins(m) }))}</span></div>${g ? `<span class="y-track"><b style="width:${Math.min(100, m / g * 100).toFixed(0)}%"></b></span>` : ''}
-        <button type="button" class="small y-start" data-stuck>${esc(t('st_btn'))}</button></div>`,
-      flow: `<div class="g-row"><div class="g-card kpi"><strong data-count="${deep}" data-fmt="m">${fmtMins(deep)}</strong><span>${esc(t('fc_deep'))}</span></div><div class="g-card kpi"><strong data-count="${flows.length}">${flows.length}</strong><span>${esc(t('fc_flow'))}</span></div><div class="g-card kpi"><strong>×${multOf(n).toFixed(2).replace(/0$/, '')}</strong><span>${esc(t('fc_chain'))}</span></div></div>
-        <div class="g-card"><div class="y-row"><h2>${esc(t('fc_chain_h'))}</h2><span class="insight">${esc(n ? t('fc_chain_n', { n }) : t('fc_chain_0'))}</span></div><div class="y-chain">${dots}</div><p class="insight">${esc(t('fc_rule'))}</p></div>`,
-      span: `<div class="g-card"><div class="y-row"><h2>${esc(t('fc_span_h'))}</h2>${sp.now ? `<strong class="y-num" data-count="${sp.now}" data-fmt="m">${fmtMins(sp.now)}</strong>` : ''}</div><p class="insight">${esc(sp.now ? t('fc_span_p') : t('fc_span_none'))}${sp.then ? ' ' + esc(t('fc_span_ago', { m: fmtMins(sp.then) })) : ''}</p>${tryM ? `<button type="button" class="small" data-span="${tryM}">${esc(t('fc_span_try', { m: fmtMins(tryM) }))}</button>` : ''}</div>`,
-      back: `<div class="g-card"><h2>${esc(t('fc_back_h'))}</h2><div class="y-trio">${S.goalProfile === 'start' ? '' : `<div class="kpi"><strong>${st.cur}</strong><span>${esc(t('fc_streak'))}</span></div>`}<div class="kpi"><strong>${st.best}</strong><span>${esc(t('fc_record'))}</span></div><div class="kpi"><strong>${S.comebacks || 0}</strong><span>${esc(t('fc_returns'))}</span></div></div><p class="insight">${esc(t('fc_back_p'))}</p></div>`,
-      period: `<div class="g-card"><h2>${esc(t('pd_title'))}</h2>${seg('pd', ML.PERIODS.map(k => [k, t('pd_' + k)]), pd)}<p class="insight">${esc(t('pd_h_' + pd))}${pd === 'exams' && x ? ' ' + esc(t('pd_exam_line', { name: x.name, n: daysTo(x.date) })) + '.' : ''}</p>${ML.ui.chk('pd-auto', t('pd_auto'), S.period.auto !== false)}</div>`,
-      style: `<div class="y-row y-foot"><span class="insight">${esc(t('fc_style'))}</span>${seg('style', [['calm', t('fc_calm')], ['lively', t('fc_lively')]], S.youStyle)}</div>`,
-    };
-    const order = S.goalProfile === 'start' ? ['goal', 'today', 'back', 'span', 'flow', 'period', 'style'] : ['goal', 'today', 'flow', 'span', 'back', 'period', 'style'];
-    const html = `<div class="y-page">${order.map(k => blocks[k]).join('')}</div>`;
+    const n = chainOf(S.sessions), st = ML.streaks(), sp = span(), m = minsOn(today()), g = dayGoal(), lv = ML.seqInfo();
+    const wk = ML.weekNow ? ML.weekNow() : { s: 0, f: 0 }, yr = ML.treeYear ? ML.treeYear() : { mins: 0, weeks: 0 };
+    const tryM = sp.now ? Math.min(120, Math.ceil((sp.now + 1) / 5) * 5) : 0, start = S.goalProfile === 'start';
+    const line = (label, val) => `<li><span>${esc(label)}</span><b>${esc(val)}</b></li>`;
+    const lines = [
+      line(t('fc_today'), g ? t('fc_goal', { m: fmtDur(m), g: fmtDur(g) }) : fmtDur(m)),
+      start ? '' : line(t('fc_streak'), t('pg_days', { n: st.cur, b: st.best })),
+      S.comebacks ? line(t('fc_returns'), String(S.comebacks)) : '',
+      line(t('pg_flow_wk'), t('pg_of', { a: wk.f, b: wk.s })),
+      line(t('pg_span'), sp.now ? fmtDur(sp.now) + (sp.then && sp.then !== sp.now ? ' ' + t('pg_span_was', { m: fmtDur(sp.then) }) : '') : t('pg_span_none')),
+      line(t('pg_bonus'), n ? '× ' + dec(multOf(n), 2) : t('pg_bonus_0')),
+    ].join('');
+    const det = (k, title, body) => `<details class="g-card y-det" data-det="${k}" ${openDet.has(k) ? 'open' : ''}><summary>${esc(title)}</summary>${openDet.has(k) ? body() : ''}</details>`;
+    const ach = ML.achInfo ? ML.achInfo() : null;
+    const html = `<div class="y-page pg">
+      <p class="yl-big">${yr.mins ? `<b data-count="${yr.mins}" data-fmt="m">${esc(fmtDur(yr.mins))}</b> ${esc(t('pg_since', { n: yr.weeks }))}` : esc(t('pg_none'))}</p>
+      <ul class="yl">${lines}</ul>
+      <p class="insight">${esc(t('fc_rule'))}</p>
+      <div class="y-btns">${tryM ? `<button type="button" data-span="${tryM}">${esc(t('fc_span_try', { m: fmtDur(tryM) }))}</button>` : ''}<button type="button" class="ghost" data-stuck>${esc(t('st_btn'))}</button></div>
+      <div class="yl-level"><p><span>${esc(t('pg_level'))}</span> <b>${esc(lv.name)}</b></p><span class="y-track"><b style="width:${(lv.frac * 100).toFixed(1)}%"></b></span>
+        <p class="insight">${esc(lv.next ? t('pg_xp_left', { n: (lv.next - S.xp).toLocaleString(ML.locale()), name: lv.nextName }) + ' ' : '')}${esc(t('xp_rules'))}</p></div>
+      ${ach ? det('ach', t('pg_ach', { a: ach.got, b: ach.total }), () => ach.html()) : ''}
+      ${det('heat', t('six_months'), () => ML.heatmapHtml ? ML.heatmapHtml() : '')}
+      ${det('works', t('what_works'), () => (ML.whatWorksHtml ? ML.whatWorksHtml() : '') + (ML.distractHtml ? ML.distractHtml() : ''))}
+    </div>`;
     if (el.dataset.h === html) return;
     el.innerHTML = html; el.dataset.h = html;
     countUp(el);
   }
+  // Asked once, the first time You opens, instead of a questionnaire on top of a page
+  function askGoal() {
+    if (S.goalProfile || $('goalq') && !$('goalq').hidden) return;
+    ML.ySheet('goalq', `<h2>${esc(t('gp_q'))}</h2><p class="insight">${esc(t('gp_p'))}</p><div class="y-btns y-col">${['further', 'start', 'phone'].map(k => `<button type="button" data-gp="${k}">${esc(t('gp_' + k))}</button>`).join('')}</div><button type="button" class="ghost" data-gp="skip">${esc(t('gp_skip'))}</button>`, r => {
+      r.onclick = e => { const b = e.target.closest('[data-gp]'); if (!b) return; ML.closeOverlay('goalq'); setProfile(b.dataset.gp === 'skip' ? 'further' : b.dataset.gp); };
+    });
+  }
+  on('tab', n => { if (ML.SPACE[n] === 'you' || n === 'yhome') setTimeout(askGoal, 300); });
   // Lively: numbers climb when the page opens, once per visit
   let counted = false;
   function countUp(el) {
@@ -177,19 +207,17 @@
     el.querySelectorAll('[data-count]').forEach(n => {
       const to = +n.dataset.count, isM = n.dataset.fmt === 'm', t0 = performance.now();
       if (!to) return;
-      const step = now => { const k = Math.min(1, (now - t0) / 700), v = Math.round(to * (1 - Math.pow(1 - k, 3))); n.textContent = isM ? fmtMins(v) : v; if (k < 1) requestAnimationFrame(step); };
+      const step = now => { const k = Math.min(1, (now - t0) / 700), v = Math.round(to * (1 - Math.pow(1 - k, 3))); n.textContent = isM ? fmtDur(v) : v; if (k < 1) requestAnimationFrame(step); };
       requestAnimationFrame(step);
     });
   }
   $('focus').addEventListener('click', e => {
     const q = a => e.target.closest('[data-' + a + ']');
-    if (q('gp')) return setProfile(q('gp').dataset.gp);
     if (q('stuck')) return openStuck();
-    if (q('pd')) return setPeriod(q('pd').dataset.pd);
-    if (q('style')) { S.youStyle = q('style').dataset.style; counted = false; save(); applyLook(); return render(); }
     if (q('span')) return ML.lockIn({ taskId: S.activeId, title: S.freeTitle, mins: +q('span').dataset.span });
   });
-  $('focus').addEventListener('change', e => { if (e.target.id === 'pd-auto') { S.period.auto = e.target.checked; save(); emit('period', period()); render(); } });
+  // A folded part is only built when opened
+  $('focus').addEventListener('toggle', e => { const d = e.target.closest && e.target.closest('details[data-det]'); if (!d) return; const k = d.dataset.det, was = openDet.has(k); if (d.open) openDet.add(k); else openDet.delete(k); if (was !== d.open) render(); }, true);
 
   /* ---------- I can't start ---------- */
   function openStuck() {
@@ -235,10 +263,27 @@
     toast(t('rs_toast'), { action: { label: t('rs_open'), fn: openReset }, ms: 12000 });
   }
 
+  // Period, goal and display: settings, not stats (3.66, moved out of the Progress page)
   ML.settingsSection({
     order: 32,
-    render: () => `<h3>${esc(t('tab_focus'))}</h3>${ML.ui.chk('set-over', t('ov_set'), S.overGuard !== false)}`,
-    bind: r => { r.querySelector('#set-over').onchange = e => { S.overGuard = e.target.checked; save(); }; },
+    render: () => {
+      const pd = period(), x = nextExam();
+      return `<h3>${esc(t('pg_set_h'))}</h3>
+      <label class="field"><span>${esc(t('pd_title'))}</span>${ML.ui.sel('set-pd', ML.PERIODS.map(k => [k, t('pd_' + k)]), S.period.key || 'term')}</label>
+      <p class="hint">${esc(t('pd_h_' + pd))}${pd === 'exams' && x ? ' ' + esc(t('pd_exam_line', { name: x.name, n: daysTo(x.date) })) + '.' : ''}</p>
+      ${ML.ui.chk('pd-auto', t('pd_auto'), S.period.auto !== false)}
+      <label class="field"><span>${esc(t('gp_set'))}</span>${ML.ui.sel('set-gp', ['further', 'start', 'phone'].map(k => [k, t('gp_' + k)]), S.goalProfile || 'further')}</label>
+      <label class="field"><span>${esc(t('fc_style'))}</span>${ML.ui.sel('set-style', [['calm', t('fc_calm')], ['lively', t('fc_lively')]], S.youStyle)}</label>
+      <p class="hint">${esc(t('fc_style_h'))}</p>
+      ${ML.ui.chk('set-over', t('ov_set'), S.overGuard !== false)}`;
+    },
+    bind: r => {
+      r.querySelector('#set-over').onchange = e => { S.overGuard = e.target.checked; save(); };
+      r.querySelector('#set-pd').onchange = e => { setPeriod(e.target.value); ML.renderSettings(); };
+      r.querySelector('#pd-auto').onchange = e => { S.period.auto = e.target.checked; save(); emit('period', period()); render(); };
+      r.querySelector('#set-gp').onchange = e => { S.goalProfile = e.target.value; save(); applyLook(); render(); emit('render'); };
+      r.querySelector('#set-style').onchange = e => { S.youStyle = e.target.value; counted = false; save(); applyLook(); emit('render'); };
+    },
   });
   on('tab', n => { if (n === 'focus') counted = false; render(); });
   on('render', render); on('minute', () => { render(); maybeReset(); }); on('lang', render); on('rated', render);

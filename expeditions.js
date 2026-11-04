@@ -57,7 +57,7 @@
     return fresh;
   }
   function announce() {
-    const r = collect(); if (!r) return;
+    const r = collect(); if (!r || !ML.modOn('game')) return; // the game module off: the object is still found, just not announced
     const show = () => toast(t('ex_toast', { name: famName(), item: t('x_' + r.item) }), { ms: 7000, action: { label: t('ex_h'), fn: () => { ML.setMobileView('grim'); setTimeout(() => { const c = $('exp-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 80); } } });
     if (ML.running()) { const f = () => { if (!ML.running()) { ML.off && ML.off('timer', f); if (!shown) { shown = true; show(); } } }; let shown = false; on('timer', f); } else show(); // never during a session
   }

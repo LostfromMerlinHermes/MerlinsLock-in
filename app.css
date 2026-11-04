@@ -4476,3 +4476,74 @@ html.mnav-on .fit-bar { margin-inline: -14px; padding-inline: 14px; }
 .tr-work small { font: 500 11.5px var(--f-mono); color: var(--mist); }
 .tr-done { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; margin: 0; font-size: 12.5px; }
 .tr-done span { max-width: 100%; padding: 1px 8px; overflow: hidden; border: 1px solid var(--line); border-radius: 99px; white-space: nowrap; text-overflow: ellipsis; } .tr-done small { color: var(--mist); }
+
+/* ---------- You v2 (3.66): modules, the tree first, pages written as lines ---------- */
+/* A module switched off in Settings hides what belongs to it (ML.module in app.js) */
+html.mod-off-game [data-mod="game"], html.mod-off-wellbeing [data-mod="wellbeing"] { display: none !important; }
+.mod-opt { align-items: flex-start; gap: 10px; }
+.mod-opt > span { display: grid; gap: 2px; } .mod-opt b { font-weight: 600; } .mod-opt small { font-size: 12.5px; color: var(--mist); }
+
+/* Lines, not boxes: one big number per page, then label / value rows. No caps, no mono labels */
+.yl-week { display: grid; gap: 6px; }
+.yl-big { margin: 0; font-size: 15px; line-height: 1.35; color: var(--mist); }
+.yl-big b { margin-right: 2px; font-size: 28px; font-weight: 600; letter-spacing: -.01em; color: var(--text); font-variant-numeric: tabular-nums; }
+.yl { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.yl li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-height: 44px; padding: 10px 2px; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+.yl li span { color: var(--mist); } .yl li b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.yl-level { display: grid; gap: 8px; padding: 14px 0 2px; }
+.yl-level p:first-child { margin: 0; font-size: 15px; } .yl-level p:first-child span { color: var(--mist); } .yl-level p:first-child b { font-size: 18px; font-weight: 600; }
+.pg .y-btns button, .yh .y-btns button, .tr-page .y-btns button, .rv2 .y-btns button { min-height: 44px; }
+.pg .y-det summary, .tr-page .y-det summary { display: flex; align-items: center; justify-content: space-between; min-height: 32px; font-size: 14.5px; }
+.y-det summary small { color: var(--mist); font-size: 13px; }
+.y-col { display: grid; gap: 8px; } .y-col button { min-height: 48px; text-align: left; }
+
+/* The You home on a phone: the tree edge to edge, then rows */
+.yh { gap: 12px; }
+.yh-tree { display: block; width: 100%; padding: 0; border: 0; border-radius: var(--radius); background: #0b0810; overflow: hidden; cursor: pointer; }
+.yh-stage { display: block; aspect-ratio: 960 / 760; }
+.yh-canvas { display: block; width: 100%; height: auto; }
+.yh-canvas.tr-px { image-rendering: pixelated; }
+.yh-row { min-height: 58px; }
+.yh-row > span { display: grid; gap: 2px; min-width: 0; text-align: left; }
+.yh-row > span b, .yh-row > span small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yh-row small { font-size: 12.5px; color: var(--mist); }
+.yh-car { flex: none; width: 18px; height: 18px; fill: none; stroke: var(--mist); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.yh-links { display: flex; gap: 8px; }
+.yh-links button { flex: 1; min-height: 44px; } .yh-links small { color: var(--mist); font-size: 12px; }
+.yh-alert { border-left: 3px solid var(--warn); }
+.yh-alert p { margin: 0; } .yh-alert b { font-weight: 600; }
+
+/* The Tree page: title row, then the tree without a frame around it */
+.tr-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.tr-top h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.tr-page > .tr-stage { border-radius: var(--radius); }
+.tr-lgs { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 6px 0; }
+.tr-lg { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; }
+.tr-lg i { width: 10px; height: 10px; border-radius: 3px; } .tr-lg small { color: var(--mist); font-size: 12.5px; }
+
+/* The Sunday review */
+.rv2 h2 { margin: 0; }
+.rv2-l { display: grid; gap: 10px; margin: 4px 0; }
+.rv2-l dt { font-size: 12.5px; color: var(--mist); } .rv2-l dd { margin: 2px 0 0; font-size: 14.5px; line-height: 1.4; }
+
+/* Wellbeing: Health then Screen time on one page */
+.wb-page { display: grid; gap: 12px; }
+/* You pages: titles in sentence case, in the body font (the global h2 is a small tracked caps label) */
+#tab-yhome h2, #tab-tree h2, #tab-focus h2, #tab-health h2, #tab-grim h2 { font-family: inherit; font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text); }
+#tab-tree .tr-top h2 { font-size: 17px; }
+/* Review fixes (3.66): four sizes on the You pages (13 / 15 / 17 / 28), no mono, 44 px targets, the tree edge to edge on phones */
+#tab-tree .tr-work small, #tab-tree .tr-work li, #tab-grim .ladder, #tab-grim .ladder li { font-family: inherit; font-size: 13px; font-variant-numeric: tabular-nums; }
+#tab-tree .tr-work li { font-size: 15px; }
+#tab-tree .insight, #tab-focus .insight, #tab-health .insight, #tab-yhome .insight, .yh-row small, .mod-opt small, .tr-lg small, .rv2-l dt, .y-det summary small, .yh-links small { font-size: 13px; }
+.yl li, .rv2-l dd, .pg .y-det summary, .tr-page .y-det summary, .tr-lg, .yl-big, .yl-level p:first-child { font-size: 15px; }
+#tab-yhome .small, #tab-tree .small, #tab-focus .small, #tab-health .small, #tab-grim .small, #tab-tree .link, #tab-health .link, #tab-grim .tip button { min-height: 44px; }
+#tab-tree .icon-btn { min-width: 44px; min-height: 44px; }
+.mod-opt input { width: 20px; height: 20px; flex: none; }
+#tab-grim { display: grid; gap: 12px; align-content: start; } #tab-grim > #grim { order: 2; } #tab-grim > #g-game { order: 1; }
+/* Wellbeing as lines: cards lose their frame except the support one */
+.wb-page .g-card:not(.y-support) { padding: 14px 2px 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; box-shadow: none; }
+.wb-page { gap: 24px; }
+@media (max-width: 899px) {
+  .yh-tree { width: calc(100% + 32px); margin-inline: -16px; border-radius: 0; }
+  .pg .y-btns { display: grid; } .pg .y-btns button { width: 100%; }
+}

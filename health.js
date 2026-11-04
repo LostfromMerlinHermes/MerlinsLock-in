@@ -7,7 +7,7 @@
 
   ML.addStrings({
     fr: {
-      hl_intro: 'Un check de 20 secondes après le choix d’énergie. Il relie ton corps à ton travail, à partir de tes propres journées. Reste sur cet appareil, jamais synchronisé. Ce n’est pas un avis médical.', hl_on: 'Activer', hl_off: 'Désactiver', hl_clear: 'Tout effacer',
+      hl_h: 'Point santé', hl_intro: 'Un check de 20 secondes après le choix d’énergie. Il relie ton corps à ton travail, à partir de tes propres journées. Reste sur cet appareil, jamais synchronisé. Ce n’est pas un avis médical.', hl_on: 'Activer', hl_off: 'Désactiver', hl_clear: 'Tout effacer',
       hl_today: 'Aujourd’hui', hl_lines: 'Lignes affichées', hl_links: 'Ce qui marche pour toi', hl_wait: 'Il faut au moins {n} jours de chaque côté pour comparer. Reviens dans quelques semaines.', hl_better: '{what} : ta note de focus passe de {a} à {b}, sur {n} jours.', hl_longer: '{what} : {a} de travail contre {b}, sur {n} jours.', hl_note: 'Ce sont des tendances chez toi, pas des causes.',
       q_sleep: 'Sommeil', q_water: 'Eau', q_move: 'Bougé', q_mood: 'Le moral', q_caffeine: 'Café, boissons énergisantes', q_alcohol: 'Alcool', q_meals: 'Repas pris',
       a_short: '< 6 h', a_mid: '7 h', a_long: '8 h +', a_low: 'Peu', a_ok: 'Bien', a_no: 'Non', a_yes: 'Oui', a_bad: 'Bas', a_med: 'Moyen', a_good: 'Bon', a_none: 'Aucun', a_some: 'Un peu', a_lots: 'Beaucoup',
@@ -15,7 +15,7 @@
       sp_low: 'Le moral est bas depuis quelques jours.', sp_body: 'Parler à quelqu’un peut aider : un médecin, le service de santé de ta fac, une personne de confiance.', sp_h: 'Besoin de parler', sp_fr: 'En cas de pensées suicidaires, le 3114 répond jour et nuit, gratuitement.', sp_other: 'Hors de France, findahelpline.com liste les lignes d’écoute de ton pays.', sp_urg: 'En cas de danger immédiat, appelle le 112.',
     },
     en: {
-      hl_intro: 'A 20-second check after you pick your energy. It links your body to your work, from your own days. It stays on this device and is never synced. This is not medical advice.', hl_on: 'Turn on', hl_off: 'Turn off', hl_clear: 'Clear everything',
+      hl_h: 'Health check', hl_intro: 'A 20-second check after you pick your energy. It links your body to your work, from your own days. It stays on this device and is never synced. This is not medical advice.', hl_on: 'Turn on', hl_off: 'Turn off', hl_clear: 'Clear everything',
       hl_today: 'Today', hl_lines: 'Lines shown', hl_links: 'What works for you', hl_wait: 'It takes at least {n} days on each side to compare. Come back in a few weeks.', hl_better: '{what}: your focus rating goes from {a} to {b}, over {n} days.', hl_longer: '{what}: {a} of work against {b}, over {n} days.', hl_note: 'These are trends in your days, not causes.',
       q_sleep: 'Sleep', q_water: 'Water', q_move: 'Moved', q_mood: 'Mood', q_caffeine: 'Coffee, energy drinks', q_alcohol: 'Alcohol', q_meals: 'Meals eaten',
       a_short: '< 6 h', a_mid: '7 h', a_long: '8 h +', a_low: 'Little', a_ok: 'Enough', a_no: 'No', a_yes: 'Yes', a_bad: 'Low', a_med: 'Medium', a_good: 'Good', a_none: 'None', a_some: 'Some', a_lots: 'A lot',
@@ -27,6 +27,9 @@
   // [key, answers, the answers that count as the "good" side of a comparison]
   const LINES = [['sleep', ['short', 'mid', 'long'], ['mid', 'long']], ['water', ['low', 'ok'], ['ok']], ['move', ['no', 'yes'], ['yes']], ['mood', ['bad', 'med', 'good'], ['good']], ['caffeine', ['none', 'some', 'lots'], ['none', 'some']], ['alcohol', ['no', 'yes'], ['no']], ['meals', ['no', 'yes'], ['yes']]];
   const DEFAULT_LINES = ['sleep', 'water', 'move', 'mood'], MIN_DAYS = 5;
+  // Wellbeing (3.66) = this check + Screen time (guard.js), one page and one module
+  ML.addStrings({ fr: { mod_well: 'Bien-être', mod_well_d: 'Point santé et temps d’écran.' }, en: { mod_well: 'Wellbeing', mod_well_d: 'Health check and screen time.' } });
+  ML.module('wellbeing', { label: 'mod_well', hint: 'mod_well_d', order: 20, def: true });
   const P = ML.priv;
   const cfg = () => P.get('healthCfg', { on: false, lines: DEFAULT_LINES });
   const log = () => P.get('health', {});
@@ -71,7 +74,7 @@
     const el = $('health'); if (!el || S.tab !== 'health') return;
     const c = cfg();
     let html;
-    if (!c.on) html = `<div class="y-page"><div class="g-card"><h2>${esc(t('tab_health'))}</h2><p class="insight">${esc(t('hl_intro'))}</p><button type="button" class="small primary" data-hon>${esc(t('hl_on'))}</button></div>${support(false)}</div>`;
+    if (!c.on) html = `<div class="y-page"><div class="g-card"><h2>${esc(t('hl_h'))}</h2><p class="insight">${esc(t('hl_intro'))}</p><button type="button" class="small primary" data-hon>${esc(t('hl_on'))}</button></div>${support(false)}</div>`;
     else {
       const low = moodLow(), found = links();
       html = `<div class="y-page">${low ? support(true) : ''}<div class="g-card"><h2>${esc(t('hl_today'))}</h2><div class="y-qs">${form('hl')}</div></div>
@@ -102,7 +105,7 @@
 
   /* ---------- The check, once a day, right after the energy ---------- */
   function offerCheck() {
-    const c = cfg(); if (!c.on || !c.lines.length || P.get('healthAsked') === today() || log()[today()]) return;
+    const c = cfg(); if (!ML.modOn('wellbeing') || !c.on || !c.lines.length || P.get('healthAsked') === today() || log()[today()]) return;
     if ((ML.energyOpen && ML.energyOpen()) || ML.running()) return;
     P.set('healthAsked', today());
     ML.ySheet('hcheck', `<h2>${esc(t('hl_today'))}</h2><div class="y-qs">${form('hc')}</div><button type="button" class="primary" data-close="hcheck">${esc(t('tip_ok'))}</button>`, r => {

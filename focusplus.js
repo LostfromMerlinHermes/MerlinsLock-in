@@ -497,26 +497,24 @@
   }
   function maybePrompt() {
     const d = new Date().getDay(), wk = reviewWeek();
-    if ((d === 0 || d === 1) && !(S.reviews[wk] && S.reviews[wk].at) && S.reviewPrompted !== today() && weekStats(wk).n > 0) {
+    const R = S.reviews[wk] || {};
+    if ((d === 0 || d === 1) && !R.at && !R.planned && !R.skip && S.reviewPrompted !== today() && weekStats(wk).n > 0) {
       S.reviewPrompted = today(); save();
-      setTimeout(() => toast(t('review_prompt'), { action: { label: t('review_open'), fn: () => openReview(wk) } }), 4000);
+      // 3.66: the Sunday review is a card on the Tree (tree.js); the written review stays one tap away from it
+      const go = () => (ML.goWeekReview ? ML.goWeekReview() : openReview(wk));
+      setTimeout(() => toast(t('review_prompt'), { action: { label: t('rv_see'), fn: go } }), 4000);
     }
   }
+  ML.addStrings({ fr: { rv_see: 'Voir le bilan' }, en: { rv_see: 'See the review' } });
   on('started', () => { renderGoal(); maybePrompt(); renderDistract(); });
   on('newday', () => { renderGoal(); maybePrompt(); });
 
-  /* ---------- Grimoire additions ---------- */
-  on('grimoire', () => {
+  /* ---------- Distractions this week: a line in Progress, under what works (3.66) ---------- */
+  ML.distractHtml = () => {
     const wk = weekStart(), st = weekStats(wk);
     const hours = Math.max(0.5, st.mins / 60), worst = {};
     S.distr.filter(d => inWeek(d.at, wk)).forEach(d => { const b = bucketOf(d.at); worst[b] = (worst[b] || 0) + 1; });
     const w = Object.entries(worst).sort((a, b) => b[1] - a[1])[0];
-    const card = document.createElement('div');
-    card.className = 'g-card';
-    card.innerHTML = `<h2>${esc(t('distract_stats'))}</h2>
-      <p class="insight">${st.distr ? esc(t('distract_line', { n: st.distr, r: (st.distr / hours).toFixed(1) })) + (w ? ' ' + esc(t('distract_worst', { time: t('time_' + w[0]) })) : '') : esc(t('distract_none'))}</p>
-      <button type="button" class="small" id="g-review">${esc(t('review_open'))}</button>`;
-    $('g-game').prepend(card);
-    $('g-review').onclick = () => openReview();
-  });
+    return `<p class="insight">${st.distr ? esc(t('distract_line', { n: st.distr, r: (st.distr / hours).toLocaleString(ML.locale(), { maximumFractionDigits: 1 }) })) + (w ? ' ' + esc(t('distract_worst', { time: t('time_' + w[0]) })) : '') : esc(t('distract_none'))}</p>`;
+  };
 })();

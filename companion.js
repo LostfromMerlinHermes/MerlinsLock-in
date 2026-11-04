@@ -277,7 +277,7 @@
     initTower();
     const T = towerDay();
     if (T.floors > 0) { T.floors--; T.fallen++; T.built = Math.max(0, T.built - 1); T.fallLog.push(Date.now()); if (T.fallLog.length > 200) T.fallLog = T.fallLog.slice(-200); }
-    save(); toast(t('tower_fell')); react('sad', 8000);
+    save(); if (ML.modOn('game')) toast(t('tower_fell')); react('sad', 8000);
     const mt = document.querySelector('.mini-tower'); if (mt) { mt.classList.remove('crumble'); void mt.offsetWidth; mt.classList.add('crumble'); }
   });
   on('left', ({ strict }) => {
@@ -286,7 +286,7 @@
     initTower();
     const T = towerDay();
     if (T.floors > 0) { T.floors--; T.fallen++; T.built = Math.max(0, T.built - 1); T.fallLog.push(Date.now()); }
-    save(); toast(t('tower_fell_left')); react('sad', 8000);
+    save(); if (ML.modOn('game')) toast(t('tower_fell_left')); react('sad', 8000);
     const mt = document.querySelector('.mini-tower'); if (mt) { mt.classList.remove('crumble'); void mt.offsetWidth; mt.classList.add('crumble'); }
   });
   on('timer', () => { lastActive = Date.now(); renderPerch(); });

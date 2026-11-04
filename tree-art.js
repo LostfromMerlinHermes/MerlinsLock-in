@@ -15,7 +15,8 @@
   const BARKS = { br_bark: ['#2e2115', '#5e4630', '#94734f', '#1e150e'], br_ash: ['#6f6a66', '#a8a29c', '#e0dbd2', '#57524e'], br_ebony: ['#0d0b0f', '#26212b', '#4b4356', '#060508'], br_gold: ['#5e3f12', '#a87c28', '#ecc768', '#3c280a'], br_verdigris: ['#17443e', '#2f7a6c', '#6cc4ad', '#0e2d29'], br_ember: ['#3b120e', '#7c2a1a', '#c25a33', '#250a07'] };
   const FLOWERS = { fl_gold: ['#efc765', '#f7dd8e', '#7a4f1d'], fl_plum: ['#f5e6ea', '#ffffff', '#b5476a'], fl_camellia: ['#c9374a', '#e6606f', '#f0cb6a'], fl_star: ['#9fd0ff', '#e4f3ff', '#ffffff'] };
   const RARE = ['#9fd0ff', '#e4f3ff', '#ffffff'];
-  const palOf = (o, W) => LEAVES[o.leaf] || SEASONS[W.season] || SEASONS[0];
+  const palOf = (o, W) => W.pal || LEAVES[o.leaf] || // W.pal: a week's own leaves (its subject's colour, 3.66)
+    SEASONS[W.season] || SEASONS[0];
   const barkOf = o => BARKS[o.bark] || null;
   const flowerOf = (o, def) => FLOWERS[o.flower] && o.flower !== 'fl_gold' ? FLOWERS[o.flower] : def || FLOWERS.fl_gold;
 
@@ -72,7 +73,7 @@
   }
   function foliage(g, wk, layer, o) {
     const { W, out, R, sc } = wk; if (W.empty) return;
-    const P = palOf(o, W), dens = !LEAVES[o.leaf] && W.season === 1 ? .62 : 1, N = (layer === 'back' ? 15 : 10) * dens * (o.dens || 1);
+    const P = palOf(o, W), dens = !W.pal && !LEAVES[o.leaf] && W.season === 1 ? .62 : 1, N = (layer === 'back' ? 15 : 10) * dens * (o.dens || 1);
     out.tips.forEach(t => {
       const rad = (13 + min(W.s, 16) * .9) * sc;
       if (layer === 'back') { g.globalAlpha = .34; g.fillStyle = P[0]; g.beginPath(); g.arc(t.x, t.y, rad * 1.15, 0, TAU); g.fill(); g.globalAlpha = 1; }
@@ -220,9 +221,9 @@
   /* ---------- plate: the same tree, engraved ---------- */
   function plateTree(g, weeks, cx, gy, o) {
     const tr = yearTree(weeks, cx, gy), B = barkOf(o), INK = B ? B[2] : '#d9c9a4', PAPER = '#1a140e', WASH = ['#b0622c', '#7f97a6', '#8fb06a', '#4d8a55'];
-    tr.weeks.forEach(w => { if (w.W.empty) return; const R = rng(w.W.i + 900), c = LEAVES[o.leaf] ? LEAVES[o.leaf][2] : WASH[w.W.season]; w.out.tips.forEach((t, i) => { if (i % 2) return; const rr = (14 + min(w.W.s, 16) * 1.2) * tr.sc, hw = g.createRadialGradient(t.x, t.y, 0, t.x, t.y, rr * 1.5); hw.addColorStop(0, c + '4d'); hw.addColorStop(1, c + '00'); g.fillStyle = hw; g.beginPath(); g.arc(t.x + R() * 6, t.y + R() * 6, rr * 1.5, 0, TAU); g.fill(); }); });
+    tr.weeks.forEach(w => { if (w.W.empty) return; const R = rng(w.W.i + 900), c = w.W.pal ? w.W.pal[2] : LEAVES[o.leaf] ? LEAVES[o.leaf][2] : WASH[w.W.season]; w.out.tips.forEach((t, i) => { if (i % 2) return; const rr = (14 + min(w.W.s, 16) * 1.2) * tr.sc, hw = g.createRadialGradient(t.x, t.y, 0, t.x, t.y, rr * 1.5); hw.addColorStop(0, c + '4d'); hw.addColorStop(1, c + '00'); g.fillStyle = hw; g.beginPath(); g.arc(t.x + R() * 6, t.y + R() * 6, rr * 1.5, 0, TAU); g.fill(); }); });
     const inkLimb = l => { const e = taper(g, l.pts, PAPER); g.strokeStyle = INK; g.lineWidth = l.order ? .8 : 1.1; path(g, e.L); path(g, e.R); };
-    const sprigs = w => { if (w.W.empty) return; const R = rng(w.W.i + 400), N = w.W.season === 1 && !LEAVES[o.leaf] ? 5 : 9; w.out.tips.forEach(t => { for (let i = 0; i < N; i++) { const a = R() * TAU, r = sqrt(R()) * (13 + min(w.W.s, 16)) * tr.sc, x = t.x + cos(a) * r, y = t.y + sin(a) * r, s = (2.6 + R() * 2.6) * tr.sc; g.fillStyle = PAPER; g.strokeStyle = LEAVES[o.leaf] ? LEAVES[o.leaf][3] : INK; g.lineWidth = .7; g.beginPath(); g.ellipse(x, y, s, s * .5, R() * TAU, 0, TAU); g.fill(); g.stroke(); } }); };
+    const sprigs = w => { if (w.W.empty) return; const R = rng(w.W.i + 400), N = w.W.season === 1 && !LEAVES[o.leaf] ? 5 : 9; w.out.tips.forEach(t => { for (let i = 0; i < N; i++) { const a = R() * TAU, r = sqrt(R()) * (13 + min(w.W.s, 16)) * tr.sc, x = t.x + cos(a) * r, y = t.y + sin(a) * r, s = (2.6 + R() * 2.6) * tr.sc; g.fillStyle = PAPER; g.strokeStyle = w.W.pal ? w.W.pal[3] : LEAVES[o.leaf] ? LEAVES[o.leaf][3] : INK; g.lineWidth = .7; g.beginPath(); g.ellipse(x, y, s, s * .5, R() * TAU, 0, TAU); g.fill(); g.stroke(); } }); };
     tr.weeks.filter(w => w.behind).forEach(w => { w.out.limbs.slice().sort((a, b) => b.order - a.order).forEach(inkLimb); sprigs(w); });
     tr.boughs.forEach(inkLimb);
     const eT = taper(g, tr.trunk, PAPER); g.strokeStyle = INK; g.lineWidth = 1.3; path(g, eT.L); path(g, eT.R);
@@ -268,7 +269,7 @@
       hits.push({ i, x: tx, y: ty + 30 }); hits.push({ i, x: tx, y: lerp(ty, wl, .6) });
     }
     const strand = (st, W_, lit) => {
-      const R = rng(st.seed), custom = LEAVES[o.leaf], T = custom ? [custom[1], custom[2], custom[3]] : WILLOW[W_.season], col = lit ? T[st.tone] : (custom ? custom[0] : '#153a38');
+      const R = rng(st.seed), custom = W_.pal || LEAVES[o.leaf], T = custom ? [custom[1], custom[2], custom[3]] : WILLOW[W_.season], col = lit ? T[st.tone] : (custom ? custom[0] : '#153a38');
       g.strokeStyle = col; g.globalAlpha = lit ? .75 : .9; g.lineWidth = 1; g.beginPath(); g.moveTo(st.x, st.y); g.bezierCurveTo(st.x + st.sw * .1, st.y + st.drop * .4, st.x + st.sw * .8, st.y + st.drop * .7, st.x + st.sw, st.y + st.drop); g.stroke(); g.globalAlpha = 1;
       const c = floor(st.drop / 8); g.fillStyle = col;
       for (let m = 1; m <= c; m++) { const u = m / c, x = st.x + st.sw * (u * u * (3 - 2 * u)), y = st.y + st.drop * u, sd = m % 2 ? .55 : -.55, sz = 3.8 * (1 - u * .35) + R() * .8; g.beginPath(); g.ellipse(x + sd * 4, y, 1.05, sz, sd, 0, TAU); g.fill(); }
@@ -331,7 +332,7 @@
       for (let i = 0; i < N; i++) { const a = R() * TAU, r = sqrt(R()), px = x + cos(a) * r * rx, py = y + sin(a) * r * ry, lit = -(py - y) / ry * .8 - (px - x) / rx * .25 + (R() - .5) * .4; g.strokeStyle = lit > .55 ? P[3] : lit > .05 ? P[2] : P[1]; g.lineWidth = 1.05; const an = -Math.PI / 2 + (px - x) / rx * .9 + (R() - .5) * .8, l = 4 + R() * 5; g.beginPath(); g.moveTo(px, py); g.lineTo(px + cos(an) * l, py + sin(an) * l); g.stroke(); }
     };
     const R2 = rng(202), fl = flowerOf(o, ['#f3dd9a', '#fff5cf', '#a07f2c']);
-    pads.slice().sort((a, b) => a.y - b.y).forEach(p => { if (p.W.empty) return; const P = LEAVES[o.leaf] || NEEDLE[p.W.season]; p.sub.forEach(([dx, dy, k]) => pad(p.x + dx * p.rx * 1.3, p.y + dy, p.rx * k, p.ry * k + 2, P, p.R)); pad(p.x, p.y, p.rx, p.ry, P, p.R); for (let i = 0; i < min(p.W.f, 3); i++) bloom(g, p.x + (R2() - .5) * p.rx * 1.6, p.y - R2() * p.ry, 5, fl); if (p.W.back) bud(g, p.x, p.y - p.ry, 1); if (p.W.rare) bloom(g, p.x + p.rx * .3, p.y - p.ry * .6, 10, RARE); });
+    pads.slice().sort((a, b) => a.y - b.y).forEach(p => { if (p.W.empty) return; const P = p.W.pal || LEAVES[o.leaf] || NEEDLE[p.W.season]; p.sub.forEach(([dx, dy, k]) => pad(p.x + dx * p.rx * 1.3, p.y + dy, p.rx * k, p.ry * k + 2, P, p.R)); pad(p.x, p.y, p.rx, p.ry, P, p.R); for (let i = 0; i < min(p.W.f, 3); i++) bloom(g, p.x + (R2() - .5) * p.rx * 1.6, p.y - R2() * p.ry, 5, fl); if (p.W.back) bud(g, p.x, p.y - p.ry, 1); if (p.W.rare) bloom(g, p.x + p.rx * .3, p.y - p.ry * .6, 10, RARE); });
     return hits;
   }
   function pine(g, W, H, weeks, o) {
@@ -422,7 +423,7 @@
   const PX_FRUIT = { fl_gold: ['#f5b53c', '#fff0a8', '#c07a1f'], fl_plum: ['#f5e6ea', '#ffffff', '#b5476a'], fl_camellia: ['#d03a4a', '#f08a90', '#8a1f2c'], fl_star: ['#9fd0ff', '#e4f3ff', '#5f8fd0'] };
   function pTree(g, weeks, cx, gy, o) {
     const n = weeks.length, room = max(n, 40), k01 = min(1, sqrt(n / 40)), hT = round(13 + 17 * k01), wT = 3 + round(k01 * 8), RX = 74, RY = 41, top = gy - hT - round(22 * k01), rMax = sqrt((n - .5) / room);
-    const cy = gy - hT - RY * rMax * .72, items = [], B = PX_BARK[o.bark] || PX_BARK.br_bark, custom = LEAVES[o.leaf], palFor = W => (custom ? [custom[0], custom[1], custom[2], custom[3]] : PXS[W.season]), fruit = PX_FRUIT[o.flower] || PX_FRUIT.fl_gold;
+    const cy = gy - hT - RY * rMax * .72, items = [], B = PX_BARK[o.bark] || PX_BARK.br_bark, custom = LEAVES[o.leaf], palFor = W => (W.pal ? W.pal.slice() : custom ? [custom[0], custom[1], custom[2], custom[3]] : PXS[W.season]), fruit = PX_FRUIT[o.flower] || PX_FRUIT.fl_gold;
     for (let i = 0; i < n; i++) {
       // Sunflower spiral: the crown is one full dome and it widens from the inside out, so old clumps never move
       const W_ = weeks[i], R = rng(9100 + i * 37), ph = i * 2.399, rho = sqrt((i + .5) / room), s = min(W_.s, 16);

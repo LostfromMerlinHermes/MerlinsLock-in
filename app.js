@@ -479,17 +479,48 @@
   }, true);
   armedButton($('clear-parked'), 'clear_all', () => { S.parked = []; save(); renderAll(); });
 
+  /* ---------- Modules (3.66): parts of the app that can be switched off in Settings ---------- */
+  // ML.module(key, { label, hint, order, def }) registers one; def is a boolean or a function, used while the user never chose.
+  // html gets the class mod-off-<key>, so CSS hides [data-mod="<key>"] elements; modules also check ML.modOn(key).
+  const MODS = {};
+  ML.defaults(() => ({ modules: {} }));
+  function modOn(k) {
+    const v = S.modules && S.modules[k]; if (v === true || v === false) return v;
+    const m = MODS[k]; if (!m) return true;
+    return typeof m.def === 'function' ? !!m.def() : m.def !== false;
+  }
+  function applyMods() { for (const k of Object.keys(MODS)) document.documentElement.classList.toggle('mod-off-' + k, !modOn(k)); }
+  ML.module = (k, o) => { MODS[k] = o; applyMods(); };
+  ML.modules = () => Object.entries(MODS).sort((a, b) => (a[1].order || 50) - (b[1].order || 50));
+  ML.modOn = modOn;
+  ML.setMod = (k, v) => {
+    S.modules = Object.assign({}, S.modules, { [k]: !!v }); save(); applyMods(); emit('modules', k);
+    if (!v && ML.SPACE[S.tab] && ((k === 'game' && S.tab === 'grim') || (k === 'wellbeing' && S.tab === 'health'))) setTab(SPACE_FIRST.you);
+    renderAll();
+  };
+  on('loaded', applyMods); on('started', applyMods); on('remote', applyMods); on('render', applyMods);
+  ML.addStrings({
+    fr: { set_mods: 'Modules', set_mods_hint: 'Éteins ce dont tu ne te sers pas. Tes données restent gardées.', mod_game: 'Le jeu', mod_game_d: 'Tour, expéditions, saison, boss de la semaine et échelle des Séquences.' },
+    en: { set_mods: 'Modules', set_mods_hint: 'Turn off what you don’t use. Your data is kept.', mod_game: 'The game', mod_game_d: 'Tower, expeditions, season, weekly boss and the Sequence ladder.' },
+  });
+  // The game parts: off for accounts that start with 3.66, on for anyone who already had sessions before it
+  const GAME_CUTOFF = new Date(2026, 10, 6).getTime();
+  ML.module('game', { label: 'mod_game', hint: 'mod_game_d', order: 10, def: () => (S.sessions || []).some(x => x.at < GAME_CUTOFF) });
+
   /* ---------- Tabs ---------- */
   // today, shome and yhome are the phone's home pages (today.js): they have no tab button
-  const TABS = { today: [null, 'tab-today'], shome: [null, 'tab-shome'], yhome: [null, 'tab-yhome'], plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], focus: ['t-focus', 'tab-focus'], tree: ['t-tree', 'tab-tree'], health: ['t-health', 'tab-health'], screen: ['t-screen', 'tab-screen'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'], subjects: ['t-subjects', 'tab-subjects'], lectures: ['t-lectures', 'tab-lectures'], room: ['t-room', 'tab-room'], guide: ['t-guide', 'tab-guide'] };
+  const TABS = { today: [null, 'tab-today'], shome: [null, 'tab-shome'], yhome: [null, 'tab-yhome'], plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], focus: ['t-focus', 'tab-focus'], tree: ['t-tree', 'tab-tree'], health: ['t-health', 'tab-health'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'], subjects: ['t-subjects', 'tab-subjects'], lectures: ['t-lectures', 'tab-lectures'], room: ['t-room', 'tab-room'], guide: ['t-guide', 'tab-guide'] };
   // Spaces: Plan, Study and You. A computer lists a space's sections in a column, a phone opens its home page (3.60)
-  const SPACE = { plan: 'plan', day: 'plan', cal: 'plan', notes: 'study', lib: 'study', study: 'study', subjects: 'study', lectures: 'study', learn: 'study', shome: 'study', focus: 'you', tree: 'you', health: 'you', screen: 'you', grim: 'you', room: 'you', guide: 'you', yhome: 'you', today: 'today' };
-  const SPACE_FIRST = { plan: 'plan', study: 'notes', you: 'focus' }, HOME_OF = { today: 'plan', shome: 'study', yhome: 'you' };
+  const SPACE = { plan: 'plan', day: 'plan', cal: 'plan', notes: 'study', lib: 'study', study: 'study', subjects: 'study', lectures: 'study', learn: 'study', shome: 'study', focus: 'you', tree: 'you', health: 'you', grim: 'you', room: 'study', guide: 'you', yhome: 'you', today: 'today' };
+  // You (3.66): the Tree first, then Progress (Focus + Grimoire stats), The game (module), Wellbeing (Health + Screen time). The Room moved to Study
+  const SPACE_FIRST = { plan: 'plan', study: 'notes', you: 'tree' }, HOME_OF = { today: 'plan', shome: 'study', yhome: 'you' };
   const wideNow = () => !document.documentElement.classList.contains('mnav-on') && matchMedia('(min-width: 900px)').matches;
   ML.SPACE = SPACE;
   ML.addStrings({ fr: { sp_study: 'Étude', sp_you: 'Toi', tab_cards: 'Cartes' }, en: { sp_study: 'Study', sp_you: 'You', tab_cards: 'Cards' } });
   function setTab(name) {
     if (name === 'park') { S.plan.pview = 'inbox'; name = 'plan'; if (ML.renderTasks) ML.renderTasks(); } // Parked became the Plan's Inbox view (3.56)
+    if (name === 'screen') name = 'health'; // Screen time is part of Wellbeing (3.66)
+    if ((name === 'grim' && !modOn('game')) || (name === 'health' && !modOn('wellbeing'))) name = 'focus';
     if (!TABS[name]) name = 'plan';
     if (HOME_OF[name] && wideNow()) name = spaceTab(HOME_OF[name]); // the home pages are for phones
     S.tab = name;
@@ -503,13 +534,13 @@
     if (name === 'grim') renderGrimoire();
     emit('tab', name);
   }
-  function spaceTab(sp) { return (S.spaceTab && S.spaceTab[sp]) || SPACE_FIRST[sp]; }
+  function spaceTab(sp) { const k = S.spaceTab && S.spaceTab[sp]; return k && SPACE[k] === sp && TABS[k] ? k : SPACE_FIRST[sp]; }
   ML.spaceTab = spaceTab;
   for (const k of Object.keys(TABS)) if (TABS[k][0]) $(TABS[k][0]).onclick = () => setTab(k);
   $('t-plan').onclick = () => setTab(spaceTab('plan'));
   ['study', 'you'].forEach(k => { $('sp-' + k).onclick = () => setTab(spaceTab(k)); });
   $('t-shop').onclick = () => ML.openShop && ML.openShop();
-  $('seq-badge').onclick = () => { setTab('grim'); $('sp-you').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  $('seq-badge').onclick = () => { setTab(modOn('game') ? 'grim' : 'focus'); $('sp-you').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   ML.setTab = setTab;
 
   /* ---------- Timer ---------- */
@@ -821,7 +852,7 @@
     return Object.entries(stats).map(([k, o]) => {
       const w = o.avg ? (o.avg / 5) * 100 : (o.mins / maxMins) * 100 * 0.25;
       return `<div class="r"><span>${esc(labelFn(k))}</span><span class="r-bar"><b class="${k === best ? 'best' : ''}" style="width:${w.toFixed(0)}%"></b></span>
-        <span class="r-val">${o.avg ? o.avg.toFixed(1) + '/5 · ' : ''}${fmtMins(o.mins)}</span></div>`;
+        <span class="r-val">${o.avg ? o.avg.toLocaleString(ML.locale(), { maximumFractionDigits: 1 }) + '/5, ' : ''}${fmtMins(o.mins)}</span></div>`;
     }).join('');
   }
   function heatmapHtml() {
@@ -840,85 +871,27 @@
     }
     return svg + '</svg>';
   }
+  // The game page (3.66, the old Grimoire's game part, a module): the Sequence ladder, then the tower, expeditions,
+  // season and weekly boss cards that their modules add on the 'grimoire' event. The level and the stats live in Progress (focus.js)
   function renderGrimoire() {
-    const s = seqInfo(), st = streaks();
-    const days = [];
-    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push({ k: dayKey(d), label: d.toLocaleDateString(ML.locale(), { weekday: 'short' }).slice(0, 3), mins: 0 }); }
-    const byDay = Object.fromEntries(days.map(d => [d.k, d]));
-    const weekStart = ML.parseDay(days[0].k).getTime();
-    const week = S.sessions.filter(x => x.at >= weekStart);
-    week.forEach(x => { const d = byDay[dayKey(new Date(x.at))]; if (d) d.mins += x.mins; });
-    const weekMins = week.reduce((a, x) => a + x.mins, 0);
-    const rated = week.filter(x => x.rating);
-    const weekAvg = rated.length ? rated.reduce((a, x) => a + x.rating, 0) / rated.length : null;
-    const totalMins = S.sessions.reduce((a, x) => a + x.mins, 0);
-
-    const W = 320, H = 130, top = 16, bottom = 20, max = Math.max(60, ...days.map(d => d.mins));
-    const niceMax = Math.ceil(max / 60) * 60, bw = 26, gap = (W - bw * 7) / 7;
-    const y = v => top + (H - top - bottom) * (1 - v / niceMax);
-    let chart = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t('week_chart'))}">`;
-    [0, niceMax / 2, niceMax].forEach(v => { chart += `<line class="grid" x1="0" x2="${W}" y1="${y(v)}" y2="${y(v)}"/>`; });
-    chart += `<text x="${W}" y="${y(niceMax) - 4}" text-anchor="end">${fmtMins(niceMax)}</text>`;
-    days.forEach((d, i) => {
-      const x = gap / 2 + i * (bw + gap), h = Math.max(d.mins ? 2 : 0, (H - top - bottom) - (y(d.mins) - top));
-      chart += `<rect class="bar ${i === 6 ? 'today' : ''}" x="${x}" y="${H - bottom - h}" width="${bw}" height="${h}" rx="2"/>`;
-      if (d.mins) chart += `<text class="val" x="${x + bw / 2}" y="${H - bottom - h - 4}" text-anchor="middle">${fmtMins(d.mins)}</text>`;
-      chart += `<text x="${x + bw / 2}" y="${H - 5}" text-anchor="middle">${esc(d.label)}</text>`;
-    });
-    chart += '</svg>';
-
-    const moodStats = groupStats(x => x.mood, Object.keys(MOODS));
-    const timeStats = groupStats(x => bucketOf(x.at), ['morning', 'afternoon', 'evening', 'night']);
-    const bm = bestKey(moodStats), bt = bestKey(timeStats);
-    const insights = [];
-    if (bm) insights.push(t('insight_mood', { mood: `<b>${esc(t('mood_' + bm))}</b>`, avg: moodStats[bm].avg.toFixed(1) }));
-    if (bt) insights.push(t('insight_time', { time: `<b>${esc(t('time_' + bt))}</b>` }));
-    if (!insights.length) insights.push(esc(t('insight_none')));
-
-    // Planned vs actual: how close estimates are, across finished tasks with tracked time
-    const est = S.tasks.filter(x => x.done && x.spent > 0);
-    const estRatio = est.length ? est.reduce((a, x) => a + x.spent, 0) / est.reduce((a, x) => a + x.mins, 0) : null;
-
+    const s = seqInfo();
     const ladder = SEQUENCES.map(([xp, name], i) => `<li class="${i < s.i ? 'reached' : ''} ${i === s.i ? 'current' : ''}"><span>${9 - i}</span><span>${name}</span><span>${xp.toLocaleString(ML.locale())}</span></li>`).reverse().join('');
-
-    $('grim').innerHTML = `
-      <div class="g-card">
-        <div class="seq-big">
-          <span class="num">${esc(t('sequence').toUpperCase())} ${s.num}</span>
-          <span class="name">${s.name}</span>
-          <span class="bar"><b style="width:${(s.frac * 100).toFixed(1)}%"></b></span>
-          <span class="sub">${S.xp.toLocaleString(ML.locale())} XP${s.next ? ' · ' + esc(t('xp_to', { n: (s.next - S.xp).toLocaleString(ML.locale()), name: s.nextName })) : ' · ' + esc(t('top_ladder'))}</span>
-        </div>
-        <p class="insight">${esc(t('xp_rules'))}</p>
-      </div>
-      <div class="g-row">
-        <div class="g-card kpi"><strong>${st.cur}</strong><span>${esc(t('day_streak'))}</span></div>
-        <div class="g-card kpi"><strong>${st.best}</strong><span>${esc(t('best_streak'))}</span></div>
-        <div class="g-card kpi"><strong>${fmtMins(totalMins)}</strong><span>${esc(t('all_time'))}</span></div>
-      </div>
-      <div class="g-card">
-        <h2>${esc(t('last_7'))}</h2>
-        ${chart}
-        <p class="insight">${t('this_week', { m: `<b>${fmtMins(weekMins)}</b>`, n: `<b>${week.length}</b>` })}${weekAvg ? ', ' + t('avg_focus', { avg: `<b>${weekAvg.toFixed(1)}/5</b>` }) : ''}.</p>
-      </div>
-      <div class="g-card">
-        <h2>${esc(t('six_months'))}</h2>
-        ${heatmapHtml()}
-      </div>
-      <div class="g-card">
-        <h2>${esc(t('what_works'))}</h2>
-        <p class="insight">${insights.join(' ')}</p>
-        <div class="rows">${rowsHtml(moodStats, k => t('mood_' + k))}</div>
-        <div class="rows">${rowsHtml(timeStats, k => t('time_' + k))}</div>
-        ${estRatio ? `<p class="insight">${t('estimates', { pct: `<b>${Math.round(estRatio * 100)}%</b>` })}</p>` : ''}
-      </div>
-      <div class="g-card">
-        <h2>${esc(t('ladder'))}</h2>
-        <ul class="ladder">${ladder}</ul>
-      </div>`;
+    $('grim').innerHTML = `<details class="g-card y-det"><summary>${esc(t('ladder'))} <small>${esc(s.name)}</small></summary><ul class="ladder">${ladder}</ul></details>`; // folded, under the game cards (CSS order)
     emit('grimoire');
   }
   ML.renderGrimoire = renderGrimoire;
+  // For the Progress page: the six months, and what works (energies, hours of the day, estimates)
+  ML.heatmapHtml = heatmapHtml;
+  ML.bucketOf = bucketOf;
+  ML.whatWorksHtml = () => {
+    const moodStats = groupStats(x => x.mood, Object.keys(MOODS)), timeStats = groupStats(x => bucketOf(x.at), ['morning', 'afternoon', 'evening', 'night']);
+    const bm = bestKey(moodStats), bt = bestKey(timeStats), ins = [], dec = v => v.toLocaleString(ML.locale(), { maximumFractionDigits: 1 });
+    if (bm) ins.push(t('insight_mood', { mood: `<b>${esc(t('mood_' + bm))}</b>`, avg: dec(moodStats[bm].avg) }));
+    if (bt) ins.push(t('insight_time', { time: `<b>${esc(t('time_' + bt))}</b>` }));
+    if (!ins.length) ins.push(esc(t('insight_none')));
+    const est = S.tasks.filter(x => x.done && x.spent > 0), r = est.length ? est.reduce((a, x) => a + x.spent, 0) / est.reduce((a, x) => a + x.mins, 0) : null;
+    return `<p class="insight">${ins.join(' ')}</p><div class="rows">${rowsHtml(moodStats, k => t('mood_' + k))}</div><div class="rows">${rowsHtml(timeStats, k => t('time_' + k))}</div>${r ? `<p class="insight">${t('estimates', { pct: `<b>${Math.round(r * 100)} %</b>` })}</p>` : ''}`;
+  };
 
   /* ---------- Settings sheet ---------- */
   // Each module adds its own section: ML.settingsSection({ order, group?, render: () => html, bind: root => {} }).
@@ -946,6 +919,12 @@
   const sel = (id, opts, cur) => `<select id="${id}">${opts.map(([v, l]) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
   const chk = (id, label, on) => `<label class="opt"><input type="checkbox" id="${id}" ${on ? 'checked' : ''}> ${esc(label)}</label>`;
   ML.ui = { sel, chk };
+
+  ML.settingsSection({
+    order: 30,
+    render: () => `<h3>${esc(t('set_mods'))}</h3><p class="hint">${esc(t('set_mods_hint'))}</p>${ML.modules().map(([k, m]) => `<label class="opt mod-opt"><input type="checkbox" data-mod-set="${k}" ${modOn(k) ? 'checked' : ''}><span><b>${esc(t(m.label))}</b>${m.hint ? `<small>${esc(t(m.hint))}</small>` : ''}</span></label>`).join('')}`,
+    bind: root => { root.querySelectorAll('[data-mod-set]').forEach(c => { c.onchange = () => ML.setMod(c.dataset.modSet, c.checked); }); },
+  });
 
   ML.settingsSection({
     order: 10,

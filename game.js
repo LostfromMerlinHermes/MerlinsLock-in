@@ -236,7 +236,7 @@
       return `<li class="${done ? 'done' : ''}"><span class="q-mark">${done ? '◆' : '◇'}</span><span class="q-name">${esc(t(id))}</span>
         <span class="q-bar"><b style="width:${(v / q.target) * 100}%"></b></span><span class="q-val">${done ? '+' + q.xp + ' XP' : f(v) + '/' + f(q.target)}</span>${!done && S.econ && S.econ.potions.scroll > 0 ? `<button type="button" class="icon-btn reroll" data-reroll="${id}" title="${esc(t('reroll'))}">↻</button>` : ''}</li>`;
     }).join('');
-    const boss = B && !B.done && B.week === weekKey()
+    const boss = ML.modOn('game') && B && !B.done && B.week === weekKey()
       ? `<div class="boss-bar"><span class="label">⚔ ${esc(t('boss'))}</span><b>${esc(B.title)}</b>
           <span class="hp"><i style="width:${Math.max(0, 100 - (B.dmg / B.max) * 100)}%"></i></span><span class="q-val">${esc(t('boss_hp'))} ${Math.max(0, B.max - B.dmg)}/${B.max}</span></div>`
       : '';
@@ -244,19 +244,18 @@
     el.innerHTML = `<div class="quests ${qOpen ? '' : 'folded'}"><button type="button" class="q-head" data-qfold aria-expanded="${qOpen}"><span class="label">${esc(t('quests'))}</span><span class="q-val">${Q.claimed.length}/${Q.ids.length}<svg class="pg-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></span></button><ul>${qrows}</ul>${boss}</div>`;
   }
 
-  /* ---------- Grimoire: achievements ---------- */
+  /* ---------- Achievements: listed on the Progress page (focus.js, 3.66) ---------- */
+  ML.achInfo = () => ({
+    got: Object.keys(ACH).filter(id => S.game.ach[id]).length, total: Object.keys(ACH).length,
+    html: () => `<ul class="ach">${Object.keys(ACH).map(id => { const got = S.game.ach[id]; return `<li class="${got ? 'got' : ''}"><span class="ach-ico">${got ? '✦' : '✧'}</span><b>${esc(t('a_' + id))}</b><small>${esc(t('a_' + id + '_d'))}</small></li>`; }).join('')}</ul>`,
+  });
+  /* ---------- The game page: the weekly boss ---------- */
   on('grimoire', () => {
     const B = S.game.boss;
-    const ach = Object.keys(ACH).map(id => {
-      const got = S.game.ach[id];
-      return `<li class="${got ? 'got' : ''}" title="${esc(t('a_' + id + '_d'))}"><span class="ach-ico">${got ? '✦' : '✧'}</span><b>${esc(t('a_' + id))}</b><small>${esc(t('a_' + id + '_d'))}</small></li>`;
-    }).join('');
-    const n = Object.keys(S.game.ach).length;
     $('g-game').innerHTML = `
       <div class="g-card"><h2>${esc(t('boss'))}</h2>${B && !B.done && B.week === weekKey()
         ? `<div class="boss-bar"><b>${esc(B.title)}</b><span class="hp"><i style="width:${Math.max(0, 100 - (B.dmg / B.max) * 100)}%"></i></span><span class="q-val">${esc(t('boss_hp'))} ${Math.max(0, B.max - B.dmg)}/${B.max}</span></div>`
-        : `<p class="insight">${esc(t('boss_none'))}</p>`}</div>
-      <div class="g-card"><h2>${esc(t('achievements'))} · ${n}/${Object.keys(ACH).length}</h2><ul class="ach">${ach}</ul></div>`;
+        : `<p class="insight">${esc(t('boss_none'))}</p>`}</div>`;
   });
 
   /* ---------- Mood classes, buffs and themes ---------- */

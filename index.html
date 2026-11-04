@@ -201,23 +201,14 @@
         <button type="button" role="tab" id="t-subjects" data-sp="study" aria-controls="tab-subjects"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span data-i18n="tab_subjects">Matières</span><em class="sub-n" id="sub-n-subjects"></em></button>
         <button type="button" role="tab" id="t-lectures" data-sp="study" aria-controls="tab-lectures"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span data-i18n="tab_lectures">Cours</span></button>
         <button type="button" role="tab" id="t-learn" data-sp="study" aria-controls="tab-learn"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span data-i18n="tab_learn">Apprendre</span></button>
-        <button type="button" class="sub-grp" data-in="you" data-grp="progress"><span data-i18n="grp_progress"></span><small></small></button>
-        <div class="sub-fold" data-in="you" data-fold="progress">
-          <button type="button" role="tab" id="t-focus" data-sp="you" aria-controls="tab-focus" data-i18n="tab_focus">Focus</button>
-          <button type="button" role="tab" id="t-tree" data-sp="you" aria-controls="tab-tree" data-i18n="tab_tree">Arbre</button>
-          <button type="button" role="tab" id="t-grim" data-sp="you" aria-controls="tab-grim" data-i18n="tab_grim">Grimoire</button>
-        </div>
-        <button type="button" class="sub-grp" data-in="you" data-grp="well"><span data-i18n="grp_well"></span><small></small></button>
-        <div class="sub-fold" data-in="you" data-fold="well">
-          <button type="button" role="tab" id="t-health" data-sp="you" aria-controls="tab-health" data-i18n="tab_health">Santé</button>
-          <button type="button" role="tab" id="t-screen" data-sp="you" aria-controls="tab-screen" data-i18n="tab_screen">Temps d’écran</button>
-        </div>
-        <button type="button" class="sub-grp" data-in="you" data-grp="more"><span data-i18n="grp_more"></span><small></small></button>
-        <div class="sub-fold" data-in="you" data-fold="more">
-          <button type="button" role="tab" id="t-room" data-sp="you" aria-controls="tab-room" data-i18n="tab_room">Salle</button>
-          <button type="button" id="t-shop" data-sp="you" data-i18n="shop">Boutique</button>
-          <button type="button" role="tab" id="t-guide" data-sp="you" aria-controls="tab-guide" data-i18n="tab_guide">Guide</button>
-        </div>
+        <button type="button" role="tab" id="t-room" data-sp="study" aria-controls="tab-room"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="16.5" cy="10" r="2.5"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M14.5 14.6c2.6-.4 4.9.9 5.6 3.9"/></svg><span data-i18n="tab_room">Salle</span></button>
+        <!-- You (3.66): the Tree first, then Progress, The game (module), Wellbeing (module); the Shop and the Guide at the end -->
+        <button type="button" role="tab" id="t-tree" data-sp="you" aria-controls="tab-tree"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-8M12 13l-4-3M12 15l4-4"/><path d="M7 11a5 5 0 1 1 10 0 4 4 0 0 1-2 3.5H9A4 4 0 0 1 7 11z"/></svg><span data-i18n="tab_tree">Arbre</span></button>
+        <button type="button" role="tab" id="t-focus" data-sp="you" aria-controls="tab-focus"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 16v-4M12 16V8M17 16V5"/></svg><span data-i18n="tab_focus">Progrès</span></button>
+        <button type="button" role="tab" id="t-grim" data-sp="you" data-mod="game" aria-controls="tab-grim"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V9l6-5 6 5v12zM10 21v-5h4v5M9 11h6"/></svg><span data-i18n="tab_grim">Le jeu</span></button>
+        <button type="button" role="tab" id="t-health" data-sp="you" data-mod="wellbeing" aria-controls="tab-health"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span data-i18n="tab_health">Bien-être</span></button>
+        <button type="button" id="t-shop" data-sp="you"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8a3 3 0 0 1 6 0"/></svg><span data-i18n="shop">Boutique</span></button>
+        <button type="button" role="tab" id="t-guide" data-sp="you" aria-controls="tab-guide"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M10 9.5a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9V13M12 16.2v.1"/></svg><span data-i18n="tab_guide">Guide</span></button>
       </div>
 
       <div class="tabpanel" id="tab-today" role="tabpanel" hidden><div id="today"></div></div>
@@ -260,8 +251,7 @@
 
       <div class="tabpanel" id="tab-focus" role="tabpanel" hidden><div id="focus"></div></div>
       <div class="tabpanel" id="tab-tree" role="tabpanel" hidden><div id="tree"></div></div>
-      <div class="tabpanel" id="tab-health" role="tabpanel" hidden><div id="health"></div></div>
-      <div class="tabpanel" id="tab-screen" role="tabpanel" hidden><div id="screen"></div></div>
+      <div class="tabpanel" id="tab-health" role="tabpanel" hidden><div class="wb-page"><div id="health"></div><div id="screen"></div></div></div>
       <div class="tabpanel" id="tab-grim" role="tabpanel" hidden>
         <div class="grim" id="grim"></div>
         <div class="grim" id="g-game"></div>

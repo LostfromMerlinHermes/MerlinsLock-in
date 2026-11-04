@@ -394,7 +394,7 @@
   document.querySelector('#sigil-card .ring-wrap').after(hud);
   on('tick', () => {
     const B = S.game && S.game.boss;
-    const fighting = !!(B && !B.done && ML.running() && S.mode === 'focus' && S.activeId === B.taskId);
+    const fighting = !!(ML.modOn('game') && B && !B.done && ML.running() && S.mode === 'focus' && S.activeId === B.taskId);
     $('sigil-card').classList.toggle('boss-fight', fighting);
     hud.hidden = !fighting;
     if (!fighting) return;
