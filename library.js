@@ -14,6 +14,8 @@
       lb_none: 'Aucun document ne correspond.', lb_rename: 'Nom', lb_tags: 'Étiquettes', lb_tag_ph: 'Ajouter une étiquette', lb_download: 'Télécharger', lb_delete: 'Supprimer', lb_deleted: 'Document supprimé', lb_edit: 'Modifier', lb_done: 'Terminé',
       lb_added: '{n} document(s) ajouté(s)', lb_bad: 'Ce type de fichier n’est pas pris en charge : {name}', lb_cut: 'Fichier « {name} » trop long : seul le début a été gardé (environ 1000 pages).', lb_full: 'Plus assez de place sur cet appareil.', lb_err: 'La bibliothèque ne peut pas s’ouvrir ici (navigation privée ?).', lb_new_sheet: 'Nouvelle fiche', lb_used: '{used} utilisés sur cet appareil', lb_free: '{free} disponibles', lb_local: 'Les fichiers restent sur cet appareil. Garde une copie de ce qui compte : vider les données du navigateur les efface.',
       lb_hit: 'p. {n}', lb_today: 'aujourd’hui', lb_yest: 'hier', lb_worked: '{t} de travail',
+      lb_groups: 'Groupes', lb_nogroup: 'Sans groupe', lb_gnew: 'Nouveau groupe', lb_gnew_s: '+ Groupe', lb_gname: 'Nom du groupe', lb_gn: '{n} documents', lb_gn_one: '1 document', lb_gn_zero: 'Vide', lb_gopened: 'ouvert {d}',
+      lb_move: 'Déplacer vers', lb_moved: 'Déplacé dans « {g} »', lb_moved_none: 'Retiré du groupe', lb_back: 'Bibliothèque', lb_gren: 'Renommer', lb_gdel: 'Supprimer le groupe', lb_gdel_hint: 'Les documents restent, sans groupe.', lb_gdeleted: 'Groupe supprimé, ses documents restent', lb_ok: 'OK', lb_gdrop: 'Glisse un document sur un groupe pour l’y ranger.',
       rd_close: 'Fermer', rd_doc: 'Document', rd_notes: 'Notes', rd_cards: 'Cartes', rd_sheet: 'Fiche', rd_prev: 'Page précédente', rd_next: 'Page suivante', rd_of: 'sur {n}', rd_zoom_in: 'Agrandir', rd_zoom_out: 'Réduire', rd_fit: 'Ajuster', rd_flash: 'Flashcard', rd_loading: 'Ouverture…', rd_load_err: 'Ce document ne s’ouvre pas ici.', rd_open_out: 'Ouvrir dans un onglet',
       rd_native: 'Lecteur du navigateur : la sélection, le suivi des pages et la recherche dans le PDF ne sont pas disponibles.',
       rd_notes_ph: 'Tes notes sur ce document. Elles s’enregistrent toutes seules.', rd_mark: 'Marquer la page', rd_to_nb: 'Envoyer au Carnet', rd_sent: 'Notes envoyées au Carnet', rd_sheet_ph: 'Écris ta fiche ici. Elle s’enregistre toute seule.',
@@ -25,14 +27,39 @@
       lb_none: 'No document matches.', lb_rename: 'Name', lb_tags: 'Tags', lb_tag_ph: 'Add a tag', lb_download: 'Download', lb_delete: 'Delete', lb_deleted: 'Document deleted', lb_edit: 'Edit', lb_done: 'Done',
       lb_added: '{n} document(s) added', lb_bad: "This file type isn't supported: {name}", lb_cut: '"{name}" is too long: only the start was kept (about 1000 pages).', lb_full: 'Not enough space left on this device.', lb_err: "The library can't open here (private browsing?).", lb_new_sheet: 'New sheet', lb_used: '{used} used on this device', lb_free: '{free} available', lb_local: 'Files stay on this device. Keep a copy of what matters: clearing browser data erases them.',
       lb_hit: 'p. {n}', lb_today: 'today', lb_yest: 'yesterday', lb_worked: '{t} of work',
+      lb_groups: 'Groups', lb_nogroup: 'No group', lb_gnew: 'New group', lb_gnew_s: '+ Group', lb_gname: 'Group name', lb_gn: '{n} documents', lb_gn_one: '1 document', lb_gn_zero: 'Empty', lb_gopened: 'opened {d}',
+      lb_move: 'Move to', lb_moved: 'Moved to "{g}"', lb_moved_none: 'Taken out of the group', lb_back: 'Library', lb_gren: 'Rename', lb_gdel: 'Delete group', lb_gdel_hint: 'The documents stay, without a group.', lb_gdeleted: 'Group deleted, its documents stay', lb_ok: 'OK', lb_gdrop: 'Drag a document onto a group to put it there.',
       rd_close: 'Close', rd_doc: 'Document', rd_notes: 'Notes', rd_cards: 'Cards', rd_sheet: 'Sheet', rd_prev: 'Previous page', rd_next: 'Next page', rd_of: 'of {n}', rd_zoom_in: 'Zoom in', rd_zoom_out: 'Zoom out', rd_fit: 'Fit', rd_flash: 'Flashcard', rd_loading: 'Opening…', rd_load_err: "This document can't open here.", rd_open_out: 'Open in a tab',
       rd_native: "Browser viewer: text selection, page tracking and PDF search aren't available.",
       rd_notes_ph: 'Your notes on this document. They save by themselves.', rd_mark: 'Mark the page', rd_to_nb: 'Send to Notebook', rd_sent: 'Notes sent to the Notebook', rd_sheet_ph: 'Write your sheet here. It saves by itself.',
       rd_card_front: 'Question', rd_card_back: 'Answer', rd_card_add: 'Add card', rd_card_none: 'No cards yet. Select text then tap Flashcard, or write one here.', rd_review: 'Review', rd_due: '{n} due', rd_card_added: 'Card added to "{deck}"', rd_lockin: 'Lock in on this document', rd_pause: 'Pause', rd_resume: 'Resume', rd_resize: 'Panel width',
     },
   });
-  ML.defaults(() => ({ lib: { sort: 'recent', kind: '', tag: '', split: .62 } }));
+  ML.defaults(() => ({ lib: { sort: 'recent', kind: '', tag: '', split: .62, groups: [] } }));
   const L = () => S.lib;
+
+  /* ---------- Groups (3.71, B1): one group per document, tags on top. The list of groups lives in S (it syncs), a document
+     keeps its group's id (d.group, on this device). A group named like a Plan project is linked to it by the name (B2). ---------- */
+  const groups = () => (Array.isArray(L().groups) ? L().groups : (L().groups = []));
+  const gkey = s => String(s || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const groupById = id => groups().find(g => g.id === id);
+  const groupByName = name => groups().find(g => gkey(g.name) === gkey(name));
+  const groupOf = d => (d.group && groupById(d.group)) || null;
+  const projOf = g => (ML.planProjects ? ML.planProjects().find(p => gkey(p) === gkey(g.name)) : null) || null;
+  const gColor = g => { const p = projOf(g); return p && ML.projColor ? ML.projColor(p) : ''; };
+  let openG = ''; // the group shown in the list ('' = the top of the Library)
+  function addGroup(name) {
+    name = String(name || '').trim().slice(0, 40); if (!name) return null;
+    let g = groupByName(name);
+    if (!g) { g = { id: uid(), name }; groups().push(g); save(); }
+    return g;
+  }
+  function moveDoc(d, gid) {
+    d.group = gid || null; putDoc(d).catch(() => {});
+    const g = gid && groupById(gid);
+    toast(g ? t('lb_moved', { g: g.name }) : t('lb_moved_none'), { key: 'lbmove' });
+  }
+  function groupsChanged() { save(); refresh(); renderSide(); emit('lib:groups'); }
 
   /* ---------- Storage: IndexedDB, one database per account ---------- */
   let dbP = null, dbKey = '', docs = null, texts = null, loadErr = false;
@@ -59,7 +86,7 @@
   const getBlob = id => idb('blobs', 'readonly', s => s.get(id));
   async function load() {
     if (docs) return docs;
-    try { docs = (await idb('docs', 'readonly', s => s.getAll())) || []; loadErr = false; }
+    try { docs = (await idb('docs', 'readonly', s => s.getAll())) || []; docs.forEach(d => { if (!Array.isArray(d.tags)) d.tags = []; }); loadErr = false; }
     catch (e) { docs = null; loadErr = true; }
     return docs;
   }
@@ -133,7 +160,7 @@
     for (const f of files) {
       const kind = kindOf(f);
       if (!kind) { toast(t('lb_bad', { name: f.name || '?' }), { ms: 5000 }); continue; }
-      const d = { id: uid(), name: (f.name || t('lb_photo')).replace(/\.\w{1,5}$/, '').slice(0, 120) || t('lb_photo'), kind, mime: f.type || (kind === 'pdf' ? 'application/pdf' : ''), size: f.size, tags: L().tag && L().tag !== '-' ? [L().tag] : [], created: Date.now(), opened: 0, page: 1, zoom: 1, notes: '', deck: null, mins: 0, thumb: '', text: '' };
+      const d = { id: uid(), name: (f.name || t('lb_photo')).replace(/\.\w{1,5}$/, '').slice(0, 120) || t('lb_photo'), kind, mime: f.type || (kind === 'pdf' ? 'application/pdf' : ''), size: f.size, tags: L().tag && L().tag !== '-' ? [L().tag] : [], group: openG && groupById(openG) ? openG : null, created: Date.now(), opened: 0, page: 1, zoom: 1, notes: '', deck: null, mins: 0, thumb: '', text: '' };
       try {
         if (kind === 'sheet') {
           const txt = await ML.readText(f);
@@ -152,7 +179,7 @@
   }
   async function newSheet() {
     if (!(await load())) { toast(t('lb_err')); return; }
-    const d = { id: uid(), name: t('lb_new_sheet'), kind: 'sheet', mime: 'text/plain', size: 0, tags: L().tag && L().tag !== '-' ? [L().tag] : [], created: Date.now(), opened: 0, page: 1, zoom: 1, notes: '', deck: null, mins: 0, thumb: '', text: '' };
+    const d = { id: uid(), name: t('lb_new_sheet'), kind: 'sheet', mime: 'text/plain', size: 0, tags: L().tag && L().tag !== '-' ? [L().tag] : [], group: openG && groupById(openG) ? openG : null, created: Date.now(), opened: 0, page: 1, zoom: 1, notes: '', deck: null, mins: 0, thumb: '', text: '' };
     try { await putDoc(d); docs.push(d); openReader(d.id); } catch (e) { toast(t('lb_err')); }
   }
   async function removeDoc(id) {
@@ -172,7 +199,8 @@
   }
 
   /* ---------- The list ---------- */
-  let host = null, query = '', editing = null, armed = null;
+  let host = null, query = '', editing = null, armed = null, moveFor = null, gNew = false, gRen = false, gDelArmed = 0;
+  const canDrag = () => matchMedia('(pointer: fine)').matches;
   const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const fmtSize = b => { const u = S.lang === 'en' ? ['B', 'KB', 'MB', 'GB'] : ['o', 'Ko', 'Mo', 'Go']; let i = 0; while (b >= 1024 && i < 3) { b /= 1024; i++; } return (i > 1 ? (+b.toFixed(1)).toLocaleString(ML.locale()) : Math.round(b)) + ' ' + u[i]; };
   const fmtDay = ms => { const d = new Date(ms), td = ML.today(), k = ML.dayKey(d); if (k === td) return t('lb_today'); if (k === ML.addDays(td, -1)) return t('lb_yest'); return d.toLocaleDateString(ML.locale(), { day: 'numeric', month: 'short' }); };
@@ -186,10 +214,12 @@
   }
   const snippet = (txt, i, len) => (i > 30 ? '…' : '') + txt.slice(Math.max(0, i - 30), i + len + 50).trim() + '…';
   // Results: the name and tags first, then what's inside (notes, sheet, PDF pages)
-  function matches() {
+  // inGroup: a group's id, '-' for the documents without a group, '' for every document
+  function matches(inGroup = '') {
     const q = norm(query.trim()), f = L();
     const out = [];
     (docs || []).forEach(d => {
+      if (inGroup === '-' ? groupOf(d) : inGroup && d.group !== inGroup) return;
       if (f.kind && d.kind !== f.kind) return;
       if (f.tag === '-' ? d.tags.length : f.tag && !d.tags.includes(f.tag)) return;
       if (!q) { out.push({ d }); return; }
@@ -210,19 +240,51 @@
         <div class="lb-tagedit"><span class="lb-lbl">${esc(t('lb_tags'))}</span>${d.tags.map(x => `<button type="button" class="lb-tag on" data-lb-untag="${esc(x)}">${esc(x)} ×</button>`).join('')}
           ${allTags().filter(([x]) => !d.tags.includes(x)).slice(0, 8).map(([x]) => `<button type="button" class="lb-tag" data-lb-addtag="${esc(x)}">+ ${esc(x)}</button>`).join('')}
           <form class="lb-tagform" data-lb-tagform="${d.id}" autocomplete="off"><input type="text" maxlength="30" placeholder="${esc(t('lb_tag_ph'))}" aria-label="${esc(t('lb_tag_ph'))}"></form></div>
+        ${moveFor === d.id ? `<form class="lb-gform" data-lb-gform="${d.id}" autocomplete="off"><label><span>${esc(t('lb_gnew'))}</span><input type="text" maxlength="40" placeholder="${esc(t('lb_gname'))}"></label><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>`
+          : `<label><span>${esc(t('lb_move'))}</span><select data-lb-move="${d.id}"><option value="">${esc(t('lb_nogroup'))}</option>${groups().map(g => `<option value="${esc(g.id)}" ${groupOf(d) === g ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}<option value="+">${esc(t('lb_gnew'))}…</option></select></label>`}
         <div class="lb-editacts"><button type="button" class="small ghost danger" data-lb-del="${d.id}">${esc(t(armed === d.id ? 'tap_again' : 'lb_delete'))}</button>
           ${ML.CAN_DOWNLOAD ? `<button type="button" class="small ghost" data-lb-dl="${d.id}">${esc(t('lb_download'))}</button>` : ''}
           <button type="button" class="small primary" data-lb-editdone>${esc(t('lb_done'))}</button></div></div></li>`;
-    return `<li class="lb-row"><button type="button" class="lb-open" data-lb-open="${d.id}"${m.page ? ` data-lb-page="${m.page}"` : ''}>${tileHtml(d)}
-        <span class="lb-tx"><b>${esc(d.name)}</b><small>${esc(metaOf(d))}</small>${m.hit ? `<em>${m.page ? esc(t('lb_hit', { n: m.page })) + ' · ' : ''}${esc(m.hit)}</em>` : ''}</span></button>
+    const g = m.showGroup && groupOf(d);
+    return `<li class="lb-row"${canDrag() ? ` draggable="true" data-lb-drag="${d.id}"` : ''}><button type="button" class="lb-open" data-lb-open="${d.id}"${m.page ? ` data-lb-page="${m.page}"` : ''}>${tileHtml(d)}
+        <span class="lb-tx"><b>${esc(d.name)}</b><small>${g ? esc(g.name) + ' · ' : ''}${esc(metaOf(d))}</small>${m.hit ? `<em>${m.page ? esc(t('lb_hit', { n: m.page })) + ' · ' : ''}${esc(m.hit)}</em>` : ''}</span></button>
       ${d.tags.length ? `<span class="lb-rowtags">${d.tags.slice(0, 2).map(x => `<i class="lb-tag">${esc(x)}</i>`).join('')}${d.tags.length > 2 ? `<i class="lb-tag">+${d.tags.length - 2}</i>` : ''}</span>` : ''}
       <button type="button" class="icon-btn lb-more" data-lb-edit="${d.id}" aria-label="${esc(t('lb_edit'))} : ${esc(d.name)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></li>`;
   }
+  const lastOpened = list => list.filter(d => d.opened).sort((a, b) => b.opened - a.opened)[0];
+  const gDot = g => { const c = gColor(g); return c ? `<i class="pl-dot" style="--pc:${c}"></i>` : '<i class="pl-dot lb-nodot"></i>'; };
+  const gMeta = g => { const ds = (docs || []).filter(d => d.group === g.id), lo = lastOpened(ds); return [ds.length ? ML.tn('lb_gn', ds.length) : t('lb_gn_zero'), lo ? t('lb_gopened', { d: fmtDay(lo.opened) }) : ''].filter(Boolean).join(' · '); };
+  const CHEV = '<svg class="lb-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+  const newGroupHtml = cls => (gNew ? `<form class="lb-gform ${cls}" data-lb-gform="new" autocomplete="off"><input type="text" maxlength="40" placeholder="${esc(t('lb_gname'))}" aria-label="${esc(t('lb_gname'))}"><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>`
+    : `<button type="button" class="ghost small lb-gnew ${cls}" data-lb-gnew>+ ${esc(t('lb_gnew'))}</button>`);
+  // One group opened: its name, rename, delete (the documents stay), then its documents
+  function groupViewHtml(g) {
+    const ms = matches(g.id);
+    return `<div class="lb-ghead" data-lb-drop="${g.id}">
+        <button type="button" class="ghost small lb-gback" data-lb-gopen="" data-lb-drop="">‹ ${esc(t('lb_back'))}</button>
+        ${gRen ? `<form class="lb-gform lb-gren" data-lb-gform="ren" autocomplete="off"><input type="text" maxlength="40" value="${esc(g.name)}" aria-label="${esc(t('lb_gren'))}"><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>`
+          : `<h3 class="lb-gtitle">${gDot(g)}<span>${esc(g.name)}</span></h3><small class="lb-gsub">${esc(gMeta(g))}</small>
+          <span class="lb-gacts"><button type="button" class="ghost small" data-lb-gren>${esc(t('lb_gren'))}</button><button type="button" class="ghost small" data-lb-gdel title="${esc(t('lb_gdel_hint'))}">${esc(t(gDelArmed ? 'tap_again' : 'lb_gdel'))}</button></span>`}
+      </div>
+      ${ms.length ? `<ul class="lb-list">${ms.map(rowHtml).join('')}</ul>` : `<p class="hint">${esc(query || L().tag || L().kind ? t('lb_none') : t('lb_gn_zero'))}</p>`}`;
+  }
   function listHtml() {
-    const ms = matches(), tags = allTags(), f = L(), last = !query && !f.tag && !f.kind ? (docs || []).filter(d => d.opened).sort((a, b) => b.opened - a.opened)[0] : null;
+    const f = L(), flat = !!(query || f.tag || f.kind), og = openG && groupById(openG);
+    if (!og) openG = '';
+    const tags = allTags();
+    const chips = tags.length ? `<div class="lb-chips" role="group" aria-label="${esc(t('lb_tags'))}"><button type="button" class="lb-chip" data-lb-tag="" aria-pressed="${!f.tag}">${esc(t('lb_all'))} <i>${(docs || []).length}</i></button>${tags.map(([x, n]) => `<button type="button" class="lb-chip" data-lb-tag="${esc(x)}" aria-pressed="${f.tag === x}">${esc(x)} <i>${n}</i></button>`).join('')}${(docs || []).some(d => !d.tags.length) ? `<button type="button" class="lb-chip" data-lb-tag="-" aria-pressed="${f.tag === '-'}">${esc(t('lb_untagged'))}</button>` : ''}</div>` : '';
+    if (og) return groupViewHtml(og); // no tag chips here: their counts are for the whole Library
+    // A search or a filter: one list across the groups, each row says its group
+    if (flat) { const ms = matches().map(m => Object.assign(m, { showGroup: true })); return chips + (ms.length ? `<ul class="lb-list">${ms.map(rowHtml).join('')}</ul>` : `<p class="hint">${esc(t('lb_none'))}</p>`); }
+    // The top: groups as compact rows first, then the documents without a group (B1)
+    const last = lastOpened(docs || []), gs = [...groups()].sort((a, b) => a.name.localeCompare(b.name, ML.locale(), { numeric: true })), loose = matches('-');
     return `${last ? `<button type="button" class="lb-resume" data-lb-open="${last.id}">${tileHtml(last)}<span><small>${esc(t('lb_resume'))}</small><b>${esc(last.name)}</b>${last.kind === 'pdf' && last.page > 1 ? `<small>${esc(t('lb_page', { n: last.page }))}</small>` : ''}</span></button>` : ''}
-      ${tags.length ? `<div class="lb-chips" role="group" aria-label="${esc(t('lb_tags'))}"><button type="button" class="lb-chip" data-lb-tag="" aria-pressed="${!f.tag}">${esc(t('lb_all'))} <i>${(docs || []).length}</i></button>${tags.map(([x, n]) => `<button type="button" class="lb-chip" data-lb-tag="${esc(x)}" aria-pressed="${f.tag === x}">${esc(x)} <i>${n}</i></button>`).join('')}${(docs || []).some(d => !d.tags.length) ? `<button type="button" class="lb-chip" data-lb-tag="-" aria-pressed="${f.tag === '-'}">${esc(t('lb_untagged'))}</button>` : ''}</div>` : ''}
-      ${ms.length ? `<ul class="lb-list">${ms.map(rowHtml).join('')}</ul>` : `<p class="hint">${esc(t('lb_none'))}</p>`}`;
+      ${chips}
+      ${gs.length ? `<section class="lb-gsec"><h3 class="lb-h">${esc(t('lb_groups'))}</h3><ul class="lb-groups">${gs.map(g => `<li><button type="button" class="lb-grp" data-lb-gopen="${g.id}" data-lb-drop="${g.id}">${gDot(g)}<b>${esc(g.name)}</b><small>${esc(gMeta(g))}</small>${CHEV}</button></li>`).join('')}</ul>${newGroupHtml('')}</section>` : ''}
+      <section class="lb-gsec">${gs.length && (loose.length || canDrag()) ? `<h3 class="lb-h" data-lb-drop="">${esc(t('lb_nogroup'))}</h3>` : ''}
+      ${gs.length && !loose.length && canDrag() ? `<p class="hint lb-dropnote" data-lb-drop="">${esc(t('lb_gdrop'))}</p>` : ''}
+      ${loose.length ? `<ul class="lb-list">${loose.map(rowHtml).join('')}</ul>` : gs.length ? '' : `<p class="hint">${esc(t('lb_none'))}</p>`}
+      ${gs.length ? '' : newGroupHtml('lb-gnew-solo')}</section>`;
   }
   function mainHtml() {
     if (loadErr) return `<p class="hint fi-err">${esc(t('lb_err'))}</p>`;
@@ -249,6 +311,7 @@
     if (!host || !host.isConnected) return;
     const box = $('lb-results');
     if (box && docs && docs.length) box.innerHTML = listHtml(); else { host.innerHTML = mainHtml(); usage(); }
+    renderSide();
   }
   function bind(el) {
     host = el; el.innerHTML = mainHtml();
@@ -272,6 +335,50 @@
   }
   ML.Library = { bind, sources };
 
+  /* ---------- Groups in the computer's section column, under Library (PC-5), like the projects under the Plan's views ---------- */
+  const sideEl = $('sub-lib');
+  let sideNew = false;
+  function renderSide() {
+    if (!sideEl) return;
+    const ok = ML.isPremium && ML.isPremium() && docs;
+    const gs = ok ? [...groups()].sort((a, b) => a.name.localeCompare(b.name, ML.locale(), { numeric: true })) : [];
+    const n = id => docs.filter(d => d.group === id).length;
+    const html = !ok ? '' : `${gs.map(g => `<button type="button" class="pl-sit ${S.tab === 'lib' && openG === g.id ? 'on' : ''}" data-lb-sgo="${g.id}" data-lb-drop="${g.id}" title="${esc(g.name)}">${gDot(g)}<span>${esc(g.name)}</span><small>${n(g.id)}</small></button>`).join('')}
+      ${sideNew ? `<form class="pl-snew" data-lb-snew><input type="text" maxlength="40" placeholder="${esc(t('lb_gname'))}" aria-label="${esc(t('lb_gnew'))}"><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>` : `<button type="button" class="pl-sit pl-sadd" data-lb-sadd>${esc(t('lb_gnew_s'))}</button>`}`;
+    if (sideEl.dataset.h !== html) { sideEl.innerHTML = html; sideEl.dataset.h = html; if (sideNew) sideEl.querySelector('input').focus(); }
+    sideEl.hidden = !ok;
+  }
+  if (sideEl) {
+    sideEl.addEventListener('click', e => {
+      const g = e.target.closest('[data-lb-sgo]'), a = e.target.closest('[data-lb-sadd]');
+      if (g) libOpenGroup(g.dataset.lbSgo);
+      if (a) { sideNew = true; renderSide(); }
+    });
+    sideEl.addEventListener('submit', e => { e.preventDefault(); const g = addGroup(e.target.querySelector('input').value); sideNew = false; if (g) libOpenGroup(g.id); else renderSide(); });
+    sideEl.addEventListener('focusout', () => setTimeout(() => { if (sideNew && !sideEl.contains(document.activeElement)) { sideNew = false; renderSide(); } }, 150));
+  }
+  on('tab', renderSide); on('lang', renderSide); on('render', renderSide);
+  on('started', () => { if (ML.isPremium()) load().then(() => { renderSide(); emit('lib:groups'); }); });
+  on('premium', () => { if (ML.isPremium()) load().then(() => { renderSide(); emit('lib:groups'); }); else renderSide(); });
+
+  /* ---------- The link with Plan projects, by the name (B2) ---------- */
+  // { id, name, n } for the group named like this project (n: its documents, null until the list has loaded)
+  ML.libGroupInfo = name => {
+    if (!name || !(ML.isPremium && ML.isPremium())) return null;
+    const g = groupByName(name); if (!g) return null;
+    return { id: g.id, name: g.name, n: docs ? docs.filter(d => d.group === g.id).length : null };
+  };
+  function libOpenGroup(id) {
+    openG = groupById(id) ? id : ''; gRen = false; gNew = false; editing = null;
+    if (S.tab === 'lib') refresh(); else if (ML.setMobileView && document.documentElement.classList.contains('mnav-on')) ML.setMobileView('lib'); else ML.setTab('lib');
+    renderSide();
+  }
+  ML.libOpenGroup = libOpenGroup;
+  // Library itself, in the section column, opens on the top of the list
+  { const b = $('t-lib'); if (b) b.addEventListener('click', () => { if (!openG) return; openG = ''; gRen = false; if (S.tab === 'lib') refresh(); renderSide(); }); }
+  // Renaming a project in the Plan renames its group (plan.js), unless another group already has the new name
+  ML.libRenameGroup = (from, to) => { const g = groupByName(from); if (g && to && !groupByName(to)) { g.name = String(to).slice(0, 40); renderSide(); emit('lib:groups'); } };
+
   /* ---------- List events (delegated on the Library tab, which keeps its node across renders) ---------- */
   const inLib = () => host && host.isConnected;
   tab.addEventListener('click', e => {
@@ -288,11 +395,32 @@
       if (armed !== b.dataset.lbDel) { armed = b.dataset.lbDel; b.textContent = t('tap_again'); setTimeout(() => { armed = null; }, 3000); return; }
       armed = null; removeDoc(b.dataset.lbDel); return;
     }
+    // Groups: open one (or back to the top), new group, rename, delete (its documents stay, without a group)
+    if (b.dataset.lbGopen != null) { openG = b.dataset.lbGopen; gRen = false; gDelArmed = 0; editing = null; refresh(); host.scrollIntoView({ block: 'nearest' }); return; }
+    if (b.hasAttribute('data-lb-gnew')) { gNew = true; refresh(); const i = tab.querySelector('[data-lb-gform="new"] input'); if (i) i.focus(); return; }
+    if (b.hasAttribute('data-lb-gren')) { gRen = true; refresh(); const i = tab.querySelector('[data-lb-gform="ren"] input'); if (i) { i.focus(); i.select(); } return; }
+    if (b.hasAttribute('data-lb-gdel')) {
+      if (Date.now() - gDelArmed > 3000) { gDelArmed = Date.now(); b.textContent = t('tap_again'); return; }
+      gDelArmed = 0;
+      const id = openG; L().groups = groups().filter(g => g.id !== id);
+      (docs || []).forEach(x => { if (x.group === id) { x.group = null; putDoc(x).catch(() => {}); } });
+      openG = ''; toast(t('lb_gdeleted')); groupsChanged(); return;
+    }
     const cur = editing && d(editing); if (!cur) return;
     if (b.dataset.lbUntag) { cur.tags = cur.tags.filter(x => x !== b.dataset.lbUntag); putDoc(cur).catch(() => {}); if (L().tag === b.dataset.lbUntag && !docs.some(x => x.tags.includes(L().tag))) { L().tag = ''; save(); } refresh(); return; }
     if (b.dataset.lbAddtag) { cur.tags.push(b.dataset.lbAddtag); putDoc(cur).catch(() => {}); refresh(); }
   });
   tab.addEventListener('submit', e => {
+    const gf = e.target.dataset && e.target.dataset.lbGform;
+    if (gf) {
+      e.preventDefault(); e.stopPropagation();
+      const v = e.target.querySelector('input').value.trim().slice(0, 40);
+      if (gf === 'ren') { const g = groupById(openG), other = v && groupByName(v); if (g && v && (!other || other === g)) g.name = v; gRen = false; groupsChanged(); return; }
+      const g = v ? addGroup(v) : null;
+      if (gf === 'new') gNew = false;
+      else { moveFor = null; const x = docs.find(y => y.id === gf); if (x && g) moveDoc(x, g.id); }
+      groupsChanged(); return;
+    }
     const f = e.target; if (!f.dataset || !f.dataset.lbTagform) return;
     e.preventDefault(); e.stopPropagation();
     const cur = docs.find(x => x.id === f.dataset.lbTagform), v = f.querySelector('input').value.trim().slice(0, 30);
@@ -313,7 +441,40 @@
     if (e.target.id === 'lb-file' || e.target.id === 'lb-cam') { addFiles(e.target.files); e.target.value = ''; }
     else if (e.target.id === 'lb-kind') { L().kind = e.target.value; save(); refresh(); }
     else if (e.target.id === 'lb-sort') { L().sort = e.target.value; save(); refresh(); }
+    else if (e.target.dataset.lbMove) {
+      const x = docs.find(y => y.id === e.target.dataset.lbMove), v = e.target.value; if (!x) return;
+      if (v === '+') { moveFor = x.id; refresh(); const i = tab.querySelector(`[data-lb-gform="${x.id}"] input`); if (i) i.focus(); return; }
+      moveDoc(x, v); refresh(); renderSide(); emit('lib:groups');
+    }
   });
+  // An empty new-group field loses focus: it closes again
+  tab.addEventListener('focusout', e => {
+    const f = e.target.closest && e.target.closest('[data-lb-gform]'); if (!f) return;
+    setTimeout(() => { if (!f.isConnected || f.contains(document.activeElement)) return; if (!f.querySelector('input').value.trim() || f.dataset.lbGform === 'ren') { gNew = false; gRen = false; moveFor = null; refresh(); } }, 150);
+  });
+  tab.addEventListener('keydown', e => { if (e.key === 'Escape' && e.target.closest && e.target.closest('[data-lb-gform]')) { e.stopPropagation(); gNew = false; gRen = false; moveFor = null; refresh(); } });
+
+  /* ---------- Drag a document onto a group (computer, PC-5): in the list or in the section column ---------- */
+  const DT = 'application/x-ml-doc';
+  let dragId = null;
+  document.addEventListener('dragstart', e => {
+    const r = e.target.closest && e.target.closest('[data-lb-drag]'); if (!r || !inLib()) return;
+    dragId = r.dataset.lbDrag; e.dataTransfer.setData(DT, dragId); e.dataTransfer.effectAllowed = 'move';
+    document.documentElement.classList.add('lb-dragging');
+    r.addEventListener('dragend', dragDone, { once: true }); // the row may leave the page after the drop: its dragend no longer bubbles
+  });
+  function dragDone() { dragId = null; document.documentElement.classList.remove('lb-dragging'); document.querySelectorAll('.lb-drop-on').forEach(x => x.classList.remove('lb-drop-on')); }
+  document.addEventListener('dragend', dragDone);
+  const dropOf = e => (dragId && e.target.closest ? e.target.closest('[data-lb-drop]') : null);
+  document.addEventListener('dragover', e => { const z = dropOf(e); if (!z) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; document.querySelectorAll('.lb-drop-on').forEach(x => { if (x !== z) x.classList.remove('lb-drop-on'); }); z.classList.add('lb-drop-on'); });
+  document.addEventListener('dragleave', e => { const z = dropOf(e); if (z && !z.contains(e.relatedTarget)) z.classList.remove('lb-drop-on'); });
+  document.addEventListener('drop', e => {
+    const z = dropOf(e); if (!z) return;
+    e.preventDefault(); e.stopPropagation();
+    const x = (docs || []).find(y => y.id === dragId), gid = z.dataset.lbDrop;
+    dragDone();
+    if (x && (x.group || '') !== gid && (!gid || groupById(gid))) { moveDoc(x, gid); refresh(); emit('lib:groups'); }
+  }, true);
   tab.addEventListener('dragover', e => { if (inLib() && [...(e.dataTransfer.types || [])].includes('Files')) { e.preventDefault(); host.classList.add('lb-over'); } });
   tab.addEventListener('dragleave', e => { if (inLib() && !host.contains(e.relatedTarget)) host.classList.remove('lb-over'); });
   tab.addEventListener('drop', e => { if (inLib() && e.dataTransfer.files.length) { e.preventDefault(); host.classList.remove('lb-over'); addFiles(e.dataTransfer.files); } });

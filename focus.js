@@ -155,7 +155,7 @@
   /* ---------- Progress (3.66): Focus and the Grimoire's stats on one page, written as lines ---------- */
   // One big number (the school year), then one line per fact, each said once in the whole app. Settings (period,
   // goal, display) moved to Settings; the goal question is asked once, in a sheet.
-  const fmtDur = m => { m = Math.round(m); return m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ' ' + String(m % 60).padStart(2, '0') : ''}` : `${m} min`; };
+  const fmtDur = fmtMins;
   ML.fmtDur = fmtDur;
   ML.dayGoal = () => dayGoal();
   const dec = (v, n) => v.toLocaleString(ML.locale(), { minimumFractionDigits: 0, maximumFractionDigits: n });
@@ -180,7 +180,7 @@
       <p class="yl-big">${yr.mins ? `<b data-count="${yr.mins}" data-fmt="m">${esc(fmtDur(yr.mins))}</b> ${esc(t('pg_since', { n: yr.weeks }))}` : esc(t('pg_none'))}</p>
       <ul class="yl">${lines}</ul>
       <p class="insight">${esc(t('fc_rule'))}</p>
-      <div class="y-btns">${tryM ? `<button type="button" data-span="${tryM}">${esc(t('fc_span_try', { m: fmtDur(tryM) }))}</button>` : ''}<button type="button" class="ghost" data-stuck>${esc(t('st_btn'))}</button></div>
+      <div class="y-btns">${tryM ? `<button type="button" class="primary" data-span="${tryM}">${esc(t('fc_span_try', { m: fmtDur(tryM) }))}</button>` : ''}<button type="button" class="ghost" data-stuck>${esc(t('st_btn'))}</button></div>
       <div class="yl-level"><p><span>${esc(t('pg_level'))}</span> <b>${esc(lv.name)}</b></p><span class="y-track"><b style="width:${(lv.frac * 100).toFixed(1)}%"></b></span>
         <p class="insight">${esc(lv.next ? t('pg_xp_left', { n: (lv.next - S.xp).toLocaleString(ML.locale()), name: lv.nextName }) + ' ' : '')}${esc(t('xp_rules'))}</p></div>
       ${ach ? det('ach', t('pg_ach', { a: ach.got, b: ach.total }), () => ach.html()) : ''}
@@ -191,9 +191,10 @@
     el.innerHTML = html; el.dataset.h = html;
     countUp(el);
   }
-  // Asked once, the first time You opens, instead of a questionnaire on top of a page
+  // Asked once, never on first contact (pro pass D7): only after 5 sessions, when You opens. Until then You
+  // behaves as "further"; the choice is also in Settings.
   function askGoal() {
-    if (S.goalProfile || $('goalq') && !$('goalq').hidden) return;
+    if (S.goalProfile || (S.sessions || []).length < 5 || $('goalq') && !$('goalq').hidden) return;
     ML.ySheet('goalq', `<h2>${esc(t('gp_q'))}</h2><p class="insight">${esc(t('gp_p'))}</p><div class="y-btns y-col">${['further', 'start', 'phone'].map(k => `<button type="button" data-gp="${k}">${esc(t('gp_' + k))}</button>`).join('')}</div><button type="button" class="ghost" data-gp="skip">${esc(t('gp_skip'))}</button>`, r => {
       r.onclick = e => { const b = e.target.closest('[data-gp]'); if (!b) return; ML.closeOverlay('goalq'); setProfile(b.dataset.gp === 'skip' ? 'further' : b.dataset.gp); };
     });

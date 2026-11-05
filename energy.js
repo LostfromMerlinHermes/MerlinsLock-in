@@ -1,7 +1,7 @@
 // Energy picker: the one screen where the day's energy (the mood) is chosen — at the first opening of the day,
 // from the energy pill on phones, from Settings and at midnight. It opens on yesterday's energy; arrows, a swipe,
 // the four buttons or keys 1–4 browse, and the real world switches behind while you do (ML.previewMood in game.js).
-// Closing without choosing puts the world back. On a first launch it is step 1 of 3: energy → first task → first session.
+// Closing without choosing puts the world back. On a first launch (3.72) it is two screens instead: how long → on what + Lock in.
 (() => {
   'use strict';
   const { S, t, esc, save, on, $, uid, today, svgIcon } = ML;
@@ -11,18 +11,18 @@
       ep_title: 'Énergie du jour', ep_yday: 'Hier', ep_now: 'Actuelle', ep_choose: 'Choisir', ep_close: 'Fermer', ep_prev: 'Énergie précédente', ep_next: 'Énergie suivante',
       ep_mins: '{m} min', ep_buff: '{b} +XP', ep_label: 'Énergie', ep_change: 'Changer',
       ep_sort_drained: 'Petites victoires d’abord', ep_sort_steady: 'Par priorité', ep_sort_fired: 'Tâche la plus dure d’abord', ep_sort_scattered: 'Une tâche à la fois',
-      ob_intro: 'Le minuteur, l’ordre des tâches et le décor suivent ton énergie.', ob_task_h: 'Tu travailles sur quoi ?', ob_task_p: 'Une tâche suffit pour commencer.',
-      ob_sugg: 'Réviser|Projet perso|Lire 20 pages|Ranger mes mails', ob_next: 'Suivant', ob_skip: 'Passer',
-      ob_go_h: 'Première session', ob_go_p: 'À la fin : de l’XP et un étage de plus à ta tour.', ob_later: 'Plus tard', ob_step: 'Étape {n} sur 3',
+      ob_intro: 'Le minuteur, l’ordre des tâches et le décor suivent ton énergie.', ob_task_h: 'Sur quoi ?', ob_task_p: 'Une tâche suffit. Tu peux laisser vide.',
+      ob_sugg: 'Réviser|Projet perso|Lire 20 pages|Ranger mes mails', ob_next: 'Suivant',
+      ob_later: 'Plus tard', ob_step: 'Étape {n} sur 2', ob_dur_h: 'Combien de temps veux-tu travailler ?', ob_dur_p: 'Tu pourras changer à chaque session.', ob_dur_25: 'Pour se lancer', ob_dur_40: 'Le plus courant', ob_dur_other: 'Autre', ob_dur_pick: 'Choisir', ob_dur_min: 'Durée en minutes',
       ep_world: 'Monde', ep_clock: 'Suivre l’heure ({night} après 21 h)',
     },
     en: {
       ep_title: 'Energy today', ep_yday: 'Yesterday', ep_now: 'Current', ep_choose: 'Choose', ep_close: 'Close', ep_prev: 'Previous energy', ep_next: 'Next energy',
       ep_mins: '{m} min', ep_buff: '{b} +XP', ep_label: 'Energy', ep_change: 'Change',
       ep_sort_drained: 'Quick wins first', ep_sort_steady: 'By priority', ep_sort_fired: 'Hardest task first', ep_sort_scattered: 'One task at a time',
-      ob_intro: 'The timer, task order and look follow your energy.', ob_task_h: 'What are you working on?', ob_task_p: 'One task is enough to start.',
-      ob_sugg: 'Revise|Side project|Read 20 pages|Clear my inbox', ob_next: 'Next', ob_skip: 'Skip',
-      ob_go_h: 'First session', ob_go_p: 'At the end: XP and a new tower floor.', ob_later: 'Later', ob_step: 'Step {n} of 3',
+      ob_intro: 'The timer, task order and look follow your energy.', ob_task_h: 'On what?', ob_task_p: 'One task is enough. You can leave it empty.',
+      ob_sugg: 'Revise|Side project|Read 20 pages|Clear my inbox', ob_next: 'Next',
+      ob_later: 'Later', ob_step: 'Step {n} of 2', ob_dur_h: 'How long do you want to work?', ob_dur_p: 'You can change it for every session.', ob_dur_25: 'To get going', ob_dur_40: 'The most common', ob_dur_other: 'Other', ob_dur_pick: 'Choose', ob_dur_min: 'Length in minutes',
       ep_world: 'World', ep_clock: 'Follow the hour ({night} after 9 pm)',
     },
   });
@@ -52,7 +52,7 @@
     return d.outerHTML.replace(REF, (m, a, id) => own.has(id) ? a + 'ep-' + id : m);
   }
   // The dial shown by the current step
-  const dialNow = () => st.step === 3 ? [focusOf(S.mood), st.title || ''] : [focusOf(st.pick), ''];
+  const dialNow = () => st.onboard ? [st.mins, st.title || ''] : [focusOf(st.pick), ''];
   // A canvas dial (Brouillard, Arcade) has no bitmap in the clone, and each world swaps its dial just after the theme changes:
   // while a dial is on screen, follow the real one.
   let mirrorT = 0;
@@ -85,19 +85,45 @@
   el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'ep-h');
   document.body.appendChild(el);
 
-  let st = null; // { pick, cancellable, onboard, step, taskId, title }
+  let st = null; // { pick, cancellable, onboard, step, title, mins }
   ML.energyOpen = () => !!st;
 
   const head = (title, sub) => `<header class="ep-top">
       ${st.cancellable ? `<button type="button" class="ghost icon-only ep-x" data-ep="close" aria-label="${esc(t('ep_close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>` : ''}
       <p class="ep-brand">Merlins<b>LockIN</b></p>
-      ${st.onboard ? `<div class="ep-steps" role="img" aria-label="${esc(t('ob_step', { n: st.step }))}">${[1, 2, 3].map(n => `<i class="${n <= st.step ? 'on' : ''}"></i>`).join('')}</div>` : ''}
+      ${st.onboard ? `<div class="ep-steps" role="img" aria-label="${esc(t('ob_step', { n: st.step }))}">${[1, 2].map(n => `<i class="${n <= st.step ? 'on' : ''}"></i>`).join('')}</div>` : ''}
       <h2 id="ep-h">${esc(title)}</h2>${sub ? `<p class="ep-sub">${esc(sub)}</p>` : ''}</header>`;
+
+  // First launch (3.72, D1 A): two screens. 1) How long? 25 / 40 / Other. 2) On what? with the dial and Lock in.
+  // The energy stays Steady for the first day, unexplained; it is offered the next morning with one line (S.epIntro).
+  const OB_MINS = [25, 40];
+  function renderDur() {
+    const other = !OB_MINS.includes(st.mins);
+    el.innerHTML = `<div class="ep-in ep-form">
+      ${head(t('ob_dur_h'), t('ob_dur_p'))}
+      <div class="ep-durs" role="radiogroup" aria-label="${esc(t('ob_dur_h'))}">
+        ${OB_MINS.map(m => `<button type="button" role="radio" class="ep-dur" aria-checked="${!other && st.mins === m}" data-ep-dur="${m}"><b>${esc(ML.fmtMins(m))}</b><small>${esc(t('ob_dur_' + m))}</small></button>`).join('')}
+        <button type="button" role="radio" class="ep-dur" aria-checked="${other}" data-ep-dur="other"><b>${esc(t('ob_dur_other'))}</b><small>${other ? '' : esc(t('ob_dur_pick'))}</small></button>
+        ${other ? `<label class="ep-dur-in"><input type="number" id="ep-mins" min="5" max="180" step="5" inputmode="numeric" value="${st.mins}" aria-label="${esc(t('ob_dur_min'))}"><span>min</span></label>` : ''}
+      </div>
+      <div class="ep-foot"><button type="button" class="primary ep-go" data-ep="dur-next">${esc(t('ob_next'))}</button></div></div>`;
+  }
+  function renderTaskGo() {
+    el.innerHTML = `<div class="ep-in ep-form">
+      ${head(t('ob_task_h'), t('ob_task_p'))}
+      <form class="ep-task" data-ep="task-form" autocomplete="off">
+        <input type="text" class="ep-input" id="ep-task" maxlength="120" aria-label="${esc(t('ob_task_h'))}" value="${esc(st.title || '')}">
+        <div class="ep-sugg">${t('ob_sugg').split('|').map(s => `<button type="button" class="chip-btn" data-ep-sugg="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+      </form>
+      <div class="ep-stage ep-stage-sm"><div class="ep-dial">${dialHtml(st.mins, st.title || '')}</div></div>
+      <div class="ep-foot"><button type="button" class="primary ep-go ep-lock" data-ep="go">${esc(t('lock_in_big'))}</button>
+        <button type="button" class="link" data-ep="later">${esc(t('ob_later'))}</button></div></div>`;
+  }
 
   function renderPick() {
     const k = st.pick;
     el.innerHTML = `<div class="ep-in">
-      ${head(t('ep_title'), st.onboard ? t('ob_intro') : '')}
+      ${head(t('ep_title'), S.epIntro === false ? t('ob_intro') : '')}
       <div class="ep-stage" data-ep="swipe"><div class="ep-dial">${dialHtml(focusOf(k))}</div></div>
       <div class="ep-pick">
         <div class="ep-row">
@@ -118,33 +144,12 @@
       </div></div>`;
   }
 
-  function renderTask() {
-    el.innerHTML = `<div class="ep-in ep-form">
-      ${head(t('ob_task_h'), t('ob_task_p'))}
-      <form class="ep-task" data-ep="task-form" autocomplete="off">
-        <input type="text" class="ep-input" id="ep-task" maxlength="120" aria-label="${esc(t('ob_task_h'))}" value="${esc(st.title || '')}">
-        <div class="ep-sugg">${t('ob_sugg').split('|').map(s => `<button type="button" class="chip-btn" data-ep-sugg="${esc(s)}">${esc(s)}</button>`).join('')}</div>
-      </form>
-      <div class="ep-foot"><button type="button" class="primary ep-go" data-ep="task-next">${esc(t('ob_next'))}</button>
-        <button type="button" class="link" data-ep="task-skip">${esc(t('ob_skip'))}</button></div></div>`;
-    setTimeout(() => { const i = $('ep-task'); if (i && !matchMedia('(pointer: coarse)').matches) i.focus(); }, 60);
-  }
-
-  function renderGo() {
-    el.innerHTML = `<div class="ep-in">
-      ${head(t('ob_go_h'), t('ob_go_p'))}
-      <div class="ep-stage"><div class="ep-dial">${dialHtml(focusOf(S.mood), st.title || '')}</div></div>
-      <button type="button" class="ep-clock ep-eyes" role="switch" aria-checked="${!!(S.eyes && S.eyes.on)}" data-ep="eyes"><i></i>${esc(t('eye_opt'))}</button>
-      <div class="ep-foot"><button type="button" class="primary ep-go ep-lock" data-ep="go">LOCK IN</button>
-        <button type="button" class="link" data-ep="later">${esc(t('ob_later'))}</button></div></div>`;
-  }
-
-  const render = () => (st.step === 2 ? renderTask() : st.step === 3 ? renderGo() : renderPick());
+  const render = () => (st.onboard ? (st.step === 2 ? renderTaskGo() : renderDur()) : renderPick());
 
   function open(opts = {}) {
     if (st) return;
     // fresh: today's energy isn't set yet, so the current one is yesterday's
-    st = { pick: S.mood in ML.MOODS ? S.mood : 'steady', cancellable: !!opts.cancellable, onboard: !!opts.onboard, fresh: S.moodDay !== today(), step: 1, taskId: null, title: '' };
+    st = { pick: S.mood in ML.MOODS ? S.mood : 'steady', cancellable: !!opts.cancellable, onboard: !!opts.onboard, fresh: S.moodDay !== today(), step: 1, title: '', mins: 40 };
     st.wp = pickOf(st.pick);
     document.documentElement.classList.add('ep-on');
     el.hidden = false; el.classList.remove('out');
@@ -186,50 +191,56 @@
     if (k !== S.mood) ML.setMood(k); else { S.moodDay = today(); ML.renderAll(); }
     if (S.juice) S.juice.titleDay = today(); // the daily title screen would only repeat this
     save(); ML.emit('gesture');
-    if (st.onboard) { st.step = 2; render(); } else close();
+    if (S.epIntro === false) S.epIntro = true; // the one line about energies, shown once the day after the first launch
+    close();
   }
-  function saveTask() {
-    const title = (($('ep-task') || {}).value || '').trim();
-    S.tasks = S.tasks.filter(x => !x.sample);
-    if (title) {
-      const task = { id: uid(), title, mins: focusOf(S.mood), pri: 'med', done: false, created: Date.now() };
-      S.tasks.push(task); st.taskId = task.id; st.title = title;
-    }
-    save(); ML.renderAll();
-    st.step = 3; render();
+  // Step 1 → 2: the length is kept for this first session only; the energy stays as it is (Steady) for today
+  function durNext() {
+    const i = $('ep-mins'); if (i) st.mins = Math.max(5, Math.min(180, Math.round(+i.value || 40)));
+    S.moodDay = today(); if (S.juice) S.juice.titleDay = today();
+    save(); st.step = 2; render();
+    setTimeout(() => { const f = $('ep-task'); if (f && !matchMedia('(pointer: coarse)').matches) f.focus(); }, 60);
   }
   function finish(go) {
-    const id = st.taskId;
-    S.onboarded = true; S.tasks = S.tasks.filter(x => !x.sample); save();
+    const title = (($('ep-task') || {}).value || '').trim();
+    S.tasks = S.tasks.filter(x => !x.sample);
+    let id = null;
+    if (title) { const task = { id: uid(), title, mins: st.mins, pri: 'med', done: false, created: Date.now() }; S.tasks.push(task); id = task.id; }
+    const mins = st.mins;
+    S.onboarded = true; S.epIntro = false; save();
     close(); ML.renderAll();
-    if (go) setTimeout(() => ML.lockIn({ taskId: id, mins: focusOf(S.mood) }), 300);
+    if (go) setTimeout(() => ML.lockIn(id ? { taskId: id, mins } : { mins }), 300);
   }
 
   el.addEventListener('click', e => {
     if (!st) return;
     const m = e.target.closest('[data-ep-mood]'); if (m) return pick(m.dataset.epMood);
     const w = e.target.closest('[data-ep-world]'); if (w) return pickWorld(w.dataset.epWorld);
-    const s = e.target.closest('[data-ep-sugg]'); if (s) { const i = $('ep-task'); if (i) { i.value = s.dataset.epSugg; i.focus(); } return; }
+    const s = e.target.closest('[data-ep-sugg]'); if (s) { const i = $('ep-task'); if (i) { i.value = s.dataset.epSugg; i.focus(); setTitle(i.value); } return; }
+    const d = e.target.closest('[data-ep-dur]'); if (d) { st.mins = d.dataset.epDur === 'other' ? (OB_MINS.includes(st.mins) ? 30 : st.mins) : +d.dataset.epDur; renderDur(); if (d.dataset.epDur === 'other') { const i = $('ep-mins'); if (i) i.focus(); } return; }
     const a = e.target.closest('[data-ep]'); if (!a) return;
-    ({ close, prev: () => step(-1), next: () => step(1), choose, clock: () => pickWorld(null), 'task-next': saveTask, 'task-skip': () => { $('ep-task').value = ''; saveTask(); },
-      eyes: () => { S.eyes.on = !S.eyes.on; save(); renderGo(); }, go: () => finish(true), later: () => finish(false) })[a.dataset.ep]?.();
+    ({ close, prev: () => step(-1), next: () => step(1), choose, clock: () => pickWorld(null), 'dur-next': durNext, go: () => finish(true), later: () => finish(false) })[a.dataset.ep]?.();
   });
-  el.addEventListener('submit', e => { e.preventDefault(); if (st && st.step === 2) saveTask(); });
+  // The task's name shows on the dial as it is typed
+  const setTitle = v => { st.title = v.trim(); const f = el.querySelector('.ep-dial .focus-on'); if (f) f.textContent = st.title; };
+  el.addEventListener('input', e => { if (!st) return; if (e.target.id === 'ep-task') setTitle(e.target.value); if (e.target.id === 'ep-mins') st.mins = Math.max(5, Math.min(180, Math.round(+e.target.value || 40))); });
+  el.addEventListener('submit', e => { e.preventDefault(); if (st && st.onboard && st.step === 2) finish(true); });
   // Swipe left / right on the dial to browse
   let sx = null;
-  el.addEventListener('pointerdown', e => { sx = st && st.step === 1 && e.target.closest('[data-ep="swipe"], .ep-name') ? { x: e.clientX, y: e.clientY } : null; });
+  el.addEventListener('pointerdown', e => { sx = st && !st.onboard && e.target.closest('[data-ep="swipe"], .ep-name') ? { x: e.clientX, y: e.clientY } : null; });
   el.addEventListener('pointerup', e => {
     if (!sx) return; const dx = e.clientX - sx.x, dy = e.clientY - sx.y; sx = null;
     if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) step(dx < 0 ? 1 : -1);
   });
   function onKey(e) {
     if (!st) return;
-    if (ML.isTyping(e)) { if (e.key === 'Escape' && st.cancellable) { e.preventDefault(); close(); } return; } // the task field types freely
+    if (ML.isTyping(e)) { if (e.key === 'Escape' && st.cancellable) { e.preventDefault(); close(); } else if (e.key === 'Enter' && e.target.id === 'ep-mins') { e.preventDefault(); durNext(); } return; } // the task field types freely
     const k = e.key, n = +k;
     if (k === 'Tab') return;
-    if (st.step === 1 && n >= 1 && n <= KEYS().length) pick(KEYS()[n - 1]);
-    else if (st.step === 1 && (k === 'ArrowRight' || k === 'ArrowLeft')) step(k === 'ArrowRight' ? 1 : -1);
-    else if (k === 'Enter' && !(e.target && e.target.tagName === 'BUTTON')) { if (st.step === 1) choose(); else if (st.step === 3) finish(true); }
+    if (st.onboard) { if (k === 'Enter' && !(e.target && e.target.tagName === 'BUTTON')) { if (st.step === 1) durNext(); else finish(true); } else if (k === 'Enter' || k === ' ') return; }
+    else if (n >= 1 && n <= KEYS().length) pick(KEYS()[n - 1]);
+    else if (k === 'ArrowRight' || k === 'ArrowLeft') step(k === 'ArrowRight' ? 1 : -1);
+    else if (k === 'Enter' && !(e.target && e.target.tagName === 'BUTTON')) choose();
     else if (k === 'Escape' && st.cancellable) close();
     else if (k === 'Enter' || k === ' ') return; // a focused button handles it
     e.preventDefault(); e.stopPropagation(); // nothing reaches the app's shortcuts behind

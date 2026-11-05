@@ -286,7 +286,7 @@
   }
   function renderFeeds() { if (feedsRoot && feedsRoot.isConnected) feedsRoot.innerHTML = feedsHtml(); }
   ML.settingsSection({
-    order: 27,
+    order: 28,
     render: () => `<h3>${esc(t('cf_title'))}</h3><div id="cf-sec">${feedsHtml()}</div>`,
     bind: r => {
       feedsRoot = r.querySelector('#cf-sec'); if (!feedsRoot) return;

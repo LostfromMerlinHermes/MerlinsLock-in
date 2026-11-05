@@ -136,7 +136,15 @@
     const sc = $('pl-scroll');
     if (sc) {
       if (keepTop != null && render.scrolled) sc.scrollTop = keepTop;
-      else { sc.scrollTop = Math.max(0, px(k === td ? nm : 8 * 60) - 120); render.scrolled = true; } // first look: now (today) or the morning
+      else if (sc.clientHeight) { // hidden (another tab): wait for a visible render
+        // First look: today = now, or the next block when it starts within the hour; other days = the first block, else 8:00.
+        // The anchor sits in the top quarter so it never ends up under the bottom bar.
+        const starts = dayBlocks.map(b => b.start).concat(evs.filter(o => o.start != null).map(o => o.start)).sort((a, b) => a - b);
+        const next = starts.find(s => s >= nm);
+        const anchor = k === td ? (next != null && next - nm <= 60 ? Math.min(nm, next) : nm) : starts.length ? starts[0] : 8 * 60;
+        sc.scrollTop = Math.max(0, px(anchor) - Math.min(120, sc.clientHeight / 4));
+        render.scrolled = true;
+      }
     }
   }
   function popoverHtml() {
@@ -356,7 +364,7 @@
   ML.plannerGoto = k => { S.planner.date = k === today() ? null : k; render.scrolled = false; ML.setTab('day'); };
 
   ML.settingsSection({
-    order: 30,
+    order: 27, cat: 'planning',
     render: () => `<h3>${esc(t('set_planner'))}</h3>
       ${ML.ui.chk('set-autostart', t('opt_autostart'), S.planner.autoStart)}
       <label class="field"><span>${esc(t('day_start'))}</span>${ML.ui.sel('set-dstart', [4, 5, 6, 7, 8, 9, 10, 11, 12].map(h => [h, h + ':00']), S.planner.startH)}</label>

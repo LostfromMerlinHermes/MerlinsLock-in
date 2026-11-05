@@ -9,7 +9,7 @@
   ML.addStrings({
     fr: {
       end_h: 'Session terminée', end_h_early: 'Session arrêtée', end_xp: '+{xp} XP', end_task_q: 'Tâche terminée ?', end_task_yes: '✓ Oui, terminée',
-      end_rate: 'Ta concentration ?', end_next: 'Et maintenant ?', end_break: 'Pause · {m}', end_break_on: 'Continuer la pause', end_more: 'Encore 5 min',
+      end_rate: 'Ta concentration ?', end_next: 'Et maintenant ?', end_break: 'Repos · {m}', end_break_on: 'Continuer le repos', end_more: 'Encore 5 min',
       end_nexttask: 'Tâche suivante', end_nexttask_none: 'Plus de tâche ouverte', end_later: 'Plus tard', end_tower: '+{n} étage', end_tower_n: '+{n} étages',
     },
     en: {

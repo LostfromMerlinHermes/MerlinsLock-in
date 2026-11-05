@@ -22,7 +22,8 @@ window.ML = (() => {
   const toMins = s => { const [h, m] = String(s || '0:0').split(':').map(Number); return h * 60 + (m || 0); };
   const uid = () => Math.random().toString(36).slice(2, 10);
   const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const fmtMins = m => { m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + 'h' + (m % 60 ? pad2(m % 60) : '') : m + 'min'; };
+  // One duration format everywhere (3.69, C8): "40 min", "1 h 15", "2 h", with no-break spaces so it never splits across lines
+  const fmtMins = m => { m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + pad2(m % 60) : '') : m + ' min'; };
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const svgIcon = inner => `<svg viewBox="0 0 24 24" aria-hidden="true">${inner}</svg>`;
   // True when a key event belongs to text entry, so single-letter shortcuts must ignore it.

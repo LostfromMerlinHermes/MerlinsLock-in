@@ -574,6 +574,16 @@
       renderStatus();
       if (r.querySelector('#acc-sync')) r.querySelector('#acc-sync').onclick = async () => { if (await syncNow(false)) toast(t('acc_synced')); };
       if (r.querySelector('#acc-logout')) r.querySelector('#acc-logout').onclick = logout;
+      if (r.querySelector('#acc-login')) r.querySelector('#acc-login').onclick = () => { try { localStorage.removeItem(GUEST_FLAG); } catch (e) {} location.reload(); };
+    },
+  });
+  // The irreversible account actions live in Settings → Advanced
+  ML.settingsSection({
+    order: 95, group: 'advanced',
+    render: () => !user ? '' : `<h3>${esc(t('acc_danger'))}</h3>
+      <div class="backup-btns"><button type="button" class="small ghost danger" id="acc-wipe">${esc(t('acc_wipe'))}</button>
+      <button type="button" class="small ghost danger" id="acc-delete">${esc(t('acc_delete'))}</button></div>`,
+    bind: r => {
       if (r.querySelector('#acc-wipe')) ML.armedButton(r.querySelector('#acc-wipe'), 'acc_wipe', async () => {
         try { await api('/rest/v1/lockin_data?user_id=eq.' + user.id, { method: 'DELETE', token: await token() }); toast(t('acc_wiped')); } catch (e) { toast(errText(e)); }
       });
@@ -590,14 +600,6 @@
           toast(t('acc_deleted')); setTimeout(() => location.reload(), 1800);
         } catch (e) { toast(e.status === 404 ? t('del_missing') : errText(e)); }
       });
-      if (r.querySelector('#acc-login')) r.querySelector('#acc-login').onclick = () => { try { localStorage.removeItem(GUEST_FLAG); } catch (e) {} location.reload(); };
     },
-  });
-  // The irreversible account actions live in Settings → Advanced (bound by the account section above: r is the whole sheet)
-  ML.settingsSection({
-    order: 95, group: 'advanced',
-    render: () => !user ? '' : `<h3>${esc(t('acc_danger'))}</h3>
-      <div class="backup-btns"><button type="button" class="small ghost danger" id="acc-wipe">${esc(t('acc_wipe'))}</button>
-      <button type="button" class="small ghost danger" id="acc-delete">${esc(t('acc_delete'))}</button></div>`,
   });
 })();

@@ -562,6 +562,9 @@
       const all = S.tasks.filter(x => x.project === n), done = all.filter(x => x.done).length, left = projLeft(n);
       meta = `<span class="pl-ctx-meta">${esc(t('pl_proj_prog', { d: done, n: all.length }))}${left ? ` · <em class="${left === t('pl_proj_past') ? 'late' : ''}">${esc(t('pl_proj_due_d', { d: left }))}</em>` : ''}${(p.pnotes || {})[n] ? ' · ' + esc(t('pl_proj_note')) : ''}</span>
         <button type="button" class="ghost small pl-ctx-det" data-ctx="det" aria-expanded="${detailsOpen}">${esc(t('pl_details'))}</button>`;
+      // a Library group of the same name (3.71, B2): its documents, one tap away
+      const lg = ML.libGroupInfo && ML.libGroupInfo(n);
+      if (lg && lg.n) meta += `<button type="button" class="pl-ctx-docs" data-ctx="docs" data-g="${esc(lg.id)}">${esc(ML.tn('lb_gn', lg.n))}</button>`;
     }
     const chip = n ? `<span class="pl-ctx-proj" style="--pc:${projColor(n)}"><button type="button" class="chip proj on" data-ctx="pick" aria-haspopup="true" aria-expanded="false"><i></i>${esc(n)}</button><button type="button" class="icon-btn pl-ctx-x" data-ctx="clear" aria-label="${esc(t('pl_unfilter'))}" title="${esc(t('pl_unfilter'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></span>`
       : projs.length ? `<button type="button" class="chip pl-ctx-all" data-ctx="pick" aria-haspopup="true" aria-expanded="false">${esc(t('pl_allproj'))} <svg class="pl-ctx-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>` : '';
@@ -575,7 +578,9 @@
     if (k === 'pick') openProjPick(b);
     if (k === 'clear') { P().proj = ''; detailsOpen = false; save(); ML.renderTasks(); }
     if (k === 'det') { detailsOpen = !detailsOpen; renderCtx(); renderPhead(); }
+    if (k === 'docs' && ML.libOpenGroup) ML.libOpenGroup(b.dataset.g);
   });
+  on('lib:groups', () => { if (S.tab === 'plan') renderCtx(); });
   function renderPhead() {
     const p = P(), n = p.proj;
     if (!n) detailsOpen = false;
@@ -605,6 +610,7 @@
     if (p.pdue && p.pdue[from] != null) { p.pdue[to] = p.pdue[from]; delete p.pdue[from]; }
     const pc = pcolors(); if (pc[from] != null) { pc[to] = pc[from]; delete pc[from]; }
     if (p.proj === from) p.proj = to;
+    if (ML.libRenameGroup) ML.libRenameGroup(from, to); // its Library group follows (3.71, B2)
   }
   let delArmed = 0;
   phead.addEventListener('click', e => {

@@ -9,13 +9,13 @@
   ML.addStrings({
     fr: {
       td_next: 'Prochaine', td_next_e: 'Prochaine, selon ton énergie', td_hours: 'Heures du jour', td_coming: 'À venir', td_quests: 'Quêtes du jour', td_nothing: 'Rien de prévu pour l’instant.', td_add: 'Ajouter une tâche', td_plan: 'Placer dans la journée', td_empty_h: 'Aucun créneau placé aujourd’hui.', td_late: '{n} en retard', td_due: '{n} cartes à réviser', td_due_one: '1 carte à réviser', td_inbox: '{n} dans l’Inbox', td_in: 'dans {n} j', td_today: 'aujourd’hui', td_change: 'Changer', td_now: 'Maintenant', td_done: 'Terminer', td_paused: 'En pause', td_open_timer: 'Ouvrir le minuteur',
-      hb_review: 'Réviser', hb_open: 'Ouvrir', hb_subjects: '{n} matières', hb_nosubj: 'Ajoute tes matières', hb_exam: '{name} · {left}', hb_nocards: 'Aucune à réviser', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Page du jour', hb_docs: '{n} documents', hb_nodocs: 'Importe un PDF', hb_lect: '{n} enregistrements', hb_nolect: 'Enregistre un cours', hb_learn: 'Méthodes par situation', hb_streak: 'Série de {n} j', hb_gold: '{n} or', hb_room_on: 'Salle {c}', hb_room: 'Étudier à plusieurs', hb_worlds: 'Mondes', hb_worlds_d: '{w}', hb_guide: 'Toutes les fonctions', hb_settings: 'Compte, son, langue', hb_grim: 'Stats et progression', hb_start: 'Examen', hb_health: 'Check du jour', hb_screen: 'Sites, blocage, pause', yh_prog: 'Série de {n} jours, niveau {lv}', yh_prog0: 'Niveau {lv}', yh_game: 'Tour, expéditions, saison', yh_well_off: 'Point santé et temps d’écran', yh_well_todo: 'Point santé du jour à faire', yh_well_done: 'Point santé du jour fait',
-      ss_title: 'Mode séance', ss_tools: 'Outils', ss_opt: 'Mode séance : pendant un Lock in, retirer XP, quêtes, boutique et énergies de l’écran',
+      hb_review: 'Réviser', hb_open: 'Ouvrir', hb_open_subj: 'Ouvrir Matières', hb_next_exam: 'Prochain examen', hb_cards_free: 'Révision espacée', hb_lib_free: 'Lire et surligner tes PDF', hb_lect_free: 'Enregistrer en prenant des notes',hb_subjects: '{n} matières', hb_nosubj: 'Ajoute tes matières', hb_exam: '{name} · {left}', hb_nocards: 'Aucune à réviser', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Page du jour', hb_docs: '{n} documents', hb_nodocs: 'Importe un PDF', hb_lect: '{n} enregistrements', hb_nolect: 'Enregistre un cours', hb_learn: 'Méthodes par situation', hb_streak: 'Série de {n} j', hb_gold: '{n} or', hb_room_on: 'Salle {c}', hb_room: 'Étudier à plusieurs', hb_worlds: 'Mondes', hb_worlds_d: '{w}', hb_guide: 'Toutes les fonctions', hb_settings: 'Compte, son, langue', hb_grim: 'Stats et progression', hb_start: 'Examen', hb_health: 'Check du jour', hb_screen: 'Sites, blocage, pause', yh_prog: 'Série de {n} jours, niveau {lv}', yh_prog0: 'Niveau {lv}', yh_game: 'Tour, expéditions, saison', yh_well_off: 'Point santé et temps d’écran', yh_well_todo: 'Point santé du jour à faire', yh_well_done: 'Point santé du jour fait',
+      ss_title: 'Mode séance', ss_tools: 'Outils', ss_docs: 'Documents · {g}', ss_opt: 'Mode séance : pendant un Lock in, retirer XP, quêtes, boutique et énergies de l’écran',
     },
     en: {
       td_next: 'Next', td_next_e: 'Next, for your energy', td_hours: 'Hours today', td_coming: 'Coming up', td_quests: 'Daily quests', td_nothing: 'Nothing planned yet.', td_add: 'Add a task', td_plan: 'Place in the day', td_empty_h: 'Nothing placed today.', td_late: '{n} late', td_due: '{n} cards to review', td_due_one: '1 card to review', td_inbox: '{n} in the Inbox', td_in: 'in {n} d', td_today: 'today', td_change: 'Change', td_now: 'Now', td_done: 'Complete', td_paused: 'Paused', td_open_timer: 'Open timer',
-      hb_review: 'Review', hb_open: 'Open', hb_subjects: '{n} subjects', hb_nosubj: 'Add your subjects', hb_exam: '{name} · {left}', hb_nocards: 'None to review', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Today’s page', hb_docs: '{n} documents', hb_nodocs: 'Import a PDF', hb_lect: '{n} recordings', hb_nolect: 'Record a lecture', hb_learn: 'Methods by situation', hb_streak: '{n}-day streak', hb_gold: '{n} gold', hb_room_on: 'Room {c}', hb_room: 'Study together', hb_worlds: 'Worlds', hb_worlds_d: '{w}', hb_guide: 'Every feature', hb_settings: 'Account, sound, language', hb_grim: 'Stats and progress', hb_start: 'Exam', hb_health: 'Daily check', hb_screen: 'Sites, blocking, pause', yh_prog: '{n}-day streak, level {lv}', yh_prog0: 'Level {lv}', yh_game: 'Tower, expeditions, season', yh_well_off: 'Health check and screen time', yh_well_todo: 'Today’s check not done yet', yh_well_done: 'Today’s check done',
-      ss_title: 'Session mode', ss_tools: 'Tools', ss_opt: 'Session mode: during a Lock in, take XP, quests, shop and energies off the screen',
+      hb_review: 'Review', hb_open: 'Open', hb_open_subj: 'Open Subjects', hb_next_exam: 'Next exam', hb_cards_free: 'Spaced repetition', hb_lib_free: 'Read and highlight your PDFs', hb_lect_free: 'Record while you take notes',hb_subjects: '{n} subjects', hb_nosubj: 'Add your subjects', hb_exam: '{name} · {left}', hb_nocards: 'None to review', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Today’s page', hb_docs: '{n} documents', hb_nodocs: 'Import a PDF', hb_lect: '{n} recordings', hb_nolect: 'Record a lecture', hb_learn: 'Methods by situation', hb_streak: '{n}-day streak', hb_gold: '{n} gold', hb_room_on: 'Room {c}', hb_room: 'Study together', hb_worlds: 'Worlds', hb_worlds_d: '{w}', hb_guide: 'Every feature', hb_settings: 'Account, sound, language', hb_grim: 'Stats and progress', hb_start: 'Exam', hb_health: 'Daily check', hb_screen: 'Sites, blocking, pause', yh_prog: '{n}-day streak, level {lv}', yh_prog0: 'Level {lv}', yh_game: 'Tower, expeditions, season', yh_well_off: 'Health check and screen time', yh_well_todo: 'Today’s check not done yet', yh_well_done: 'Today’s check done',
+      ss_title: 'Session mode', ss_tools: 'Tools', ss_docs: 'Documents · {g}', ss_opt: 'Session mode: during a Lock in, take XP, quests, shop and energies off the screen',
     },
   });
   ML.defaults(() => ({ sessMode: true }));
@@ -86,20 +86,33 @@
   }
 
   /* ---------- Home pages ---------- */
-  const tile = (go, name, sub, hot) => `<button type="button" class="hb-tile" data-go="${go}"><b>${esc(name)}</b><small class="${hot ? 'hot' : ''}">${esc(sub)}</small></button>`;
+  // Study on a phone (3.72, C4 A): rows with an icon, like You and Settings. Without Premium a paid tool says what it
+  // is for and shows a small lock instead of a bare "Premium". One card on top only when something is waiting.
+  const HB_ICON = {
+    subjects: '<path d="M4 5h6v14H4zM14 5h6v14h-6z"/>',
+    notes: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h5"/>',
+    study: '<rect x="3" y="7" width="13" height="12" rx="2"/><path d="M8 4h11a2 2 0 0 1 2 2v9"/>',
+    lib: '<path d="M5 4h4v16H5zM10 4h4v16h-4zM15.5 5l3.5 1-3 14-3.5-1"/>',
+    lectures: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+    learn: '<path d="M12 3a6 6 0 0 0-3 11v3h6v-3a6 6 0 0 0-3-11zM10 21h4"/>',
+    room: '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c1-3 3-4 5-4s4 1 5 4M11 19c1-3 3-4 5-4s4 1 5 4"/>',
+  };
+  const SVG = (p, cls) => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${p}</svg>`;
+  const CAR = '<path d="M9 6l6 6-6 6"/>', LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
+  const hbRow = (go, name, sub, o = {}) => `<button type="button" class="td-row yh-row hb-row" data-go="${go}"${o.locked ? ` aria-label="${esc(name + ', ' + t('hb_premium'))}"` : ''}>${SVG(HB_ICON[go], 'hb-ico')}<span><b>${esc(name)}</b><small class="${o.hot ? 'hot' : ''}">${esc(sub)}</small></span>${o.locked ? SVG(LOCK, 'hb-lock') : SVG(CAR, 'yh-car')}</button>`;
   function renderStudy() {
     const el = $('shome'); if (!el || S.tab !== 'shome') return;
     const prem = isPrem(), x = nextExam(), due = prem ? cardsDue() : 0, subs = (S.subjects || []).length, pages = ((S.notes && S.notes.pages) || []).length, docs = ML.libCount ? ML.libCount() : 0, lect = (S.lectures || []).length;
     const exLine = x ? t('hb_exam', { name: x.name, left: leftTxt(daysTo(x.date)) }) : '';
-    const head = x || due ? `<div class="td-next"><small>${esc(x && due ? exLine : t('td_coming'))}</small><b>${esc(due ? dueLine(due) : exLine)}</b><div class="td-btns"><button type="button" class="primary" data-go="${due ? 'review' : 'subjects'}">${esc(t(due ? 'hb_review' : 'hb_open'))}</button></div></div>` : '';
-    const html = `<div class="td">${head}<div class="hb-grid">
-      ${tile('subjects', t('tab_subjects'), subs ? t('hb_subjects', { n: subs }) : t('hb_nosubj'))}
-      ${tile('study', t('tab_cards'), prem ? (due ? dueLine(due) : t('hb_nocards')) : t('hb_premium'), due > 0)}
-      ${tile('notes', t('tab_notes'), pages ? t('hb_pages', { n: pages }) : t('hb_nopage'))}
-      ${tile('lib', t('nav_lib'), prem ? (docs ? t('hb_docs', { n: docs }) : t('hb_nodocs')) : t('hb_premium'))}
-      ${tile('lectures', t('tab_lectures'), prem ? (lect ? t('hb_lect', { n: lect }) : t('hb_nolect')) : t('hb_premium'))}
-      ${tile('learn', t('tab_learn'), t('hb_learn'))}
-      ${tile('room', t('tab_room'), S.room && S.room.code ? t('hb_room_on', { c: S.room.code }) : t('hb_room'))}
+    const head = x || due ? `<div class="td-next"><small>${esc(due ? (x ? exLine : t('td_coming')) : t('hb_next_exam'))}</small><b>${esc(due ? dueLine(due) : exLine)}</b><div class="td-btns"><button type="button" class="primary" data-go="${due ? 'review' : 'subjects'}">${esc(t(due ? 'hb_review' : 'hb_open_subj'))}</button></div></div>` : '';
+    const html = `<div class="td">${head}<div class="td-list hb-list">
+      ${hbRow('subjects', t('tab_subjects'), subs ? t('hb_subjects', { n: subs }) : t('hb_nosubj'))}
+      ${hbRow('notes', t('tab_notes'), pages ? t('hb_pages', { n: pages }) : t('hb_nopage'))}
+      ${hbRow('study', t('tab_cards'), prem ? (due ? dueLine(due) : t('hb_nocards')) : t('hb_cards_free'), { hot: due > 0, locked: !prem })}
+      ${hbRow('lib', t('nav_lib'), prem ? (docs ? t('hb_docs', { n: docs }) : t('hb_nodocs')) : t('hb_lib_free'), { locked: !prem })}
+      ${hbRow('lectures', t('tab_lectures'), prem ? (lect ? t('hb_lect', { n: lect }) : t('hb_nolect')) : t('hb_lect_free'), { locked: !prem })}
+      ${hbRow('learn', t('tab_learn'), t('hb_learn'))}
+      ${hbRow('room', t('tab_room'), S.room && S.room.code ? t('hb_room_on', { c: S.room.code }) : t('hb_room'))}
     </div></div>`;
     if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
   }
@@ -167,12 +180,17 @@
   /* ---------- Session mode ---------- */
   function renderSessTools() {
     const el = $('sess-tools'); if (!el) return;
-    const html = [['lib', 'nav_lib'], ['notes', 'tab_notes'], ['study', 'tab_cards'], ['quick', 'ss_tools']].map(([k, s]) => `<button type="button" class="small" data-st="${k}">${esc(t(s))}</button>`).join('');
+    // the task's project has a Library group of the same name (3.71, B2): "Documents · Maths" opens that group
+    const task = S.tasks.find(x => x.id === S.activeId), lg = task && task.project && ML.libGroupInfo ? ML.libGroupInfo(task.project) : null;
+    const html = [['lib', 'nav_lib'], ['notes', 'tab_notes'], ['study', 'tab_cards'], ['quick', 'ss_tools']].map(([k, s]) => k === 'lib' && lg
+      ? `<button type="button" class="small" data-st="lib" data-g="${esc(lg.id)}">${esc(t('ss_docs', { g: lg.name }))}</button>`
+      : `<button type="button" class="small" data-st="${k}">${esc(t(s))}</button>`).join('');
     if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
   }
   $('sess-tools').addEventListener('click', e => {
     const b = e.target.closest('[data-st]'); if (!b) return;
     if (b.dataset.st === 'quick') return ML.quickTools.open();
+    if (b.dataset.g && ML.libOpenGroup) return ML.libOpenGroup(b.dataset.g);
     ML.setTab(b.dataset.st);
   });
   function syncSession() {
@@ -181,7 +199,7 @@
     if (root.classList.contains('sess') !== onx) { root.classList.toggle('sess', onx); ML.emit('session-mode', onx); }
   }
   on('timer', syncSession); on('render', syncSession); on('started', () => { renderSessTools(); syncSession(); });
-  on('lang', renderSessTools);
+  on('lang', renderSessTools); on('timer', renderSessTools); on('lib:groups', renderSessTools);
   ML.settingsSection({
     order: 31,
     render: () => `<h3>${esc(t('ss_title'))}</h3>${ML.ui.chk('set-sessmode', t('ss_opt'), S.sessMode !== false)}`,

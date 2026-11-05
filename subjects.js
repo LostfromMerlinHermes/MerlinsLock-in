@@ -8,13 +8,13 @@
 
   ML.addStrings({
     fr: {
-      tab_subjects: 'Matières', sj_h_exams: 'Examens', sj_h_subjects: 'Tes matières', sj_add_ph: 'Nouvelle matière (ex. Droit civil)', sj_add: 'Ajouter', sj_empty: 'Ajoute tes matières : tu verras le temps passé, tes notes et tes examens au même endroit.',
+      tab_subjects: 'Matières', sj_new_exam: 'Nouvel examen', sj_new: 'Nouvelle matière', sj_close: 'Fermer',sj_h_exams: 'Examens', sj_h_subjects: 'Tes matières', sj_add_ph: 'Nouvelle matière (ex. Droit civil)', sj_add: 'Ajouter', sj_empty: 'Ajoute tes matières : tu verras le temps passé, tes notes et tes examens au même endroit.',
       sj_week: '{m} cette semaine', sj_total: '{m} en tout', sj_avg: 'Moyenne', sj_overall: 'Moyenne générale', sj_no_grade: 'Pas encore de note', sj_grades: 'Notes', sj_grade_label: 'Contrôle', sj_grade_value: 'Note', sj_grade_max: 'Sur', sj_coef: 'Coef', sj_add_grade: 'Ajouter la note',
       sj_target: 'Objectif', sj_next_coef: 'Coef du prochain contrôle', sj_need: 'Il te faut {n}/20 au prochain contrôle.', sj_need_done: 'Objectif déjà atteint, même avec 0 au prochain.', sj_need_no: 'Il faudrait {n}/20 : objectif hors de portée avec ce coef.',
       sj_delete: 'Supprimer la matière', sj_deck: 'Paquet lié', sj_deck_none: 'Aucun', sj_task_field: 'Matière', sj_none: 'Aucune', sj_exam_name: 'Examen', sj_exam_ph: 'Partiel de droit', sj_exam_add: 'Ajouter l’examen', sj_exam_plan: 'Placer des révisions espacées dans ma Journée', sj_exam_hours: 'Heures de révision', sj_exam_prem: 'Avec Premium : des révisions espacées se placent seules dans ta Journée.', sj_exam_added: 'Examen ajouté à l’Agenda.', sj_exam_none: 'Aucun examen à venir.', sj_countdown: '{name} · {left}', sj_today: 'aujourd’hui', sj_days: 'J-{n}',
     },
     en: {
-      tab_subjects: 'Subjects', sj_h_exams: 'Exams', sj_h_subjects: 'Your subjects', sj_add_ph: 'New subject (e.g. Civil law)', sj_add: 'Add', sj_empty: 'Add your subjects: time spent, grades and exams in one place.',
+      tab_subjects: 'Subjects', sj_new_exam: 'New exam', sj_new: 'New subject', sj_close: 'Close',sj_h_exams: 'Exams', sj_h_subjects: 'Your subjects', sj_add_ph: 'New subject (e.g. Civil law)', sj_add: 'Add', sj_empty: 'Add your subjects: time spent, grades and exams in one place.',
       sj_week: '{m} this week', sj_total: '{m} in total', sj_avg: 'Average', sj_overall: 'Overall average', sj_no_grade: 'No grade yet', sj_grades: 'Grades', sj_grade_label: 'Test', sj_grade_value: 'Grade', sj_grade_max: 'Out of', sj_coef: 'Weight', sj_add_grade: 'Add the grade',
       sj_target: 'Target', sj_next_coef: 'Weight of the next test', sj_need: 'You need {n}/20 on the next test.', sj_need_done: 'Target already reached, even with 0 on the next test.', sj_need_no: 'You would need {n}/20: out of reach with this weight.',
       sj_delete: 'Delete the subject', sj_deck: 'Linked deck', sj_deck_none: 'None', sj_task_field: 'Subject', sj_none: 'None', sj_exam_name: 'Exam', sj_exam_ph: 'Law midterm', sj_exam_add: 'Add the exam', sj_exam_plan: 'Place spaced revision in my Day', sj_exam_hours: 'Revision hours', sj_exam_prem: 'With Premium: spaced revision places itself in your Day.', sj_exam_added: 'Exam added to the Calendar.', sj_exam_none: 'No exam coming up.', sj_countdown: '{name} · {left}', sj_today: 'today', sj_days: 'D-{n}',
@@ -31,6 +31,8 @@
   const num = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; };
   const fmt = n => (Math.round(n * 100) / 100).toLocaleString(ML.locale());
   let openId = null;
+  const adding = { exam: false, subj: false }; // the add forms stay behind a + button until asked for
+  const plusBtn = (k, key) => `<button type="button" class="ghost small sj-plus" data-sj-plus="${k}" aria-expanded="${adding[k]}">${adding[k] ? esc(t('sj_close')) : '+ ' + esc(t(key))}</button>`;
 
   /* ---------- Grades ---------- */
   const on20 = g => (g.value / (g.max || 20)) * 20;
@@ -115,20 +117,20 @@
     const root = $('subjects'); if (!root) return;
     const upcoming = exams().filter(x => daysTo(x.date) >= 0).sort((a, b) => a.date.localeCompare(b.date)), prem = !!(ML.isPremium && ML.isPremium()), avg = overall();
     root.innerHTML = `<div class="sj">
-      <div class="g-card sj-exams"><h2>${esc(t('sj_h_exams'))}</h2>
+      <div class="g-card sj-exams"><div class="sj-top"><h2>${esc(t('sj_h_exams'))}</h2>${plusBtn('exam', 'sj_new_exam')}</div>
         ${upcoming.length ? `<ul class="ex-list">${upcoming.map(examHtml).join('')}</ul>` : `<p class="hint">${esc(t('sj_exam_none'))}</p>`}
-        <form class="sj-eform" id="sj-exam-form" autocomplete="off">
+        ${adding.exam ? `<form class="sj-eform" id="sj-exam-form" autocomplete="off">
           <label class="sj-gl"><span>${esc(t('sj_exam_name'))}</span><input type="text" name="name" maxlength="60" placeholder="${esc(t('sj_exam_ph'))}" required></label>
           <label><span>${esc(t('ex_date'))}</span><input type="date" name="date" min="${addDays(today(), 1)}" required></label>
           ${list().length ? `<label><span>${esc(t('sj_task_field'))}</span><select name="subject"><option value="">${esc(t('sj_none'))}</option>${list().map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></label>` : ''}
           ${prem ? `<label><span>${esc(t('sj_exam_hours'))}</span><input type="number" name="hours" min="0" max="60" value="6" inputmode="numeric"></label>` : ''}
           <button type="submit" class="primary small">${esc(t('sj_exam_add'))}</button>
           ${prem ? `<p class="hint">${esc(t('ex_intro'))}</p>` : `<p class="hint">${esc(t('sj_exam_prem'))}</p>`}
-        </form>
+        </form>` : ''}
       </div>
-      <div class="g-card sj-list"><div class="sj-top"><h2>${esc(t('sj_h_subjects'))}</h2>${avg != null ? `<span class="sj-overall">${esc(t('sj_overall'))} <b>${fmt(avg)}</b></span>` : ''}</div>
+      <div class="g-card sj-list"><div class="sj-top"><h2>${esc(t('sj_h_subjects'))}</h2>${avg != null ? `<span class="sj-overall">${esc(t('sj_overall'))} <b>${fmt(avg)}</b></span>` : ''}${list().length ? plusBtn('subj', 'sj_new') : ''}</div>
         ${list().length ? `<ul class="sj-cards">${list().map(cardHtml).join('')}</ul>` : `<p class="hint">${esc(t('sj_empty'))}</p>`}
-        <form class="sj-add" id="sj-add" autocomplete="off"><input type="text" id="sj-add-in" maxlength="40" placeholder="${esc(t('sj_add_ph'))}" aria-label="${esc(t('sj_add_ph'))}" required><button type="submit" class="small">${esc(t('sj_add'))}</button></form>
+        ${adding.subj || !list().length ? `<form class="sj-add" id="sj-add" autocomplete="off"><input type="text" id="sj-add-in" maxlength="40" placeholder="${esc(t('sj_add_ph'))}" aria-label="${esc(t('sj_add_ph'))}" required><button type="submit" class="small">${esc(t('sj_add'))}</button></form>` : ''}
       </div></div>`;
     list().forEach(x => { const b = $('sj-del-' + x.id); if (b) ML.armedButton(b, 'sj_delete', () => { removeSubject(x.id); }); });
     if (ML.mockCard) ML.mockCard();
@@ -144,6 +146,11 @@
   const root = $('subjects');
   root.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.sjPlus) {
+      const k = b.dataset.sjPlus; adding[k] = !adding[k]; render();
+      const f = adding[k] && root.querySelector(k === 'exam' ? '#sj-exam-form input' : '#sj-add-in'); if (f) f.focus();
+      return;
+    }
     if (b.dataset.sjOpen) { openId = openId === b.dataset.sjOpen ? null : b.dataset.sjOpen; render(); return; }
     if (b.dataset.sjGdel) { const x = byId(b.dataset.sj); if (x) { x.grades = x.grades.filter(g => g.id !== b.dataset.sjGdel); save(); render(); } return; }
     if (b.dataset.sjExdel) { ML.removeExam(b.dataset.sjExdel); toast(t('ex_deleted')); render(); renderCount(); }
@@ -154,7 +161,7 @@
     if (f.id === 'sj-add') {
       const v = $('sj-add-in').value.trim(); if (!v) return;
       const x = { id: uid(), name: v, color: COLORS[list().length % COLORS.length], coef: 1, target: null, nextCoef: null, grades: [] };
-      list().push(x); openId = x.id; save(); render(); return;
+      list().push(x); openId = x.id; adding.subj = false; save(); render(); return;
     }
     if (f.dataset.sjGadd) {
       const x = byId(f.dataset.sjGadd), value = num(f.value.value), max = num(f.max.value) || 20, coef = num(f.coef.value) || 1;
@@ -166,7 +173,7 @@
       if (!name || !date) return;
       const r = ML.planExam(name, date, hours, null, subject || null);
       toast(r.n ? t('ex_done', { n: r.n, m: ML.fmtMins(r.per) }) : t('sj_exam_added'), { ms: 5000 });
-      render(); renderCount();
+      adding.exam = false; render(); renderCount();
     }
   });
   root.addEventListener('input', e => {

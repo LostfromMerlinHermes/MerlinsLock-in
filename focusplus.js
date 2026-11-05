@@ -11,7 +11,7 @@
       weekly_review: 'Revue de la semaine', review_open: 'Faire ma revue hebdo', review_prompt: 'C’est le moment de ta revue de la semaine.',
       rv_minutes: 'Focus', rv_sessions: 'Sessions', rv_avg: 'Concentration', rv_tasks: 'Tâches finies', rv_distr: 'Décrochages', rv_best: 'Meilleur jour', rv_vs: 'vs semaine d’avant',
       rv_wins: 'Ce qui a bien marché', rv_improve: 'Ce que je veux améliorer', rv_goal: 'Mon objectif principal pour la semaine prochaine', rv_save: 'Sceller la revue (+50 XP)', rv_saved: 'Revue scellée. +50 XP', rv_updated: 'Revue mise à jour',
-      rv_ach: 'Succès débloqués', rv_none: 'aucun', rv_proj: 'Temps par projet', rv_slipped: 'Ce qui a glissé', rv_slipped_none: 'Rien n’a glissé.', rv_goal_n: 'Objectif {n}', rv_goals_prem: 'Avec Premium : temps par projet, ce qui a glissé et 3 objectifs.', week_goal: 'Objectif de la semaine', best_hour_note: '(tâches difficiles vers {h}h, ton meilleur moment)', rv_week_of: 'Semaine du {d}',
+      rv_ach: 'Succès débloqués', rv_none: 'aucun', rv_proj: 'Temps par projet', rv_slipped: 'Ce qui a glissé', rv_slipped_none: 'Rien n’a glissé.', rv_goal_n: 'Objectif {n}', rv_goals_prem: 'Avec Premium : temps par projet, ce qui a glissé et 3 objectifs.', week_goal: 'Objectif de la semaine', best_hour_note: '(tâches difficiles vers {h} h, ton meilleur moment)', rv_week_of: 'Semaine du {d}',
     },
     en: {
       deep_focus: 'Deep focus mode (full screen)', deep_exit: 'Esc to leave', distracted: 'I got distracted', distract_ok: 'Logged ({n} this session). Breathe, then back to your task.',
@@ -57,7 +57,7 @@
     fr: {
       dp_style: 'Style du plein écran', dp_classic: 'Classique', dp_terminal: 'Terminal', dp_proof: 'Épreuve',
       nt_log: '// JOURNAL', nt_today: '// AUJOURD’HUI', nt_next: 'SUIVANTE >', nt_min: '{n} / {m} MIN', nt_none: '(aucune tâche)',
-      lg_start: 'début', lg_q: 'quart {n}/4 ok', lg_park: 'pensée parquée', lg_distr: 'décroché ({n})', lg_pause: 'pause', lg_resume: 'reprise', lg_done: 'session terminée', lg_break: 'pause en cours',
+      lg_start: 'début', lg_q: 'quart {n}/4 ok', lg_park: 'pensée parquée', lg_distr: 'décroché ({n})', lg_pause: 'pause', lg_resume: 'reprise', lg_done: 'session terminée', lg_break: 'repos en cours',
       pf_focus: 'FOCUS · N° {n}', pf_paused: 'EN PAUSE', pf_done: 'SESSION IMPRIMÉE', pf_stamp: 'PAUSE', pf_streak: 'SÉRIE {n} J', pf_proof: 'ÉPREUVE N° {n} · {d}', pf_next: 'ensuite : {t}',
       dp_folio: 'Folio', fo_folio: 'FOLIO {n}', fo_paused: 'EN PAUSE', fo_streak: 'SÉRIE · {n} JOURS', fo_tower: 'TOUR · {n} ÉTAGES', fo_mins: '{n} MINUTES', fo_next: 'Ensuite : {t}',
     },

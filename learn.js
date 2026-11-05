@@ -2,6 +2,9 @@
 // energy. Free for everyone. Every sheet is written here from scratch: no text from a book or anyone's notes; an idea is
 // credited and linked. Each one reads in 20 seconds and has a smallest step, a harder version, why, how sure we are and sources.
 // Also the eye rest line (E1): off by default, turned on in Settings or during the first launch.
+// 3.71 (proposals/sections L1–L3, PC-4): the suggestion open as a card with its reason from the app's data, the situations as a
+// grid, the sheet as three numbered steps, "Did it help?" after a session started from a sheet (answers kept on this device, they
+// order My methods); from 900 px the opened sheet sits beside the grid with previous / next.
 (() => {
   'use strict';
   const { S, t, esc, save, on, $ } = ML;
@@ -9,10 +12,13 @@
   ML.addStrings({
     fr: {
       tab_learn: 'Apprendre', ln_sug: 'Suggéré pour {mood}', ln_q: 'Qu’est-ce qui coince ?', ln_all: 'Toutes les méthodes', ln_back: 'Retour',
-      ln_small: 'Le plus petit pas', ln_hard: 'Version plus dure', ln_why: 'Pourquoi', ln_src: 'Sources', ln_nosrc: 'Pas d’étude vérifiée ici : essaie, et garde si ça t’aide.',
+      ln_small: 'Le plus petit pas', ln_hard: 'Plus dur', ln_why: 'Pourquoi', ln_src: 'Sources', ln_nosrc: 'Pas d’étude vérifiée ici : essaie, et garde si ça t’aide.',
       ln_foot: 'Sources vérifiées en octobre 2026. Ces fiches ne remplacent pas un avis médical.',
       ln_solid: 'Bien testé', ln_some: 'Quelques preuves', ln_mixed: 'Résultats partagés', ln_common: 'Pratique courante', ln_health: 'Santé',
-      sit_start: 'Je n’arrive pas à démarrer', sit_distract: 'Je me laisse distraire', sit_stick: 'Rien ne reste quand je lis', sit_exam: 'Mon examen approche', sit_evening: 'Je n’arrive pas à décrocher ce soir', sit_eyes: 'J’ai les yeux fatigués',
+      sit_start: 'Démarrer', sit_distract: 'Rester concentré', sit_stick: 'Retenir ce que je lis', sit_exam: 'Examen proche', sit_evening: 'Décrocher le soir', sit_eyes: 'Yeux fatigués',
+      ln_n: '{n} méthodes', ln_n_one: '1 méthode', ln_normal: 'Normal', ln_steps: 'Étapes et pourquoi', ln_less: 'Moins', ln_of: '{i} sur {n}', ln_prev: 'Précédente', ln_next: 'Suivante',
+      ln_exam: 'Ton examen', ln_r_exam: '« {name} » est dans {n} jours', ln_r_exam1: '« {name} » est demain', ln_r_exam0: '« {name} » est aujourd’hui', ln_r_inbox: '{n} pensées attendent dans À trier', ln_r_late: 'Il est plus de 21 h',
+      ln_ask: 'Session finie. « {m} » t’a aidé ?', ln_yes: 'Oui', ln_notreally: 'Pas vraiment', ln_skip: 'Passer', ln_answer: 'Répondre', ln_noted: 'Noté. Mes méthodes en tient compte.', ln_helped: 'A aidé {y} fois sur {n}',
       ln_open_cards: 'Ouvrir les flashcards', ln_open_day: 'Ouvrir Journée', ln_open_room: 'Ouvrir Rooms', ln_open_prep: 'Préparer ma journée',
       ln_mine: 'Mes méthodes', ln_keep: 'Garder', ln_kept: 'Gardée', ln_add: 'Ajouter au Plan', ln_added: 'Ajoutée à aujourd’hui dans le Plan.',
       eye_opt: 'Rappel pour reposer les yeux, toutes les 20 min', eye_hint: 'Une ligne discrète sous le cadran pendant le focus, sans son. Elle repart seule au bout d’une minute.', eye_set: 'Yeux',
@@ -20,10 +26,13 @@
     },
     en: {
       tab_learn: 'Learn', ln_sug: 'Suggested for {mood}', ln_q: 'What’s hard right now?', ln_all: 'All methods', ln_back: 'Back',
-      ln_small: 'Smallest step', ln_hard: 'Harder version', ln_why: 'Why', ln_src: 'Sources', ln_nosrc: 'No study checked for this: try it, and keep it if it helps.',
+      ln_small: 'Smallest step', ln_hard: 'Harder', ln_why: 'Why', ln_src: 'Sources', ln_nosrc: 'No study checked for this: try it, and keep it if it helps.',
       ln_foot: 'Sources checked in October 2026. These sheets don’t replace medical advice.',
       ln_solid: 'Well tested', ln_some: 'Some evidence', ln_mixed: 'Mixed results', ln_common: 'Common practice', ln_health: 'Health',
-      sit_start: 'I can’t get started', sit_distract: 'I keep getting distracted', sit_stick: 'Nothing sticks when I read', sit_exam: 'My exam is soon', sit_evening: 'I can’t switch off tonight', sit_eyes: 'My eyes are tired',
+      sit_start: 'Get started', sit_distract: 'Stay focused', sit_stick: 'Remember what I read', sit_exam: 'Exam soon', sit_evening: 'Switch off tonight', sit_eyes: 'Tired eyes',
+      ln_n: '{n} methods', ln_n_one: '1 method', ln_normal: 'Normal', ln_steps: 'Steps and why', ln_less: 'Less', ln_of: '{i} of {n}', ln_prev: 'Previous', ln_next: 'Next',
+      ln_exam: 'Your exam', ln_r_exam: '"{name}" is in {n} days', ln_r_exam1: '"{name}" is tomorrow', ln_r_exam0: '"{name}" is today', ln_r_inbox: '{n} thoughts are waiting in Inbox', ln_r_late: 'It’s after 9 pm',
+      ln_ask: 'Session done. Did "{m}" help?', ln_yes: 'Yes', ln_notreally: 'Not really', ln_skip: 'Skip', ln_answer: 'Answer', ln_noted: 'Noted. My methods takes it into account.', ln_helped: 'Helped {y} times out of {n}',
       ln_open_cards: 'Open flashcards', ln_open_day: 'Open Day', ln_open_room: 'Open Rooms', ln_open_prep: 'Plan my day',
       ln_mine: 'My methods', ln_keep: 'Keep', ln_kept: 'Kept', ln_add: 'Add to Plan', ln_added: 'Added to today in the Plan.',
       eye_opt: 'Eye rest reminder, every 20 min', eye_hint: 'A quiet line under the dial during focus, no sound. It leaves on its own after a minute.', eye_set: 'Eyes',
@@ -100,57 +109,147 @@
       fr: { t: 'Quand ça gêne tout le reste', do: 'Si l’attention, le sommeil, le moral ou une vue floue te gênent depuis des semaines, parles-en à un médecin. Commence par ton médecin traitant ou le service de santé de ton école.', why: 'Ces méthodes aident pour les difficultés du quotidien. Elles ne peuvent pas dire d’où vient un problème, et cette app ne pose aucun diagnostic.' } },
   ];
   const SITS = ['start', 'distract', 'stick', 'exam', 'evening', 'eyes'];
+  // One line icon per situation (L2), drawn in the text colour
+  const SIT_ICO = {
+    start: '<path d="M7 4.5l11 7.5-11 7.5z"/>',
+    distract: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+    stick: '<path d="M4 6h10M4 12h16M4 18h8"/>',
+    exam: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+    evening: '<path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/>',
+    eyes: '<path d="M2.5 12s3.8-6.5 9.5-6.5S21.5 12 21.5 12 17.7 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
+    all: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
+  };
   const FOR_MOOD = { drained: ['start5', 'ifthen', 'close', 'outside'], steady: ['ifthen', 'space', 'test', 'explain'], fired: ['test', 'mix', 'sprint', 'loci'], scattered: ['parkit', 'phone', 'start5', 'room'] };
-  // Changes once a day among the sheets for this energy, skipping the ones already kept
+  const byId = id => SHEETS.find(s => s.id === id);
+  const daysTo = k => Math.round((ML.parseDay(k) - ML.parseDay(ML.today())) / 864e5);
+  // The day's suggestion and why (L1): what the app knows first (an exam within 7 days, a full Inbox, the late hour), else the energy.
+  // The energy pick changes once a day among the sheets for this energy, skipping the ones already kept.
   function suggested() {
+    const h = new Date().getHours(), late = h >= 21 || h < 4;
+    const ex = ((S.study && S.study.exams) || []).map(x => ({ x, d: x.date ? daysTo(x.date) : -1 })).filter(o => o.d >= 0 && o.d <= 7).sort((a, b) => a.d - b.d)[0];
+    if (ex) {
+      const name = ex.x.name || t('ln_exam');
+      return { s: byId(ex.d <= 1 && h >= 20 ? 'sleep' : 'test'), why: t(ex.d === 0 ? 'ln_r_exam0' : ex.d === 1 ? 'ln_r_exam1' : 'ln_r_exam', { name, n: ex.d }) };
+    }
+    const parked = (S.parked || []).length;
+    if (parked >= 6) return { s: byId('close'), why: t('ln_r_inbox', { n: parked }) };
+    if (late) return { s: byId('close'), why: t('ln_r_late') };
     const all = FOR_MOOD[S.mood] || FOR_MOOD.steady, free = all.filter(id => !S.learn.kept.includes(id)), list = free.length ? free : all;
-    return SHEETS.find(s => s.id === list[Math.floor(ML.parseDay(ML.today()).getTime() / 864e5) % list.length]);
+    return { s: byId(list[Math.floor(ML.parseDay(ML.today()).getTime() / 864e5) % list.length]), why: t('ln_sug', { mood: t('mood_' + S.mood) }) };
   }
   const lang = () => (S.lang === 'en' ? 'en' : 'fr');
-  let sit = null, open = null; // the list shown (a situation, 'all' or null for the start page) and the sheet opened
 
-  function goButtons(s) {
+  /* ---------- "Did it help?" (L3): kept on this device only, it orders My methods ---------- */
+  const HKEY = () => 'mli-learn-help:' + ML.storageKey();
+  function helpGet() { try { return JSON.parse(localStorage.getItem(HKEY()) || '{}') || {}; } catch (e) { return {}; } }
+  function helpSet(h) { try { localStorage.setItem(HKEY(), JSON.stringify(h)); } catch (e) {} }
+  const score = (h, id) => { const r = h[id]; return r ? (r.y || 0) - (r.n || 0) : 0; };
+  // the question waits a day at most
+  const askNow = () => { const h = helpGet(); return h._ask && Date.now() - h._ask.at < 864e5 && byId(h._ask.id) ? h._ask.id : null; };
+
+  let sit = null, open = null, sugOpen = false; // the situation chosen ('all' for every sheet), the sheet opened, the suggestion's details shown
+  const wideNow = () => { const r = $('learn'), w = r ? r.clientWidth : 0; return innerWidth >= 900 && (!w || w >= 600); };
+
+  function goButtons(s, card) {
     const g = s.go || {}, L = lang(), label = g[L], out = [];
     if (g.focus) out.push(`<button type="button" class="primary small" data-ln-go="focus">${esc(label)}</button>`);
     else if (g.tab || g.lib || g.prep) out.push(`<button type="button" class="primary small" data-ln-go="${g.lib ? 'lib' : g.prep ? 'prep' : 'tab'}">${esc(label)}</button>`);
     else if (g.eyes) out.push(`<button type="button" class="primary small" data-ln-go="eyes">${esc(t(S.eyes.on ? 'eye_off' : 'eye_on'))}</button>`);
     // Flashcards and Rooms are Premium: the button only shows where it leads somewhere
     if (g.tool && ML.isPremium()) out.push(`<button type="button" class="${out.length ? 'small' : 'primary small'}" data-ln-go="tool">${esc(g.toolEn ? g[L === 'en' ? 'toolEn' : 'toolFr'] : label)}</button>`);
-    if (s[L].small) out.push(`<button type="button" class="small" data-ln-add>${esc(t('ln_add'))}</button>`);
+    if (s[L].small && !card) out.push(`<button type="button" class="small" data-ln-add>${esc(t('ln_add'))}</button>`);
     if (s.lv !== 'health') { const kept = S.learn.kept.includes(s.id); out.push(`<button type="button" class="ghost small" data-ln-keep aria-pressed="${kept}">${esc(t(kept ? 'ln_kept' : 'ln_keep'))}</button>`); }
     return out.length ? `<div class="ln-acts">${out.join('')}</div>` : '';
   }
-  function sheetHtml(s) {
-    const c = s[lang()], isOpen = open === s.id;
-    const steps = c.small ? `<div class="ln-steps"><div><span class="ln-k">${esc(t('ln_small'))}</span><span>${esc(c.small)}</span></div><div><span class="ln-k">${esc(t('ln_hard'))}</span><span>${esc(c.hard)}</span></div></div>` : '';
-    const src = s.src ? `<div><span class="ln-k">${esc(t('ln_src'))}</span><ul class="ln-src">${s.src.map(k => `<li><a href="${esc(SRC[k][1])}" target="_blank" rel="noopener">${esc(SRC[k][0])}</a></li>`).join('')}</ul></div>` : s.lv === 'common' ? `<p class="ln-foot">${esc(t('ln_nosrc'))}</p>` : '';
-    return `<article class="ln-sheet ${isOpen ? 'open' : ''}" data-ln-id="${s.id}">
-      <button type="button" class="ln-head" data-ln-open="${s.id}" aria-expanded="${isOpen}"><span>${esc(c.t)}</span><span class="ln-pill ln-${s.lv}">${esc(t('ln_' + s.lv))}</span></button>
-      ${isOpen ? `<div class="ln-body"><p class="ln-do">${esc(c.do)}</p>${steps}
-        <div><span class="ln-k">${esc(t('ln_why'))}</span><p class="ln-why">${esc(c.why)}</p></div>${src}${goButtons(s)}</div>` : ''}</article>`;
+  // Smallest step, the normal version, harder (L3): numbered because it is a real order
+  function ladder(c) {
+    if (!c.small) return `<p class="ln-do">${esc(c.do)}</p>`;
+    const step = (n, k, txt, cls = '') => `<li class="${cls}"><b>${n}</b><span><small>${esc(t(k))}</small>${esc(txt)}</span></li>`;
+    return `<ol class="ln-ladder">${step(1, 'ln_small', c.small)}${step(2, 'ln_normal', c.do, 'mid')}${step(3, 'ln_hard', c.hard)}</ol>`;
   }
+  const srcHtml = s => (s.src ? `<div><span class="ln-k">${esc(t('ln_src'))}</span><ul class="ln-src">${s.src.map(k => `<li><a href="${esc(SRC[k][1])}" target="_blank" rel="noopener">${esc(SRC[k][0])}</a></li>`).join('')}</ul></div>` : s.lv === 'common' ? `<p class="ln-foot">${esc(t('ln_nosrc'))}</p>` : '');
+  const bodyHtml = (s, card) => { const c = s[lang()]; return `${ladder(c)}<div><span class="ln-k">${esc(t('ln_why'))}</span><p class="ln-why">${esc(c.why)}</p></div>${srcHtml(s)}${card ? '' : goButtons(s)}`; };
+  const helpedTxt = (h, id) => { const r = h[id]; return r && r.y ? t('ln_helped', { y: r.y, n: (r.y || 0) + (r.n || 0) }) : ''; };
+  function sheetHtml(s, h) {
+    const c = s[lang()], isOpen = open === s.id, hl = h ? helpedTxt(h, s.id) : '';
+    return `<article class="ln-sheet ${isOpen ? 'open' : ''}" data-ln-id="${s.id}">
+      <button type="button" class="ln-head" data-ln-open="${s.id}" aria-expanded="${isOpen}"><span>${esc(c.t)}${hl ? `<small>${esc(hl)}</small>` : ''}</span><span class="ln-pill ln-${s.lv}">${esc(t('ln_' + s.lv))}</span></button>
+      ${isOpen ? `<div class="ln-body">${bodyHtml(s)}</div>` : ''}</article>`;
+  }
+  // The suggestion, open as a card with its reason (L1)
+  function sugHtml(g) {
+    const s = g.s, c = s[lang()], first = s.src ? SRC[s.src[0]][0] : '';
+    return `<section class="ln-sug" data-ln-id="${s.id}" aria-label="${esc(g.why)}">
+      <span class="ln-k">${esc(g.why)}</span>
+      <h3 class="ln-sug-t">${esc(c.t)}</h3>
+      ${sugOpen ? `<div class="ln-body ln-sug-body">${bodyHtml(s, true)}</div>` : `<p class="ln-do">${esc(c.do)}</p>`}
+      ${goButtons(s, true)}
+      <button type="button" class="ln-more" data-ln-sugmore aria-expanded="${sugOpen}"><span class="ln-${s.lv}">${esc(t('ln_' + s.lv))}</span>${first ? ` · ${esc(first)}` : ''} · ${esc(t(sugOpen ? 'ln_less' : 'ln_steps'))}</button></section>`;
+  }
+  function askHtml() {
+    const id = askNow(); if (!id) return '';
+    return `<section class="ln-ask"><b>${esc(t('ln_ask', { m: byId(id)[lang()].t }))}</b>
+      <div class="ln-acts"><button type="button" class="small" data-ln-ans="y">${esc(t('ln_yes'))}</button><button type="button" class="small" data-ln-ans="n">${esc(t('ln_notreally'))}</button><button type="button" class="ghost small" data-ln-ans="skip">${esc(t('ln_skip'))}</button></div></section>`;
+  }
+  const sitList = k => (k === 'all' ? SHEETS : SHEETS.filter(s => s.sit.includes(k)));
+  // The situations as a grid of cards (L2)
+  function gridHtml() {
+    const card = k => `<button type="button" class="ln-sit" data-ln-sit="${k}" aria-pressed="${sit === k}"><svg viewBox="0 0 24 24" aria-hidden="true">${SIT_ICO[k]}</svg><b>${esc(t(k === 'all' ? 'ln_all' : 'sit_' + k))}</b><small>${esc(ML.tn('ln_n', sitList(k).length))}</small></button>`;
+    return `<div class="ln-gridw"><div class="ln-grid">${SITS.map(card).join('')}</div>
+      <button type="button" class="ln-allbtn" data-ln-sit="all" aria-pressed="${sit === 'all'}"><svg viewBox="0 0 24 24" aria-hidden="true">${SIT_ICO.all}</svg><span>${esc(t('ln_all'))}</span><small>${SHEETS.length}</small></button></div>`;
+  }
+  // PC-4: the sheet opened beside the grid, with previous / next inside its situation
+  function paneHtml() {
+    const list = sitList(sit), i = Math.max(0, list.findIndex(s => s.id === open)), s = list[i], c = s[lang()];
+    return `<article class="ln-pane" data-ln-id="${s.id}">
+      <span class="ln-k">${esc(t(sit === 'all' ? 'ln_all' : 'sit_' + sit))} · ${esc(t('ln_of', { i: i + 1, n: list.length }))}</span>
+      <div class="ln-pane-top"><h3 class="ln-sug-t">${esc(c.t)}</h3><span class="ln-pill ln-${s.lv}">${esc(t('ln_' + s.lv))}</span></div>
+      <div class="ln-body">${bodyHtml(s)}</div>
+      <div class="ln-nav"><button type="button" class="ghost small" data-ln-step="-1" ${i ? '' : 'disabled'}>‹ ${esc(t('ln_prev'))}</button><button type="button" class="ghost small" data-ln-step="1" ${i < list.length - 1 ? '' : 'disabled'}>${esc(t('ln_next'))} ›</button></div></article>`;
+  }
+  let wasWide = null;
   function render() {
     const root = $('learn'); if (!root) return;
+    const W = wasWide = wideNow(), h = helpGet();
+    root.classList.toggle('ln-wide', W);
     const foot = `<p class="ln-foot">${esc(t('ln_foot'))}</p>`;
-    if (sit) {
-      const list = sit === 'all' ? SHEETS : SHEETS.filter(s => s.sit.includes(sit));
-      root.innerHTML = `<button type="button" class="ghost small ln-back" data-ln-back>${esc(t('ln_back'))}</button>
-        <section class="ln-group"><h3 class="ln-h">${esc(sit === 'all' ? t('ln_all') : t('sit_' + sit))}</h3>${list.map(sheetHtml).join('')}</section>${foot}`;
+    if (sit && !W) {
+      root.innerHTML = `<button type="button" class="ghost small ln-back" data-ln-back>‹ ${esc(t('ln_back'))}</button>
+        <section class="ln-group"><h3 class="ln-h">${esc(sit === 'all' ? t('ln_all') : t('sit_' + sit))}</h3>${sitList(sit).map(s => sheetHtml(s, h)).join('')}</section>${foot}`;
       return;
     }
-    const sug = suggested(), mine = S.learn.kept.filter(id => id !== sug.id).map(id => SHEETS.find(s => s.id === id)).filter(Boolean);
-    root.innerHTML = `<section class="ln-group"><h3 class="ln-h">${esc(t('ln_sug', { mood: t('mood_' + S.mood) }))}</h3>${sheetHtml(sug)}</section>
-      ${mine.length ? `<section class="ln-group"><h3 class="ln-h">${esc(t('ln_mine'))}</h3>${mine.map(sheetHtml).join('')}</section>` : ''}
-      <section class="ln-group"><h3 class="ln-h">${esc(t('ln_q'))}</h3>${SITS.map(k => `<button type="button" class="ln-sit" data-ln-sit="${k}"><span>${esc(t('sit_' + k))}</span><small>${SHEETS.filter(s => s.sit.includes(k)).length}</small></button>`).join('')}
-        <button type="button" class="ln-sit" data-ln-sit="all"><span>${esc(t('ln_all'))}</span><small>${SHEETS.length}</small></button></section>${foot}`;
+    const g = suggested();
+    // My methods: the kept ones and the ones that helped, what helped most first
+    const mineIds = [...new Set([...S.learn.kept, ...Object.keys(h).filter(id => id[0] !== '_' && h[id] && (h[id].y || 0) > 0)])].filter(id => id !== g.s.id && byId(id));
+    const mine = mineIds.map((id, k) => ({ id, k, sc: score(h, id) })).sort((a, b) => b.sc - a.sc || a.k - b.k).map(x => byId(x.id));
+    const q = `<section class="ln-group"><h3 class="ln-h">${esc(t('ln_q'))}</h3>${W && sit ? `<div class="ln-split">${gridHtml()}${paneHtml()}</div>` : gridHtml()}</section>`;
+    root.innerHTML = `${askHtml()}${sugHtml(g)}
+      ${mine.length ? `<section class="ln-group"><h3 class="ln-h">${esc(t('ln_mine'))}</h3>${mine.map(s => sheetHtml(s, h)).join('')}</section>` : ''}
+      ${q}${foot}`;
+  }
+  // a situation opens its first sheet on the right (computer) or its list (phone)
+  function pickSit(k) {
+    if (wideNow()) { if (sit === k) { sit = null; open = null; } else { sit = k; open = sitList(k)[0].id; } render(); return; }
+    sit = k; open = null; render(); scrollTo({ top: 0, behavior: 'instant' });
   }
   $('learn').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.lnSit) { sit = b.dataset.lnSit; open = null; render(); scrollTo({ top: 0, behavior: 'instant' }); return; }
+    if (b.dataset.lnSit) { pickSit(b.dataset.lnSit); return; }
     if (b.hasAttribute('data-ln-back')) { sit = null; open = null; render(); return; }
     if (b.dataset.lnOpen) { open = open === b.dataset.lnOpen ? null : b.dataset.lnOpen; render(); return; }
+    if (b.hasAttribute('data-ln-sugmore')) { sugOpen = !sugOpen; render(); return; }
+    if (b.dataset.lnStep) {
+      const dir = b.dataset.lnStep, list = sitList(sit), i = list.findIndex(s => s.id === open) + +dir;
+      if (list[i]) { open = list[i].id; render(); const n = $('learn').querySelector(`.ln-pane [data-ln-step="${dir}"]`); if (n && !n.disabled) n.focus(); }
+      return;
+    }
+    if (b.dataset.lnAns) {
+      const hh = helpGet(), id = hh._ask && hh._ask.id; delete hh._ask;
+      if (id && b.dataset.lnAns !== 'skip') { const r = hh[id] || (hh[id] = { y: 0, n: 0 }); r[b.dataset.lnAns] = (r[b.dataset.lnAns] || 0) + 1; ML.toast(t('ln_noted')); }
+      helpSet(hh); render(); return;
+    }
     const host = b.closest('[data-ln-id]'); if (!host) return;
-    const s = SHEETS.find(x => x.id === host.dataset.lnId), g = s.go;
+    const s = byId(host.dataset.lnId), g = s.go;
     if (b.hasAttribute('data-ln-keep')) { const L = S.learn; L.kept = L.kept.includes(s.id) ? L.kept.filter(x => x !== s.id) : [...L.kept, s.id]; save(); render(); return; }
     if (b.hasAttribute('data-ln-add')) {
       S.tasks = S.tasks.filter(x => !x.sample);
@@ -159,13 +258,24 @@
       return;
     }
     const k = b.dataset.lnGo; if (!k) return;
-    if (k === 'focus') ML.lockIn({ title: g.task[lang()], mins: g.focus });
+    if (k === 'focus' && ML.lockIn({ title: g.task[lang()], mins: g.focus })) { const hh = helpGet(); hh._run = { id: s.id, at: Date.now(), title: g.task[lang()] }; helpSet(hh); }
     if (k === 'tab') ML.setTab(g.tab);
     if (k === 'lib') ML.setTab('lib');
     if (k === 'prep' && ML.openDayPrep) ML.openDayPrep();
     if (k === 'tool') { S.study.tool = g.tool; save(); ML.setTab('study'); }
     if (k === 'eyes') { S.eyes.on = !S.eyes.on; save(); render(); }
   });
+  // A session started from a sheet asks once, when it ends, whether it helped
+  on('session', s => {
+    const h = helpGet(), r = h._run; if (!r) return;
+    delete h._run;
+    if (s && !s.taskId && s.title === r.title && s.at - r.at < 6 * 36e5 && byId(r.id)) {
+      h._ask = { id: r.id, at: Date.now() }; helpSet(h);
+      if (S.tab === 'learn') render();
+      else ML.toast(t('ln_ask', { m: byId(r.id)[lang()].t }), { action: { label: t('ln_answer'), fn: () => ML.setTab('learn') }, key: 'ln-ask' });
+    } else helpSet(h);
+  });
+  if (window.ResizeObserver) new ResizeObserver(() => { if (S.tab === 'learn' && wasWide !== null && wideNow() !== wasWide) render(); }).observe($('learn'));
   on('tab', name => { if (name === 'learn') render(); });
   on('mood', () => { if (S.tab === 'learn') render(); });
   on('started', () => { if (S.tab === 'learn') render(); });
@@ -193,7 +303,7 @@
     if (shownAt && Date.now() - shownAt > STAY) hideLine();
   });
   ML.settingsSection({
-    order: 23,
+    order: 23, cat: 'timer',
     render: () => `<h3>${esc(t('eye_set'))}</h3>${ML.ui.chk('set-eyes', t('eye_opt'), S.eyes.on)}<p class="hint">${esc(t('eye_hint'))}</p>`,
     bind: r => { r.querySelector('#set-eyes').onchange = e => { S.eyes.on = e.target.checked; save(); if (S.tab === 'learn') render(); }; },
   });

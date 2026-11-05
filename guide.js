@@ -137,12 +137,14 @@
     document.querySelectorAll('.tip-card').forEach(x => x.remove());
     if (!S.onboarded || !TIPS.includes(tab) || G().tips[tab]) return;
     const panel = $('tab-' + tab); if (!panel) return;
+    // One line, shown once: it counts as seen as soon as it appears, so it never comes back on the next visit.
+    G().tips = Object.assign({}, G().tips, { [tab]: 1 }); save();
     const c = document.createElement('div');
     c.className = 'tip-card'; c.setAttribute('role', 'note');
-    c.innerHTML = `<p>${esc(t('tip_' + tab))}</p><div><button type="button" class="small" data-tip="ok">${esc(t('tip_ok'))}</button><button type="button" class="link" data-tip="guide">${esc(t('tip_guide'))}</button></div>`;
+    c.innerHTML = `<p>${esc(t('tip_' + tab))} <button type="button" class="link" data-tip="guide">${esc(t('tip_guide'))}</button></p><button type="button" class="tip-x" data-tip="ok" aria-label="${esc(t('tip_ok'))}" title="${esc(t('tip_ok'))}">✕</button>`;
     c.addEventListener('click', e => {
       const b = e.target.closest('[data-tip]'); if (!b) return;
-      G().tips = Object.assign({}, G().tips, { [tab]: 1 }); save(); c.remove();
+      c.remove();
       if (b.dataset.tip === 'guide') ML.setTab('guide');
     });
     panel.prepend(c);
