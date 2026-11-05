@@ -64,7 +64,7 @@
     if (title) {
       const M = ML.MOODS[S.mood], single = M && M.single && !S.showAll && (S.plan && S.plan.pview) !== 'inbox'; // Scattered shows one card: the next task
       const pv = S.plan && S.plan.pview, name = !onx || view !== 'tab' || !S.tab ? '' : S.tab === 'plan' && pv ? t(single ? 'pl_v_next' : 'pl_v_' + pv) : tabName(S.tab);
-      title.textContent = S.tab === 'plan' && S.plan && S.plan.proj && onx ? S.plan.proj : name;
+      title.textContent = name; // the project filter shows on its own line under the title (plan.js, 3.70)
       title.classList.toggle('has-menu', inPlan);
       title.disabled = !inPlan;
     }
@@ -101,10 +101,10 @@
     b.setAttribute('aria-label', `${t('nav_timer')} · ${clock} · ${what}`);
   }
 
-  /* ---------- Long screens fold on phones (Grimoire cards, Settings sections): one tap opens a section ---------- */
+  /* ---------- Long screens fold on phones (Grimoire cards): one tap opens a section ---------- */
   let opened = {};
   try { opened = JSON.parse(localStorage.getItem(OPEN_KEY)) || {}; } catch (e) {}
-  const FOLD = [['grim', '.g-card', 'h2'], ['g-game', '.g-card', 'h2'], ['settings-body', '.set-sec', 'h3']];
+  const FOLD = [['grim', '.g-card', 'h2'], ['g-game', '.g-card', 'h2']];
   function fold(hostId, cardSel, headSel) {
     const host = $(hostId); if (!host) return;
     let first = hostId !== 'g-game'; // the first titled section of a screen starts open

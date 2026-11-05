@@ -184,17 +184,16 @@
           <button type="button" data-sp="plan" data-pvw="next" data-i18n="pl_v_next"></button>
           <button type="button" data-sp="plan" data-pvw="today" data-i18n="pl_v_today"></button>
           <button type="button" data-sp="plan" data-pvw="upcoming" data-i18n="pl_v_upcoming"></button>
-          <button type="button" data-sp="plan" data-pvw="projects" data-i18n="pl_v_projects"></button>
           <button type="button" data-sp="plan" data-pvw="all" data-i18n="pl_v_all"></button>
           <button type="button" data-sp="plan" data-pvw="inbox"><span data-i18n="pl_v_inbox"></span> <span class="count" id="sub-inbox"></span></button>
+          <!-- the projects, right under the views and always open (3.70): a filter that works in every view -->
+          <div class="sub-projs" id="sub-proj"></div>
         </div>
         <button type="button" class="sub-grp" data-in="plan" data-grp="sched"><span data-i18n="grp_sched"></span><small></small></button>
         <div class="sub-fold" data-in="plan" data-fold="sched">
           <button type="button" role="tab" id="t-day" data-sp="plan" aria-controls="tab-day" data-i18n="tab_day">Journée</button>
           <button type="button" role="tab" id="t-cal" data-sp="plan" aria-controls="tab-cal" data-i18n="tab_cal">Agenda</button>
         </div>
-        <button type="button" class="sub-grp" data-in="plan" data-grp="proj"><span data-i18n="pl_project"></span><small></small></button>
-        <div class="sub-fold" data-in="plan" data-fold="proj" id="sub-proj"></div>
         <button type="button" role="tab" id="t-notes" data-sp="study" aria-controls="tab-notes"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16H6zM9 8h6M9 12h6"/></svg><span data-i18n="tab_notes">Carnet</span></button>
         <button type="button" role="tab" id="t-lib" data-sp="study" aria-controls="tab-lib"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M10 4v16M15 5l4 15"/></svg><span data-i18n="tab_lib">Bibliothèque</span> <svg class="lock-ico" id="lib-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
         <button type="button" role="tab" id="t-study" data-sp="study" aria-controls="tab-study"><svg class="sub-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="13" height="13" rx="2"/><path d="M8 4h12v12"/></svg><span data-i18n="tab_cards">Cartes</span> <svg class="lock-ico" id="study-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><em class="sub-n" id="sub-n-cards"></em></button>

@@ -23,7 +23,7 @@
   --veil: color-mix(in srgb, var(--void) 96%, transparent); /* behind text over the animated background */
   --soft: color-mix(in srgb, var(--accent) 14%, transparent);
   /* Calendar color slots: calm jewel tones by default, re-tinted per theme below */
-  --ev-1: #a678ff; --ev-2: #5cc8e6; --ev-3: #5ef0a8; --ev-4: #ffb547; --ev-5: #ff7ac6; --ev-6: #ff6b8b; --ev-7: #f2d16b; --ev-8: #7f8cff;
+  --ev-1: #a678ff; --ev-2: #5cc8e6; --ev-3: #5ef0a8; --ev-4: #ffb547; --ev-5: #ff7ac6; --ev-6: #ff8a5c; --ev-7: #f2d16b; --ev-8: #7f8cff;
 }
 /* Timer inner ring (.arc): one variable per theme, all in one place, so each palette can tune it.
    Values below are the current ones (each theme's accent-2, Gray fog's accent); edit a line to retune a theme. */
@@ -881,15 +881,20 @@ button.ev-title:hover { color: var(--accent); }
 .set-sec:last-child { border-bottom: 0; }
 .set-sec h3 { font-size: var(--t-2); color: var(--text); }
 .set-sec .hint { margin: 0; }
-/* Settings → Advanced: recovery, backups, permanent account actions, folded away under the everyday settings */
-.set-adv { border: 1px solid var(--line); border-radius: var(--radius); background: color-mix(in srgb, var(--panel-2) 60%, transparent); }
-.set-adv > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 12px 14px; font-family: var(--f-display); font-size: var(--t-2); color: var(--mist); }
-.set-adv > summary::-webkit-details-marker { display: none; }
-.set-adv > summary::after { content: ""; grid-row: 1 / span 2; grid-column: 2; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; rotate: 45deg; translate: 0 -2px; transition: rotate .2s; }
-.set-adv[open] > summary::after { rotate: 225deg; translate: 0 2px; }
-.set-adv > summary small { grid-column: 1; font-family: var(--f-body); font-size: var(--t-1); letter-spacing: 0; text-transform: none; color: var(--dim); }
-.set-adv > .set-sec { padding: 0 14px 14px; }
-.set-adv[open] > summary { color: var(--text); }
+/* Settings (3.69, C6): a list of pages, then one page at a time */
+#settings .sheet-head { gap: 4px; }
+#settings .sheet-head h2 { flex: 1; min-width: 0; }
+.set-back { margin-left: -8px; }
+.set-back[hidden] { display: none; }
+.set-cats { list-style: none; margin: 0; padding: 0; display: grid; }
+.set-cats li + li { border-top: 1px solid var(--line); }
+.set-cat { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 4px; border: 0; border-radius: 0; background: none; color: var(--text); text-align: left; font: inherit; cursor: pointer; }
+.set-cat > span { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.set-cat b { font-family: var(--f-display); font-size: var(--t-2); font-weight: 600; }
+.set-cat small { color: var(--mist); font-size: var(--t-1); }
+.set-cat::after { content: ""; flex: none; width: 7px; height: 7px; margin-right: 6px; border: solid var(--mist); border-width: 2px 2px 0 0; rotate: 45deg; }
+.set-cat:hover, .set-cat:focus-visible { background: var(--soft); }
+.set-cat:hover::after { border-color: var(--text); }
 .field { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; font-size: var(--t-2); }
 .field select { padding: 5px 8px; }
 .backup-btns { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1706,7 +1711,8 @@ html.mnav-on #washi-incense { display: none; }
   --r-common: #5E5E5E; --r-rare: #3A3A3A; --r-epic: #111111; --r-legendary: #B5001A;
   --f-world: "Chakra Petch", "Bahnschrift", sans-serif;
   --cut: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
-  --ev-1: #E3001B; --ev-2: #111111; --ev-3: #2F6B2F; --ev-4: #9A6A00; --ev-5: #5E5E5E; --ev-6: #B5001A; --ev-7: #8A877E; --ev-8: #3A3A3A;
+  /* project and event inks (3.70): one red only, then the woodblock blues, greens and earths */
+  --ev-1: #C8361E; --ev-2: #1F4E8C; --ev-3: #2F6B4A; --ev-4: #A8740E; --ev-5: #B8456E; --ev-6: #2B2F6B; --ev-7: #6A3E8C; --ev-8: #2A2622;
 }
 :root[data-light="1"][data-theme="netrunner"] body { background-image: none; }
 :root[data-light="1"][data-theme="netrunner"] body::before { opacity: 0; }
@@ -1830,7 +1836,7 @@ html.mnav-on #washi-incense { display: none; }
   --text: #0F380F; --mist: #306230; --dim: #306230; --accent: #306230; --accent-2: #6B4A12; --ink: #E3EDC8; --good: #306230; --warn: #8A2C1E;
   --r-common: #306230; --r-rare: #2C3B6E; --r-epic: #4F2F6A; --r-legendary: #6B4A12;
   --card-frame: #0F380F; --glow: transparent; --soft: rgba(48, 98, 48, .07); /* .12 put green text on it at 4.46:1 */
-  --ev-1: #306230; --ev-2: #2C3B6E; --ev-3: #3A5A1A; --ev-4: #6B4A12; --ev-5: #6E3B5A; --ev-6: #8A2C1E; --ev-7: #5A5A1E; --ev-8: #4F2F6A;
+  --ev-1: #306230; --ev-2: #2C3B6E; --ev-3: #B0501A; --ev-4: #6B4A12; --ev-5: #6E3B5A; --ev-6: #8A2C1E; --ev-7: #1E5A6B; --ev-8: #4F2F6A; /* 3.70: no second green on the green screen */
 }
 /* 5. Overworld: pale green sky, pixel clouds, hills, trees and bushes along the bottom (static; crisp pixels) */
 :root[data-light="1"][data-theme="arcade"] body {
@@ -3433,7 +3439,6 @@ html.mnav-on .foldable > :is(h2, h3) { display: flex; align-items: center; justi
 html.mnav-on .foldable > :is(h2, h3)::after { content: ""; flex: none; width: 8px; height: 8px; margin-right: 4px; border: solid var(--mist); border-width: 0 2px 2px 0; transform: rotate(-135deg); transition: transform .15s; }
 html.mnav-on .foldable.folded > :is(h2, h3)::after { transform: translateY(-2px) rotate(45deg); }
 html.mnav-on .foldable.folded > :not(h2, h3) { display: none; }
-html.mnav-on .set-sec.foldable { padding-bottom: 6px; }
 /* P6 Touch targets */
 html.mnav-on .q-head { min-height: 40px; }
 html.mnav-on .st-tools { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -3506,9 +3511,11 @@ html.mnav-on .sj-count { min-height: 36px; }
 html.mnav-on .gd-item { grid-template-columns: minmax(0, 1fr); justify-items: start; }
 .gd-new { margin-left: 8px; padding: 1px 7px; border-radius: 99px; background: var(--accent); color: var(--ink); font-size: var(--t-1); font-weight: 600; }
 .gd-whatsnew .gd-item { background: var(--panel-2); }
-.tip-card { display: grid; gap: 8px; margin-bottom: 10px; padding: 10px 12px; border: 1px dashed var(--line-2); border-radius: var(--radius); background: var(--soft); font-size: var(--t-2); }
-.tip-card p { margin: 0; }
-.tip-card > div { display: flex; align-items: center; gap: 12px; }
+.tip-card { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 4px 4px 4px 12px; border-left: 2px solid var(--line-2); color: var(--mist); font-size: var(--t-2); }
+.tip-card p { margin: 0; flex: 1; min-width: 0; }
+.tip-card .link { padding: 0; min-height: 0; }
+.tip-card .tip-x { flex: none; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 0; background: none; color: var(--mist); font-size: 14px; }
+.tip-card .tip-x:hover { color: var(--text); }
 /* ---------- Room additions (rooms.js) ---------- */
 .rm-sec { display: grid; gap: 7px; padding-top: 10px; border-top: 1px solid var(--line); }
 .rm-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -4594,3 +4601,30 @@ h2 { font-size: var(--t-2); color: var(--text); letter-spacing: 0; }
 .tabs button[aria-selected=true] { border-bottom-color: var(--text); }
 /* the logo is one word in one colour */
 h1 span, .brand h1 span { color: inherit !important; text-shadow: none !important; font-style: inherit !important; }
+/* ---------- Plan context line (3.70): the view and the project filter, said together ---------- */
+.pl-ctx { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
+.pl-ctx[hidden] { display: none; }
+.pl-ctx-v { font: 600 var(--t-4) var(--f-title, var(--f-body)); color: var(--text); }
+.pl-ctx-proj { display: inline-flex; align-items: center; gap: 0; min-width: 0; }
+.pl-ctx .chip { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 3px 11px; border-radius: 999px; font-size: var(--t-2); max-width: 100%; }
+.pl-ctx .chip.proj.on { color: var(--text); background: color-mix(in srgb, var(--pc) 14%, transparent); border-color: color-mix(in srgb, var(--pc) 65%, transparent); border-radius: 999px 0 0 999px; }
+.pl-ctx-x { min-height: 30px; padding: 3px 9px !important; border: 1px solid color-mix(in srgb, var(--pc, var(--line-2)) 65%, transparent) !important; border-left: 0 !important; border-radius: 0 999px 999px 0; }
+.pl-ctx-x svg, .pl-ctx-car { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.pl-ctx-all { color: var(--mist); border-style: dashed; }
+.pl-ctx-meta { font: var(--t-1) var(--f-body); color: var(--mist); min-width: 0; }
+.pl-ctx-meta em { font-style: normal; color: var(--text); } .pl-ctx-meta em.late { color: var(--warn); }
+.pl-ctx-det { margin-left: auto; }
+html.mnav-on .pl-ctx-v { display: none; }            /* on a phone the title above already names the view */
+html.mnav-on .pl-ctx.pl-ctx-empty { display: none; }
+html:not(.mnav-on) .pl-ctx-all { display: none; }     /* on a computer the column lists the projects */
+.pl-ph-col { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font: var(--t-1) var(--f-body); color: var(--mist); }
+.pl-ph-col span { margin-right: 4px; }
+.pl-sw { width: 26px; height: 26px; min-height: 0; padding: 0 !important; border-radius: 50%; background: var(--pc) !important; border: 2px solid transparent !important; box-shadow: none; }
+.pl-sw.on { border-color: var(--text) !important; box-shadow: 0 0 0 2px var(--panel) inset; }
+html.mnav-on .pl-sw { width: 32px; height: 32px; }
+html.mnav-on .pl-ph-col span { flex-basis: 100%; }
+.pl-more { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 4px; font: var(--t-1) var(--f-body); color: var(--mist); list-style: none; }
+.pl-shead { display: block; padding: 10px 8px 2px 18px; font: var(--t-1) var(--f-body); color: var(--mist); }
+.sub-projs { display: grid; gap: 1px; }
+/* rows drop what the filter or the view already says */
+html .tasks.pl-f-proj .task .t-extra > .chip.proj, html .tasks.pl-f-today .task .t-extra > .chip.due.soon { display: none !important; }

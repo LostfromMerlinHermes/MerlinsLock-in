@@ -257,7 +257,9 @@
     }
     cardFx(ul, M.single && !S.showAll ? ul.querySelector(':scope > .task:not(.editing)') : null);
     $('sort-note').innerHTML = S.tasks.length && (M.single || !ML.planRender) ? t('sorted_for', { mood: `<b>${esc(t('mood_' + S.mood))}</b>`, sort: esc(t('sort_' + M.sort)) }) + (M.single ? ' ' + esc(t('only_next')) : '') : '';
-    $('foot-note').textContent = S.tasks.length ? tn('open_planned', open.length, { m: fmtMins(open.reduce((a, x) => a + x.mins, 0)) }) : '';
+    // with a project picked in the Plan, the count is that project's (3.70)
+    const fp = ML.planRender && S.plan && S.plan.proj, fo = fp ? open.filter(x => x.project === fp) : open;
+    $('foot-note').textContent = S.tasks.length ? (fp ? fp + ' · ' : '') + tn('open_planned', fo.length, { m: fmtMins(fo.reduce((a, x) => a + x.mins, 0)) }) : '';
     const ed = ul.querySelector('.t-edit input[name=title]');
     if (ed && document.activeElement === document.body) ed.focus();
     emit('tasks:render');
@@ -591,7 +593,7 @@
   const ARC_C = 2 * Math.PI * 76;
   $('arc').style.strokeDasharray = ARC_C;
 
-  const presetLabel = m => m >= 60 ? Math.floor(m / 60) + 'h' + (m % 60 || '') : m + 'm';
+  const presetLabel = m => fmtMins(m);
   function renderPresets() {
     const P = MOOD_PRESETS[S.mood] || MOOD_PRESETS.steady;
     const list = S.mode === 'focus' ? P.focus.slice() : P.brk.slice();
@@ -917,34 +919,55 @@
   };
 
   /* ---------- Settings sheet ---------- */
-  // Each module adds its own section: ML.settingsSection({ order, group?, render: () => html, bind: root => {} }).
-  // group 'advanced' goes in a folded "Advanced" block (recovery, backups, account deletion…), 'info' at the very end:
-  // the everyday settings come first and the technical ones stop crowding them.
+  // Each module adds its own section: ML.settingsSection({ order, cat?, group?, render: () => html, bind: root => {} }).
+  // 3.69 (C6): the sheet opens on a short list of pages (Account, General, Look, Timer, Sound, Planning, Advanced, About)
+  // and a tap shows that page's sections. A section's page is its `cat`, else `group`, else found from its order.
   const sections = [];
   ML.settingsSection = s => sections.push(s);
-  ML.addStrings({ fr: { set_advanced: 'Avancé', set_advanced_hint: 'Sauvegardes, récupération et actions sensibles du compte.' }, en: { set_advanced: 'Advanced', set_advanced_hint: 'Backups, recovery and sensitive account actions.' } });
-  let advOpen = false;
+  const CATS = ['account', 'general', 'look', 'timer', 'sound', 'planning', 'advanced', 'about'];
+  ML.addStrings({
+    fr: { set_c_account: 'Compte', set_c_account_d: 'Connexion et synchro', set_c_general: 'Général', set_c_general_d: 'Langue, énergie, raccourcis, modules', set_c_look: 'Apparence', set_c_look_d: 'Monde, effets, lumière du soir', set_c_timer: 'Minuteur', set_c_timer_d: 'Pauses, notifications, mode séance, objectif', set_c_sound: 'Son', set_c_sound_d: 'Volumes, ambiance, animations', set_c_planning: 'Planning', set_c_planning_d: 'Journée, agenda en direct', set_c_advanced: 'Avancé', set_c_advanced_d: 'Sauvegardes, récupération, suppression', set_c_about: 'À propos', set_c_about_d: 'Version, confidentialité, conditions', set_back: 'Réglages' },
+    en: { set_c_account: 'Account', set_c_account_d: 'Sign-in and sync', set_c_general: 'General', set_c_general_d: 'Language, energy, shortcuts, modules', set_c_look: 'Look', set_c_look_d: 'World, effects, evening light', set_c_timer: 'Timer', set_c_timer_d: 'Breaks, notifications, session mode, goal', set_c_sound: 'Sound', set_c_sound_d: 'Volumes, ambience, motion', set_c_planning: 'Planning', set_c_planning_d: 'Day, live calendar', set_c_advanced: 'Advanced', set_c_advanced_d: 'Backups, recovery, deletion', set_c_about: 'About', set_c_about_d: 'Version, privacy, terms', set_back: 'Settings' },
+  });
+  const catOf = s => s.cat || (s.group === 'info' ? 'about' : s.group)
+    || (s.order < 10 ? 'account' : s.order < 15 ? 'general' : s.order < 20 ? 'look' : s.order < 23 ? 'timer' : s.order < 26 ? 'sound' : s.order < 27 ? 'timer' : s.order < 30 ? 'planning' : 'timer');
+  let page = null; // null = the list of pages
   function renderSettings() {
-    const body = $('settings-body'), sorted = sections.sort((a, b) => a.order - b.order);
-    const html = list => list.map(s => s.render()).filter(Boolean).map(h => `<section class="set-sec">${h}</section>`).join('');
-    const adv = sorted.filter(s => s.group === 'advanced');
-    body.innerHTML = html(sorted.filter(s => !s.group))
-      + (adv.length ? `<details class="set-adv" id="set-adv" ${advOpen ? 'open' : ''}><summary>${esc(t('set_advanced'))}<small>${esc(t('set_advanced_hint'))}</small></summary>${html(adv)}</details>` : '')
-      + html(sorted.filter(s => s.group === 'info'));
-    const d = $('set-adv'); if (d) d.addEventListener('toggle', () => { advOpen = d.open; emit('settings:advanced', d.open); });
-    sections.forEach(s => s.bind && s.bind(body));
+    const body = $('settings-body'), sorted = sections.sort((a, b) => a.order - b.order), sheet = body.closest('.sheet');
+    if (page && !CATS.includes(page)) page = null;
+    let back = sheet.querySelector('.set-back');
+    if (!back) {
+      back = document.createElement('button'); back.type = 'button'; back.className = 'ghost icon-only set-back';
+      back.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+      back.onclick = () => { page = null; renderSettings(); body.scrollTop = 0; sheet.scrollTop = 0; };
+      $('set-h').before(back);
+    }
+    back.hidden = !page; back.title = back.ariaLabel = t('set_back');
+    $('set-h').textContent = page ? t('set_c_' + page) : t('settings');
+    if (!page) {
+      // a page shows only if one of its sections has something to say
+      const live = CATS.filter(c => sorted.some(s => catOf(s) === c && s.render()));
+      body.innerHTML = `<ul class="set-cats">${live.map(c => `<li><button type="button" class="set-cat" data-set-cat="${c}"><span><b>${esc(t('set_c_' + c))}</b><small>${esc(t('set_c_' + c + '_d'))}</small></span></button></li>`).join('')}</ul>`;
+      body.querySelectorAll('[data-set-cat]').forEach(b => { b.onclick = () => { page = b.dataset.setCat; renderSettings(); sheet.scrollTop = 0; const f = body.querySelector('input, select, button, textarea'); if (f && !matchMedia('(pointer: coarse)').matches) f.focus({ preventScroll: true }); }; });
+      return;
+    }
+    const shown = sorted.filter(s => catOf(s) === page).map(s => [s, s.render()]).filter(([, h]) => h);
+    body.innerHTML = shown.map(([, h]) => `<section class="set-sec">${h}</section>`).join('');
+    const h = body.querySelector('.set-sec:first-child > h3'); if (h && h.textContent.trim() === t('set_c_' + page)) h.hidden = true; // "Timer" under "Timer"
+    shown.forEach(([s]) => s.bind && s.bind(body));
   }
   ML.renderSettings = renderSettings;
+  ML.openSettings = cat => { page = cat || null; renderSettings(); openOverlay('settings'); };
   // Sport is set aside (3.25): a device that was left on it reopens on Work
   on('loaded', () => { if (S.section === 'sport') S.section = 'work'; });
-  $('settings-btn').onclick = () => { renderSettings(); openOverlay('settings'); };
+  $('settings-btn').onclick = () => ML.openSettings();
 
   const sel = (id, opts, cur) => `<select id="${id}">${opts.map(([v, l]) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
   const chk = (id, label, on) => `<label class="opt"><input type="checkbox" id="${id}" ${on ? 'checked' : ''}> ${esc(label)}</label>`;
   ML.ui = { sel, chk };
 
   ML.settingsSection({
-    order: 30,
+    order: 30, cat: 'general',
     render: () => `<h3>${esc(t('set_mods'))}</h3><p class="hint">${esc(t('set_mods_hint'))}</p>${ML.modules().map(([k, m]) => `<label class="opt mod-opt"><input type="checkbox" data-mod-set="${k}" ${modOn(k) ? 'checked' : ''}><span><b>${esc(t(m.label))}</b>${m.hint ? `<small>${esc(t(m.hint))}</small>` : ''}</span></label>`).join('')}`,
     bind: root => { root.querySelectorAll('[data-mod-set]').forEach(c => { c.onchange = () => ML.setMod(c.dataset.modSet, c.checked); }); },
   });
@@ -979,7 +1002,8 @@
   });
   ML.settingsSection({
     order: 40,
-    render: () => IS_EXT
+    // the web app with Web Push already has its own end-notification section (push.js): no second one
+    render: () => !IS_EXT && ML.push && ML.push.supported ? '' : IS_EXT
       ? `<h3>${esc(t('set_block'))}</h3>
         <p class="hint">${esc(t('block_hint'))}</p>
         ${chk('set-block', t('block_on'), S.block.on)}

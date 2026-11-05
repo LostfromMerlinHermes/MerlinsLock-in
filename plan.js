@@ -7,7 +7,7 @@
 // Scattered's single card is untouched.
 (() => {
   'use strict';
-  const { S, t, esc, on, emit, $, today, addDays, fmtMins } = ML;
+  const { S, t, tn, esc, on, emit, $, today, addDays, fmtMins } = ML;
   const save = () => ML.save();
 
   ML.addStrings({
@@ -31,6 +31,8 @@
       pl_rename: 'Renommer', pl_edit_full: 'Tout modifier', pl_empty_today: 'Rien de prévu aujourd’hui.', pl_empty_hint: 'Ajoute une tâche, ou choisis-en dans toutes tes tâches.', pl_see_all: 'Voir toutes',
       pl_nodate_n: '{n} sans date', pl_side_new: '+ Projet', pl_proj_note: 'Note du projet', pl_proj_due: 'Échéance', pl_proj_left: 'dans {n} j', pl_proj_today: 'aujourd’hui', pl_proj_past: 'passée',
       pl_proj_prog: '{d} / {n} finies', pl_proj_del: 'Retirer le projet', pl_proj_deleted: 'Projet retiré (les tâches restent).', pl_no_match: 'Aucune tâche ne correspond.',
+      pl_allproj: 'Tous les projets', pl_projs: 'Projets', pl_unfilter: 'Voir tous les projets', pl_details: 'Détails', pl_color: 'Couleur', pl_proj_due_d: 'échéance {d}',
+      pl_more_in: '{n} autres tâches dans {p}', pl_more_in_one: '1 autre tâche dans {p}',
     },
     en: {
       pl_added_where: 'Added to {g}.', pl_for_today: 'For today', pl_close: 'Close',
@@ -52,12 +54,16 @@
       pl_rename: 'Rename', pl_edit_full: 'Edit all', pl_empty_today: 'Nothing planned for today.', pl_empty_hint: 'Add a task, or pick some from all your tasks.', pl_see_all: 'See all',
       pl_nodate_n: '{n} without a date', pl_side_new: '+ Project', pl_proj_note: 'Project note', pl_proj_due: 'Deadline', pl_proj_left: 'in {n} d', pl_proj_today: 'today', pl_proj_past: 'passed',
       pl_proj_prog: '{d} / {n} done', pl_proj_del: 'Remove the project', pl_proj_deleted: 'Project removed (the tasks stay).', pl_no_match: 'No task matches.',
+      pl_allproj: 'All projects', pl_projs: 'Projects', pl_unfilter: 'Show all projects', pl_details: 'Details', pl_color: 'Color', pl_proj_due_d: 'due {d}',
+      pl_more_in: '{n} more tasks in {p}', pl_more_in_one: '1 more task in {p}',
     },
   });
   // plan: view (list / table), pview (today / upcoming / projects / all), grouping and sort used by "All" (+ direction),
   // project filter, folded groups, table columns, projects created before they have tasks, project notes and deadlines
-  ML.defaults(() => ({ plan: { view: 'list', pview: 'all', group: 'moment', sort: 'energy', dir: 1, proj: '', fold: {}, day: null, cols: ['project', 'due', 'mins', 'pri'], plist: [], pnotes: {}, pdue: {} } }));
-  const P = () => S.plan;
+  // pcolor (3.70): each project keeps the color slot (1-8) it got when it first showed up, so two projects never share one
+  ML.defaults(() => ({ plan: { view: 'list', pview: 'all', group: 'moment', sort: 'energy', dir: 1, proj: '', fold: {}, day: null, cols: ['project', 'due', 'mins', 'pri'], plist: [], pnotes: {}, pdue: {}, pcolor: {} } }));
+  // The Projects view (3.50) became a filter that works in every view (3.70): its old state opens All grouped by project
+  const P = () => { const p = S.plan; if (p.pview === 'projects') { p.pview = 'all'; p.group = 'project'; } return p; };
   const PRI = { high: 0, med: 1, low: 2 };
   const reduced = () => ML.reducedMotion();
 
@@ -65,7 +71,25 @@
   const byName = (a, b) => a.localeCompare(b, ML.locale(), { sensitivity: 'base' });
   ML.planProjects = () => [...new Set([...S.tasks.map(x => x.project).filter(Boolean), ...((S.plan && S.plan.plist) || [])])].sort(byName);
   const hash = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
-  const projColor = name => `var(--ev-${hash(name.toLowerCase()) % 8 + 1})`;
+  // A project's color: the subject of the same name if there is one (Subjects), else its own slot, given once (the first
+  // free one) and kept; past 8 projects the slots repeat. The slot is a world token, so every world tints it its own way.
+  const SLOTS = 8;
+  const pcolors = () => { const p = S.plan; if (!p.pcolor || typeof p.pcolor !== 'object' || Array.isArray(p.pcolor)) p.pcolor = {}; return p.pcolor; };
+  const subjColor = name => { const n = name.toLowerCase(), x = (S.subjects || []).find(s => s && s.name && s.name.toLowerCase() === n); return x && x.color; };
+  function slotOf(name) {
+    const pc = pcolors(); if (pc[name] >= 1 && pc[name] <= SLOTS) return pc[name];
+    const used = new Set(Object.values(pc)); let s = 1; while (used.has(s) && s <= SLOTS) s++;
+    if (s > SLOTS) s = hash(name.toLowerCase()) % SLOTS + 1;
+    pc[name] = s; save(); return s;
+  }
+  // Slots of projects that no longer exist are freed; the others are handed out in name order the first time
+  function tidyColors() {
+    const pc = pcolors(), projs = ML.planProjects(), keep = new Set(projs);
+    Object.keys(pc).forEach(k => { if (!keep.has(k)) { delete pc[k]; save(); } });
+    projs.forEach(slotOf);
+  }
+  const projColor = name => subjColor(name) || `var(--ev-${slotOf(name)})`;
+  ML.projColor = projColor;
   ML.projChip = name => `<span class="chip proj" style="--pc:${projColor(name)}"><i></i>${esc(name)}</span>`;
   const projDot = name => `<i class="pl-dot" style="--pc:${projColor(name)}"></i>`;
   function weekStartMs() { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getTime(); }
@@ -302,7 +326,7 @@
     const p = P(), hidden = (p.proj && task.project !== p.proj) || !inView(task) || p.pview === 'inbox';
     if (!hidden) return;
     const where = task.due ? cap(dayLabel(task.due)) : t('pl_m_nodate');
-    ML.toast(t('pl_added_where', { g: where }), { key: 'pladd', action: task.due ? { label: t('pl_see_all'), fn: () => { p.pview = 'all'; p.proj = ''; save(); ML.renderTasks(); } }
+    ML.toast(t('pl_added_where', { g: where }), { key: 'pladd', action: task.due ? { label: t('pl_see_all'), fn: () => { p.pview = 'all'; if (p.proj && task.project !== p.proj) p.proj = ''; save(); ML.renderTasks(); } }
       : { label: t('pl_for_today'), fn: () => { task.due = today(); save(); ML.renderAll(); } } });
   });
   // "+ Add to …" under a group: the field takes that group's date / project / priority / pin
@@ -368,11 +392,13 @@
   const side = document.createElement('nav'); side.className = 'pl-side'; side.setAttribute('aria-label', t('pl_v_projects'));
   const main = document.createElement('div'); main.className = 'pl-main';
   const phead = document.createElement('div'); phead.className = 'pl-phead'; phead.hidden = true;
-  main.append(phead, list); grid.append(main); layout.append(bar, grid, bulk);
+  // The context line (3.70): the view's name and the project filter, always said together ("Today · Maths ×")
+  const ctx = document.createElement('div'); ctx.className = 'pl-ctx'; ctx.hidden = true;
+  main.append(ctx, phead, list); grid.append(main); layout.append(bar, grid, bulk);
   side.dataset.sp = 'plan'; $('sub-proj').append(side); // the projects sit in the column of the Plan's sections (3.60), in their own group (3.61)
 
   /* ---------- Toolbar ---------- */
-  const VIEWS = ['today', 'upcoming', 'projects', 'all'], GROUPS = ['moment', 'project', 'pri', 'none'], SORTS = ['energy', 'due', 'mins', 'pri', 'manual'];
+  const VIEWS = ['today', 'upcoming', 'all'], GROUPS = ['moment', 'project', 'pri', 'none'], SORTS = ['energy', 'due', 'mins', 'pri', 'manual'];
   let query = '', selMode = false, searchOpen = false, backView = 'all';
   const sel = new Set();
   const tabPlan = $('tab-plan'), viewsRow = document.createElement('div'); viewsRow.className = 'pl-viewsrow';
@@ -414,12 +440,18 @@
   $('subtabs').addEventListener('click', e => { const b = e.target.closest('[data-pvw]'); if (b) setPview(b.dataset.pvw); });
   on('tab', renderViews);
   // The menu under the screen's title on a phone: the views, the projects, and the display options
+  // The project list of a menu: All projects, then each one, counted in the view on screen
+  const projItems = () => { const p = P(); return item({ proj: '' }, esc(t('pl_allproj')), !p.proj, String(viewN(null))) + ML.planProjects().map(x => item({ proj: x }, esc(x), p.proj === x, String(viewN(x)), projDot(x))).join(''); };
+  // The project filter alone (the chip of the context line)
+  function openProjPick(anchor) {
+    openPop(anchor, `<div class="pp-list">${projItems()}</div>`, r => { if (!r || r.proj === undefined) return; P().proj = r.proj; save(); ML.renderTasks(); });
+  }
   ML.planMenu = anchor => {
-    const p = P(), M = ML.MOODS[S.mood], single = M && M.single && !S.showAll, n = (S.parked || []).length, projs = ML.planProjects(), open = S.tasks.filter(x => !x.done);
+    const p = P(), M = ML.MOODS[S.mood], single = M && M.single && !S.showAll, n = (S.parked || []).length, projs = ML.planProjects();
     const views = single ? [['next', t('pl_v_next')]] : VIEWS.map(v => [v, t('pl_v_' + v)]);
     const html = `<div class="pp-list">${views.map(([v, l]) => item({ pv: v }, esc(l), S.tab === 'plan' && p.pview === v)).join('')}
       ${item({ pv: 'inbox' }, esc(t('pl_v_inbox')), S.tab === 'plan' && p.pview === 'inbox', n ? String(n) : '')}
-      ${projs.length ? `<hr class="pp-sep">${item({ proj: '' }, esc(t('pl_all')), !p.proj, String(open.length))}${projs.map(x => item({ proj: x }, esc(x), p.proj === x, String(open.filter(y => y.project === x).length), projDot(x))).join('')}` : ''}
+      ${projs.length ? `<hr class="pp-sep">${projItems()}` : ''}
       ${single ? '' : `<hr class="pp-sep">${item({ act: 'display' }, esc(t('pl_display')), false, '', ICON_DISPLAY)}`}</div>`;
     openPop(anchor, html, r => {
       if (!r) return;
@@ -496,9 +528,11 @@
   /* ---------- Projects column (wide panels) and the project page ---------- */
   let newProj = false;
   function renderSide() {
-    const p = P(), projs = ML.planProjects(), open = S.tasks.filter(x => !x.done);
-    const html = `<button type="button" class="pl-sit ${!p.proj ? 'on' : ''}" data-pproj=""><span>${esc(t('pl_all'))}</span><small>${open.length}</small></button>
-      ${projs.map(n => { const wk = weekMins(n); return `<button type="button" class="pl-sit ${p.proj === n ? 'on' : ''}" data-pproj="${esc(n)}" title="${esc(n)}${wk ? ' · ' + esc(t('pl_week_h', { h: fmtMins(wk) })) : ''}">${projDot(n)}<span>${esc(n)}</span><small>${open.filter(x => x.project === n).length}</small></button>`; }).join('')}
+    tidyColors();
+    const p = P(), projs = ML.planProjects();
+    // the counts follow the view on screen (3.70): "1" next to Maths in Today means one Maths task shows there
+    const html = `<span class="pl-shead">${esc(t('pl_projs'))}</span><button type="button" class="pl-sit ${!p.proj ? 'on' : ''}" data-pproj=""><span>${esc(t('pl_allproj'))}</span><small>${viewN(null)}</small></button>
+      ${projs.map(n => { const wk = weekMins(n); return `<button type="button" class="pl-sit ${p.proj === n ? 'on' : ''}" data-pproj="${esc(n)}" title="${esc(n)}${wk ? ' · ' + esc(t('pl_week_h', { h: fmtMins(wk) })) : ''}">${projDot(n)}<span>${esc(n)}</span><small>${viewN(n)}</small></button>`; }).join('')}
       ${newProj ? `<form class="pl-snew"><input type="text" maxlength="40" placeholder="${esc(t('pl_p_new_ph'))}" aria-label="${esc(t('pl_p_new'))}"><button type="submit" class="small">${esc(t('pl_ok'))}</button></form>` : `<button type="button" class="pl-sit pl-sadd" data-snew="1">${esc(t('pl_side_new'))}</button>`}`;
     if (side.dataset.h !== html) { side.innerHTML = html; side.dataset.h = html; if (newProj) side.querySelector('input').focus(); }
   }
@@ -514,19 +548,47 @@
     ML.renderTasks();
   });
   side.addEventListener('focusout', e => { if (newProj && !side.contains(e.relatedTarget)) setTimeout(() => { if (newProj && !side.contains(document.activeElement)) { newProj = false; renderSide(); } }, 120); });
-  let renamingProj = false;
+  let renamingProj = false, detailsOpen = false;
+  const projLeft = (n) => {
+    const due = (P().pdue || {})[n]; if (!due) return '';
+    const d = Math.round((ML.parseDay(due) - ML.parseDay(today())) / 864e5);
+    return d > 0 ? t('pl_proj_left', { n: d }) : d === 0 ? t('pl_proj_today') : t('pl_proj_past');
+  };
+  function renderCtx() {
+    const p = P(), n = p.proj, projs = ML.planProjects(), inbox = p.pview === 'inbox';
+    ctx.hidden = inbox; if (inbox) { ctx.innerHTML = ''; ctx.dataset.h = ''; return; }
+    let meta = '';
+    if (n) {
+      const all = S.tasks.filter(x => x.project === n), done = all.filter(x => x.done).length, left = projLeft(n);
+      meta = `<span class="pl-ctx-meta">${esc(t('pl_proj_prog', { d: done, n: all.length }))}${left ? ` · <em class="${left === t('pl_proj_past') ? 'late' : ''}">${esc(t('pl_proj_due_d', { d: left }))}</em>` : ''}${(p.pnotes || {})[n] ? ' · ' + esc(t('pl_proj_note')) : ''}</span>
+        <button type="button" class="ghost small pl-ctx-det" data-ctx="det" aria-expanded="${detailsOpen}">${esc(t('pl_details'))}</button>`;
+    }
+    const chip = n ? `<span class="pl-ctx-proj" style="--pc:${projColor(n)}"><button type="button" class="chip proj on" data-ctx="pick" aria-haspopup="true" aria-expanded="false"><i></i>${esc(n)}</button><button type="button" class="icon-btn pl-ctx-x" data-ctx="clear" aria-label="${esc(t('pl_unfilter'))}" title="${esc(t('pl_unfilter'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></span>`
+      : projs.length ? `<button type="button" class="chip pl-ctx-all" data-ctx="pick" aria-haspopup="true" aria-expanded="false">${esc(t('pl_allproj'))} <svg class="pl-ctx-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>` : '';
+    const html = `<b class="pl-ctx-v">${esc(t('pl_v_' + p.pview))}</b>${chip}${meta}`;
+    if (ctx.dataset.h !== html) { ctx.innerHTML = html; ctx.dataset.h = html; }
+    ctx.classList.toggle('pl-ctx-empty', !chip);
+  }
+  ctx.addEventListener('click', e => {
+    const b = e.target.closest('[data-ctx]'); if (!b) return;
+    const k = b.dataset.ctx;
+    if (k === 'pick') openProjPick(b);
+    if (k === 'clear') { P().proj = ''; detailsOpen = false; save(); ML.renderTasks(); }
+    if (k === 'det') { detailsOpen = !detailsOpen; renderCtx(); renderPhead(); }
+  });
   function renderPhead() {
     const p = P(), n = p.proj;
-    phead.hidden = !n; if (!n) { phead.innerHTML = ''; phead.dataset.h = ''; return; }
+    if (!n) detailsOpen = false;
+    phead.hidden = !n || !detailsOpen; if (phead.hidden) { phead.innerHTML = ''; phead.dataset.h = ''; return; }
     const all = S.tasks.filter(x => x.project === n), done = all.filter(x => x.done).length, wk = weekMins(n), due = (p.pdue || {})[n];
-    let left = '';
-    if (due) { const d = Math.round((ML.parseDay(due) - ML.parseDay(today())) / 864e5); left = d > 0 ? t('pl_proj_left', { n: d }) : d === 0 ? t('pl_proj_today') : t('pl_proj_past'); }
+    const left = projLeft(n), sub = subjColor(n), slot = slotOf(n);
+    const colors = sub ? '' : `<div class="pl-ph-col" role="group" aria-label="${esc(t('pl_color'))}"><span>${esc(t('pl_color'))}</span>${[...Array(SLOTS)].map((_, i) => `<button type="button" class="pl-sw ${slot === i + 1 ? 'on' : ''}" style="--pc:var(--ev-${i + 1})" data-ph="col" data-n="${i + 1}" aria-pressed="${slot === i + 1}" aria-label="${esc(t('pl_color'))} ${i + 1}"></button>`).join('')}</div>`;
     const html = `<div class="pl-ph-top">${projDot(n)}${renamingProj ? `<form class="pl-ph-ren"><input type="text" maxlength="40" value="${esc(n)}" aria-label="${esc(t('pl_rename'))}"><button type="submit" class="small">${esc(t('pl_ok'))}</button></form>` : `<b>${esc(n)}</b><button type="button" class="ghost small" data-ph="ren">${esc(t('pl_rename'))}</button>`}<span class="pl-ph-wk">${wk ? esc(t('pl_week_h', { h: fmtMins(wk) })) : ''}</span></div>
       <div class="pl-ph-bar" title="${esc(t('pl_proj_prog', { d: done, n: all.length }))}"><b style="width:${all.length ? (done / all.length * 100).toFixed(1) : 0}%"></b></div>
       <div class="pl-ph-meta"><span>${esc(t('pl_proj_prog', { d: done, n: all.length }))}</span>
         <label>${esc(t('pl_proj_due'))} <input type="date" data-ph="due" value="${esc(due || '')}"></label>${left ? `<em class="${left === t('pl_proj_past') ? 'late' : ''}">${esc(left)}</em>` : ''}
         <button type="button" class="ghost small pl-ph-del" data-ph="del">${esc(t('pl_proj_del'))}</button></div>
-      <textarea data-ph="note" rows="2" maxlength="600" placeholder="${esc(t('pl_proj_note'))}" aria-label="${esc(t('pl_proj_note'))}"></textarea>`;
+      ${colors}<textarea data-ph="note" rows="2" maxlength="600" placeholder="${esc(t('pl_proj_note'))}" aria-label="${esc(t('pl_proj_note'))}"></textarea>`;
     if (phead.dataset.h !== html) {
       const ta = phead.querySelector('textarea'), had = ta && document.activeElement === ta;
       phead.innerHTML = html; phead.dataset.h = html;
@@ -541,6 +603,7 @@
     p.plist = [...new Set((p.plist || []).map(x => x === from ? to : x))];
     if (p.pnotes && p.pnotes[from] != null) { p.pnotes[to] = p.pnotes[from]; delete p.pnotes[from]; }
     if (p.pdue && p.pdue[from] != null) { p.pdue[to] = p.pdue[from]; delete p.pdue[from]; }
+    const pc = pcolors(); if (pc[from] != null) { pc[to] = pc[from]; delete pc[from]; }
     if (p.proj === from) p.proj = to;
   }
   let delArmed = 0;
@@ -548,18 +611,19 @@
     const b = e.target.closest('[data-ph]'); if (!b) return;
     const n = P().proj;
     if (b.dataset.ph === 'ren') { renamingProj = true; renderPhead(); }
+    if (b.dataset.ph === 'col') { pcolors()[n] = +b.dataset.n; save(); ML.renderAll(); return; }
     if (b.dataset.ph === 'del') {
       if (Date.now() - delArmed > 3000) { delArmed = Date.now(); b.textContent = t('pl_sel_sure'); return; }
       delArmed = 0;
       S.tasks.forEach(x => { if (x.project === n) delete x.project; });
-      const p = P(); p.plist = (p.plist || []).filter(x => x !== n); delete (p.pnotes || {})[n]; delete (p.pdue || {})[n]; p.proj = '';
+      const p = P(); p.plist = (p.plist || []).filter(x => x !== n); delete (p.pnotes || {})[n]; delete (p.pdue || {})[n]; delete pcolors()[n]; p.proj = ''; detailsOpen = false;
       save(); ML.renderTasks(); ML.toast(t('pl_proj_deleted'));
     }
   });
   phead.addEventListener('submit', e => { e.preventDefault(); renameProj(P().proj, e.target.querySelector('input').value); renamingProj = false; save(); ML.renderTasks(); });
   phead.addEventListener('keydown', e => { if (e.key === 'Escape' && renamingProj) { e.stopPropagation(); renamingProj = false; renderPhead(); } });
   phead.addEventListener('change', e => {
-    if (e.target.dataset.ph === 'due') { const p = P(); p.pdue = Object.assign({}, p.pdue, { [p.proj]: e.target.value || undefined }); if (!e.target.value) delete p.pdue[p.proj]; save(); renderPhead(); }
+    if (e.target.dataset.ph === 'due') { const p = P(); p.pdue = Object.assign({}, p.pdue, { [p.proj]: e.target.value || undefined }); if (!e.target.value) delete p.pdue[p.proj]; save(); renderPhead(); renderCtx(); }
   });
   phead.addEventListener('input', e => { if (e.target.dataset.ph === 'note') { const p = P(); p.pnotes = Object.assign({}, p.pnotes, { [p.proj]: e.target.value }); save(); } });
 
@@ -586,7 +650,8 @@
     if (gm === 'project') return [...new Set([...items.map(x => x.project).filter(Boolean), ...(P().pview === 'projects' && !P().proj ? (P().plist || []) : [])])].sort(byName).concat('');
     return ['all'];
   }
-  const keepEmpty = (gm, k) => (gm === 'moment' && k === 'today') || gm === 'today' && k === 'today' || gm === 'days' && k !== 'later' || (gm === 'project' && k && (P().plist || []).includes(k));
+  // with a project picked, Upcoming shows only the days that have its tasks (3.70)
+  const keepEmpty = (gm, k) => (gm === 'moment' && k === 'today') || gm === 'today' && k === 'today' || gm === 'days' && k !== 'later' && !P().proj || (gm === 'project' && k && (P().plist || []).includes(k));
   function labelOf(gm, k) {
     if (gm === 'today') return t(k === 'late' ? 'pl_m_late' : 'pl_m_today');
     if (gm === 'days') return k === 'later' ? t('pl_m_later') : cap(dayLabel(k));
@@ -599,6 +664,8 @@
     if (v === 'upcoming') return !!dueOf(x);
     return true;
   }
+  // open tasks the current view shows (pinned ones always do), for one project or all (null)
+  function viewN(name) { return S.tasks.filter(x => !x.done && (name == null || x.project === name) && (x.pin || inView(x))).length; }
   function sorted(open) {
     const p = P(), pos = new Map(open.map((x, i) => [x.id, i])), d = p.dir || 1;
     const key = { due: x => x.due || '9999', mins: x => x.mins, pri: x => PRI[x.pri], added: x => x.created || 0, xp: x => ML.taskXp(x), spent: x => x.spent || 0, manual: x => (x.ord == null ? 1e9 + pos.get(x.id) : x.ord) }[p.sort];
@@ -636,7 +703,7 @@
   };
   ML.planRender = (ul, open, done, rowHtml, editingId) => {
     chips.dataset.single = ''; renderChips(); grid.classList.remove('pl-solo');
-    renderBar(false); renderCard(false); renderSide(); renderPhead();
+    renderBar(false); renderCard(false); renderSide(); renderCtx(); renderPhead();
     if (drag || renaming) return; // a drag or a rename is in progress: the next render draws the list
     let groups = groupsOf(open, done);
     const p = P(), nextId = open[0] && open[0].id, gm = gmOf();
@@ -644,23 +711,29 @@
     if (isEmptyToday) groups = groups.filter(g => g.items.length);
     const table = p.view === 'table' && !editingId;
     ul.classList.add('grouped'); ul.classList.toggle('pl-tabled', table); ul.classList.toggle('selecting', selMode);
+    // the rows drop the chips that only repeat the filter or the view (3.70): no Maths chip with Maths picked, no Today chip in Today
+    ul.classList.toggle('pl-f-proj', !!p.proj); ul.classList.toggle('pl-f-today', p.pview === 'today');
     const head = gr => {
       if (gm === 'none' && !gr.done && !gr.pinned) return '';
       const r = gr.done ? '' : [fmtMins(gr.mins), gr.late ? `<em>${esc(t('pl_late', { n: gr.late }))}</em>` : '', gr.wk ? esc(t('pl_week_h', { h: fmtMins(gr.wk) })) : ''].filter(Boolean).join(' · ');
       const fid = (gr.done ? 'done' : gr.pinned ? 'pinned' : gm) + ':' + (gr.pinned || gr.done ? '' : gr.key), folded = p.fold[fid] ?? !!gr.done;
       return { html: `<button type="button" class="pg-head ${gr.pinned ? 'pg-pinned' : ''}" data-fold="${esc(fid)}" aria-expanded="${!folded}">${gr.pinned ? `<span class="pg-pin">${PIN_SVG}</span>` : gr.proj ? projDot(gr.proj) : ''}<b>${esc(gr.label)}</b><span class="pg-n">${gr.n ?? gr.items.length}</span><span class="pg-r">${r}</span><svg class="pg-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>`, folded };
     };
-    const openCount = groups.filter(g => !g.done).reduce((a, g) => a + g.items.length, 0);
+    // the phone's next-task card counts as shown: no "No task matches" above the group that holds it
+    const openCount = groups.filter(g => !g.done).reduce((a, g) => a + g.items.length, 0) + (cardId ? 1 : 0);
+    // A project picked in Today or Upcoming: say how many of its tasks this view leaves out, so it never looks empty
+    const hiddenN = p.proj && p.pview !== 'all' ? filt(open).filter(x => !x.pin && !inView(x) && x.id !== cardId).length : 0;
+    const more = hiddenN ? `<li class="pl-more"><span>${esc(tn('pl_more_in', hiddenN, { p: p.proj }))}</span><button type="button" class="ghost small" data-pmore="1">${esc(t('pl_see_all'))}</button></li>` : '';
     let html;
-    if (table) html = `<li class="pl-table-wrap">${tableHtml(groups, head)}</li>`;
+    if (table) html = `<li class="pl-table-wrap">${tableHtml(groups, head)}</li>` + more;
     else html = groups.map(gr => {
       const h = head(gr);
       const add = gr.done ? '' : `<button type="button" class="pg-add" data-gadd="${esc(gr.key)}">${esc(gr.pinned ? t('pl_add_pin') : t('pl_add_in', { g: gr.label || t('pl_all') }))}</button>`;
-      return `<li class="pgroup ${h && h.folded ? 'folded' : ''} ${gr.done ? 'pg-done' : ''} ${gr.pinned ? 'pg-pins' : ''}" data-g="${esc(gr.key)}">${h ? h.html : ''}
+      return `${gr.done ? more : ''}<li class="pgroup ${h && h.folded ? 'folded' : ''} ${gr.done ? 'pg-done' : ''} ${gr.pinned ? 'pg-pins' : ''}" data-g="${esc(gr.key)}">${h ? h.html : ''}
         <ul class="tasks pg-list" data-g="${esc(gr.key)}">${h && h.folded && !gr.items.some(x => x.id === editingId) ? '' : gr.items.map(x => rowHtml(x, x.id === nextId)).join('')}</ul>${h && h.folded ? '' : add}</li>`;
-    }).join('');
+    }).join('') + (groups.some(g => g.done) ? '' : more);
     if (isEmptyToday) html = emptyToday(open) + html;
-    else if (!openCount && (query || p.proj) && !groups.some(g => g.done)) html = `<li class="empty">${esc(t('pl_no_match'))}</li>` + html;
+    else if (!openCount && !hiddenN && (query || p.proj) && !groups.some(g => g.done)) html = `<li class="empty">${esc(t('pl_no_match'))}</li>` + html;
     ul.innerHTML = html;
     ul.querySelectorAll('.task[data-id]').forEach(li => li.classList.toggle('sel', sel.has(li.dataset.id)));
     renderBulk();
@@ -776,10 +849,11 @@
       return;
     }
     const f = e.target.closest('[data-fold]'), ts = e.target.closest('[data-tsort]'), te = e.target.closest('[data-tedit]'), pin = e.target.closest('[data-act="pin"]');
-    const ga = e.target.closest('[data-gadd]'), tr = e.target.closest('[data-tren]'), tc = e.target.closest('[data-tcell]'), cols = e.target.closest('[data-tcols]'), em = e.target.closest('[data-pempty]');
-    if (!f && !ts && !te && !pin && !ga && !tr && !tc && !cols && !em) return;
+    const ga = e.target.closest('[data-gadd]'), tr = e.target.closest('[data-tren]'), tc = e.target.closest('[data-tcell]'), cols = e.target.closest('[data-tcols]'), em = e.target.closest('[data-pempty]'), pm = e.target.closest('[data-pmore]');
+    if (!f && !ts && !te && !pin && !ga && !tr && !tc && !cols && !em && !pm) return;
     e.stopPropagation();
     const p = P();
+    if (pm) { p.pview = 'all'; save(); ML.renderTasks(); return; }
     if (f) { const k = f.dataset.fold; p.fold = Object.assign({}, p.fold, { [k]: f.getAttribute('aria-expanded') === 'true' }); }
     if (ts) { const s = ts.dataset.tsort; if (p.sort === s) p.dir = -(p.dir || 1); else { p.sort = s; p.dir = s === 'xp' || s === 'spent' ? -1 : 1; } }
     if (te) { p.view = 'list'; save(); renderBar(false); ML.editTask(te.dataset.tedit); return; }
@@ -870,7 +944,7 @@
   on('tasks:render', () => {
     renderViews();
     const M = ML.MOODS[S.mood];
-    if (M && M.single && !S.showAll) { renderBar(true); renderCard(true); chips.dataset.single = '1'; renderChips(); bulk.hidden = true; phead.hidden = true; side.innerHTML = ''; side.dataset.h = ''; grid.classList.add('pl-solo'); list.classList.remove('grouped', 'pl-tabled', 'selecting'); }
+    if (M && M.single && !S.showAll) { renderBar(true); renderCard(true); chips.dataset.single = '1'; renderChips(); bulk.hidden = true; phead.hidden = true; ctx.hidden = true; side.innerHTML = ''; side.dataset.h = ''; grid.classList.add('pl-solo'); list.classList.remove('grouped', 'pl-tabled', 'selecting'); }
   });
-  on('lang', () => { viewsRow.dataset.h = ''; bar.dataset.h = ''; side.dataset.h = ''; phead.dataset.h = ''; card.dataset.h = ''; });
+  on('lang', () => { viewsRow.dataset.h = ''; bar.dataset.h = ''; side.dataset.h = ''; phead.dataset.h = ''; card.dataset.h = ''; ctx.dataset.h = ''; });
 })();
