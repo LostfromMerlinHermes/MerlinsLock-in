@@ -128,7 +128,7 @@
       try { g.imageSmoothingEnabled = !/pixelated/.test(getComputedStyle(c).imageRendering); g.drawImage(c, (W - w) / 2, (H - h) / 2, w, h); } catch (e) {}
     });
     const veil = g.createLinearGradient(0, H * .35, 0, H); veil.addColorStop(0, 'rgba(0,0,0,0)'); veil.addColorStop(1, 'rgba(0,0,0,.78)'); g.fillStyle = veil; g.fillRect(0, 0, W, H);
-    const d = dayStats(), disp = tok('--f-display') || 'serif', mono = tok('--f-mono') || 'monospace', acc = tok('--accent') || '#fff';
+    const d = dayStats(), disp = tok('--f-display') || 'serif', mono = tok('--f-clock') || 'monospace', acc = tok('--accent') || '#fff';
     g.textBaseline = 'alphabetic'; g.fillStyle = '#fff';
     g.font = `600 40px ${mono}`; g.globalAlpha = .8; g.fillText('MERLINSLOCKIN', 72, 110); g.globalAlpha = 1;
     g.font = `400 38px ${mono}`; g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText(new Date().toLocaleDateString(ML.locale(), { weekday: 'long', day: 'numeric', month: 'long' }), 72, 160);
