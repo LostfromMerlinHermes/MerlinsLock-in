@@ -13,7 +13,7 @@
   };
   const PRI = { high: 0, med: 1, low: 2 };
   const MOODS = {
-    drained:   { focus: 25, brk: 10, sort: 'short', color: '#5cc8e6', icon: '<path d="M15 4a8 8 0 1 0 5 13A7 7 0 0 1 15 4z"/>' },
+    drained:   { gone: true, focus: 25, brk: 10, sort: 'short', color: '#5cc8e6', icon: '<path d="M15 4a8 8 0 1 0 5 13A7 7 0 0 1 15 4z"/>' },
     steady:    { focus: 40, brk: 10, sort: 'priority', color: '#a678ff', icon: '<path d="M3 12h4l2-4 3 8 2-4h7"/>' },
     fired:     { focus: 90, brk: 15, sort: 'hard', color: '#ff4fd8', icon: '<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6.5 1 1 2 2 2 3.5 0-3 0-5 1-7z"/>' },
     scattered: { focus: 20, brk: 5, sort: 'priority', single: true, color: '#ffb547', icon: '<circle cx="6" cy="7" r="1.6"/><circle cx="17" cy="5" r="1.6"/><circle cx="12" cy="13" r="1.6"/><circle cx="5" cy="18" r="1.6"/><circle cx="18" cy="17" r="1.6"/>' },
@@ -24,6 +24,11 @@
   const TIPS = ['tip_water', 'tip_stretch', 'tip_eyes', 'tip_breathe', 'tip_walk', 'tip_posture'];
 
   ML.MOODS = MOODS;
+  // 3.74: the old Drained energy is gone; the former Scattered (key 'scattered', kept so saves and stats stay valid)
+  // is now called Drained. Its worlds Sanctuaire and Abysses are sold in the Shop (Premium) for Drained and Steady.
+  const MOOD_KEYS = Object.keys(MOODS).filter(k => !MOODS[k].gone);
+  ML.MOOD_KEYS = MOOD_KEYS;
+  ML.moodKey = m => (m === 'drained' ? 'scattered' : m); // an old session or save in the gone energy counts as the new Drained
   ML.SEQUENCES = SEQUENCES;
 
   ML.defaults(() => ({
@@ -102,7 +107,7 @@
     save(); emit('mood', m); renderAll(); toast(msg);
   }
   function renderMood() {
-    $('mood-chips').innerHTML = Object.entries(MOODS).map(([k, M]) =>
+    $('mood-chips').innerHTML = MOOD_KEYS.map(k => [k, MOODS[k]]).map(([k, M]) =>
       `<button type="button" class="mood-chip" data-mood="${k}" style="--mood-c:${M.color}" aria-pressed="${k === S.mood}">${ML.svgIcon(M.icon)}<span>${esc(t('mood_' + k))}</span></button>`).join('');
     $('mood-line').innerHTML = `<b>${esc(t('mood_' + S.mood))} :</b> ${esc(t('mood_line_' + S.mood))}`;
   }
@@ -909,7 +914,7 @@
   ML.heatmapHtml = heatmapHtml;
   ML.bucketOf = bucketOf;
   ML.whatWorksHtml = () => {
-    const moodStats = groupStats(x => x.mood, Object.keys(MOODS)), timeStats = groupStats(x => bucketOf(x.at), ['morning', 'afternoon', 'evening', 'night']);
+    const moodStats = groupStats(x => ML.moodKey(x.mood), MOOD_KEYS), timeStats = groupStats(x => bucketOf(x.at), ['morning', 'afternoon', 'evening', 'night']);
     const bm = bestKey(moodStats), bt = bestKey(timeStats), ins = [], dec = v => v.toLocaleString(ML.locale(), { maximumFractionDigits: 1 });
     if (bm) ins.push(t('insight_mood', { mood: `<b>${esc(t('mood_' + bm))}</b>`, avg: dec(moodStats[bm].avg) }));
     if (bt) ins.push(t('insight_time', { time: `<b>${esc(t('time_' + bt))}</b>` }));

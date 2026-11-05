@@ -166,7 +166,7 @@
     perfect5: () => S.sessions.filter(s => s.rating === 5).length >= 5,
     parker10: () => S.game.parkedTotal >= 10, planner5: () => S.game.blocksDone >= 5, boss1: () => S.game.bosses >= 1,
     seq7: () => ML.seqInfo().i >= 2, seq5: () => ML.seqInfo().i >= 4, seq0: () => ML.seqInfo().i >= 9,
-    moods4: () => ['drained', 'steady', 'fired', 'scattered'].every(m => S.sessions.some(s => s.mood === m)),
+    moods4: () => ML.MOOD_KEYS.every(m => S.sessions.some(s => ML.moodKey(s.mood) === m)),
     tasks50: () => S.game.tasksDone >= 50, sound5: () => S.game.genres.length >= 5,
   };
   const total = () => S.sessions.reduce((a, s) => a + s.mins, 0);
@@ -306,8 +306,25 @@
   ML.defaults(() => ({ dayNight: 'auto', worlds: {} }));
 
   // Each energy has three worlds: a day one, a night one and a light one (Premium). Auto theme only.
-  const THEME_DAY = { drained: 'sanctuary', steady: 'observatory', fired: 'netrunner', scattered: 'arcade' };
-  const THEME_NIGHT = { drained: 'abyss', steady: 'sorcerer', fired: 'neoncity', scattered: 'fog' };
+  const THEME_DAY = { steady: 'observatory', fired: 'netrunner', scattered: 'arcade' };
+  const THEME_NIGHT = { steady: 'sorcerer', fired: 'neoncity', scattered: 'fog' };
+  // 3.74: the old Drained energy's two worlds, now a fourth world sold in the Shop (Premium, gold): Abysses for Steady,
+  // Sanctuaire for the new Drained (key 'scattered'). Chosen like the others; it counts as a day choice for "follow the hour".
+  const EXTRA = { steady: 'abyss', scattered: 'sanctuary' };
+  const ownsWorld = th => !!(S.econ && S.econ.owned && (S.econ.owned.world || []).includes(th));
+  ML.EXTRA_WORLD = EXTRA; ML.ownsWorld = ownsWorld;
+  // Saves from before 3.74: the gone energy becomes the new Drained. Someone who had used it keeps its two worlds
+  // (economy.js gives them, S.legacyDrained), and someone who was in it by day stays on Sanctuaire.
+  function dropDrained() {
+    let ch = false;
+    const was = S.mood === 'drained';
+    if (was) { S.mood = 'scattered'; S.legacyDrained = true; ch = true; }
+    if (S.worlds && S.worlds.drained) { const p = S.worlds.drained; delete S.worlds.drained; S.legacyDrained = true; ch = true; if (was && p.w !== 'night') S.worlds.scattered = { w: 'extra', clock: !!p.clock }; }
+    if (!S.legacyDrained && (S.sessions || []).some(s => s.mood === 'drained')) { S.legacyDrained = true; ch = true; }
+    if (ch) save();
+    return ch;
+  }
+  dropDrained(); on('remote', () => { if (dropDrained()) { applyTheme(); ML.emit('world'); } }); on('started', () => { if (dropDrained()) { applyTheme(); ML.emit('world'); } });
   const nightByClock = () => { const h = new Date().getHours(); return h >= 21 || h < 6; };
   const LEGACY = { auto: { w: 'day', clock: true }, day: { w: 'day', clock: false }, night: { w: 'night', clock: false }, light: { w: 'light', clock: false }, autolight: { w: 'light', clock: true } };
   const canLight = () => !!(ML.isPremium && ML.isPremium());
@@ -316,7 +333,7 @@
   const trying = () => Date.now() < trialUntil;
   // previewMood / previewPick: the energy picker shows another energy or world while you browse, without choosing it
   let previewMood = null, previewPick = null;
-  const storedPick = m => (S.worlds && S.worlds[m]) || LEGACY[S.dayNight] || LEGACY.auto;
+  const storedPick = m => { const p = (S.worlds && S.worlds[m]) || LEGACY[S.dayNight] || LEGACY.auto; return p.w === 'extra' && !(EXTRA[m] && ownsWorld(EXTRA[m])) ? Object.assign({}, p, { w: 'day' }) : p; };
   const pickFor = m => (previewPick && m === (previewMood || S.mood) ? previewPick : storedPick(m));
   // "Follow the hour": the night world from 21:00 to 6:00, the chosen one (or the day one) otherwise.
   // A world picked by hand while it's on (3.37.2) is held until the hour next turns: { hold: w, holdUntil }
@@ -333,10 +350,11 @@
   };
   // the tile shown as chosen: the world on screen for that pick
   ML.worldSel = p => held(p) || (p.clock && nightByClock() ? 'night' : p.w === 'night' && p.clock ? 'day' : p.w);
-  const LIGHT_NAME = { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' };
+  const LIGHT_NAME = { observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' }; // Washi (aube) set aside in 3.74, washi.js kept for later
   // The world a pick leads to: { th: data-theme, light }; light needs Premium (or the Shop trial of that energy)
   function worldOf(m, p) {
-    const night = nightOf(p), th = S.theme !== 'auto' ? S.theme : (night ? THEME_NIGHT : THEME_DAY)[m] || 'sorcerer';
+    const night = nightOf(p), extra = p.w === 'extra' && !night && EXTRA[m] && ownsWorld(EXTRA[m]) ? EXTRA[m] : null;
+    const th = S.theme !== 'auto' ? S.theme : extra || (night ? THEME_NIGHT : THEME_DAY)[ML.moodKey ? ML.moodKey(m) : m] || 'sorcerer';
     const trial = trying() && m === (previewMood || S.mood);
     const light = S.section !== 'sport' && !!LIGHT_NAME[th] && (trial || (S.theme === 'auto' && canLight() && p.w === 'light' && !night));
     return { th, light };
@@ -383,6 +401,7 @@
   // The three worlds of an energy, for the pickers (energy.js, worlds.js): key = tile id, w = what setWorld stores
   ML.worldsFor = m => [
     { w: 'day', th: THEME_DAY[m] }, { w: 'night', th: THEME_NIGHT[m] }, { w: 'light', th: THEME_DAY[m], light: true, locked: !canLight() },
+    ...(EXTRA[m] ? [{ w: 'extra', th: EXTRA[m], locked: !ownsWorld(EXTRA[m]), shop: true }] : []),
   ].map(x => Object.assign(x, { key: x.light ? LIGHT_NAME[x.th] : x.th, name: nameOf({ th: x.th, light: !!x.light }) }));
   ML.worldPick = m => Object.assign({}, storedPick(m));
   ML.worldNow = m => worldOf(m, pickFor(m)); // { th, light } shown for that energy right now
@@ -465,7 +484,7 @@
   ML.settingsSection({
     order: 15,
     render: () => `<h3>${esc(t('set_look'))}</h3>
-      <label class="field"><span>${esc(t('theme'))}</span>${ML.ui.sel('set-theme', ['auto', 'observatory', 'sorcerer', 'sanctuary', 'abyss', 'netrunner', 'neoncity', 'arcade', 'fog'].map(v => [v, t('th_' + v)]), S.theme)}</label>
+      <label class="field"><span>${esc(t('theme'))}</span>${ML.ui.sel('set-theme', ['auto', 'observatory', 'sorcerer', 'sanctuary', 'abyss', 'netrunner', 'neoncity', 'arcade', 'fog'].filter(v => !(v === 'sanctuary' || v === 'abyss') || ownsWorld(v) || S.theme === v).map(v => [v, t('th_' + v)]), S.theme)}</label>
       <p class="hint">${esc(t('th_hint'))}</p>
       ${canLight() ? '' : `<p class="hint">${esc(t('light_premium_hint'))}</p>`}
       ${ML.ui.chk('set-sfx', t('opt_sfx'), S.game.sfx)}`,

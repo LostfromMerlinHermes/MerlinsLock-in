@@ -28,7 +28,7 @@
   });
   ML.defaults(() => ({ onboarded: false }));
 
-  const KEYS = () => Object.keys(ML.MOODS);
+  const KEYS = () => ML.MOOD_KEYS || Object.keys(ML.MOODS);
   const focusOf = m => ((S.moodTimers || {})[m] || {}).focus || ML.MOODS[m].focus;
   const clockOf = mins => { const s = mins * 60, h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return (h ? h + ':' + ML.pad2(m) : ML.pad2(m)) + ':00'; };
   const ARROW = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg>`;
@@ -178,6 +178,7 @@
   // Browsing the worlds of the energy shown: the real world switches behind, saved only on Choose
   function pickWorld(w) {
     if (w === 'light' && ML.worldsFor(st.pick)[2].locked) { ML.toast(t('wb_locked', { w: ML.worldsFor(st.pick)[2].name }), { key: 'daynight' }); return; }
+    if (w === 'extra' && (ML.worldsFor(st.pick).find(x => x.w === 'extra') || { locked: true }).locked) { ML.worldLocked(st.pick, 'extra'); return; }
     if (w) st.wp = ML.withWorld(st.wp, w); else st.wp = { w: st.wp.w, clock: !st.wp.clock };
     ML.previewMood(st.pick === S.mood ? null : st.pick, Object.assign({}, st.wp));
     renderPick();

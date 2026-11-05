@@ -1921,6 +1921,8 @@ html.mnav-on #washi-incense { display: none; }
 .world-card > button:not(.world-pic) { margin-top: 4px; }
 .world-pic { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 5; padding: 0; border: 0; border-radius: 0; background: var(--panel-2); overflow: hidden; }
 .world-pic img, .world-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.world-art { position: absolute; inset: 0; display: block; overflow: hidden; border-radius: inherit; } .world-art svg { width: 100%; height: 100%; display: block; } .world-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.item-pic .world-art { position: relative; display: block; width: min(220px, 60vw); aspect-ratio: 4 / 5; border-radius: var(--radius); }
 .world-lock, .world-new { position: absolute; top: 8px; padding: 3px 8px; border-radius: 99px; font-size: var(--t-1); letter-spacing: .06em; }
 .world-lock { right: 8px; color: #F6EEDA; background: rgba(30, 22, 14, .78); }
 .world-new { left: 8px; bottom: 8px; top: auto; color: #F6EEDA; background: #7E1F1F; }
@@ -1950,6 +1952,7 @@ html.mnav-on #washi-incense { display: none; }
 .world-nm { max-width: 11ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .world-car { width: 14px; height: 14px; fill: none; stroke: var(--mist); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .wtiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.wtiles:has(> :nth-child(4)) { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; } /* 3.74: Steady and Drained have a fourth world, sold in the Shop */
 .wtile { display: grid; gap: 5px; padding: 0; min-height: 0; border: 0; background: none; color: var(--mist); font-size: var(--t-1); text-align: center; box-shadow: none; }
 .wtile-art { position: relative; display: block; aspect-ratio: 1; border-radius: min(var(--radius), 12px); overflow: hidden; border: 1px solid var(--line-2); }
 .wtile .wtile-art > svg, .world-btn .world-sw > svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; stroke: none; } /* beat the generic button svg size */

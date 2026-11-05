@@ -35,6 +35,9 @@
       burst_sakura: 'Pétales de sakura', burst_sakura_d: 'Une pluie de fleurs de cerisier, très zen.',
       pot_midas: 'Potion de Midas', pot_midas_d: 'Double l’or gagné sur tes 100 prochains XP.', midas_on: 'Midas actif : encore {n} XP en or double',
       elixir_on: 'Élixir actif : +50 % sur la prochaine session', elixir_used: 'Élixir', seal_used: 'Un Sceau de série a protégé ta série d’hier.', in_stock: 'En stock : {n}',
+      w_buy_h: 'Mondes à acheter', w_buy_p: 'Un quatrième monde pour une énergie, à acheter avec ton or.', w_buy_p0: 'Un quatrième monde pour une énergie. Il s’achète avec ton or, avec Premium.', w_buy_set: '{w} choisi pour {mood}.',
+      wt_sanctuary: 'Saule, pont de pierre et nénuphars', wt_abyss: 'Les profondeurs, la lumière qui descend', world_sanctuary: 'Sanctuaire', world_abyss: 'Abysses',
+      world_sanctuary_d: 'Pour Épuisé. Un jardin sous la lune : un saule, un pont de pierre, un nénuphar qui s’ouvre à chaque session, et le cadran lotus. 1 500 pièces, avec Premium.', world_abyss_d: 'Pour Stable. Les profondeurs et le cadran de plongée, avec sa jauge de profondeur sur la session. 1 500 pièces, avec Premium.',
       cat_light: 'Thèmes clairs', cat_worlds: 'Mondes', w_light_h: 'Mondes clairs', w_light_p: 'Un troisième monde pour chaque énergie. Touche « Aperçu » pour le découvrir.',
       w_free_h: 'Mondes inclus', w_free_p: 'Un monde de jour et un monde de nuit pour chaque énergie, offerts.', w_preview: 'Aperçu', w_new: 'Nouveau',
       w_try: 'Essayer 1 minute', w_unlock: 'Débloquer avec Premium', w_use: 'Utiliser les mondes clairs', w_soon: 'Premium arrive bientôt.', w_trying: 'Aperçu : {w} · 1 min', w_stop: 'Arrêter', w_trial_end: 'Fin de l’aperçu.',
@@ -42,7 +45,7 @@
       wf_aube_1: 'Un paysage à l’encre qui se voile pendant le focus', wf_aube_2: 'Des branches de prunier qui fleurissent en pause', wf_aube_3: 'Une goutte d’encre à chaque fin de session',
       wf_atelier_1: 'Le fleuve, le ciel qui suit l’heure et les saisons', wf_atelier_2: 'Une fenêtre s’allume à chaque session du jour', wf_atelier_3: 'La Gazette du soir : ta journée en une',
       wf_tokyo_1: 'Une ville qui s’allume avec tes tâches et tes sessions', wf_tokyo_2: 'Un chronographe à la place du minuteur', wf_tokyo_3: 'Des quêtes qui passent comme des affiches',
-      wf_cartouche_1: 'Un monde en pixels qui défile doucement', wf_cartouche_2: 'Un petit marcheur qui somnole pendant le focus', wf_cartouche_3: 'Une carte par tâche quand tu es dispersé',
+      wf_cartouche_1: 'Un monde en pixels qui défile doucement', wf_cartouche_2: 'Un petit marcheur qui somnole pendant le focus', wf_cartouche_3: 'Une carte par tâche quand tu es épuisé',
       wm_atelier_1: 'Focus : la brume monte', wm_atelier_2: 'Pause : la ville respire', wm_atelier_3: 'Fin : la cloche sonne',
       cat_seq: 'Costumes de Séquence', seq_hint: 'Chaque Séquence atteinte débloque un costume pour ton familier. Il est à toi pour toujours.', seq_reach: 'Atteins la Séquence {n}',
       cs_none: 'Sans costume', cs_none_d: 'Ton familier au naturel.', cs_won: 'Costume débloqué : {name}', unequip: 'Retirer',
@@ -80,6 +83,9 @@
       burst_sakura: 'Sakura petals', burst_sakura_d: 'A shower of cherry blossoms, very zen.',
       pot_midas: 'Midas potion', pot_midas_d: 'Doubles the gold earned on your next 100 XP.', midas_on: 'Midas active: {n} more XP at double gold',
       elixir_on: 'Elixir active: +50% on the next session', elixir_used: 'Elixir', seal_used: 'A Streak seal protected yesterday’s streak.', in_stock: 'In stock: {n}',
+      w_buy_h: 'Worlds to buy', w_buy_p: 'A fourth world for one energy, bought with your gold.', w_buy_p0: 'A fourth world for one energy. Bought with your gold, with Premium.', w_buy_set: '{w} set for {mood}.',
+      wt_sanctuary: 'Willow, stone bridge and water lilies', wt_abyss: 'The deep, light coming down', world_sanctuary: 'Sanctuary', world_abyss: 'Abyss',
+      world_sanctuary_d: 'For Drained. A moon garden: a willow, a stone bridge, a water lily that opens with each session, and the lotus dial. 1,500 gold, with Premium.', world_abyss_d: 'For Steady. The deep and the dive watch dial, with its depth gauge over the session. 1,500 gold, with Premium.',
       cat_light: 'Light themes', cat_worlds: 'Worlds', w_light_h: 'Light worlds', w_light_p: 'A third world for every energy. Tap “Preview” to see it.',
       w_free_h: 'Included worlds', w_free_p: 'A day world and a night world for every energy, free.', w_preview: 'Preview', w_new: 'New',
       w_try: 'Try for 1 minute', w_unlock: 'Unlock with Premium', w_use: 'Use the light worlds', w_soon: 'Premium is coming soon.', w_trying: 'Preview: {w} · 1 min', w_stop: 'Stop', w_trial_end: 'Preview over.',
@@ -87,7 +93,7 @@
       wf_aube_1: 'An ink landscape that veils itself during focus', wf_aube_2: 'Plum branches that blossom on a pause', wf_aube_3: 'A drop of ink at every session’s end',
       wf_atelier_1: 'The river, a sky that follows the hour and the seasons', wf_atelier_2: 'A window lights up for every session of the day', wf_atelier_3: 'The Evening Gazette: your day on the front page',
       wf_tokyo_1: 'A city that lights up with your tasks and sessions', wf_tokyo_2: 'A chronograph instead of the timer', wf_tokyo_3: 'Quests that pass by like posters',
-      wf_cartouche_1: 'A pixel world scrolling gently by', wf_cartouche_2: 'A little walker who dozes during focus', wf_cartouche_3: 'One card per task when you’re scattered',
+      wf_cartouche_1: 'A pixel world scrolling gently by', wf_cartouche_2: 'A little walker who dozes during focus', wf_cartouche_3: 'One card per task when you’re drained',
       wm_atelier_1: 'Focus: the fog rises', wm_atelier_2: 'Pause: the city breathes', wm_atelier_3: 'End: the bell rings',
       cat_seq: 'Sequence costumes', seq_hint: 'Every Sequence you reach unlocks a costume for your familiar. It’s yours forever.', seq_reach: 'Reach Sequence {n}',
       cs_none: 'No costume', cs_none_d: 'Your familiar as it is.', cs_won: 'Costume unlocked: {name}', unequip: 'Remove',
@@ -114,6 +120,7 @@
     familiar: { owl: 0, cat: 300, raven: 300, fox: 400, hippo: 10000 },
     potion: { seal: 150, elixir: 80, scroll: 40, midas: 120 },
     skin: { classic: 0, runic: 350, parchment: 300, gold: 450, ember: 300, holo: 600, astral: 800 },
+    world: { abyss: 1500, sanctuary: 1500 }, // 3.74: the old Drained energy's worlds, a fourth world for Steady / Drained (Premium)
     dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300, spell: 0, circle: 400, city: 0, supercar: 600, valley: 0, pier: 1200, orbit: 900, worldtone: 0, redcream: 300, veil: 0, rose: 800, skeleton: 1200, incant: 0, door: 500 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43); the Cyber sorcier's two full screens (3.48); the Ville néon's two backgrounds (3.49); the Arcade's three sets (background + dial + palette) and a palette (3.51)
     tree: { lf_season: 0, lf_sakura: 250, lf_ember: 250, lf_jade: 250, lf_silver: 300, lf_violet: 300, lf_gold: 400, br_bark: 0, br_ash: 200, br_ebony: 200, br_ember: 250, br_verdigris: 250, br_gold: 400, fl_gold: 0, fl_plum: 200, fl_camellia: 250, fl_star: 350, hg_none: 0, hg_swing: 300, hg_birds: 350, hg_lanterns: 400, gd_grass: 0, gd_mush: 250, gd_stones: 300, gd_pond: 400, sk_dusk: 0, sk_night: 300, sk_dawn: 300, pine: 800, atlas: 800, coral: 800, crystal: 800, hanging: 800 }, // the year tree (tree.js): looks only, gold never buys growth. The last five are whole trees (3.63, 3.65). Premium gating comes with the Premium pass, not yet
   };
@@ -125,7 +132,7 @@
   const ITEM_SLOT = { worldtone: 'arcadePal', redcream: 'arcadePal', incant: 'deepFog', door: 'deepFog' }; // the Arcade's palettes go over its set
   const WORLD_ORDER = ['arcade', 'fog', 'sanctuary', 'abyss', 'sorcerer', 'neoncity']; // the shop shows world items world by world
   const slotOf = (cat, k) => (cat === 'tree' ? (TREE_SKINS.includes(k) ? 'treeSkin' : TREE_SLOT[k.slice(0, 2)]) : cat !== 'dial' ? cat : ITEM_SLOT[k] || SLOT[DIAL_WORLD[k]] || cat);
-  const PREMIUM_ONLY = { skin: ['holo', 'astral'], dial: ['pier', 'skeleton'] }; // need a Premium account to buy
+  const PREMIUM_ONLY = { skin: ['holo', 'astral'], dial: ['pier', 'skeleton'], world: ['abyss', 'sanctuary'] }; // need a Premium account to buy
   const premOnly = (cat, k) => (PREMIUM_ONLY[cat] || []).includes(k);
   // Categories added after launch: older saves lack them (nested defaults only merge one level deep)
   function migrate() {
@@ -142,6 +149,8 @@
     if (!E.owned.dial.includes('incant')) E.owned.dial.push('incant'); if (!E.equip.deepFog) E.equip.deepFog = 'incant';
     if (!Array.isArray(E.owned.tree)) E.owned.tree = []; for (const k of TREE_FREE) { if (!E.owned.tree.includes(k)) E.owned.tree.push(k); const sl = TREE_SLOT[k.slice(0, 2)]; if (!E.equip[sl]) E.equip[sl] = k; }
     if (!E.equip.treeSkin) E.equip.treeSkin = 'oak';
+    if (!Array.isArray(E.owned.world)) E.owned.world = [];
+    if (S.legacyDrained && !E.legacyWorlds) { for (const k of Object.keys(CATALOG.world)) if (!E.owned.world.includes(k)) E.owned.world.push(k); E.legacyWorlds = true; } // they had them free before 3.74
   }
 
   /* ---------- Sequence costumes: earned by reaching each Sequence, never lost ----------
@@ -293,6 +302,7 @@
     if (cat === 'familiar') return ML.familiarSvg ? ML.familiarSvg(k, 'idle') : '';
     if (cat === 'skin') return ML.sportSkinPreview ? ML.sportSkinPreview(k) : '';
     if (cat === 'tree') return ML.treePrev ? ML.treePrev(k) : '';
+    if (cat === 'world') return `<span class="world-art">${ML.worldArt ? ML.worldArt(k) : ''}${k === 'sanctuary' ? '<img src="world-sanctuary.jpg" alt="" loading="lazy">' : ''}</span>`;
     if (cat === 'dial') { const f = { abyss: ML.abyssDialSvg, sorcerer: ML.sorcererDeepSvg, neoncity: ML.neonShopPic, arcade: ML.arcadeShopPic, fog: ML.fogShopPic }[DIAL_WORLD[k]] || ML.sanctuaryDialSvg; return f ? f(k) : ''; }
     return `<span class="burst-swatch">${{ seal: '⛨', elixir: '⚗', scroll: '📜', midas: '♛' }[k]}</span>`;
   };
@@ -316,7 +326,7 @@
       ft_leaf: 'Leaves', ft_bark: 'Branches', ft_flower: 'Flowers', ft_hang: 'In the tree', ft_ground: 'Ground', ft_sky: 'Sky' },
   });
   // Light skins (Premium, not bought with gold): one per mood, switched on from here or the sun / moon button
-  const LIGHTS = [['drained', 'aube'], ['steady', 'atelier'], ['fired', 'tokyo'], ['scattered', 'cartouche']];
+  const LIGHTS = [['steady', 'atelier'], ['fired', 'tokyo'], ['scattered', 'cartouche']]; // Washi (aube) set aside with the old Drained energy (3.74)
   function lightSection() {
     const prem = ML.isPremium && ML.isPremium(), dn = S.dayNight;
     const acts = prem ? `<div class="light-acts">
@@ -335,7 +345,24 @@
       <h3 class="shop-sub">${esc(t('w_free_h'))}</h3><p class="hint">${esc(t('w_free_p'))}</p>
       <div class="world-free">${FREE.map(([m, k]) => `<span><img src="world-${k}.jpg" alt="" loading="lazy"><small>${esc(t('th_' + k))}</small></span>`).join('')}</div>`;
   }
-  const FREE = [['drained', 'sanctuary'], ['steady', 'observatory'], ['fired', 'netrunner'], ['scattered', 'arcade']];
+  const FREE = [['steady', 'observatory'], ['fired', 'netrunner'], ['scattered', 'arcade']];
+  // The worlds sold for gold (Premium): the energy they belong to, and putting one on
+  const WORLD_MOOD = k => Object.keys(ML.EXTRA_WORLD || {}).find(m => ML.EXTRA_WORLD[m] === k);
+  const worldOn = k => { const m = WORLD_MOOD(k), p = m && ML.worldPick(m); return !!p && p.w === 'extra'; };
+  function useWorld(k) {
+    const m = WORLD_MOOD(k); if (!m || !ML.setWorld) return;
+    ML.setWorld(m, { w: 'extra', clock: (ML.worldPick(m) || {}).clock }, m !== S.mood);
+    if (m !== S.mood) toast(t('w_buy_set', { w: t('th_' + k), mood: t('mood_' + m) }), { ms: 4000 });
+  }
+  function buySection() {
+    const prem = isPrem(), E = S.econ;
+    return `<h3 class="shop-h">${esc(t('w_buy_h'))}<span class="prem-badge">Premium</span></h3><p class="hint">${esc(t(prem ? 'w_buy_p' : 'w_buy_p0'))}</p>
+      <div class="world-grid">${Object.keys(CATALOG.world).map(k => { const m = WORLD_MOOD(k), own = E.owned.world.includes(k), on = own && worldOn(k), price = CATALOG.world[k];
+        return `<div class="world-card"><button type="button" class="world-pic" data-item="world:${k}" aria-label="${esc(t('th_' + k))}">${preview('world', k)}${prem || own ? '' : `<span class="world-lock">${esc(t('premium_only'))}</span>`}</button>
+        <b>${esc(t('th_' + k))}</b><small>${esc(t('mood_' + m))} · ${esc(t('wt_' + k))}</small>
+        ${on ? `<button type="button" class="small" disabled>${esc(t('equipped'))}</button>` : own ? `<button type="button" class="small primary" data-equip="world:${k}">${esc(t('equip'))}</button>`
+          : `<button type="button" class="small" data-item="world:${k}">${prem ? coin(price, E.gold < price) : esc(t('w_preview'))}</button>`}</div>`; }).join('')}</div>`;
+  }
   // The world sheet: big picture, its moments (when we have them), what it brings, and Try / Unlock (or Use)
   const MOMENTS = { atelier: ['focus', 'pause', 'fin'] };
   const wsh = document.createElement('div');
@@ -375,7 +402,7 @@
   function itemsOf(c) {
     if (c === 'seq') return ['none', ...(ML.COSTUMES || [])].map(k => ['costume', k]);
     if (c === 'tree') return TREE_SKINS.map(k => ['tree', k]);
-    if (c === 'dial') return WORLD_ORDER.flatMap(w => Object.keys(CATALOG.dial).filter(k => DIAL_WORLD[k] === w)).map(k => ['dial', k]);
+    if (c === 'dial') return WORLD_ORDER.filter(w => !CATALOG.world[w] || (S.econ.owned.world || []).includes(w)).flatMap(w => Object.keys(CATALOG.dial).filter(k => DIAL_WORLD[k] === w)).map(k => ['dial', k]);
     return Object.keys(CATALOG[c] || {}).map(k => [c, k]);
   }
   function stateOf(cat, k) {
@@ -384,6 +411,7 @@
     const price = CATALOG[cat][k];
     if (cat === 'potion') return { own: false, eq: false, price };
     const own = (E.owned[cat] || []).includes(k);
+    if (cat === 'world') return { own, eq: own && worldOn(k), price, locked: !own && !isPrem() };
     return { own, eq: own && E.equip[slotOf(cat, k)] === k, price, locked: !own && premOnly(cat, k) && !isPrem() };
   }
   const passes = (cat, k) => { if (filter === 'all') return true; const st = stateOf(cat, k); return filter === 'own' ? st.own : !st.own; };
@@ -396,7 +424,7 @@
   /* The window: one big picture per shelf */
   const shelfPic = c => ({ tree: '<img class="tree-prev" data-tp="skin:oak" alt="">', worlds: '<img src="world-atelier.jpg" alt="" loading="lazy">', dial: preview('dial', 'nautilus'), familiar: preview('familiar', 'fox'), seq: picOf('costume', (ML.COSTUMES || [])[2] || 'none'), hat: hatSvg('crown'), ring: ringPreview('aurora'), burst: '<span class="burst-swatch">★</span>', potion: '<span class="burst-swatch">⚗</span>' }[c] || '');
   function countOf(c) {
-    if (c === 'worlds') return String(LIGHTS.length + FREE.length);
+    if (c === 'worlds') return String(LIGHTS.length + FREE.length + Object.keys(CATALOG.world).length);
     const list = c === 'tree' ? Object.keys(CATALOG.tree).map(k => ['tree', k]) : itemsOf(c);
     if (c === 'potion') return String(list.length);
     return t('sh_count', { a: list.filter(([a, k]) => stateOf(a, k).own).length, b: list.length });
@@ -417,7 +445,7 @@
     return `<button type="button" class="shop-tile t-${tr} ${st.eq ? 'is-eq' : ''} ${cat === 'costume' && !st.own ? 'locked' : ''} ${cat !== 'potion' && short ? 'poor' : ''} ${justBought === cat + ':' + k ? 'just' : ''}" data-item="${cat}:${k}"><span class="shop-prev">${picOf(cat, k)}</span><b>${esc(nameOf(cat, k))}</b>${tag}</button>`;
   }
   function shelfView(c) {
-    if (c === 'worlds') return bar(t('cat_worlds')) + lightSection();
+    if (c === 'worlds') return bar(t('cat_worlds')) + buySection() + lightSection();
     const list = shelfList(c), tiles = l => `<div class="shop-tiles">${l.map(([a, k]) => tile(a, k)).join('')}</div>`;
     let grid = c === 'dial' ? WORLD_ORDER.map(w => { const l = list.filter(([, k]) => DIAL_WORLD[k] === w); return l.length ? `<h4 class="shop-world">${esc(t('th_' + w))}</h4>${tiles(l)}` : ''; }).join('') : tiles(list);
     if (!list.length) grid = `<p class="hint">${esc(t('sh_none'))}</p>`;
@@ -498,12 +526,14 @@
       if (E.gold < price) { toast(t('not_enough', { n: price - E.gold })); return; }
       E.gold -= price;
       if (cat === 'potion') E.potions[k] = (E.potions[k] || 0) + 1;
+      else if (cat === 'world') { E.owned.world.push(k); useWorld(k); }
       else { E.owned[cat].push(k); E.equip[slotOf(cat, k)] = k; applyCosmetics(); }
       ML.sfx && ML.sfx('buy'); toast(t('bought', { name: label(cat, k) }));
       justBought = cat + ':' + k; if (ML.burst) ML.burst('coins');
     } else if (b.dataset.equip) {
       const [cat, k] = b.dataset.equip.split(':');
-      if (cat === 'costume' ? k !== 'none' && !E.owned.costume.includes(k) : !E.owned[cat].includes(k)) return;
+      if (cat === 'costume' ? k !== 'none' && !E.owned.costume.includes(k) : !(E.owned[cat] || []).includes(k)) return;
+      if (cat === 'world') { useWorld(k); save(); renderShop(); if (itemOpen) renderItem(); return; }
       E.equip[slotOf(cat, k)] = k; applyCosmetics();
       if (cat === 'burst' && ML.burst) ML.burst(k === 'theme' ? document.documentElement.dataset.theme : k);
     } else if (b.dataset.use === 'elixir') {

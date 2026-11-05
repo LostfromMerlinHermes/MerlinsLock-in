@@ -4,6 +4,7 @@
 (() => {
   'use strict';
   const { S, t, esc, on, $ } = ML;
+  ML.addStrings({ fr: { wb_shop: '{w} s’achète dans la Boutique, avec Premium.', wb_see: 'Voir' }, en: { wb_shop: '{w} is sold in the Shop, with Premium.', wb_see: 'See' } });
 
   // One small drawing per world (viewBox 100×100): its ground colour and one motif, so the twelve read at a glance
   const dots = (pts, r, c) => pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`).join('');
@@ -38,7 +39,12 @@
     }).join('');
   };
   // A locked (Premium) tile: say so and offer the 1-minute trial instead of choosing it
-  ML.worldLocked = m => {
+  ML.worldLocked = (m, w) => {
+    if (w === 'extra') { // a world sold in the Shop (3.74)
+      const x = ML.worldsFor(m).find(y => y.w === 'extra');
+      ML.toast(t('wb_shop', { w: x.name }), { key: 'daynight', ms: 5000, action: { label: t('wb_see'), fn: () => { ML.closeOverlay('worlds'); ML.closeOverlay && ML.energyPicker && ML.energyPicker.close && ML.energyPicker.close(); ML.openShop && ML.openShop('worlds'); } } });
+      return;
+    }
     const x = ML.worldsFor(m).find(y => y.w === 'light');
     ML.toast(t('wb_locked', { w: x.name }), { key: 'daynight', ms: 5000, action: { label: t('wb_try'), fn: () => ML.tryWorld && ML.tryWorld(m, 60000) } });
   };
@@ -91,7 +97,7 @@
     const b = e.target.closest('button'); if (!b) return;
     const m = S.mood, p = ML.worldPick(m);
     if (b.dataset.wpick) {
-      if (b.classList.contains('locked')) { ML.worldLocked(m); return; }
+      if (b.classList.contains('locked')) { ML.worldLocked(m, b.dataset.wpick); return; }
       ML.setWorld(m, ML.withWorld(p, b.dataset.wpick)); renderSheet(); // with "follow the hour" on, it shows until the hour turns
     } else if (b.dataset.wclock) { ML.setWorld(m, { w: p.w === 'light' && ML.worldsFor(m)[2].locked ? 'day' : p.w, clock: b.dataset.wclock === '1' }); renderSheet(); }
   });
