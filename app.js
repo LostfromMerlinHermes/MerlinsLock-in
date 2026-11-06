@@ -18,9 +18,9 @@
     fired:     { focus: 90, brk: 15, sort: 'hard', color: '#ff4fd8', icon: '<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6.5 1 1 2 2 2 3.5 0-3 0-5 1-7z"/>' },
     scattered: { focus: 20, brk: 5, sort: 'priority', single: true, color: '#ffb547', icon: '<circle cx="6" cy="7" r="1.6"/><circle cx="17" cy="5" r="1.6"/><circle cx="12" cy="13" r="1.6"/><circle cx="5" cy="18" r="1.6"/><circle cx="18" cy="17" r="1.6"/>' },
   };
-  // XP thresholds, Sequence 9 down to Sequence 0 (Fool pathway, Lord of the Mysteries)
-  const SEQUENCES = [[0, 'Seer'], [300, 'Clown'], [900, 'Magician'], [2000, 'Faceless'], [3600, 'Marionettist'],
-    [6000, 'Bizarro Sorcerer'], [9500, 'Scholar of Yore'], [14000, 'Miracle Invoker'], [20000, 'Attendant of Mysteries'], [30000, 'The Fool']];
+  // XP thresholds of the seven Circles, 1 to 7 (3.76: replaced the Sequences, which came from a novel). Names: rk_1..rk_7 in strings.js.
+  // Paced so ~20 h a week reaches the 7th near the end of a school year, ~8 h a week the 5th or 6th
+  const SEQUENCES = [0, 600, 2500, 7000, 16000, 32000, 60000].map((xp, i) => [xp, 'rk_' + (i + 1)]);
   const TIPS = ['tip_water', 'tip_stretch', 'tip_eyes', 'tip_breathe', 'tip_walk', 'tip_posture'];
 
   ML.MOODS = MOODS;
@@ -51,13 +51,14 @@
   function seqInfo(xp = S.xp) {
     let i = 0;
     while (i + 1 < SEQUENCES.length && xp >= SEQUENCES[i + 1][0]) i++;
-    const [from, name] = SEQUENCES[i], next = SEQUENCES[i + 1];
-    return { i, num: 9 - i, name, from, next: next ? next[0] : null, nextName: next ? next[1] : null, frac: next ? (xp - from) / (next[0] - from) : 1 };
+    const [from, key] = SEQUENCES[i], next = SEQUENCES[i + 1], name = t(key);
+    return { i, num: i + 1, name, from, next: next ? next[0] : null, nextName: next ? t(next[1]) : null, frac: next ? (xp - from) / (next[0] - from) : 1 };
   }
-  function addXp(n) {
+  // goldRate: share of the usual gold (1 per 4 XP) this XP brings; daily quests give half since 3.76
+  function addXp(n, goldRate = 1) {
     const before = seqInfo().i;
     S.xp = Math.max(0, Math.round(S.xp + n));
-    if (n > 0) emit('xp', Math.round(n));
+    if (n > 0) { ML.xpGoldRate = goldRate; emit('xp', Math.round(n)); ML.xpGoldRate = 1; }
     const after = seqInfo();
     if (after.i > before) emit('levelup', after);
     renderSeq();
@@ -775,7 +776,7 @@
       let longBreak = false;
       if (elapsed > 0) {
         const task = S.tasks.find(x => x.id === S.activeId);
-        const session = { at: endedAt, start: endedAt - elapsed * 60000, mins: elapsed, title: activeTitle() || t('free_focus'), taskId: S.activeId, mood: S.mood, world: (ML.sessionWorld && ML.sessionWorld(S.mood)) || undefined, rating: null, full: !early, pauses: S.pauses || 0, distractions: S.curDistr || 0 };
+        const session = { at: endedAt, start: endedAt - elapsed * 60000, mins: elapsed, title: activeTitle() || t('free_focus'), taskId: S.activeId, project: (task && task.project) || undefined, mood: S.mood, world: (ML.sessionWorld && ML.sessionWorld(S.mood)) || undefined, rating: null, full: !early, pauses: S.pauses || 0, distractions: S.curDistr || 0 };
         S.sessions.push(session);
         if (task) task.spent = (task.spent || 0) + elapsed;
         let xp = early ? elapsed : Math.round(elapsed * 1.25);
@@ -905,7 +906,7 @@
   // season and weekly boss cards that their modules add on the 'grimoire' event. The level and the stats live in Progress (focus.js)
   function renderGrimoire() {
     const s = seqInfo();
-    const ladder = SEQUENCES.map(([xp, name], i) => `<li class="${i < s.i ? 'reached' : ''} ${i === s.i ? 'current' : ''}"><span>${9 - i}</span><span>${name}</span><span>${xp.toLocaleString(ML.locale())}</span></li>`).reverse().join('');
+    const ladder = SEQUENCES.map(([xp, key], i) => `<li class="${i < s.i ? 'reached' : ''} ${i === s.i ? 'current' : ''}"><span>${i + 1}</span><span>${esc(t(key))}</span><span>${xp.toLocaleString(ML.locale())}</span></li>`).reverse().join('');
     $('grim').innerHTML = `<details class="g-card y-det"><summary>${esc(t('ladder'))} <small>${esc(s.name)}</small></summary><ul class="ladder">${ladder}</ul></details>`; // folded, under the game cards (CSS order)
     emit('grimoire');
   }

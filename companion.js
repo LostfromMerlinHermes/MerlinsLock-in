@@ -7,7 +7,7 @@
   ML.addStrings({
     fr: {
       fam_owl: 'Hibou', fam_owl_d: 'Sage et patient. Il veille la nuit.', fam_cat: 'Chat noir', fam_cat_d: 'Mystérieux, un peu moqueur.',
-      fam_raven: 'Corbeau', fam_raven_d: 'Messager du brouillard gris.', fam_fox: 'Renard', fam_fox_d: 'Vif et malin, toujours prêt.',
+      fam_raven: 'Corbeau', fam_raven_d: 'Messager des nuits de brume.', fam_fox: 'Renard', fam_fox_d: 'Vif et malin, toujours prêt.',
       companion: 'Familier', rename: 'Nom du familier', stage_0: 'Bébé', stage_1: 'Jeune', stage_2: 'Adulte', stage_3: 'Ancien',
       tower: 'Ta tour de mage', floors_n_one: '{n} étage', floors_n: '{n} étages', floors_today: '+{n} aujourd’hui', tower_fell: 'Session abandonnée : un étage de ta tour s’est écroulé.', tower_fell_left: 'Mode strict : tu as quitté l’app, un étage s’est écroulé.',
       tower_rules: 'Chaque session d’au moins 15 min ajoute un étage (un par demi-heure). Abandonner avant la moitié fait tomber un étage.',
@@ -37,7 +37,7 @@
     },
     en: {
       fam_owl: 'Owl', fam_owl_d: 'Wise and patient. Watches over the night.', fam_cat: 'Black cat', fam_cat_d: 'Mysterious, a little cheeky.',
-      fam_raven: 'Raven', fam_raven_d: 'Messenger of the gray fog.', fam_fox: 'Fox', fam_fox_d: 'Quick and clever, always ready.',
+      fam_raven: 'Raven', fam_raven_d: 'Messenger of misty nights.', fam_fox: 'Fox', fam_fox_d: 'Quick and clever, always ready.',
       companion: 'Familiar', rename: 'Familiar name', stage_0: 'Baby', stage_1: 'Young', stage_2: 'Adult', stage_3: 'Elder',
       tower: 'Your mage tower', floors_n_one: '{n} floor', floors_n: '{n} floors', floors_today: '+{n} today', tower_fell: 'Session abandoned: a floor of your tower crumbled.', tower_fell_left: 'Strict mode: you left the app, a floor crumbled.',
       tower_rules: 'Every session of at least 15 min adds a floor (one per half hour). Quitting before halfway knocks one down.',
@@ -70,7 +70,7 @@
   const NAMES = { owl: 'Nox', cat: 'Salem', raven: 'Corvus', fox: 'Kitsu', hippo: 'Hippolyte' };
   const species = () => (S.econ && S.econ.equip.familiar) || 'owl';
   const famName = () => S.companion.name || NAMES[species()];
-  const stage = () => { const i = ML.seqInfo().i; return i >= 7 ? 3 : i >= 4 ? 2 : i >= 2 ? 1 : 0; };
+  const stage = () => { const i = ML.seqInfo().i; return i >= 5 ? 3 : i >= 3 ? 2 : i >= 1 ? 1 : 0; };
 
   /* ---------- Familiar drawings (64×64) ---------- */
   const EYES = {
@@ -113,7 +113,8 @@
   /* ---------- Sequence costumes (one per Sequence, earned for good, worn by the familiar) ----------
      Each costume is drawn once in a head-centred frame; ANCHOR places that frame on each species:
      c = head centre, s = scale, top = top of the head, nose, neck, eyes [x, y, r], face = mask ellipse [cx, cy, rx, ry]. */
-  const COSTUMES = ['seer', 'clown', 'magician', 'faceless', 'marionettist', 'bizarro', 'scholar', 'miracle', 'attendant', 'fool'];
+  // One per Circle, 1 to 7 (3.76). The faceless, marionettist and attendant drawings stay in COSTUME for saves that wear them, unlisted
+  const COSTUMES = ['seer', 'clown', 'magician', 'scholar', 'bizarro', 'miracle', 'fool'];
   const ANCHOR = {
     owl: { c: [32, 25], s: 1, top: -11, nose: [0, 7.5], neck: [0, 11], eyes: [[-8, 1, 7], [8, 1, 7]], face: [0, 1, 16, 9.5] },
     cat: { c: [32, 26], s: 1, top: -12, nose: [0, 6.3], neck: [0, 13], eyes: [[-5, 1, 4], [5, 1, 4]], face: [0, 2, 11, 8.5] },
@@ -144,7 +145,7 @@
       front: A => `<ellipse class="cs-halo" cx="0" cy="${A.top - 5}" rx="9.5" ry="2.6"/><path class="cs-gold cs-twinkle" d="M-17 ${A.top + 4} l1 -3 1 3 3 1 -3 1 -1 3 -1 -3 -3 -1 Z M16 ${A.top + 12} l.8 -2.4 .8 2.4 2.4 .8 -2.4 .8 -.8 2.4 -.8 -2.4 -2.4 -.8 Z"/>` },
     attendant: { head: true, ground: FOG, back: A => `<path class="cs-hood" d="M-17 ${A.neck[1] + 4} C-19 ${A.top - 6} 19 ${A.top - 6} 17 ${A.neck[1] + 4} C20 ${A.neck[1] + 11} 18 ${A.neck[1] + 17} 15 ${A.neck[1] + 20} L-15 ${A.neck[1] + 20} C-18 ${A.neck[1] + 17} -20 ${A.neck[1] + 11} -17 ${A.neck[1] + 4} Z"/>`,
       front: A => { const [x, y] = A.neck; return `<path class="cs-hood-rim" d="M-15.5 ${y + 3} C-17 ${A.top - 3} 17 ${A.top - 3} 15.5 ${y + 3}"/><path class="cs-gold" d="M${x} ${y - 2.5} l1.1 2.4 2.6 .3 -1.9 1.7 .5 2.6 -2.3 -1.3 -2.3 1.3 .5 -2.6 -1.9 -1.7 2.6 -.3 Z"/>`; } },
-    fool: { head: true, ground: FOG, back: A => cape(A, 'cs-cape-gray', 'cs-goldline'), front: A => topHat(A.top + 2, 14, -6, 'cs-gold', true) + monocle(A) },
+    fool: { head: true, ground: FOG, back: A => cape(A, 'cs-cape-night', 'cs-goldline'), front: A => topHat(A.top + 2, 14, -6, 'cs-gold', true) }, // 3.76: night-blue cape, no monocle (it read as a novel's character)
   };
   ML.COSTUMES = COSTUMES;
   function costumeSvg(kind, k, layer) {

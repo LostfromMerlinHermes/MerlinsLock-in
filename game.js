@@ -21,9 +21,9 @@
       a_night_owl: 'Oiseau de nuit', a_night_owl_d: 'Une session finie entre 23h et 4h', a_early_bird: 'Lève-tôt', a_early_bird_d: 'Une session commencée avant 7h',
       a_perfect5: 'Esprit clair', a_perfect5_d: '5 sessions notées 5/5', a_parker10: 'Gardien du parking', a_parker10_d: 'Traite 10 pensées parquées',
       a_planner5: 'Stratège', a_planner5_d: 'Termine 5 blocs planifiés', a_boss1: 'Tueur de boss', a_boss1_d: 'Vaincs un boss de la semaine',
-      a_seq7: 'Magicien', a_seq7_d: 'Atteins la Séquence 7', a_seq5: 'Marionnettiste', a_seq5_d: 'Atteins la Séquence 5', a_seq0: 'Le Fou', a_seq0_d: 'Atteins la Séquence 0',
+      a_seq7: 'Troisième cercle', a_seq7_d: 'Atteins le cercle 3', a_seq5: 'Cinquième cercle', a_seq5_d: 'Atteins le cercle 5', a_seq0: 'Grand Enchanteur', a_seq0_d: 'Atteins le cercle 7',
       a_moods4: 'Toutes les humeurs', a_moods4_d: 'Une session dans chaque humeur', a_tasks50: 'Abatteur', a_tasks50_d: 'Termine 50 tâches', a_sound5: 'Mélomane', a_sound5_d: 'Écoute 5 genres différents',
-      new_seq: 'Nouvelle Séquence', boss_defeated: 'Boss vaincu',
+      new_seq: 'Nouveau cercle', boss_defeated: 'Boss vaincu',
       set_look: 'Apparence et jeu', theme: 'Thème',
       opt_sfx: 'Effets sonores (tâche finie, quête, succès)',
     },
@@ -43,9 +43,9 @@
       a_night_owl: 'Night owl', a_night_owl_d: 'A session ending between 11pm and 4am', a_early_bird: 'Early bird', a_early_bird_d: 'A session started before 7am',
       a_perfect5: 'Clear mind', a_perfect5_d: '5 sessions rated 5/5', a_parker10: 'Parking warden', a_parker10_d: 'Process 10 parked thoughts',
       a_planner5: 'Strategist', a_planner5_d: 'Finish 5 planned blocks', a_boss1: 'Boss slayer', a_boss1_d: 'Defeat a weekly boss',
-      a_seq7: 'Magician', a_seq7_d: 'Reach Sequence 7', a_seq5: 'Marionettist', a_seq5_d: 'Reach Sequence 5', a_seq0: 'The Fool', a_seq0_d: 'Reach Sequence 0',
+      a_seq7: 'Third Circle', a_seq7_d: 'Reach Circle 3', a_seq5: 'Fifth Circle', a_seq5_d: 'Reach Circle 5', a_seq0: 'Grand Enchanter', a_seq0_d: 'Reach Circle 7',
       a_moods4: 'Every mood', a_moods4_d: 'A session in each mood', a_tasks50: 'Task slayer', a_tasks50_d: 'Finish 50 tasks', a_sound5: 'Music lover', a_sound5_d: 'Listen to 5 different genres',
-      new_seq: 'New Sequence', boss_defeated: 'Boss defeated',
+      new_seq: 'New Circle', boss_defeated: 'Boss defeated',
       set_look: 'Look and game', theme: 'Theme',
       opt_sfx: 'Sound effects (task done, quest, achievement)',
     },
@@ -127,7 +127,7 @@
       if (qSeen && qLast[id] !== undefined && v > qLast[id] && v < q.target && !Q.claimed.includes(id)) emit('quest:progress', { id, name: t(id), v, target: q.target, fmt: q.fmt });
       qLast[id] = v;
       if (!Q.claimed.includes(id) && q.val(st) >= q.target) {
-        Q.claimed.push(id); ML.addXp(q.xp); sfx('quest');
+        Q.claimed.push(id); ML.addXp(q.xp, .5); sfx('quest');
         emit('quest:done', { id, name: t(id), xp: q.xp, n: Q.claimed.length, of: Q.ids.length });
         if (!(ML.questFeed && ML.questFeed())) toast(t('quest_done', { q: t(id), xp: q.xp }));
         if (Q.claimed.length === Q.ids.length) emit('quests:clear'); // juice.js shows the "daily quests clear" banner
@@ -165,7 +165,7 @@
     early_bird: () => S.sessions.some(s => new Date(s.start || s.at - s.mins * 60000).getHours() < 7),
     perfect5: () => S.sessions.filter(s => s.rating === 5).length >= 5,
     parker10: () => S.game.parkedTotal >= 10, planner5: () => S.game.blocksDone >= 5, boss1: () => S.game.bosses >= 1,
-    seq7: () => ML.seqInfo().i >= 2, seq5: () => ML.seqInfo().i >= 4, seq0: () => ML.seqInfo().i >= 9,
+    seq7: () => ML.seqInfo().i >= 2, seq5: () => ML.seqInfo().i >= 4, seq0: () => ML.seqInfo().i >= 6,
     moods4: () => ML.MOOD_KEYS.every(m => S.sessions.some(s => ML.moodKey(s.mood) === m)),
     tasks50: () => S.game.tasksDone >= 50, sound5: () => S.game.genres.length >= 5,
   };
@@ -261,7 +261,7 @@
   /* ---------- Mood classes, buffs and themes ---------- */
   ML.addStrings({
     fr: {
-      class_drained: 'Ermite du Sanctuaire', class_steady: 'Sorcier cybernétique', class_fired: 'Netrunner', class_scattered: 'Aventurier 8-bit',
+      class_drained: 'Ermite du Sanctuaire', class_steady: 'Sorcier cybernétique', class_fired: 'Pirate du réseau', class_scattered: 'Aventurier 8-bit',
       stat_focus: 'Focus', stat_rest: 'Repos', stat_intensity: 'Intensité',
       buff_drained: 'Régénération', buff_drained_d: '1re session du jour ×2 XP, sessions courtes finies +20 %',
       buff_steady: 'Régularité', buff_steady_d: '+10 % d’XP par jour de série (max +50 %)',
@@ -269,7 +269,7 @@
       buff_scattered: 'Ancrage', buff_scattered_d: 'Session sans pause +25 % d’XP, +5 XP par pensée parquée traitée',
       buff_ready: 'prêt', buff_combo: 'Combo ×{n}', buff_streak: '+{n} %', buff_nopause: 'sans pause +25 %', buff_short: 'courtes +20 %',
       park_bonus: 'Ancrage : +5 XP',
-      th_auto: 'Auto (selon l’humeur)', th_sorcerer: 'Cyber sorcier', th_fog: 'Brouillard', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuaire', th_arcade: 'Arcade 8-bit',
+      th_auto: 'Auto (selon l’humeur)', th_sorcerer: 'Cyber sorcier', th_fog: 'Brouillard', th_netrunner: 'Réseau', th_sanctuary: 'Sanctuaire', th_arcade: 'Arcade 8-bit',
       th_hint: 'Auto : chaque énergie a trois mondes, à choisir avec le bouton Monde en haut ou au choix de l’énergie.',
       th_observatory: 'Observatoire', th_abyss: 'Abysses', th_neoncity: 'Ville néon',
       dn_t_auto: 'Auto', dn_t_autolight: 'Auto clair', dn_t_day: 'Monde de jour', dn_t_night: 'Monde de nuit', dn_t_light: 'Clair',
@@ -281,7 +281,7 @@
       ink_focus: 'Focus auj. {t}', ink_streak: 'Série {n} j', ink_quests: 'Quêtes {n}/{m}', ink_next: 'Prochain bloc {t}',
     },
     en: {
-      class_drained: 'Sanctuary hermit', class_steady: 'Cyber sorcerer', class_fired: 'Netrunner', class_scattered: '8-bit adventurer',
+      class_drained: 'Sanctuary hermit', class_steady: 'Cyber sorcerer', class_fired: 'Grid hacker', class_scattered: '8-bit adventurer',
       stat_focus: 'Focus', stat_rest: 'Rest', stat_intensity: 'Intensity',
       buff_drained: 'Regeneration', buff_drained_d: 'First session of the day ×2 XP, short finished sessions +20%',
       buff_steady: 'Consistency', buff_steady_d: '+10% XP per streak day (max +50%)',
@@ -289,7 +289,7 @@
       buff_scattered: 'Anchor', buff_scattered_d: 'No-pause session +25% XP, +5 XP per parked thought processed',
       buff_ready: 'ready', buff_combo: 'Combo ×{n}', buff_streak: '+{n}%', buff_nopause: 'no pause +25%', buff_short: 'short +20%',
       park_bonus: 'Anchor: +5 XP',
-      th_auto: 'Auto (by mood)', th_sorcerer: 'Cyber sorcerer', th_fog: 'Fog', th_netrunner: 'Netrunner', th_sanctuary: 'Sanctuary', th_arcade: '8-bit arcade',
+      th_auto: 'Auto (by mood)', th_sorcerer: 'Cyber sorcerer', th_fog: 'Fog', th_netrunner: 'Grid', th_sanctuary: 'Sanctuary', th_arcade: '8-bit arcade',
       th_hint: 'Auto: every energy has three worlds, chosen with the World button at the top or when you pick your energy.',
       th_observatory: 'Observatory', th_abyss: 'Abyss', th_neoncity: 'Neon city',
       dn_t_auto: 'Auto', dn_t_autolight: 'Auto light', dn_t_day: 'Day world', dn_t_night: 'Night world', dn_t_light: 'Light',

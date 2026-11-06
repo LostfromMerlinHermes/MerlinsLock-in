@@ -25,7 +25,7 @@
       tr_orrery: 'Planétaire', tr_atlas: 'Atlas des étoiles', tr_fan: 'Éventail de mer', tr_coral: 'Corail noir', tr_pages: 'Arbre aux pages', tr_crystal: 'Arbre de cristal', tr_wired: 'Arbre câblé', tr_silver: 'Arbre d’argent', tr_hanging: 'Arbre suspendu',
       tree_atlas: 'Atlas des étoiles', tree_atlas_d: 'Ton année tracée comme une constellation sur une vieille carte du ciel.', tree_coral: 'Corail noir', tree_coral_d: 'Un corail sombre dont chaque semaine libère une méduse.', tree_crystal: 'Arbre de cristal', tree_crystal_d: 'Un tronc taillé comme une gemme, des grappes de cristaux qui flottent.', tree_hanging: 'Arbre suspendu', tree_hanging_d: 'Il pousse vers le bas, sous un rocher, au-dessus d’une mer de brume.',
       tr_y_hours: 'cette année', tr_y_weeks: 'semaines travaillées', tr_y_best: 'meilleure semaine', tr_y_flow: 'sessions Flow',
-      tr_wk_up: '{d} de plus que la semaine d’avant', tr_wk_down: '{d} de moins que la semaine d’avant', tr_wk_same: 'Autant que la semaine d’avant', tr_wk_done: 'Tâches finies', tr_wk_more: 'et {n} autres', tr_wk_what: 'Ce que tu as travaillé', tr_wk_other: 'Sans matière',
+      tr_wk_up: '{d} de plus que la semaine d’avant', tr_wk_down: '{d} de moins que la semaine d’avant', tr_wk_same: 'Autant que la semaine d’avant', tr_wk_done: 'Tâches finies', tr_wk_more: 'et {n} autres', tr_wk_what: 'Ce que tu as travaillé', tr_wk_other: 'Sans matière', tr_wk_rest: '{n} autres',
       ch_title: 'Défi de la semaine', ch_won: 'Réussi : une fleur rare est sur ton arbre.', ch_toast: 'Défi de la semaine réussi : une fleur rare s’ouvre.', ch_prog: '{a} sur {b}', ch_flow3: 'Fais 3 sessions Flow', ch_morning3: 'Fais 3 sessions avant midi', ch_long: 'Tiens une session de 50 min sans pause', ch_days3: 'Travaille 3 jours différents', ch_starts5: 'Lance 5 sessions, même courtes', ch_days4: 'Travaille 4 jours différents', ch_clean5: 'Fais 5 sessions sans décrocher',
       end_tree: 'Ton arbre pousse',
       cat_tree: 'Arbre', tree_hint: 'L’or change l’apparence, jamais la croissance. Feuilles, branches et fleurs vont sur le chêne, la planche, le saule, le pin, l’hologramme et l’arbre du lac ; le reste sur le chêne. Les arbres des mondes gardent leurs couleurs.',
@@ -55,7 +55,7 @@
       tr_orrery: 'Orrery', tr_atlas: 'Star atlas', tr_fan: 'Sea fan', tr_coral: 'Black coral', tr_pages: 'Page tree', tr_crystal: 'Crystal tree', tr_wired: 'Wired tree', tr_silver: 'Silver tree', tr_hanging: 'Hanging tree',
       tree_atlas: 'Star atlas', tree_atlas_d: 'Your year drawn as a constellation on an old sky chart.', tree_coral: 'Black coral', tree_coral_d: 'A dark coral; each week sets a jellyfish free.', tree_crystal: 'Crystal tree', tree_crystal_d: 'A trunk cut like a gem, clusters of crystal floating free.', tree_hanging: 'Hanging tree', tree_hanging_d: 'It grows downward under a rock, above a sea of fog.',
       tr_y_hours: 'this year', tr_y_weeks: 'weeks worked', tr_y_best: 'best week', tr_y_flow: 'Flow sessions',
-      tr_wk_up: '{d} more than the week before', tr_wk_down: '{d} less than the week before', tr_wk_same: 'Same as the week before', tr_wk_done: 'Tasks done', tr_wk_more: 'and {n} more', tr_wk_what: 'What you worked on', tr_wk_other: 'No subject',
+      tr_wk_up: '{d} more than the week before', tr_wk_down: '{d} less than the week before', tr_wk_same: 'Same as the week before', tr_wk_done: 'Tasks done', tr_wk_more: 'and {n} more', tr_wk_what: 'What you worked on', tr_wk_other: 'No subject', tr_wk_rest: '{n} more',
       ch_title: 'Weekly challenge', ch_won: 'Done: a rare flower is on your tree.', ch_toast: 'Weekly challenge done: a rare flower opens.', ch_prog: '{a} of {b}', ch_flow3: 'Do 3 Flow sessions', ch_morning3: 'Do 3 sessions before noon', ch_long: 'Hold a 50 min session with no pause', ch_days3: 'Work on 3 different days', ch_starts5: 'Start 5 sessions, even short ones', ch_days4: 'Work on 4 different days', ch_clean5: 'Do 5 sessions with no distraction',
       end_tree: 'Your tree grows',
       cat_tree: 'Tree', tree_hint: 'Gold changes how it looks, never how it grows. Leaves, branches and flowers go on the oak, plate, willow, pine, hologram and lake tree; the rest on the oak. World trees keep their own colours.',
@@ -180,14 +180,15 @@
   }
   /* ---------- What a week was made of: the real work behind a branch ---------- */
   function weekWork(w) {
-    const from = w.at, to = from + 7 * 864e5, ss = S.sessions.filter(s => s.at >= from && s.at < to), subs = S.subjects || [], by = {};
+    // The same Monday-to-Monday bounds as weeksOf (a plain +7 days drops the last hour of a week that changes clock time)
+    const from = w.at, to = monday(from + 8 * 864e5).getTime(), ss = S.sessions.filter(s => s.at >= from && s.at < to), subs = S.subjects || [], by = {};
     ss.forEach(s => {
       const task = s.taskId && S.tasks.find(x => x.id === s.taskId), sid = s.subject || (task && task.subject), sub = sid && subs.find(x => x.id === sid);
       const key = sub ? 's:' + sub.id : 't:' + (s.title || ''), e = by[key] || (by[key] = { name: sub ? sub.name : s.title || t('tr_wk_other'), color: sub ? sub.color : null, mins: 0 });
       e.mins += s.mins;
     });
     const rows = Object.values(by).sort((a, b) => b.mins - a.mins), done = S.tasks.filter(x => x.done && x.doneAt >= from && x.doneAt < to);
-    return { rows: rows.slice(0, 4), rest: rows.slice(4).reduce((a, r) => a + r.mins, 0), done };
+    return { rows: rows.slice(0, 4), rest: rows.slice(4).reduce((a, r) => a + r.mins, 0), restN: Math.max(0, rows.length - 4), done };
   }
   function weekCard(weeks) {
     if (!weeks.length) return `<p class="insight">${esc(t('tr_none'))}</p>`;
@@ -197,7 +198,9 @@
     if (!w.empty) {
       const k = weekWork(w), top = k.rows.length ? k.rows[0].mins : 1, d = prev ? w.mins - prev.mins : null;
       const vs = d == null ? '' : `<p class="insight tr-vs">${esc(d ? t(d > 0 ? 'tr_wk_up' : 'tr_wk_down', { d: D(Math.abs(d)) }) : t('tr_wk_same'))}</p>`;
-      const bars = k.rows.map(r => `<li><span class="tr-wn">${r.color ? `<i style="background:${esc(r.color)}"></i>` : ''}${esc(r.name)}</span><span class="tr-wb"><b style="width:${Math.max(4, r.mins / top * 100).toFixed(0)}%${r.color ? ';background:' + esc(r.color) : ''}"></b></span><small>${esc(D(r.mins))}</small></li>`).join('');
+      // The rows always add up to the week's total: what doesn't fit in the top four is one "N more" row
+      if (k.rest > 0) k.rows.push({ name: t('tr_wk_rest', { n: k.restN }), color: null, mins: k.rest, rest: true });
+      const bars = k.rows.map(r => `<li${r.rest ? ' class="tr-rest"' : ''}><span class="tr-wn">${r.color ? `<i style="background:${esc(r.color)}"></i>` : ''}${esc(r.name)}</span><span class="tr-wb"><b style="width:${Math.min(100, Math.max(4, r.mins / top * 100)).toFixed(0)}%${r.color ? ';background:' + esc(r.color) : ''}"></b></span><small>${esc(D(r.mins))}</small></li>`).join('');
       const done = k.done.length ? `<p class="tr-done"><small>${esc(t('tr_wk_done'))} · ${k.done.length}</small> ${k.done.slice(0, 3).map(x => `<span>${esc(ML.titleOf ? ML.titleOf(x) : x.title)}</span>`).join('')}${k.done.length > 3 ? ` <small>${esc(t('tr_wk_more', { n: k.done.length - 3 }))}</small>` : ''}</p>` : '';
       detail = `${vs}${bars ? `<ul class="tr-work" aria-label="${esc(t('tr_wk_what'))}">${bars}</ul>` : ''}${done}`;
     }

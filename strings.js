@@ -1,7 +1,7 @@
 // UI text for core.js, app.js and index.html. Other modules register their own strings.
 ML.addStrings({
   fr: {
-    update_ready: 'Nouvelle version prête.', update_reload: 'Mettre à jour', sequence: 'Séquence', tap_again: 'Appuie encore pour confirmer', close: 'Fermer', install_app: "Installer l'app", float_timer: 'Minuteur flottant', settings: 'Réglages',
+    update_ready: 'Nouvelle version prête.', update_reload: 'Mettre à jour', sequence: 'Cercle', rk_1: 'Porte-lanterne', rk_2: 'Lieur d’encre', rk_3: 'Gardien des heures', rk_4: 'Tisseur d’esprit', rk_5: 'Lecteur d’étoiles', rk_6: 'Plieur du temps', rk_7: 'Grand Enchanteur', tap_again: 'Appuie encore pour confirmer', close: 'Fermer', install_app: "Installer l'app", float_timer: 'Minuteur flottant', settings: 'Réglages',
     focus: 'Focus', break: 'Repos', break_lc: 'repos', compact_toggle: 'Réduire / agrandir le minuteur', finish: 'Terminer', reset: 'Annuler',
     rate_q: 'Ta concentration sur cette session ?', skip: 'Passer', custom: 'Perso', set: 'OK',
     park_ph: 'Note une pensée parasite', park: 'Noter',
@@ -50,9 +50,9 @@ ML.addStrings({
     insight_mood: 'Tu te concentres le mieux quand tu es {mood} ({avg}/5).', insight_time: 'Ton meilleur moment : {time}.',
     insight_none: 'Note quelques sessions et ton Grimoire te montrera quelles humeurs et quelles heures marchent le mieux.',
     estimates: 'Tes estimations : tu passes en moyenne {pct} du temps prévu sur tes tâches.',
-    xp_to: '{n} XP pour {name}', top_ladder: 'sommet de l’échelle', xp_rules: '1 XP par minute de focus, +25 % si la session va au bout, et de l’XP selon la rareté de chaque tâche terminée.',
+    xp_to: '{n} XP pour {name}', top_ladder: 'dernier cercle', xp_rules: '1 XP par minute de focus, +25 % si la session va au bout, et de l’XP selon la rareté de chaque tâche terminée.',
     day_streak: 'Série', best_streak: 'Record', all_time: 'Total', last_7: '7 derniers jours', this_week: 'Cette semaine : {m} en {n} sessions', avg_focus: 'concentration moyenne {avg}',
-    six_months: '6 derniers mois', what_works: 'Ce qui marche pour toi', ladder: 'L’échelle des Séquences',
+    six_months: '6 derniers mois', what_works: 'Ce qui marche pour toi', ladder: 'Les sept cercles',
     set_general: 'Général', language: 'Langue', change_mood_now: 'Changer d’énergie', shortcuts: 'Raccourcis clavier',
     set_timer: 'Minuteur', opt_chime: 'Carillon à la fin', opt_autobreak: 'Lancer le repos automatiquement', opt_autocompact: 'Réduire le minuteur pendant le focus (écran étroit)',
     long_every: 'Long repos toutes les … sessions', long_len: 'Durée du long repos', off: 'Désactivé',
@@ -69,7 +69,7 @@ ML.addStrings({
     installed: 'MerlinsLockIN est installé. Tu le trouveras dans le menu Démarrer.',
   },
   en: {
-    update_ready: 'A new version is ready.', update_reload: 'Update', sequence: 'Sequence', tap_again: 'Tap again to confirm', close: 'Close', install_app: 'Install the app', float_timer: 'Floating timer', settings: 'Settings',
+    update_ready: 'A new version is ready.', update_reload: 'Update', sequence: 'Circle', rk_1: 'Lantern Bearer', rk_2: 'Ink Binder', rk_3: 'Hour Keeper', rk_4: 'Mind Weaver', rk_5: 'Star Reader', rk_6: 'Time Bender', rk_7: 'Grand Enchanter', tap_again: 'Tap again to confirm', close: 'Close', install_app: 'Install the app', float_timer: 'Floating timer', settings: 'Settings',
     focus: 'Focus', break: 'Break', break_lc: 'break', compact_toggle: 'Shrink / expand the timer', finish: 'Finish', reset: 'Cancel',
     rate_q: 'How focused were you?', skip: 'Skip', custom: 'Custom', set: 'Set',
     park_ph: 'Note a stray thought', park: 'Note',
@@ -118,9 +118,9 @@ ML.addStrings({
     insight_mood: 'You focus best when {mood} ({avg}/5).', insight_time: 'Your sharpest time of day: {time}.',
     insight_none: 'Rate a few sessions and your Grimoire will show which moods and hours work best for you.',
     estimates: 'Your estimates: on average you spend {pct} of the planned time on your tasks.',
-    xp_to: '{n} XP to {name}', top_ladder: 'top of the ladder', xp_rules: '1 XP per focus minute, +25% for a full session, and XP by rarity for each finished task.',
+    xp_to: '{n} XP to {name}', top_ladder: 'last Circle', xp_rules: '1 XP per focus minute, +25% for a full session, and XP by rarity for each finished task.',
     day_streak: 'Streak', best_streak: 'Best', all_time: 'All time', last_7: 'Last 7 days', this_week: 'This week: {m} across {n} sessions', avg_focus: 'average focus {avg}',
-    six_months: 'Last 6 months', what_works: 'What works for you', ladder: 'The Sequence ladder',
+    six_months: 'Last 6 months', what_works: 'What works for you', ladder: 'The seven Circles',
     set_general: 'General', language: 'Language', change_mood_now: 'Change energy', shortcuts: 'Keyboard shortcuts',
     set_timer: 'Timer', opt_chime: 'Chime at the end', opt_autobreak: 'Auto-start breaks', opt_autocompact: 'Shrink the timer while focusing (narrow screens)',
     long_every: 'Long break every … sessions', long_len: 'Long break length', off: 'Off',

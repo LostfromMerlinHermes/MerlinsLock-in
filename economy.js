@@ -7,12 +7,12 @@
   ML.addStrings({
     fr: {
       shop: 'Boutique', gold_n: '{n} pièces d’or', buy: 'Acheter', equip: 'Équiper', equipped: 'Équipé', owned: 'possédé', use: 'Utiliser', not_enough: 'Pas assez d’or : il te manque {n} ◈.',
-      bought: '{name} acheté', shop_hint: 'Tu gagnes 1 pièce d’or pour 4 XP. Les potions se consomment, les cosmétiques sont à toi pour toujours.',
+      bought: '{name} acheté', shop_hint: 'Tu gagnes 1 pièce d’or pour 4 XP (moitié moins pour les quêtes du jour). Les potions se consomment, les cosmétiques sont à toi pour toujours.',
       cat_hats: 'Chapeaux', cat_rings: 'Anneau du sceau', cat_bursts: 'Effet de fin de session', cat_familiars: 'Familiers', cat_potions: 'Potions',
       hat_wizard: 'Chapeau de Merlin', hat_wizard_d: 'Le classique, avec son monocle.',
       hat_tophat: 'Haut-de-forme du Fou', hat_tophat_d: 'Élégance victorienne au-dessus du brouillard gris.',
-      hat_hood: 'Capuche d’ombre', hat_hood_d: 'Sans visage. Seul le monocle brille.',
-      hat_crown: 'Couronne astrale', hat_crown_d: 'Pour qui a gravi les Séquences.',
+      hat_hood: 'Capuche d’ombre', hat_hood_d: 'Le visage dans l’ombre. Seul le monocle brille.',
+      hat_crown: 'Couronne astrale', hat_crown_d: 'Pour qui a gravi les cercles.',
       hat_neon: 'Chapeau néon', hat_neon_d: 'Le bandeau pulse aux couleurs du réseau.',
       ring_default: 'Sceau d’origine', ring_default_d: 'Les couleurs du thème.',
       ring_gold: 'Sceau d’or', ring_gold_d: 'Segments en or massif.',
@@ -47,20 +47,21 @@
       wf_tokyo_1: 'Une ville qui s’allume avec tes tâches et tes sessions', wf_tokyo_2: 'Un chronographe à la place du minuteur', wf_tokyo_3: 'Des quêtes qui passent comme des affiches',
       wf_cartouche_1: 'Un monde en pixels qui défile doucement', wf_cartouche_2: 'Un petit marcheur qui somnole pendant le focus', wf_cartouche_3: 'Une carte par tâche quand tu es épuisé',
       wm_atelier_1: 'Focus : la brume monte', wm_atelier_2: 'Pause : la ville respire', wm_atelier_3: 'Fin : la cloche sonne',
-      cat_seq: 'Costumes de Séquence', seq_hint: 'Chaque Séquence atteinte débloque un costume pour ton familier. Il est à toi pour toujours.', seq_reach: 'Atteins la Séquence {n}',
+      cat_seq: 'Costumes de cercle', seq_hint: 'Chaque cercle atteint débloque un costume pour ton familier. Il est à toi pour toujours.', seq_reach: 'Atteins le cercle {n}',
       cs_none: 'Sans costume', cs_none_d: 'Ton familier au naturel.', cs_won: 'Costume débloqué : {name}', unequip: 'Retirer',
+      cs_seer: 'Foulard d’or', cs_clown: 'Bouffon', cs_magician: 'Prestidigitateur', cs_scholar: 'Savant', cs_bizarro: 'Couronne d’orbes', cs_miracle: 'Auréole', cs_fool: 'Manteau d’étoiles',
       cs_seer_d: 'Foulard pourpre, pièces d’or et troisième œil.', cs_clown_d: 'Fraise, nez rouge et chapeau pointu.', cs_magician_d: 'Haut-de-forme, nœud papillon et cape.',
       cs_faceless_d: 'Un masque lisse. Qui est vraiment derrière ?', cs_marionettist_d: 'Une croix de bois et des fils invisibles.', cs_bizarro_d: 'Diadème d’orbes et filaments violets.',
-      cs_scholar_d: 'Toque de savant et monocle d’or.', cs_miracle_d: 'Auréole dorée et rayons de lumière.', cs_attendant_d: 'Capuche grise, étoile d’or et brume.', cs_fool_d: 'Haut-de-forme étoilé, cape grise et brouillard.',
+      cs_scholar_d: 'Toque de savant et monocle d’or.', cs_miracle_d: 'Auréole dorée et rayons de lumière.', cs_attendant_d: 'Capuche grise, étoile d’or et brume.', cs_fool_d: 'Haut-de-forme étoilé, cape de nuit et brume.',
     },
     en: {
       shop: 'Shop', gold_n: '{n} gold', buy: 'Buy', equip: 'Equip', equipped: 'Equipped', owned: 'owned', use: 'Use', not_enough: 'Not enough gold: you need {n} more ◈.',
-      bought: '{name} bought', shop_hint: 'You earn 1 gold per 4 XP. Potions get used up; cosmetics are yours forever.',
+      bought: '{name} bought', shop_hint: 'You earn 1 gold per 4 XP (half for daily quests). Potions get used up; cosmetics are yours forever.',
       cat_hats: 'Hats', cat_rings: 'Seal ring', cat_bursts: 'End-of-session effect', cat_familiars: 'Familiars', cat_potions: 'Potions',
       hat_wizard: "Merlin's hat", hat_wizard_d: 'The classic, monocle included.',
       hat_tophat: "The Fool's top hat", hat_tophat_d: 'Victorian elegance above the gray fog.',
-      hat_hood: 'Shadow hood', hat_hood_d: 'Faceless. Only the monocle glints.',
-      hat_crown: 'Astral crown', hat_crown_d: 'For those who climbed the Sequences.',
+      hat_hood: 'Shadow hood', hat_hood_d: 'A face in shadow. Only the monocle glints.',
+      hat_crown: 'Astral crown', hat_crown_d: 'For those who climbed the Circles.',
       hat_neon: 'Neon hat', hat_neon_d: 'The band pulses with network colors.',
       ring_default: 'Original seal', ring_default_d: 'The theme colors.',
       ring_gold: 'Golden seal', ring_gold_d: 'Solid gold segments.',
@@ -95,11 +96,12 @@
       wf_tokyo_1: 'A city that lights up with your tasks and sessions', wf_tokyo_2: 'A chronograph instead of the timer', wf_tokyo_3: 'Quests that pass by like posters',
       wf_cartouche_1: 'A pixel world scrolling gently by', wf_cartouche_2: 'A little walker who dozes during focus', wf_cartouche_3: 'One card per task when you’re drained',
       wm_atelier_1: 'Focus: the fog rises', wm_atelier_2: 'Pause: the city breathes', wm_atelier_3: 'End: the bell rings',
-      cat_seq: 'Sequence costumes', seq_hint: 'Every Sequence you reach unlocks a costume for your familiar. It’s yours forever.', seq_reach: 'Reach Sequence {n}',
+      cat_seq: 'Circle costumes', seq_hint: 'Every Circle you reach unlocks a costume for your familiar. It’s yours forever.', seq_reach: 'Reach Circle {n}',
       cs_none: 'No costume', cs_none_d: 'Your familiar as it is.', cs_won: 'Costume unlocked: {name}', unequip: 'Remove',
+      cs_seer: 'Gold scarf', cs_clown: 'Jester', cs_magician: 'Stage magician', cs_scholar: 'Scholar', cs_bizarro: 'Orb circlet', cs_miracle: 'Halo', cs_fool: 'Star cloak',
       cs_seer_d: 'Purple headscarf, gold coins and a third eye.', cs_clown_d: 'Ruff, red nose and pointy hat.', cs_magician_d: 'Top hat, bow tie and cape.',
       cs_faceless_d: 'A smooth mask. Who is really behind it?', cs_marionettist_d: 'A wooden cross and invisible strings.', cs_bizarro_d: 'A circlet of orbs and violet tendrils.',
-      cs_scholar_d: 'Scholar’s cap and golden monocle.', cs_miracle_d: 'Golden halo and rays of light.', cs_attendant_d: 'Gray hood, golden star and mist.', cs_fool_d: 'Starred top hat, gray cape and fog.',
+      cs_scholar_d: 'Scholar’s cap and golden monocle.', cs_miracle_d: 'Golden halo and rays of light.', cs_attendant_d: 'Gray hood, golden star and mist.', cs_fool_d: 'Starred top hat, night cape and mist.',
     },
   });
 
@@ -153,13 +155,14 @@
     if (S.legacyDrained && !E.legacyWorlds) { for (const k of Object.keys(CATALOG.world)) if (!E.owned.world.includes(k)) E.owned.world.push(k); E.legacyWorlds = true; } // they had them free before 3.74
   }
 
-  /* ---------- Sequence costumes: earned by reaching each Sequence, never lost ----------
+  /* ---------- Circle costumes: earned by reaching each Circle, never lost ----------
      Stored as a plain list of keys, which the sync merges as a union (an unlock on one device survives
      whatever the other device did), and re-derived from XP so a costume can't go missing. */
-  const csName = k => (ML.SEQUENCES[ML.COSTUMES.indexOf(k)] || [0, k])[1];
+  const csName = k => t('cs_' + k); // each costume has its own name since 3.76 (they used to carry the Sequence names)
   function grantCostumes(announce) {
     if (!S.econ || !ML.COSTUMES) return;
     migrate();
+    if (S.econ.equip.costume && S.econ.equip.costume !== 'none' && !ML.COSTUMES.includes(S.econ.equip.costume)) { S.econ.equip.costume = 'none'; save(); } // a costume retired in 3.76
     const i = ML.seqInfo().i, have = S.econ.owned.costume, won = ML.COSTUMES.slice(0, i + 1).filter(k => !have.includes(k));
     if (!won.length) return;
     have.push(...won); save();
@@ -178,7 +181,7 @@
 
   /* ---------- Gold ---------- */
   on('xp', n => {
-    let g = Math.max(1, Math.ceil(n / 4));
+    let g = Math.max(1, Math.ceil(n / 4 * (ML.xpGoldRate == null ? 1 : ML.xpGoldRate)));
     if (S.econ.midas > 0) { const part = Math.min(n, S.econ.midas); S.econ.midas -= part; g += Math.ceil(part / 4); } // Midas potion: double gold on the next 100 XP
     S.econ.gold += g; save(); renderGold();
     setTimeout(() => ML.floater && ML.floater('+' + g + ' ◈', 'gold'), 250);
@@ -417,7 +420,7 @@
   const passes = (cat, k) => { if (filter === 'all') return true; const st = stateOf(cat, k); return filter === 'own' ? st.own : !st.own; };
   const shelfList = c => itemsOf(c).filter(([a, k]) => !FILTERED.includes(c) || passes(a, k));
   const nameOf = (cat, k) => (cat === 'costume' ? (k === 'none' ? t('cs_none') : csName(k)) : label(cat, k));
-  const descOf = (cat, k) => { if (cat !== 'costume') return desc(cat, k); const st = stateOf(cat, k); return st.own ? t('cs_' + k + '_d') : t('seq_reach', { n: 9 - st.seq }); };
+  const descOf = (cat, k) => { if (cat !== 'costume') return desc(cat, k); const st = stateOf(cat, k); return st.own ? t('cs_' + k + '_d') : t('seq_reach', { n: st.seq + 1 }); };
   const picOf = (cat, k) => (cat === 'costume' ? (ML.costumeSvg ? ML.costumeSvg(k === 'none' ? null : k) : '') : preview(cat, k));
   const goldNow = () => S.econ.gold.toLocaleString(ML.locale());
 
