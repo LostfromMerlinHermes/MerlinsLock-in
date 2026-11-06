@@ -361,6 +361,7 @@
   on('render', () => { if (S.tab === 'day') bgRender(); });
   on('started', () => { if (!(S.planner.startH >= 4)) { S.planner.startH = 7; save(); } }); // 3.11 allowed 0: auto-plan would start at midnight
   on('tab', name => { if (name === 'day') { render.scrolled = false; render(); } });
+  ML.layoutItems = layoutItems; // calendar.js Day and Week grids
   ML.plannerGoto = k => { S.planner.date = k === today() ? null : k; render.scrolled = false; ML.setTab('day'); };
 
   ML.settingsSection({

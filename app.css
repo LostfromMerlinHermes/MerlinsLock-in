@@ -792,6 +792,52 @@ button.ev-title:hover { color: var(--accent); }
 .up-day { display: grid; gap: 4px; }
 .cal-ics { grid-auto-flow: row; }
 .cal-ics .hint { margin: 0; }
+/* Day / Week / Month switch and the hour grids (3.77) */
+.cal-views { max-width: 320px; margin-bottom: 8px; }
+.cw { --gut: 40px; display: grid; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); overflow: hidden; margin: 8px 0; }
+.cw-row { display: grid; grid-template-columns: var(--gut) repeat(var(--n), minmax(0, 1fr)); }
+.cw-head { border-bottom: 1px solid var(--line); }
+.cw-dh { display: grid; justify-items: center; gap: 0; padding: 5px 2px; min-height: 0; background: none; border: 0; box-shadow: none; border-radius: 0; font-family: var(--f-body); }
+.cw-dh small { font-size: var(--t-1); color: var(--mist); text-transform: capitalize; }
+.cw-dh b { display: grid; place-items: center; min-width: 26px; height: 26px; border-radius: 99px; font-size: var(--t-2); }
+.cw-dh:hover b { background: var(--soft); }
+.cw-dh.today b { background: var(--accent-2); color: var(--on-accent, var(--ink)); }
+.cw-allday { border-bottom: 1px solid var(--line); padding: 3px 0; }
+.cw-ad { display: grid; gap: 2px; padding: 0 2px; min-width: 0; align-content: start; }
+.cw-adev { display: block; min-height: 0; padding: 1px 5px; border: 0; border-left: 3px solid var(--c, var(--warn)); border-radius: 0 4px 4px 0; background: color-mix(in srgb, var(--c, var(--warn)) 16%, transparent); box-shadow: none; font-family: var(--f-body); font-size: var(--t-1); font-weight: 600; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cw-adev.due { color: var(--warn); }
+.cw-scroll { max-height: 560px; overflow-y: auto; scrollbar-width: thin; }
+.cw-body { position: relative; margin: 6px 0; }
+.cw-body .pl-hour span { left: 3px; }
+.cw-col { position: relative; border-left: 1px solid var(--line); cursor: cell; touch-action: pan-y; }
+.cw-col.today { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.cw-now { left: 0; }
+.cw-it { cursor: pointer; padding: 2px 5px; }
+.cw .cw-it { display: flex; flex-direction: column; }
+.cw .cw-it b { white-space: normal; overflow-wrap: anywhere; max-height: 2.6em; min-height: 1.3em; flex: none; }
+.cw-it.short { display: flex; flex-direction: row; gap: 5px; align-items: baseline; padding-top: 0; padding-bottom: 0; }
+.cw .cw-it.short b { white-space: nowrap; max-height: 1.3em; flex: 1 1 auto; min-width: 0; }
+.cw-it.short span { display: none; }
+.cw .cw-it span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: none; }
+.cw-it:hover, .cw-it:focus-visible { filter: brightness(1.15); outline: 1px solid var(--c, var(--accent)); }
+.cw-it.pl-blk { cursor: pointer; touch-action: auto; }
+.cal-day-mini { margin-top: 0; }
+.cal-day-bare { margin: 0 0 8px; }
+/* Week: the hour grid needs room; in a narrow column (side panel, phone) the days become a list */
+.cal-wk { container-type: inline-size; }
+.cw-ag { display: none; gap: 4px; margin: 8px 0; }
+@container (max-width: 559px) {
+  .cw-wide { display: none; }
+  .cw-ag { display: grid; }
+}
+.cw-ag-day { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 6px; align-items: start; padding: 3px 8px 3px 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.cw-ag-day.today { border-color: var(--accent-2); }
+.cw-ag-day.past { opacity: .65; }
+.cw-ag-body { display: grid; gap: 4px; min-width: 0; padding-top: 4px; }
+.cw-ag-none { margin: 0; padding-top: 6px; }
+.cw-ag .cw-dh { grid-auto-flow: column; justify-content: start; align-items: center; gap: 4px; padding: 4px 0 4px 8px; }
+.cw-ag-blk { justify-self: start; }
+html.mnav-on .cw-scroll { max-height: calc(100dvh - 300px); min-height: 300px; }
 
 /* ---------- Day planner ---------- */
 .pl-tray { display: grid; gap: 4px; }

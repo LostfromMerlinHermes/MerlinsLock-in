@@ -72,7 +72,7 @@
     if (seg) {
       seg.hidden = !inPlan;
       if (inPlan) {
-        const html = [['plan', 'nav_list'], ['day', 'tab_day'], ['cal', 'nav_month']].map(([k, s]) => `<button type="button" data-seg="${k}" aria-pressed="${S.tab === k}">${esc(t(s))}</button>`).join('');
+        const html = [['plan', 'nav_list'], ['day', 'tab_day'], ['cal', 'tab_cal']].map(([k, s]) => `<button type="button" data-seg="${k}" aria-pressed="${S.tab === k}">${esc(t(s))}</button>`).join('');
         if (seg.dataset.h !== html) { seg.innerHTML = html; seg.dataset.h = html; }
       }
     }

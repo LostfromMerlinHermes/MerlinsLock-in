@@ -15,7 +15,7 @@
       due_tasks: 'Tâches à rendre', plan_this_day: 'Planifier cette journée', blocks_planned_one: '{n} bloc planifié ({m})', blocks_planned: '{n} blocs planifiés ({m})',
       import_ics: 'Importer un .ics', export_ics: 'Exporter en .ics', ics_hint: 'Exporte ton agenda Google ou Outlook en fichier .ics, puis importe-le ici.',
       imported: '{n} événement(s) importé(s)', import_none: 'Aucun événement trouvé dans ce fichier.', reminder: 'Rappel : {title} à {time}', reminder_day: 'Demain : {title}',
-      delete_event: 'Supprimer l’événement',
+      delete_event: 'Supprimer l’événement', cal_v_day: 'Jour', cal_v_week: 'Semaine', cal_v_month: 'Mois',
     },
     en: {
       new_event: 'Event', today_btn: 'Today', upcoming: 'Upcoming', nothing_upcoming: 'Nothing planned in the next 14 days.',
@@ -28,7 +28,7 @@
       due_tasks: 'Tasks due', plan_this_day: 'Plan this day', blocks_planned_one: '{n} block planned ({m})', blocks_planned: '{n} blocks planned ({m})',
       import_ics: 'Import .ics', export_ics: 'Export .ics', ics_hint: 'Export your Google or Outlook calendar as an .ics file, then import it here.',
       imported: '{n} event(s) imported', import_none: 'No events found in that file.', reminder: 'Reminder: {title} at {time}', reminder_day: 'Tomorrow: {title}',
-      delete_event: 'Delete event',
+      delete_event: 'Delete event', cal_v_day: 'Day', cal_v_week: 'Week', cal_v_month: 'Month',
     },
   });
 
@@ -39,7 +39,7 @@
   const CATS = Object.fromEntries(Object.entries(CAT_SLOT).map(([k, n]) => [k, slotVar(n)]));
   ML.CATS = CATS;
   ML.evColor = ev => slotVar(ev.color || CAT_SLOT[ev.cat] || CAT_SLOT.perso);
-  ML.defaults(() => ({ events: [], notified: {}, cal: { month: null, sel: null } }));
+  ML.defaults(() => ({ events: [], notified: {}, cal: { month: null, sel: null, view: 'month' } }));
 
   /* ---------- Occurrences ---------- */
   function occursOn(ev, k) {
@@ -65,58 +65,151 @@
 
   /* ---------- Rendering ---------- */
   let editing = null; // event id, or 'new'
+  let draftStart = null; // start time of a new event picked on the hour grid
   const monthOf = k => k.slice(0, 7);
+  const VIEWS = ['day', 'week', 'month'];
+  const view = () => VIEWS.includes(S.cal.view) ? S.cal.view : 'month';
+  const weekStart = k => addDays(k, -((parseDay(k).getDay() + 6) % 7));
+  const nowMins = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+  const loc = () => ML.locale();
+  const blocksOn = k => (S.blocks || []).filter(b => b.date === k);
+  const blockName = b => { const x = b.taskId && S.tasks.find(y => y.id === b.taskId); return x ? ML.titleOf(x) : (b.title || '?'); };
+  const sumBlocks = blocks => tn('blocks_planned', blocks.length, { m: fmtMins(blocks.reduce((a, b) => a + b.mins, 0)) });
+  function headTitle(v, C, first) {
+    if (v === 'day') return parseDay(C.sel).toLocaleDateString(loc(), { weekday: 'long', day: 'numeric', month: 'long' });
+    if (v === 'week') {
+      const a = parseDay(weekStart(C.sel)), b = parseDay(addDays(weekStart(C.sel), 6));
+      if (a.getMonth() === b.getMonth()) return a.getDate() + '–' + b.toLocaleDateString(loc(), { day: 'numeric', month: 'long', year: 'numeric' });
+      return a.toLocaleDateString(loc(), { day: 'numeric', month: 'short' }) + ' – ' + b.toLocaleDateString(loc(), { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    return first.toLocaleDateString(loc(), { month: 'long', year: 'numeric' });
+  }
   function render() {
     const root = $('calendar'); if (!root) return;
-    const C = S.cal;
+    const C = S.cal, v = view();
     if (!C.sel) C.sel = today();
     if (!C.month) C.month = monthOf(C.sel);
     const [y, m] = C.month.split('-').map(Number);
-    const first = new Date(y, m - 1, 1), startDow = (first.getDay() + 6) % 7;
-    const gridStart = new Date(y, m - 1, 1 - startDow);
-    const td = today();
-    const wd = [...Array(7)].map((_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(ML.locale(), { weekday: 'narrow' }));
-    let cells = '';
-    for (let i = 0; i < 42; i++) {
-      const d = new Date(gridStart); d.setDate(gridStart.getDate() + i);
-      const k = dayKey(d), evs = eventsOn(k), dues = dueOn(k), blocks = (S.blocks || []).filter(b => b.date === k);
-      const dots = evs.slice(0, 3).map(o => `<i style="background:${ML.evColor(o.ev)}"></i>`).join('')
-        + (dues.length ? `<i class="due-dot"></i>` : '') + (blocks.length ? `<i class="blk-dot"></i>` : '');
-      cells += `<button type="button" class="cal-cell ${monthOf(k) !== C.month ? 'out' : ''} ${k === td ? 'today' : ''} ${k === C.sel ? 'sel' : ''}" data-day="${k}">
-        <span>${d.getDate()}</span><span class="dots">${dots}</span></button>`;
-    }
-    const sel = parseDay(C.sel);
-    const evs = eventsOn(C.sel), dues = dueOn(C.sel), blocks = (S.blocks || []).filter(b => b.date === C.sel);
+    const first = new Date(y, m - 1, 1);
+    // Re-renders (minute ticks, syncs, opening the form) keep the hour grid where the user left it
+    const prevSc = root.querySelector('.cw-scroll'), key = v + '@' + (v === 'week' ? weekStart(C.sel) : C.sel);
+    const keepTop = prevSc && render.placed === key ? prevSc.scrollTop : null;
+    if (render.placed !== key) render.placed = null;
     root.innerHTML = `
+      <div class="seg-toggle cal-views" role="group" aria-label="${esc(t('tab_cal'))}">${VIEWS.map(k => `<button type="button" data-calv="${k}" aria-pressed="${k === v}">${esc(t('cal_v_' + k))}</button>`).join('')}</div>
       <div class="cal-head">
         <button type="button" class="ghost icon-only" data-cal="prev" aria-label="‹">‹</button>
-        <h3>${esc(first.toLocaleDateString(ML.locale(), { month: 'long', year: 'numeric' }))}</h3>
+        <h3>${esc(headTitle(v, C, first))}</h3>
         <button type="button" class="ghost icon-only" data-cal="next" aria-label="›">›</button>
         <span class="grow"></span>
         <button type="button" class="ghost small" data-cal="today">${esc(t('today_btn'))}</button>
         <button type="button" class="primary small" data-cal="new">+ ${esc(t('new_event'))}</button>
       </div>
       ${editing ? formHtml() : ''}
-      <div class="cal-grid">${wd.map(w => `<span class="cal-wd">${esc(w)}</span>`).join('')}${cells}</div>
-      <div class="cal-day">
-        <h3>${esc(sel.toLocaleDateString(ML.locale(), { weekday: 'long', day: 'numeric', month: 'long' }))}</h3>
-        ${evs.length ? `<ul class="ev-list">${evs.map(evRow).join('')}</ul>` : dues.length || blocks.length ? '' : `<p class="hint">${esc(t('day_empty'))}</p>`}
-        ${dues.length ? `<p class="label">${esc(t('due_tasks'))}</p><ul class="ev-list">${dues.map(x => `<li><span class="ev-time">✓</span><span class="ev-title">${esc(ML.titleOf(x))}</span></li>`).join('')}</ul>` : ''}
-        <div class="cal-day-foot">
-          ${blocks.length ? `<span class="hint">${esc(tn('blocks_planned', blocks.length, { m: fmtMins(blocks.reduce((a, b) => a + b.mins, 0)) }))}</span>` : '<span></span>'}
-          <button type="button" class="ghost small" data-cal="plan">${esc(t('plan_this_day'))} →</button>
-        </div>
-      </div>
-      <div class="cal-up">
-        <h3>${esc(t('upcoming'))}</h3>
-        ${upcomingHtml()}
-      </div>
+      ${v === 'day' ? dayHtml(C.sel) : v === 'week' ? weekHtml(C.sel) : monthHtml(C, y, m, first)}
       <div class="cal-ics">
         <p class="hint">${esc(t('ics_hint'))}</p>
         <label class="file-btn small">${esc(t('import_ics'))}<input type="file" id="ics-in" accept=".ics,text/calendar"></label>
         ${ML.CAN_DOWNLOAD ? `<button type="button" class="ghost small" data-cal="export">${esc(t('export_ics'))}</button>` : ''}
       </div>`;
+    const sc = root.querySelector('.cw-scroll');
+    if (sc) {
+      if (keepTop != null) sc.scrollTop = keepTop;
+      else if (sc.clientHeight) { // hidden (another tab, or the week list is showing): wait for a visible render
+        render.placed = key;
+        // First look: an hour before now when the range holds today, else the first timed item, else 8:00
+        const days = v === 'week' ? [...Array(7)].map((_, i) => addDays(weekStart(C.sel), i)) : [C.sel];
+        const starts = days.flatMap(k => eventsOn(k).filter(o => o.start != null).map(o => o.start).concat(blocksOn(k).map(b => b.start)));
+        const anchor = days.includes(today()) ? Math.max(0, nowMins() - 60) : starts.length ? Math.min(...starts) : 8 * 60;
+        sc.scrollTop = Math.max(0, anchor / 60 * +sc.dataset.hpx - 8);
+      }
+    }
     const f = root.querySelector('.ev-form [name=title]'); if (f && !f.value) f.focus();
+  }
+
+  function monthHtml(C, y, m, first) {
+    const startDow = (first.getDay() + 6) % 7;
+    const gridStart = new Date(y, m - 1, 1 - startDow);
+    const td = today();
+    const wd = [...Array(7)].map((_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(loc(), { weekday: 'narrow' }));
+    let cells = '';
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(gridStart); d.setDate(gridStart.getDate() + i);
+      const k = dayKey(d), evs = eventsOn(k), dues = dueOn(k), blocks = blocksOn(k);
+      const dots = evs.slice(0, 3).map(o => `<i style="background:${ML.evColor(o.ev)}"></i>`).join('')
+        + (dues.length ? `<i class="due-dot"></i>` : '') + (blocks.length ? `<i class="blk-dot"></i>` : '');
+      cells += `<button type="button" class="cal-cell ${monthOf(k) !== C.month ? 'out' : ''} ${k === td ? 'today' : ''} ${k === C.sel ? 'sel' : ''}" data-day="${k}">
+        <span>${d.getDate()}</span><span class="dots">${dots}</span></button>`;
+    }
+    const sel = parseDay(C.sel);
+    const evs = eventsOn(C.sel), dues = dueOn(C.sel), blocks = blocksOn(C.sel);
+    return `
+      <div class="cal-grid">${wd.map(w => `<span class="cal-wd">${esc(w)}</span>`).join('')}${cells}</div>
+      <div class="cal-day">
+        <h3>${esc(sel.toLocaleDateString(loc(), { weekday: 'long', day: 'numeric', month: 'long' }))}</h3>
+        ${evs.length ? `<ul class="ev-list">${evs.map(evRow).join('')}</ul>` : dues.length || blocks.length ? '' : `<p class="hint">${esc(t('day_empty'))}</p>`}
+        ${duesHtml(dues)}
+        ${dayFoot(C.sel, blocks)}
+      </div>
+      <div class="cal-up">
+        <h3>${esc(t('upcoming'))}</h3>
+        ${upcomingHtml()}
+      </div>`;
+  }
+  const duesHtml = dues => dues.length ? `<p class="label">${esc(t('due_tasks'))}</p><ul class="ev-list">${dues.map(x => `<li style="--c:var(--warn)"><span class="ev-time">✓</span><span class="ev-title">${esc(ML.titleOf(x))}</span></li>`).join('')}</ul>` : '';
+  const dayFoot = (k, blocks) => `<div class="cal-day-foot">
+      ${blocks.length ? `<span class="hint">${esc(sumBlocks(blocks))}</span>` : '<span></span>'}
+      <button type="button" class="ghost small" data-cal="plan" data-k="${k}">${esc(t('plan_this_day'))} →</button>
+    </div>`;
+
+  // Hour grid shared by the Day (one column) and Week (seven columns) views. Events open their form,
+  // blocks open the Day planner, a tap on an empty spot starts a new event at that half hour.
+  function timeGrid(days, hpx, withHead) {
+    const td = today(), nm = nowMins(), H = 24 * hpx;
+    const lay = ML.layoutItems || (x => x.map(it => Object.assign(it, { col: 0, ncol: 1 })));
+    let hours = '';
+    for (let h = 1; h < 24; h++) hours += `<div class="pl-hour" style="top:${h * hpx}px"><span>${ML.pad2(h)}:00</span></div>`;
+    const cols = days.map(k => {
+      const items = [];
+      eventsOn(k).forEach(o => { if (o.start != null) items.push({ kind: 'ev', start: o.start, end: Math.min(o.end, 24 * 60), ev: o.ev }); });
+      blocksOn(k).forEach(b => items.push({ kind: 'blk', start: b.start, end: b.start + b.mins, b }));
+      lay(items);
+      const html = items.map(it => {
+        const top = it.start / 60 * hpx, h = Math.max(16, (it.end - it.start) / 60 * hpx), w = 100 / it.ncol;
+        const style = `top:${top}px;height:${h}px;left:calc(${it.col * w}% + 1px);width:calc(${w}% - 3px)`;
+        if (it.kind === 'ev') return `<div class="pl-ev cw-it ${h < 30 ? 'short' : ''}" role="button" tabindex="0" data-ev="${it.ev.id}" style="${style};--c:${ML.evColor(it.ev)}"><b>${esc(it.ev.title)}</b><span>${hm(it.start)}–${hm(it.end)}</span></div>`;
+        const b = it.b, task = b.taskId && S.tasks.find(x => x.id === b.taskId);
+        return `<div class="pl-blk cw-it ${h < 30 ? 'short' : ''} ${b.done || (task && task.done) ? 'done' : ''} ${b.color ? 'has-c' : ''}" role="button" tabindex="0" data-blkday="${k}" style="${style}${b.color ? `;--c:var(--ev-${b.color})` : ''}"><b>${esc(blockName(b))}</b><span>${hm(b.start)}–${hm(b.start + b.mins)}</span></div>`;
+      }).join('');
+      const past = k === td ? `<div class="pl-past" style="height:${nm / 60 * hpx}px"></div>` : k < td ? `<div class="pl-past" style="height:${H}px"></div>` : '';
+      const now = k === td ? `<div class="pl-now cw-now" style="top:${nm / 60 * hpx}px"></div>` : '';
+      return `<div class="cw-col ${k === td ? 'today' : ''}" data-slot="${k}">${past}${html}${now}</div>`;
+    }).join('');
+    const hasAllDay = days.some(k => eventsOn(k).some(o => o.start == null) || dueOn(k).length);
+    const allDay = days.map(k => `<div class="cw-ad">${eventsOn(k).filter(o => o.start == null).map(o => `<button type="button" class="cw-adev" data-ev="${o.ev.id}" style="--c:${ML.evColor(o.ev)}">${esc(o.ev.title)}</button>`).join('')}${dueOn(k).map(x => `<span class="cw-adev due" title="${esc(t('due'))}">${esc(ML.titleOf(x))}</span>`).join('')}</div>`).join('');
+    const head = withHead ? `<div class="cw-row cw-head"><span></span>${days.map(k => { const d = parseDay(k); return `<button type="button" class="cw-dh ${k === td ? 'today' : ''}" data-gday="${k}"><small>${esc(d.toLocaleDateString(loc(), { weekday: 'short' }))}</small><b>${d.getDate()}</b></button>`; }).join('')}</div>` : '';
+    return `<div class="cw" style="--n:${days.length}">
+      ${head}
+      ${hasAllDay ? `<div class="cw-row cw-allday"><span></span>${allDay}</div>` : ''}
+      <div class="cw-scroll" data-hpx="${hpx}"><div class="cw-row cw-body" style="height:${H}px">${hours}<span></span>${cols}</div></div>
+    </div>`;
+  }
+  const dayHtml = k => `${timeGrid([k], 52, false)}
+      ${dueOn(k).length || blocksOn(k).length ? `<div class="cal-day cal-day-mini">${dayFoot(k, blocksOn(k))}</div>` : `<div class="cal-day-foot cal-day-bare"><span></span><button type="button" class="ghost small" data-cal="plan" data-k="${k}">${esc(t('plan_this_day'))} →</button></div>`}`;
+  // Week: an hour grid when there is room, else the seven days as a list (a container query picks one)
+  function weekHtml(k) {
+    const days = [...Array(7)].map((_, i) => addDays(weekStart(k), i)), td = today();
+    const list = days.map(d => {
+      const evs = eventsOn(d), dues = dueOn(d), blocks = blocksOn(d), dd = parseDay(d);
+      const rows = evs.map(evRow).join('') + dues.map(x => `<li style="--c:var(--warn)"><span class="ev-time">${esc(t('due'))}</span><span class="ev-title">${esc(ML.titleOf(x))}</span></li>`).join('');
+      const body = (rows ? `<ul class="ev-list">${rows}</ul>` : '')
+        + (blocks.length ? `<button type="button" class="ghost small cw-ag-blk" data-cal="plan" data-k="${d}">${esc(sumBlocks(blocks))} →</button>` : '')
+        || `<span class="hint cw-ag-none">${esc(t('day_empty'))}</span>`;
+      return `<div class="cw-ag-day ${d === td ? 'today' : ''} ${d < td ? 'past' : ''}">
+        <button type="button" class="cw-dh ${d === td ? 'today' : ''}" data-gday="${d}"><small>${esc(dd.toLocaleDateString(loc(), { weekday: 'short' }))}</small><b>${dd.getDate()}</b></button>
+        <div class="cw-ag-body">${body}</div></div>`;
+    }).join('');
+    return `<div class="cal-wk"><div class="cw-wide">${timeGrid(days, 40, true)}</div><div class="cw-ag">${list}</div></div>`;
   }
   function evRow(o) {
     const ev = o.ev;
@@ -140,7 +233,7 @@
     return html || `<p class="hint">${esc(t('nothing_upcoming'))}</p>`;
   }
   function formHtml() {
-    const ev = editing === 'new' ? { title: '', date: S.cal.sel || today(), start: '09:00', mins: 60, cat: 'class', repeat: 'none', remind: 15, notes: '' } : S.events.find(e => e.id === editing);
+    const ev = editing === 'new' ? { title: '', date: S.cal.sel || today(), start: draftStart || '09:00', mins: 60, cat: 'class', repeat: 'none', remind: 15, notes: '' } : S.events.find(e => e.id === editing);
     if (!ev) { editing = null; return ''; }
     const opt = (vals, cur, pre) => vals.map(v => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${esc(t(pre + v))}</option>`).join('');
     const durs = [15, 30, 45, 60, 90, 120, 180, 240];
@@ -174,9 +267,31 @@
 
   /* ---------- Events ---------- */
   const root = $('calendar');
+  // Hour grid: an event opens its form, a block opens the Day planner, an empty spot starts a new event there
+  function gridHit(e) {
+    const it = e.target.closest('.cw-it');
+    if (it && it.dataset.ev) { editing = it.dataset.ev; draftStart = null; }
+    else if (it && it.dataset.blkday) { ML.plannerGoto && ML.plannerGoto(it.dataset.blkday); return true; }
+    else {
+      const col = e.target.closest('[data-slot]'); if (!col) return false;
+      const sc = col.closest('.cw-scroll'), hpx = +sc.dataset.hpx, r = col.getBoundingClientRect();
+      const mins = Math.min(23 * 60 + 30, Math.max(0, Math.floor((e.clientY - r.top) / hpx * 2) * 30));
+      S.cal.sel = col.dataset.slot; S.cal.month = monthOf(S.cal.sel);
+      editing = 'new'; draftStart = hm(mins);
+    }
+    save(); render();
+    root.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    return true;
+  }
+  root.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.cw-it')) { e.preventDefault(); gridHit(e); }
+  });
   root.addEventListener('click', e => {
+    if (!e.target.closest('button') && gridHit(e)) return;
     const b = e.target.closest('button'); if (!b) return;
     const C = S.cal;
+    if (b.dataset.calv) { C.view = b.dataset.calv; editing = null; save(); render(); return; }
+    if (b.dataset.gday) { C.sel = b.dataset.gday; C.month = monthOf(C.sel); C.view = 'day'; save(); render(); return; }
     if (b.dataset.evc) { // the color dot cycles through the 8 colors
       const ev = S.events.find(x => x.id === b.dataset.evc); if (!ev) return;
       const cur = ev.color || CAT_SLOT[ev.cat] || 3; ev.color = (cur % 8) + 1;
@@ -184,13 +299,16 @@
     }
     if (b.dataset.day) { C.sel = b.dataset.day; if (monthOf(C.sel) !== C.month) C.month = monthOf(C.sel); }
     else if (b.dataset.cal === 'prev' || b.dataset.cal === 'next') {
-      const [y, m] = C.month.split('-').map(Number), d = new Date(y, m - 1 + (b.dataset.cal === 'next' ? 1 : -1), 1);
-      C.month = dayKey(d).slice(0, 7);
+      const dir = b.dataset.cal === 'next' ? 1 : -1, v = view();
+      if (v === 'month') {
+        const [y, m] = C.month.split('-').map(Number), d = new Date(y, m - 1 + dir, 1);
+        C.month = dayKey(d).slice(0, 7);
+      } else { C.sel = addDays(C.sel, dir * (v === 'week' ? 7 : 1)); C.month = monthOf(C.sel); }
     }
     else if (b.dataset.cal === 'today') { C.sel = today(); C.month = monthOf(C.sel); }
-    else if (b.dataset.cal === 'new') editing = 'new';
+    else if (b.dataset.cal === 'new') { editing = 'new'; draftStart = null; }
     else if (b.dataset.cal === 'cancel') editing = null;
-    else if (b.dataset.cal === 'plan') { ML.plannerGoto && ML.plannerGoto(C.sel); return; }
+    else if (b.dataset.cal === 'plan') { ML.plannerGoto && ML.plannerGoto(b.dataset.k || C.sel); return; }
     else if (b.dataset.cal === 'export') { exportIcs(); return; }
     else if (b.dataset.ev) editing = b.dataset.ev;
     else if (b.id === 'ev-del') { S.events = S.events.filter(x => x.id !== editing); editing = null; toast(t('ev_deleted')); }
