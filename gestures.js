@@ -23,7 +23,7 @@
       return;
     }
     // The edge of the screen
-    if ((x < EDGE || x > innerWidth - EDGE) && !tg.closest('input, textarea, .rd, .pl-scroll, .qt, .pl-pop')) { g = { kind: 'edge', x, y }; return; }
+    if ((x < EDGE || x > innerWidth - EDGE) && !tg.closest('input, textarea, .rd, .pl-scroll, .dg-scroll, .dg-sheet, .qt, .pl-pop')) { g = { kind: 'edge', x, y }; return; }
     // The dial, at the top of the Timer screen
     if (root.dataset.mview === 'timer' && scrollY <= 0 && tg.closest('.ring-wrap, .card-head') && !tg.closest('button')) g = { kind: 'pull', y, x, card: $('sigil-card') };
   }, { passive: true });
