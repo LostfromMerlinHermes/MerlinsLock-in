@@ -17,8 +17,16 @@
       dg_pushed_one: '1 bloc décalé', dg_pushed: '{n} blocs décalés', dg_undo: 'Annuler', dg_removed: 'Retiré', dg_once_removed: 'Retiré cette fois',
       dg_to_place: 'À placer', dg_to_place_n_one: '1 tâche, {m}', dg_to_place_n: '{n} tâches, {m}', dg_tray_hint: 'Glisse une tâche sur la grille, ou touche-la pour la mettre au prochain créneau libre.',
       dg_tray_empty: 'Toutes tes tâches ouvertes sont placées.', dg_autoweek: 'Auto-planifier la semaine', dg_week_free: 'libre {d}', dg_feed: 'Événement d’un agenda importé : il se met à jour tout seul, on ne peut pas le déplacer.',
+      dg_side_off: 'Masquer le panneau', dg_side_on: 'Afficher le panneau', dg_check: 'Case à cocher', dg_check_hint: 'Pour ce qui se fait ou pas (exos oui, repos non).',
       dg_lock: 'Lock in', dg_pause: 'Pause', dg_close: 'Fermer', dg_saved: 'Ajouté', dg_all_day: 'Toute la journée', dg_due: 'À rendre',
       dg_set_push: 'Faire de la place : poser un bloc sur un créneau pris décale les blocs suivants', dg_set_from: 'Mes heures : de', dg_set_to: 'Mes heures : à',
+      dg_rep: 'Répéter', dg_rep_no: 'Non', dg_rep_daily: 'Chaque jour', dg_rep_days: 'Certains jours', dg_rep_until: 'Jusqu’au', dg_rep_once: 'Changé ce jour seulement', dg_rep_all: 'Tous les suivants', dg_rep_all_done: 'Les suivants sont changés', dg_del_next: 'Supprimer les suivants', dg_rep_stopped: 'Les suivants sont retirés',
+      dg_of: 'sur', dg_score: 'Minuteur fait, sur le temps prévu en blocs à cocher',
+      dg_miss_n_one: '1 bloc pas fait', dg_miss_n: '{n} blocs pas faits', dg_miss_y: 'hier', dg_miss_t: 'aujourd’hui', dg_place: 'Placer', dg_place_today: 'Tout placer aujourd’hui', dg_place_tmr: 'Tout placer demain', dg_ignore: 'Ignorer',
+      dg_placed_one: '1 bloc replacé', dg_placed: '{n} blocs replacés', dg_next_slot: 'Prochain créneau libre', dg_tmr_slot: 'Demain', dg_resched: 'Replacer', dg_no_free: 'Pas de créneau libre.',
+      dg_tpls: 'Modèles de journée', dg_tpl_save: 'Enregistrer ce jour', dg_tpl_name: 'Nom du modèle', dg_tpl_saved: 'Modèle enregistré', dg_tpl_none: 'Enregistre une journée pour la reposer sur un autre jour.', dg_tpl_n_one: '1 bloc', dg_tpl_n: '{n} blocs',
+      dg_tpl_added_one: '1 bloc ajouté', dg_tpl_added: '{n} blocs ajoutés', dg_tpl_empty: 'Aucun bloc ce jour-là.', dg_tpl_del: 'Supprimer le modèle', dg_tpl_deleted: 'Modèle supprimé',
+      dg_due_plan: '{p} prévues sur {e}', dg_due_left: '{d} à placer', dg_spread: 'Répartir d’ici {d}', dg_spread_n_one: '1 bloc posé', dg_spread_n: '{n} blocs posés', dg_spread_short: '{d} n’ont pas trouvé de place',
       key_dg_new: 'Nouvel élément (Journée, Agenda)', key_dg_today: 'Aujourd’hui (Journée, Agenda)', key_dg_move: 'Déplacer de 15 min ; avec Maj, changer la durée', key_dg_day: 'Jour ou semaine précédent, suivant', key_dg_del: 'Retirer l’élément sélectionné',
     },
     en: {
@@ -32,13 +40,23 @@
       dg_pushed_one: '1 block moved', dg_pushed: '{n} blocks moved', dg_undo: 'Undo', dg_removed: 'Removed', dg_once_removed: 'Removed this time',
       dg_to_place: 'To place', dg_to_place_n_one: '1 task, {m}', dg_to_place_n: '{n} tasks, {m}', dg_tray_hint: 'Drag a task onto the grid, or tap it to put it in the next free slot.',
       dg_tray_empty: 'All your open tasks are placed.', dg_autoweek: 'Auto-plan the week', dg_week_free: 'free {d}', dg_feed: 'Event from an imported calendar: it updates on its own and can’t be moved.',
+      dg_side_off: 'Hide the panel', dg_side_on: 'Show the panel', dg_check: 'Tick box', dg_check_hint: 'For things you do or don’t (exercises yes, rest no).',
       dg_lock: 'Lock in', dg_pause: 'Pause', dg_close: 'Close', dg_saved: 'Added', dg_all_day: 'All day', dg_due: 'Due',
       dg_set_push: 'Make room: dropping a block on a busy slot moves the next blocks later', dg_set_from: 'My hours: from', dg_set_to: 'My hours: to',
+      dg_rep: 'Repeat', dg_rep_no: 'No', dg_rep_daily: 'Every day', dg_rep_days: 'Some days', dg_rep_until: 'Until', dg_rep_once: 'Changed this day only', dg_rep_all: 'All next ones', dg_rep_all_done: 'The next ones are changed', dg_del_next: 'Delete the next ones', dg_rep_stopped: 'The next ones are removed',
+      dg_of: 'of', dg_score: 'Timer done, out of the time planned in blocks to tick',
+      dg_miss_n_one: '1 block not done', dg_miss_n: '{n} blocks not done', dg_miss_y: 'yesterday', dg_miss_t: 'today', dg_place: 'Place', dg_place_today: 'Place all today', dg_place_tmr: 'Place all tomorrow', dg_ignore: 'Ignore',
+      dg_placed_one: '1 block moved', dg_placed: '{n} blocks moved', dg_next_slot: 'Next free slot', dg_tmr_slot: 'Tomorrow', dg_resched: 'Move', dg_no_free: 'No free slot.',
+      dg_tpls: 'Day templates', dg_tpl_save: 'Save this day', dg_tpl_name: 'Template name', dg_tpl_saved: 'Template saved', dg_tpl_none: 'Save a day to put it on another day later.', dg_tpl_n_one: '1 block', dg_tpl_n: '{n} blocks',
+      dg_tpl_added_one: '1 block added', dg_tpl_added: '{n} blocks added', dg_tpl_empty: 'No blocks on this day.', dg_tpl_del: 'Delete the template', dg_tpl_deleted: 'Template deleted',
+      dg_due_plan: '{p} planned of {e}', dg_due_left: '{d} to place', dg_spread: 'Spread until {d}', dg_spread_n_one: '1 block placed', dg_spread_n: '{n} blocks placed', dg_spread_short: '{d} found no room',
       key_dg_new: 'New item (Journée, Agenda)', key_dg_today: 'Today (Journée, Agenda)', key_dg_move: 'Move by 15 min; with Shift, change the length', key_dg_day: 'Previous or next day, week', key_dg_del: 'Remove the selected item',
     },
   });
 
   const SNAP = 15, DAY = 1440, GUT = 46;
+  // Blocks that are not a task to tick by default (a break, rest, a meal); the form can switch it either way
+  const NOCHECK = /(^|[\s'’(-])(pause|repos|sieste|break|rest|nap|déjeuner|dîner|repas|lunch|dinner)($|[\s,.)-])/i;
   const HPX = { day: { compact: 28, normal: 52, large: 84 }, week: { compact: 22, normal: 34, large: 52 } };
   const I = {
     view: '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
@@ -47,12 +65,14 @@
     plus: '<path d="M12 5v14M5 12h14"/>', play: '<path d="M8 5l11 7-11 7z"/>', pause: '<path d="M8 5v14M16 5v14"/>',
     edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>', trash: '<path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/>',
     rep: '<path d="M4 12a7 7 0 0 1 12-5l2 2M20 12a7 7 0 0 1-12 5l-2-2M18 4v5h-5M6 20v-5h5"/>', bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5h4"/>',
+    side: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M14.5 5v14"/>',
     up: '<path d="M6 15l6-6 6 6"/>', down: '<path d="M6 9l6 6 6-6"/>', l: '<path d="M15 6l-6 6 6 6"/>', r: '<path d="M9 6l6 6-6 6"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>',
   };
   const ico = (k, cls = '') => `<svg class="dg-i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
   ML.dgIcon = ico;
 
   /* ---------- State ---------- */
+  ML.defaults(() => ({ blockRules: [], dayTpls: [] }));
   const C = () => S.cal || (S.cal = {});
   const myHours = () => [C().hFrom != null ? C().hFrom : 7, C().hTo != null ? C().hTo : 23];
   function disp(view) {
@@ -80,25 +100,66 @@
   const blockDone = b => !b.undone && !!(b.done || (blockTask(b) || {}).done);
   ML.blockDone = blockDone;
   const isRep = ev => !!(ev.repeat && ev.repeat !== 'none');
+  /* Repeating blocks (3.79): a rule in S.blockRules makes one real block per matching day, with the id
+     "<rule id>@<day>" so two devices make the same block (sync merges lists by id). A moved block keeps its id,
+     so the day it came from is not filled again; a deleted one adds its day to the rule's skip list. */
+  const RULES = () => S.blockRules || (S.blockRules = []);
+  const ruleOf = b => b && b.rule ? RULES().find(r => r.id === b.rule) || null : null;
+  const ruleDay = b => b.id.includes('@') ? b.id.split('@').pop() : b.date;
+  const ruleOn = (r, k) => k >= r.from && (!r.until || k <= r.until) && r.days.includes(parseDay(k).getDay()) && !(r.skip || []).includes(k);
+  function ensureRules(k) {
+    if (!S.blockRules || !S.blockRules.length || k < addDays(today(), -60)) return;
+    let n = 0;
+    S.blockRules.forEach(r => {
+      if (!ruleOn(r, k)) return;
+      const id = r.id + '@' + k;
+      if (S.blocks.some(b => b.id === id)) return;
+      const b = { id, date: k, start: r.start, mins: r.mins, taskId: null, title: r.title, color: r.color || null, done: false, rule: r.id };
+      if (r.check === false) b.check = false;
+      S.blocks.push(b); n++;
+    });
+    if (n) save();
+  }
+  // Blocks to tick whose time is over and that were not done (2A, 2B)
+  const isMissed = b => b.check !== false && !blockDone(b) && !b.skipped && (b.date < today() || (b.date === today() && b.start + b.mins <= nowMins()));
+  // Deadlines (5): the task's estimate against the blocks planned for it up to its due day
+  function dueInfo(task) {
+    if (!task || !task.due || task.done) return null;
+    const est = task.mins || 30;
+    const list = (S.blocks || []).filter(b => b.taskId === task.id && b.date <= task.due).sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start);
+    const planned = list.reduce((a, b) => a + b.mins, 0);
+    return { est, planned, left: Math.max(0, est - planned), list };
+  }
   function itemsOn(k) {
+    ensureRules(k);
     const out = [];
     ML.eventsOn(k).forEach(o => { if (o.start != null) out.push({ kind: 'ev', id: o.ev.id, k, s: o.start, e: Math.min(o.end, DAY), ev: o.ev, title: o.ev.title, c: ML.evColor(o.ev), rep: isRep(o.ev), feed: !!o.ev.src, rem: !!o.ev.remind }); });
-    (S.blocks || []).forEach(b => { if (b.date === k) out.push({ kind: 'blk', id: b.id, k, s: b.start, e: Math.min(b.start + b.mins, DAY), b, title: blockName(b), c: b.color ? `var(--ev-${b.color})` : 'var(--accent)', done: blockDone(b), active: S.activeBlock === b.id && ML.running() }); });
+    (S.blocks || []).forEach(b => {
+      if (b.date !== k) return;
+      let flag = null;
+      const di = b.taskId && dueInfo(blockTask(b));
+      if (di && b.date <= blockTask(b).due && (di.list.length > 1 || di.left > 0)) {
+        let cum = 0; for (const x of di.list) { cum += x.mins; if (x === b) break; }
+        flag = fmtMins(cum) + ' / ' + fmtMins(di.est);
+      }
+      out.push({ kind: 'blk', id: b.id, k, s: b.start, e: Math.min(b.start + b.mins, DAY), b, title: blockName(b), c: b.color ? `var(--ev-${b.color})` : 'var(--accent)', done: blockDone(b) && b.check !== false, nock: b.check === false, active: S.activeBlock === b.id && ML.running(), miss: isMissed(b), rep: !!b.rule, flag });
+    });
     return out;
   }
   const allDayOn = k => ML.eventsOn(k).filter(o => o.start == null).map(o => o.ev);
   const dueOn = k => S.tasks.filter(x => x.due === k && !x.done);
   // Busy intervals on a day (timed events + blocks), sorted
   function busy(k, exceptId) {
+    ensureRules(k);
     const out = [];
     ML.eventsOn(k).forEach(o => { if (o.start != null) out.push([o.start, Math.min(o.end, DAY)]); });
     (S.blocks || []).filter(b => b.date === k && b.id !== exceptId).forEach(b => out.push([b.start, b.start + b.mins]));
     return out.sort((a, b) => a[0] - b[0]);
   }
-  function nextFree(k, from, mins, end) {
+  function nextFree(k, from, mins, end, exceptId) {
     let s = Math.ceil(from / SNAP) * SNAP;
     end = end != null ? end : (S.planner.endH || 24) * 60;
-    for (const [a, b] of busy(k)) { if (s + mins <= a) break; if (b > s) s = Math.ceil(b / SNAP) * SNAP; }
+    for (const [a, b] of busy(k, exceptId)) { if (s + mins <= a) break; if (b > s) s = Math.ceil(b / SNAP) * SNAP; }
     return s + mins <= end ? s : null;
   }
   function freeMins(k) {
@@ -168,6 +229,7 @@
       const n = ripple(b.date, b);
       sel = { kind, id, k: b.date };
       changed(n ? tn('dg_pushed', n) : null, snap);
+      askRule(b);
     } else {
       const ev = getE(id); if (!ev) return;
       if (ev.src) { toast(t('dg_feed')); renderActive(); return; }
@@ -178,7 +240,11 @@
   }
   function removeItem(kind, id, k, series) {
     const snap = snapshot();
-    if (kind === 'blk') { S.blocks = S.blocks.filter(b => b.id !== id); changed(t('dg_removed'), snap); }
+    if (kind === 'blk') {
+      const b = getB(id), r = ruleOf(b);
+      if (r) { r.skip = (r.skip || []).filter(x => x >= addDays(today(), -60)); if (!r.skip.includes(ruleDay(b))) r.skip.push(ruleDay(b)); }
+      S.blocks = S.blocks.filter(x => x.id !== id); changed(t('dg_removed'), snap);
+    }
     else {
       const ev = getE(id); if (!ev) return;
       if (isRep(ev) && !series) { (ev.skip || (ev.skip = [])).push(k); changed(t('dg_once_removed'), snap); }
@@ -220,7 +286,7 @@
   // Place a task: at a given time, else the next free slot (from now on today, else from the start of the working day)
   function placeTask(k, taskId, at) {
     const task = S.tasks.find(x => x.id === taskId); if (!task) return null;
-    const mins = task.mins || 30, td = today();
+    const di = dueInfo(task), mins = di && di.left >= SNAP ? di.left : task.mins || 30, td = today();
     const from = at != null ? at : Math.max(S.planner.startH * 60, k === td ? nowMins() : 0);
     const s = at != null ? clamp(at, 0, DAY - SNAP) : nextFree(k, from, mins);
     if (s == null) return null;
@@ -231,6 +297,125 @@
     changed(n ? tn('dg_pushed', n) : null, snap);
     return b;
   }
+  /* ---------- Repeating blocks ---------- */
+  const laterOf = (r, k) => S.blocks.filter(x => x.rule === r.id && x.date > k && !blockDone(x));
+  // The form's Repeat fields on a block: start, change or stop its rule
+  function setRule(b, d) {
+    let r = ruleOf(b);
+    if (d.rep === 'no') {
+      if (!r) return;
+      r.until = b.date < r.from ? r.from : b.date;
+      const gone = new Set(laterOf(r, b.date).map(x => x.id));
+      S.blocks = S.blocks.filter(x => !gone.has(x.id));
+      delete b.rule;
+      return;
+    }
+    const days = d.rep === 'daily' ? [0, 1, 2, 3, 4, 5, 6] : (d.days && d.days.length ? d.days : [parseDay(b.date).getDay()]);
+    if (!r) {
+      r = { id: uid(), title: blockName(b), start: b.start, mins: b.mins, days, from: b.date, until: d.until || null, color: b.color || null, skip: [b.date] };
+      if (b.check === false) r.check = false;
+      RULES().push(r); b.rule = r.id;
+      return;
+    }
+    r.days = days; r.until = d.until || null;
+    const gone = new Set(laterOf(r, b.date).filter(x => x.id === r.id + '@' + x.date && !ruleOn(r, x.date)).map(x => x.id));
+    S.blocks = S.blocks.filter(x => !gone.has(x.id));
+  }
+  // "All next ones": the rule takes this block's time, title, colour and tick box, and so do its later blocks not done
+  function applyToRule(id) {
+    const b = getB(id), r = ruleOf(b); if (!r) return;
+    const snap = snapshot();
+    Object.assign(r, { start: b.start, mins: b.mins, title: blockName(b), color: b.color || null });
+    if (b.check === false) r.check = false; else delete r.check;
+    laterOf(r, b.date).forEach(x => { Object.assign(x, { start: r.start, mins: r.mins, title: r.title, taskId: null, color: r.color }); if (r.check === false) x.check = false; else delete x.check; });
+    changed(t('dg_rep_all_done'), snap);
+  }
+  const askRule = b => { if (ruleOf(b)) toast(t('dg_rep_once'), { key: 'dgrep', action: { label: t('dg_rep_all'), fn: () => applyToRule(b.id) } }); };
+  // "Delete the next ones": the series ends the day before, its later blocks not done go
+  function delNext(id) {
+    const b = getB(id), r = ruleOf(b); if (!r) return;
+    const snap = snapshot();
+    r.until = addDays(b.date, -1);
+    const gone = new Set(laterOf(r, b.date).map(x => x.id).concat(b.id));
+    S.blocks = S.blocks.filter(x => !gone.has(x.id));
+    sel = null; ed = null;
+    changed(t('dg_rep_stopped'), snap);
+  }
+
+  /* ---------- Blocks not done (2A card, 2B menu) ---------- */
+  // Move a block to the first free slot of day `to` (from now on today); the next day if `to` is full
+  function slotFor(b, k) {
+    const from = Math.max(S.planner.startH * 60, k === today() ? Math.ceil(nowMins() / SNAP) * SNAP : 0);
+    return nextFree(k, from, b.mins, Math.max(myHours()[1], S.planner.endH || 24) * 60, b.id);
+  }
+  function replace(b, to) {
+    for (let i = 0; i < 2; i++) {
+      const k = addDays(to, i), s = slotFor(b, k);
+      if (s != null) { b.date = k; b.start = s; delete b.undone; delete b.skipped; return true; }
+    }
+    return false;
+  }
+  function placeMissed(ids, to) {
+    const snap = snapshot();
+    let n = 0;
+    ids.forEach(id => { const b = getB(id); if (b && replace(b, to)) n++; });
+    if (!n) { toast(t('dg_no_free')); return; }
+    if (ids.length === 1) sel = { kind: 'blk', id: ids[0], k: getB(ids[0]).date };
+    changed(tn('dg_placed', n), snap);
+  }
+  function missedNow() {
+    const td = today(), y = addDays(td, -1), late = nowMins() >= 20 * 60;
+    ensureRules(y);
+    const list = (S.blocks || []).filter(b => (b.date === y || (late && b.date === td)) && isMissed(b));
+    return { list: list.sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start), to: late ? addDays(td, 1) : td };
+  }
+
+  /* ---------- Deadlines: spread what is left in blocks of up to 1 h on the days before the due day ---------- */
+  function spread(taskId) {
+    const task = S.tasks.find(x => x.id === taskId), di = dueInfo(task); if (!di || !di.left) return;
+    const td = today(), [, h1] = myHours();
+    const days = [];
+    for (let k = td; k < task.due || (k === task.due && !days.length); k = addDays(k, 1)) days.push(k);
+    const snap = snapshot();
+    let left = di.left, n = 0, live = days.slice();
+    while (left >= SNAP && live.length) {
+      for (const k of live.slice()) {
+        if (left < SNAP) break;
+        const c = left > 75 ? 60 : left;
+        const from = Math.max(S.planner.startH * 60, k === td ? Math.ceil(nowMins() / SNAP) * SNAP : 0);
+        const s = nextFree(k, from, c, Math.max(h1, S.planner.endH || 24) * 60);
+        if (s == null) { live = live.filter(x => x !== k); continue; }
+        addBlock(k, s, c, task.id); left -= c; n++;
+      }
+    }
+    if (!n) { toast(t('dg_no_free')); return; }
+    changed(tn('dg_spread_n', n) + (left >= SNAP ? ', ' + t('dg_spread_short', { d: fmtMins(left) }) : ''), snap);
+  }
+
+  /* ---------- Day templates (4A) ---------- */
+  const TPLS = () => S.dayTpls || (S.dayTpls = []);
+  function saveTpl(k, name) {
+    const list = (S.blocks || []).filter(b => b.date === k).sort((a, b) => a.start - b.start);
+    if (!list.length) { toast(t('dg_tpl_empty')); return false; }
+    TPLS().push({ id: uid(), name: name || parseDay(k).toLocaleDateString(loc(), { weekday: 'long', day: 'numeric', month: 'short' }), blocks: list.map(b => { const o = { start: b.start, mins: b.mins, title: blockName(b), color: b.color || null }; if (b.check === false) o.check = false; return o; }) });
+    save(); toast(t('dg_tpl_saved'));
+    return true;
+  }
+  function applyTpl(id, k) {
+    const tp = TPLS().find(x => x.id === id); if (!tp) return;
+    const snap = snapshot();
+    let n = 0;
+    tp.blocks.forEach(o => {
+      const s = nextFree(k, o.start, o.mins, DAY); if (s == null) return;
+      const task = ML.orderedOpen().find(x => ML.titleOf(x) === o.title);
+      const b = addBlock(k, s, o.mins, task ? task.id : null, task ? null : o.title); b.color = o.color;
+      if (o.check === false) b.check = false;
+      n++;
+    });
+    if (!n) { toast(t('dg_no_free')); return; }
+    changed(tn('dg_tpl_added', n), snap);
+  }
+
   ML.dg = { nextFree, busy, addBlock, ripple, placeTask, blockName, freeMins, itemsOn };
 
   /* ---------- Layout: at most `cap` side by side; events stay visible first, then blocks not done ---------- */
@@ -282,17 +467,46 @@
   /* ---------- Rendering ---------- */
   const isSel = it => sel && sel.kind === it.kind && sel.id === it.id && sel.k === it.k;
   let moreLists = [];
-  function itemHtml(it, top, h, colPx) {
-    const short = h < 36, lines = Math.max(1, Math.floor((h - 22) / 15));
-    const px = colPx * it.W - it.R - 3;
+  function itemHtml(it, top, h, colPx, pad = 0) {
+    const short = h < 36, lines = Math.max(1, Math.floor((h - (it.flag ? 38 : 22)) / 15));
+    const px = colPx * it.W - it.R - 3 - pad;
     const time = hm(it.s) + '–' + hm(it.e === DAY ? DAY - 0.001 : it.e).replace('23:60', '24:00');
-    const marksOn = it.kind === 'ev' && !short && px > 120 && (it.rep || it.rem);
-    const cls = ['dg-it', it.kind, short && 'short', it.done && 'done', it.active && 'active', isSel(it) && 'sel', it.feed && 'feed', marksOn && 'has-mk'].filter(Boolean).join(' ');
+    const marksOn = !short && px > 120 && (it.rep || it.rem);
+    const cls = ['dg-it', it.kind, short && 'short', it.done && 'done', it.active && 'active', isSel(it) && 'sel', it.feed && 'feed', marksOn && 'has-mk', it.nock && 'nock', it.miss && 'miss'].filter(Boolean).join(' ');
     const tspan = short ? (px < 130 ? '' : `<span>${hm(it.s)}</span>`) : `<span>${time}</span>`;
-    const marks = it.kind === 'ev' && !short && px > 120 ? (it.rep ? ico('rep', 'dg-mk') : '') + (it.rem ? ico('bell', 'dg-mk') : '') : '';
-    return `<div class="${cls}" role="button" tabindex="0" data-kind="${it.kind}" data-id="${it.id}" data-k="${it.k}" title="${esc(it.title)}, ${time}" style="top:${top}px;height:${h}px;left:calc(${(it.L * 100).toFixed(3)}% + 1px);width:calc(${(it.W * 100).toFixed(3)}% - ${it.R + 3}px);--c:${it.c};--lines:${lines}">`
-      + (it.kind === 'blk' ? `<button type="button" class="dg-ck" data-ck="${it.id}" aria-pressed="${it.done}" aria-label="${esc(t(it.done ? 'dg_undone' : 'dg_done'))}"></button>` : '')
-      + `<b>${esc(it.title)}</b>${tspan}${marks ? `<em class="dg-mks">${marks}</em>` : ''}</div>`;
+    const marks = marksOn ? (it.rep ? ico('rep', 'dg-mk') : '') + (it.rem ? ico('bell', 'dg-mk') : '') : '';
+    const flag = it.flag && !short && h >= 46 ? `<em class="dg-flag">${esc(it.flag)}</em>` : '';
+    return `<div class="${cls}" role="button" tabindex="0" data-kind="${it.kind}" data-id="${it.id}" data-k="${it.k}" title="${esc(it.title)}, ${time}${it.flag ? ', ' + esc(it.flag) : ''}" style="top:${top}px;height:${h}px;left:calc(${(it.L * 100).toFixed(3)}% + 1px);width:calc(${(it.W * 100).toFixed(3)}% - ${it.R + 3 + pad}px);--c:${it.c};--lines:${lines}">`
+      + (it.kind === 'blk' && !it.nock ? `<button type="button" class="dg-ck" data-ck="${it.id}" aria-pressed="${it.done}" aria-label="${esc(t(it.done ? 'dg_undone' : 'dg_done'))}"></button>` : '')
+      + `<b>${esc(it.title)}</b>${tspan}${flag}${marks ? `<em class="dg-mks">${marks}</em>` : ''}</div>`;
+  }
+  // Timer sessions of a day as [start, end] minutes (1A)
+  function sessOn(k) {
+    return S.sessions.map(s => {
+      const a = s.start || (s.at - s.mins * 60000); if (ML.dayKey(new Date(a)) !== k) return null;
+      const d0 = new Date(a), sm = d0.getHours() * 60 + d0.getMinutes();
+      return [sm, Math.min(DAY, sm + s.mins), s.title || ''];
+    }).filter(Boolean);
+  }
+  // Timer done against the time planned in blocks to tick, on these days (shown for days up to today)
+  function scoreHtml(days) {
+    const td = today(); if (days[0] > td) return '';
+    const set = new Set(days);
+    const planned = (S.blocks || []).filter(b => set.has(b.date) && b.check !== false).reduce((a, b) => a + b.mins, 0);
+    const done = S.sessions.filter(s => set.has(ML.dayKey(new Date(s.start || s.at)))).reduce((a, s) => a + s.mins, 0);
+    if (!planned && !done) return '';
+    return `<span class="dg-score" title="${esc(t('dg_score'))}"><b>${esc(fmtMins(done))}</b>${planned ? ` <span>${esc(t('dg_of'))} ${esc(fmtMins(planned))}</span>` : ''}</span>`;
+  }
+  // 2A: yesterday's blocks not done (and today's after 20:00), on today's Journée
+  function missedHtml(host) {
+    if (host.view !== 'day' || host.focus() !== today()) return '';
+    const { list, to } = missedNow(); if (!list.length) return '';
+    const td = today();
+    return `<div class="dg-miss">
+      <h3>${esc(tn('dg_miss_n', list.length))}</h3>
+      ${list.map(b => `<div class="dg-mrow"><span><b>${esc(blockName(b))}</b><small>${esc(t(b.date === td ? 'dg_miss_t' : 'dg_miss_y'))}, ${esc(fmtMins(b.mins))}</small></span><button type="button" class="small" data-miss="one:${b.id}">${esc(t('dg_place'))}</button></div>`).join('')}
+      <div class="dg-macts"><button type="button" class="small primary" data-miss="all">${esc(t(to === td ? 'dg_place_today' : 'dg_place_tmr'))}</button><span class="grow"></span><button type="button" class="small ghost" data-miss="ignore">${esc(t('dg_ignore'))}</button></div>
+    </div>`;
   }
   function gridHtml(host, days, mainW) {
     const view = host.view, dp = disp(view), hpx = HPX[view][dp.d], [h0, h1] = range(view, days), from = h0 * 60, to = h1 * 60;
@@ -304,13 +518,6 @@
     for (let m = from; m <= to; m += tick) {
       if (m % 60 === 0) { lines += `<div class="dg-hr" style="top:${y(m)}px"></div>`; if (m < to || h1 === 24) gut += `<span class="dg-hl" style="top:${y(m)}px">${hm(m === DAY ? 0 : m)}</span>`; }
       else gut += `<i class="dg-tk${m % 30 ? '' : ' half'}" style="top:${y(m)}px"></i>`;
-    }
-    if (view === 'day' && days[0] <= td) {
-      S.sessions.forEach(s => {
-        const a = s.start || (s.at - s.mins * 60000); if (ML.dayKey(new Date(a)) !== days[0]) return;
-        const d0 = new Date(a), sm = d0.getHours() * 60 + d0.getMinutes(), em = Math.min(DAY, sm + s.mins);
-        if (em > from && sm < to) gut += `<i class="dg-sess" style="top:${y(sm)}px;height:${Math.max(2, y(em) - y(sm))}px" title="${esc(s.title || '')}"></i>`;
-      });
     }
     if (days.includes(td) && nm >= from && nm <= to && view === 'day') gut += `<span class="dg-nowtag" style="top:${y(nm)}px">${hm(nm)}</span>`;
     moreLists = [];
@@ -329,10 +536,14 @@
         if (to - s >= 30) gaps.push([s, to]);
         gaps.forEach(([a, b]) => { if (y(b) - y(a) >= 22) html += `<div class="dg-gap" style="top:${y(a)}px;height:${y(b) - y(a)}px">${esc(t('dg_free', { d: fmtMins(b - a) }))}</div>`; });
       }
+      // 1A: the timer really run, as a thin band on the right of the column
+      const ss = k <= td ? sessOn(k).filter(([a, b]) => b > from && a < to) : [];
+      ss.forEach(([a, b, ti]) => { html += `<i class="dg-act" style="top:${y(a)}px;height:${Math.max(3, y(b) - y(a))}px" title="${esc(ti ? ti + ', ' : '')}${hm(a)}–${hm(b)}"></i>`; });
+      const pad = ss.length ? 6 : 0;
       vis.forEach(i => {
         if (i.hidden) return;
         const top = y(i.s), h = Math.max(16, y(i.e) - top - 2);
-        html += itemHtml(i, top, h, colPx);
+        html += itemHtml(i, top, h, colPx, pad);
         if (isSel(i)) {
           const mid = `calc(${((i.L + i.W / 2) * 100).toFixed(3)}% - ${i.R / 2}px)`;
           if (!i.feed) html += `<i class="dg-hd" data-hd="top" style="top:${top - 4}px;left:${mid}"></i><i class="dg-hd" data-hd="bot" style="top:${top + h - 3}px;left:${mid}"></i>`;
@@ -352,15 +563,15 @@
   }
   // The small bar over a selected item (when the form isn't beside the grid)
   function toolbarHtml(host, days, from, hpx, colPx) {
-    if (!sel || host.wideNow || ed) return '';
+    if (!sel || host.sideNow || ed) return '';
     const ci = days.indexOf(sel.k); if (ci < 0) return '';
     const it = itemsOn(sel.k).find(i => i.kind === sel.kind && i.id === sel.id); if (!it) return '';
     const top = (it.s - from) / 60 * hpx, h = (it.e - it.s) / 60 * hpx;
     const above = top - 48 >= 0, ty = above ? top - 48 : top + h + 8;
     const left = clamp(GUT + ci * colPx, GUT, Math.max(GUT, GUT + days.length * colPx - 260));
-    const blk = it.kind === 'blk';
+    const blk = it.kind === 'blk', canTick = blk && !it.nock;
     return `<div class="dg-bar" style="top:${ty}px;left:${left}px" role="toolbar">
-      ${blk ? `<button type="button" class="small" data-act="go">${ico('play')}${esc(t('dg_lock'))}</button><button type="button" class="small" data-act="done">${esc(t(it.done ? 'dg_undone' : 'dg_done'))}</button>` : ''}
+      ${blk ? (it.miss ? `<button type="button" class="small" data-act="menu">${esc(t('dg_resched'))}</button>` : `<button type="button" class="small" data-act="go">${ico('play')}${esc(t('dg_lock'))}</button>`) : ''}${canTick ? `<button type="button" class="small" data-act="done">${esc(t(it.done ? 'dg_undone' : 'dg_done'))}</button>` : ''}
       <button type="button" class="small" data-act="edit">${ico('edit')}${esc(t('dg_edit'))}</button>
       ${it.feed ? '' : `<button type="button" class="small ghost danger icon-only" data-act="del" aria-label="${esc(t('dg_del'))}" title="${esc(t('dg_del'))}">${ico('trash')}</button>`}
     </div>`;
@@ -376,8 +587,8 @@
       if (!nowDone && nm < i.s) { if (nm > s) rows += gap(s, nm); rows += nowRow(); nowDone = true; s = Math.max(s, nm); }
       rows += gap(s, i.s);
       const clash = its.slice(0, ix).find(j => j.e > i.s);
-      rows += `<div class="dg-lr"><time>${hm(i.s)}</time><div class="dg-it ${i.kind} ${i.done ? 'done' : ''} ${isSel(i) ? 'sel' : ''}" role="button" tabindex="0" data-kind="${i.kind}" data-id="${i.id}" data-k="${k}" data-open="1" style="--c:${i.c}">`
-        + (i.kind === 'blk' ? `<button type="button" class="dg-ck" data-ck="${i.id}" aria-pressed="${i.done}" aria-label="${esc(t(i.done ? 'dg_undone' : 'dg_done'))}"></button>` : '')
+      rows += `<div class="dg-lr"><time>${hm(i.s)}</time><div class="dg-it ${i.kind} ${i.done ? 'done' : ''} ${i.nock ? 'nock' : ''} ${isSel(i) ? 'sel' : ''}" role="button" tabindex="0" data-kind="${i.kind}" data-id="${i.id}" data-k="${k}" data-open="1" style="--c:${i.c}">`
+        + (i.kind === 'blk' && !i.nock ? `<button type="button" class="dg-ck" data-ck="${i.id}" aria-pressed="${i.done}" aria-label="${esc(t(i.done ? 'dg_undone' : 'dg_done'))}"></button>` : '')
         + `<b>${esc(i.title)}</b><span>${esc(t('dg_until', { t: hm(i.e === DAY ? 0 : i.e) }))}</span>${clash ? `<small class="dg-ov">${esc(t('dg_overlaps', { t: clash.title }))}</small>` : ''}</div></div>`;
       s = Math.max(s, i.e);
     });
@@ -425,11 +636,28 @@
   function trayTasks(host, days) {
     const set = new Set(days);
     const placed = new Set((S.blocks || []).filter(b => set.has(b.date) && b.taskId).map(b => b.taskId));
-    return ML.orderedOpen().filter(x => !placed.has(x.id));
+    const td = today();
+    // A task with a due day stays while its planned time is short of its estimate, and those come first by due day
+    const keep = x => { const di = x.due >= td && dueInfo(x); return di ? di.left >= SNAP : !placed.has(x.id); };
+    const list = ML.orderedOpen().filter(keep);
+    const dd = x => (x.due && x.due >= td ? x.due : '9999');
+    return list.map((x, i) => [x, i]).sort((a, b) => dd(a[0]).localeCompare(dd(b[0])) || a[1] - b[1]).map(p => p[0]);
+  }
+  const trayMins = x => { const di = x.due >= today() && dueInfo(x); return di && di.left >= SNAP ? di.left : x.mins || 30; };
+  function trayChip(x) {
+    const di = x.due >= today() && dueInfo(x);
+    const chip = `<button type="button" class="dg-task p-${x.pri || 'med'}" draggable="true" data-tray="${x.id}"><span>${esc(ML.titleOf(x))}</span><small${di ? ' class="due"' : ''}>${esc(di ? parseDay(x.due).toLocaleDateString(loc(), { weekday: 'short', day: 'numeric' }) : fmtMins(x.mins || 30))}</small></button>`;
+    if (!di || !(di.planned > 0 || di.est > 60)) return chip;
+    const dayName = x.due === today() ? t('today').toLowerCase() : parseDay(x.due).toLocaleDateString(loc(), { weekday: 'long' });
+    return `<div class="dg-dtask">${chip}
+      <div class="dg-gauge"><i style="--w:${Math.round(clamp(di.planned / di.est, 0, 1) * 100)}%"></i></div>
+      <div class="dg-gsub"><span>${esc(t('dg_due_plan', { p: fmtMins(di.planned), e: fmtMins(di.est) }))}</span><span>${esc(t('dg_due_left', { d: fmtMins(di.left) }))}</span></div>
+      <button type="button" class="small" data-spread="${x.id}">${esc(t('dg_spread', { d: dayName }))}</button>
+    </div>`;
   }
   function trayHtml(host, days, inSide) {
-    const list = trayTasks(host, days), mins = list.reduce((a, x) => a + (x.mins || 30), 0);
-    const chips = list.map(x => `<button type="button" class="dg-task p-${x.pri || 'med'}" draggable="true" data-tray="${x.id}"><span>${esc(ML.titleOf(x))}</span><small>${fmtMins(x.mins || 30)}</small></button>`).join('');
+    const list = trayTasks(host, days), mins = list.reduce((a, x) => a + trayMins(x), 0);
+    const chips = list.map(trayChip).join('');
     const auto = list.length ? `<button type="button" class="small" data-dg="auto">${esc(host.autoLabel())}</button>` : '';
     if (inSide) return `<div class="dg-tray side"><h3>${esc(t('dg_to_place'))}</h3>${list.length ? `<p class="hint">${esc(tn('dg_to_place_n', list.length, { m: fmtMins(mins) }))}</p><div class="dg-tasks">${chips}</div>${auto}<p class="hint">${esc(t('dg_tray_hint'))}</p>` : `<p class="hint">${esc(t('dg_tray_empty'))}</p>`}</div>`;
     if (!list.length) return '';
@@ -448,8 +676,10 @@
       <button type="button" class="ghost icon-only dg-ib" data-dg="next" aria-label="›">${ico('r')}</button>
       ${host.showToday() ? `<button type="button" class="ghost small" data-dg="today">${esc(t('today_btn'))}</button>` : ''}
       <span class="grow"></span>
+      ${scoreHtml(host.days())}
       ${host.extraHead ? host.extraHead() : ''}
       ${clock}
+      ${host.wideNow ? `<button type="button" class="ghost icon-only dg-ib" data-dg="side" aria-pressed="${!C().sideOff}" aria-label="${esc(t(C().sideOff ? 'dg_side_on' : 'dg_side_off'))}" title="${esc(t(C().sideOff ? 'dg_side_on' : 'dg_side_off'))}">${ico('side')}</button>` : ''}
       <button type="button" class="ghost icon-only dg-ib" data-dg="view" aria-haspopup="true" aria-label="${esc(t('dg_view'))}" title="${esc(t('dg_view'))}" data-v="${dp.d}">${ico('view')}</button>
       ${desktop() ? `<button type="button" class="ghost icon-only dg-ib" data-dg="wide" aria-pressed="${!!C().wide}" aria-label="${esc(t(C().wide ? 'dg_wide_off' : 'dg_wide'))}" title="${esc(t(C().wide ? 'dg_wide_off' : 'dg_wide'))}">${ico(C().wide ? 'narrow' : 'wide')}</button>` : ''}
       <button type="button" class="primary small dg-add" data-dg="new" aria-label="${esc(t('dg_add'))}">${ico('plus')}<span>${esc(t('dg_add'))}</span></button>
@@ -462,16 +692,17 @@
     if (view === 'week' && mainW < 560) body = weekListHtml(host, days);
     else if (view === 'day' && dp.l === 'lines') body = allDayHtml(host, days) + linesHtml(days[0]);
     else body = (view === 'week' ? weekHeadHtml(days) : '') + allDayHtml(host, days) + gridHtml(host, days, mainW);
-    return `<div class="dg-grid-wrap" data-view="${view}">${body}</div>${host.wideNow ? '' : trayHtml(host, days, false)}`;
+    return `${missedHtml(host)}<div class="dg-grid-wrap" data-view="${view}">${body}</div>${host.sideNow ? '' : trayHtml(host, days, false)}`;
   }
 
   /* ---------- The form (one for blocks and events) ---------- */
   function edData() {
     if (!ed) return null;
-    if (ed.mode === 'new') return { kind: ed.kind, title: ed.title || '', s: ed.s, e: ed.e, date: ed.k, allday: !!ed.allday, color: ed.color || null, cat: ed.cat || 'class', repeat: ed.repeat || 'none', remind: ed.remind != null ? ed.remind : 15, notes: ed.notes || '' };
+    if (ed.mode === 'new') return { kind: ed.kind, title: ed.title || '', s: ed.s, e: ed.e, date: ed.k, allday: !!ed.allday, check: ed.check != null ? ed.check : !NOCHECK.test(ed.title || ''), color: ed.color || null, cat: ed.cat || 'class', repeat: ed.repeat || 'none', remind: ed.remind != null ? ed.remind : 15, notes: ed.notes || '', rep: ed.rep || 'no', days: ed.days || [parseDay(ed.k).getDay()], until: ed.until || '' };
     if (ed.kind === 'blk') {
       const b = getB(ed.id); if (!b) return null;
-      return { kind: 'blk', b, title: blockName(b), s: b.start, e: b.start + b.mins, date: b.date, color: b.color || null, done: blockDone(b) };
+      const r = ruleOf(b);
+      return { kind: 'blk', b, title: blockName(b), s: b.start, e: b.start + b.mins, date: b.date, color: b.color || null, done: blockDone(b), check: b.check !== false, rule: r, rep: r ? (r.days.length === 7 ? 'daily' : 'days') : 'no', days: r ? r.days : [parseDay(b.date).getDay()], until: r && r.until || '' };
     }
     const ev = getE(ed.id); if (!ev) return null;
     const s = ev.start ? toMins(ev.start) : null;
@@ -501,10 +732,16 @@
       <div class="dg-ed-time" ${d.allday ? 'hidden' : ''}>
         <label class="dg-tb"><span class="sr">${esc(t('dg_start'))}</span><button type="button" data-step="s:-15" aria-label="−15 min">−</button><input type="time" name="start" step="300" value="${hm(d.s)}"><button type="button" data-step="s:15" aria-label="+15 min">+</button></label>
         <span class="dg-arrow">→</span>
-        <label class="dg-tb"><span class="sr">${esc(t('dg_end'))}</span><button type="button" data-step="e:-15" aria-label="−15 min">−</button><input type="time" name="end" step="300" value="${hm(Math.min(d.e, DAY - 1))}"><button type="button" data-step="e:15" aria-label="+15 min">+</button></label>
+        <label class="dg-tb"><span class="sr">${esc(t('dg_end'))}</span><button type="button" data-step="e:-15" aria-label="−15 min">−</button><input type="time" name="end" step="300" value="${hm(d.e)}"><button type="button" data-step="e:15" aria-label="+15 min">+</button></label>
       </div>
       <div class="dg-durs" ${d.allday ? 'hidden' : ''}>${durs.map(m => `<button type="button" data-dur="${m}" aria-pressed="${d.e - d.s === m}">${fmtMins(m)}</button>`).join('')}</div>
       <label class="dg-ed-date"><span>${esc(t('dg_date'))}</span><input type="date" name="date" value="${esc(d.date)}" required></label>
+      ${blk ? `<label class="opt dg-check"><input type="checkbox" name="check" ${d.check ? 'checked' : ''}> <span>${esc(t('dg_check'))}</span><small class="hint">${esc(t('dg_check_hint'))}</small></label>
+      <fieldset class="dg-rep"><legend class="label">${esc(t('dg_rep'))}</legend>
+        <div class="dg-seg">${['no', 'daily', 'days'].map(v => `<label><input type="radio" name="rep" value="${v}" ${d.rep === v ? 'checked' : ''}><span>${esc(t('dg_rep_' + v))}</span></label>`).join('')}</div>
+        ${d.rep === 'days' ? `<div class="dg-days">${[1, 2, 3, 4, 5, 6, 0].map(n => `<label><input type="checkbox" name="rday" value="${n}" ${d.days.includes(n) ? 'checked' : ''}><span>${esc(new Date(2024, 0, n || 7).toLocaleDateString(loc(), { weekday: 'narrow' }))}</span></label>`).join('')}</div>` : ''}
+        ${d.rep !== 'no' ? `<label class="dg-ed-date"><span>${esc(t('dg_rep_until'))}</span><input type="date" name="until" value="${esc(d.until)}" min="${esc(d.date)}"></label>` : ''}
+      </fieldset>` : ''}
       <details class="dg-ed-more" ${C().edMore ? 'open' : ''}><summary>${esc(t('dg_more'))}</summary>
         ${blk ? '' : `<div class="t-edit-row">
           <label><span>${esc(t('ev_cat'))}</span><select name="cat">${opt(Object.keys(ML.CATS), d.cat, 'cat_')}</select></label>
@@ -514,11 +751,11 @@
         ${sw}
         ${blk ? '' : `<textarea name="notes" rows="2" placeholder="${esc(t('ev_notes_ph'))}">${esc(d.notes)}</textarea>`}
       </details>
-      ${d.rep ? `<p class="hint">${esc(t('dg_series'))}</p>` : ''}${d.feed ? `<p class="hint">${esc(t('dg_feed'))}</p>` : ''}
+      ${d.rep === true ? `<p class="hint">${esc(t('dg_series'))}</p>` : ''}${d.feed ? `<p class="hint">${esc(t('dg_feed'))}</p>` : ''}
       <div class="dg-ed-acts">
         ${isNew ? `<span class="grow"></span><button type="button" class="small ghost" data-edclose>${esc(t('cancel'))}</button><button type="submit" class="small primary">${esc(t('dg_add'))}</button>`
-        : `${blk ? `<button type="button" class="small ${now ? 'primary' : ''}" data-act="go">${ico('play')}${esc(t('dg_lock'))}</button><button type="button" class="small" data-act="done">${esc(t(d.done ? 'dg_undone' : 'dg_done'))}</button>` : ''}
-          <span class="grow"></span><button type="button" class="small ghost danger" data-act="${d.rep ? 'delseries' : 'del'}">${esc(t(d.rep ? 'dg_del_series' : 'dg_del'))}</button>`}
+        : `${blk ? `<button type="button" class="small ${now ? 'primary' : ''}" data-act="go">${ico('play')}${esc(t('dg_lock'))}</button>${d.check ? `<button type="button" class="small" data-act="done">${esc(t(d.done ? 'dg_undone' : 'dg_done'))}</button>` : ''}` : ''}
+          <span class="grow"></span>${d.rule ? `<button type="button" class="small ghost danger" data-act="delnext">${esc(t('dg_del_next'))}</button><button type="button" class="small ghost danger" data-act="del">${esc(t('dg_del'))}</button>` : `<button type="button" class="small ghost danger" data-act="${d.rep === true ? 'delseries' : 'del'}">${esc(t(d.rep === true ? 'dg_del_series' : 'dg_del'))}</button>`}`}
       </div>
       ${isNew ? '' : `<p class="hint dg-saved">${esc(t('dg_autosave'))}</p>`}
     </form>`;
@@ -534,7 +771,7 @@
     return sheet;
   }
   function renderSheet() {
-    const host = activeHost(), inSide = host && host.wideNow;
+    const host = activeHost(), inSide = host && host.sideNow;
     const s = sheetEl();
     if (!ed || inSide) { if (!s.hidden) { s.hidden = true; s.dataset.sig = ''; s.querySelector('.dg-sheet-card').innerHTML = ''; } return; }
     const sig = ed.mode + '|' + ed.kind + '|' + (ed.id || 'new') + '|' + edVer;
@@ -562,7 +799,8 @@
     const w = el.clientWidth || el.parentElement && el.parentElement.clientWidth || Math.min(innerWidth, 420);
     const sideW = 300, minMain = host.view === 'day' ? 340 : 600;
     host.wideNow = !isPhone() && w - sideW - 14 >= minMain;
-    const mainW = host.wideNow ? w - sideW - 14 : w;
+    host.sideNow = host.wideNow && (!C().sideOff || !!ed); // the panel can be hidden (it comes back for the form)
+    const mainW = host.sideNow ? w - sideW - 14 : w;
     const prev = el.querySelector('.dg-scroll');
     if (prev) scrollMem[name] = { key: prev.dataset.key, top: prev.scrollTop };
     if (opts.mainOnly && el.querySelector('.dg-main')) {
@@ -571,9 +809,9 @@
     } else {
       el.innerHTML = `<div class="dg-host" data-host="${name}">
         <div class="dg-headwrap">${headHtml(host, host.wideNow)}</div>
-        <div class="dg-wrap ${host.wideNow ? 'wide' : ''}">
+        <div class="dg-wrap ${host.sideNow ? 'wide' : ''}">
           <div class="dg-main">${mainHtml(host, days, mainW)}</div>
-          ${host.wideNow ? `<aside class="dg-side">${ed ? editorHtml() : trayHtml(host, days, true)}</aside>` : ''}
+          ${host.sideNow ? `<aside class="dg-side">${ed ? editorHtml() : trayHtml(host, days, true)}</aside>` : ''}
         </div>
         ${host.after ? host.after() : ''}
       </div>`;
@@ -636,20 +874,33 @@
     const s = v('start') ? toMins(v('start')) : null, e0 = v('end') ? toMins(v('end')) : null;
     return { title: String(v('title') || '').trim(), s, e: e0, date: v('date'), allday: f.elements.allday ? f.elements.allday.checked : false,
       cat: v('cat'), repeat: v('repeat'), remind: v('remind') != null ? +v('remind') : null, notes: v('notes') != null ? String(v('notes')).trim() : null,
-      color: f.querySelector('[name=color]:checked') ? +f.querySelector('[name=color]:checked').value || null : null };
+      color: f.querySelector('[name=color]:checked') ? +f.querySelector('[name=color]:checked').value || null : null,
+      check: f.elements.check ? f.elements.check.checked : null,
+      rep: f.querySelector('[name=rep]:checked') ? f.querySelector('[name=rep]:checked').value : null,
+      days: [...f.querySelectorAll('[name=rday]:checked')].map(x => +x.value), until: v('until') };
   }
   function applyForm(f, field) {
     const d = readForm(f);
     let s = d.s, e = d.e;
     if (s != null && e != null && e <= s) e = e === 0 ? DAY : Math.min(DAY, s + SNAP); // an end at midnight means the end of the day
     if (ed.mode === 'new') {
+      if (field === 'check') ed.check = d.check;
+      else if (ed.check == null && f.elements.check) f.elements.check.checked = !NOCHECK.test(d.title); // follows the title until touched
       Object.assign(ed, { title: d.title, k: d.date || ed.k, allday: d.allday, color: d.color, cat: d.cat || ed.cat, repeat: d.repeat || ed.repeat, remind: d.remind != null ? d.remind : ed.remind, notes: d.notes != null ? d.notes : ed.notes });
       if (s != null) ed.s = s; if (e != null) ed.e = e;
+      if (d.rep) { ed.rep = d.rep; if (f.querySelector('[name=rday]')) ed.days = d.days; ed.until = d.until || ''; }
       syncTimeUi(f, ed.s, ed.e);
+      if (field === 'rep') { edVer++; renderActive(); }
+      return;
+    }
+    if (ed.kind === 'blk' && (field === 'rep' || field === 'rday' || field === 'until')) {
+      const b = getB(ed.id); if (!b) return;
+      setRule(b, d); edVer++; save(); emit('blocks'); renderActive();
       return;
     }
     if (ed.kind === 'blk') {
       const b = getB(ed.id); if (!b) return;
+      if (b.rule && (field === 'title' || field === 'start' || field === 'end' || field === 'color' || field === 'check')) askRule(b);
       if (field === 'title') {
         const match = d.title && ML.orderedOpen().find(x => ML.titleOf(x) === d.title);
         if (match) { b.taskId = match.id; b.title = null; } else if (d.title) { b.taskId = null; b.title = d.title; }
@@ -657,6 +908,7 @@
       if (s != null && e != null) { b.start = clamp(s, 0, DAY - SNAP); b.mins = clamp(e - b.start, SNAP, DAY - b.start); }
       if (d.date) { b.date = d.date; sel = { kind: 'blk', id: b.id, k: b.date }; ed.k = b.date; }
       b.color = d.color;
+      if (d.check != null && (d.check !== (b.check !== false))) { if (d.check) delete b.check; else b.check = false; if (field === 'check') edVer++; }
       syncTimeUi(f, b.start, b.start + b.mins);
     } else {
       const ev = getE(ed.id); if (!ev || ev.src) return;
@@ -673,13 +925,13 @@
     }
     save();
     clearTimeout(edTimer);
-    edTimer = setTimeout(() => { emit('blocks'); emit('events'); if (ML.scheduleReminders) ML.scheduleReminders(); const h = activeHost(); if (h) render(h.name, { mainOnly: true }); }, field === 'title' || field === 'notes' ? 350 : 0);
+    edTimer = setTimeout(() => { emit('blocks'); emit('events'); if (ML.scheduleReminders) ML.scheduleReminders(); const h = activeHost(); if (h) render(h.name, { mainOnly: field !== 'check' }); }, field === 'title' || field === 'notes' ? 350 : 0);
   }
   function syncTimeUi(f, s, e) {
     if (s == null) return;
     const st = f.elements.start, en = f.elements.end;
     if (st && document.activeElement !== st) st.value = hm(s);
-    if (en && document.activeElement !== en) en.value = hm(Math.min(e, DAY - 1));
+    if (en && document.activeElement !== en) en.value = hm(e);
     f.querySelectorAll('[data-dur]').forEach(b => b.setAttribute('aria-pressed', String(e - s === +b.dataset.dur)));
   }
   document.addEventListener('input', e => {
@@ -703,8 +955,18 @@
     const snap = snapshot();
     C().kind = ed.kind;
     if (ed.kind === 'blk') {
-      const match = ML.orderedOpen().find(x => ML.titleOf(x) === d.title);
+      const repOn = ed.rep && ed.rep !== 'no';
+      const match = !repOn && ML.orderedOpen().find(x => ML.titleOf(x) === d.title);
       const b = addBlock(k, s, e2 - s, match ? match.id : null, match ? null : d.title); b.color = d.color;
+      if (d.check === false) b.check = false;
+      if (repOn) { // a repeating block: its rule, and this first block takes the rule's id for the day
+        const days = ed.rep === 'daily' ? [0, 1, 2, 3, 4, 5, 6] : (ed.days && ed.days.length ? ed.days : [parseDay(k).getDay()]);
+        const r = { id: uid(), title: d.title, start: b.start, mins: b.mins, days, from: k, until: ed.until || null, color: b.color || null, skip: [] };
+        if (b.check === false) r.check = false;
+        RULES().push(r);
+        b.rule = r.id;
+        if (days.includes(parseDay(k).getDay())) b.id = r.id + '@' + k; else r.skip.push(k);
+      }
       const n = ripple(k, b);
       sel = { kind: 'blk', id: b.id, k }; ed = null;
       changed(n ? tn('dg_pushed', n) : t('dg_saved'), n ? snap : null);
@@ -734,12 +996,25 @@
     const seg = (key, vals) => `<div class="seg-toggle" role="group">${vals.map(v => `<button type="button" data-dv="${key}:${v}" aria-pressed="${dp[key] === v}">${esc(t(`dg_${key}_${v}`))}</button>`).join('')}</div>`;
     return `<div class="dg-vmenu"><span class="label">${esc(t('dg_density'))}</span>${seg('d', ['compact', 'normal', 'large'])}
       <span class="label">${esc(t('dg_hours'))}</span>${seg('h', ['24', 'mine', 'auto'])}
-      ${view === 'day' ? `<span class="label">${esc(t('dg_layout'))}</span>${seg('l', ['grid', 'lines'])}` : ''}</div>`;
+      ${view === 'day' ? `<span class="label">${esc(t('dg_layout'))}</span>${seg('l', ['grid', 'lines'])}${tplMenuHtml()}` : ''}</div>`;
   }
+  function tplMenuHtml() {
+    const list = TPLS();
+    return `<div class="dg-tpls"><span class="label">${esc(t('dg_tpls'))}</span>
+      ${list.length ? list.map(tp => `<div class="dg-tpl"><button type="button" class="pp-it" data-tpl="apply:${tp.id}"><span>${esc(tp.name)}</span><small>${esc(tn('dg_tpl_n', tp.blocks.length))}</small></button><button type="button" class="ghost icon-only dg-ib" data-tpl="del:${tp.id}" aria-label="${esc(t('dg_tpl_del'))}" title="${esc(t('dg_tpl_del'))}">${ico('x')}</button></div>`).join('') : `<p class="hint">${esc(t('dg_tpl_none'))}</p>`}
+      <div class="dg-tplnew"><input type="text" id="dg-tplname" maxlength="40" placeholder="${esc(t('dg_tpl_name'))}" aria-label="${esc(t('dg_tpl_name'))}"><button type="button" class="small" data-tpl="save">${esc(t('dg_tpl_save'))}</button></div>
+    </div>`;
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.id === 'dg-tplname') { e.preventDefault(); const b = menu && menu.querySelector('[data-tpl="save"]'); if (b) b.click(); }
+  });
   function itemMenuHtml(it) {
     const blk = it.kind === 'blk', b = blk && getB(it.id);
     const btn = (a, label, cls = '') => `<button type="button" class="pp-it ${cls}" data-act="${a}">${esc(label)}</button>`;
-    return `<div class="pp-list">${blk ? btn('go', t('dg_lock')) + btn('done', t(b && blockDone(b) ? 'dg_undone' : 'dg_done')) : ''}${btn('edit', t('dg_edit'))}${btn('dup', t('dg_dup'))}${it.feed ? '' : btn('tomorrow', t('dg_tomorrow')) + btn('del', t('dg_del'), 'danger')}</div>`;
+    const slot = (a, label, k) => { const s = b && slotFor(b, k); return `<button type="button" class="pp-it" data-act="${a}">${esc(label)}${s != null ? ` <small>${hm(s)}</small>` : ''}</button>`; };
+    const missed = blk && b && isMissed(b)
+      ? `<span class="pp-lab">${esc(t('dg_undone'))}</span>${slot('slot', t('dg_next_slot'), today())}${slot('tmrslot', t('dg_tmr_slot'), addDays(today(), 1))}<hr>` : '';
+    return `<div class="pp-list">${missed}${blk && !missed ? btn('go', t('dg_lock')) : ''}${blk && b && b.check !== false ? btn('done', t(blockDone(b) ? 'dg_undone' : 'dg_done')) : ''}${btn('edit', t('dg_edit'))}${btn('dup', t('dg_dup'))}${it.feed ? '' : btn('tomorrow', t('dg_tomorrow')) + btn('del', t('dg_del'), 'danger')}${b && b.rule ? btn('delnext', t('dg_del_next'), 'danger') : ''}</div>`;
   }
 
   /* ---------- Clicks ---------- */
@@ -756,6 +1031,8 @@
     else if (a === 'tomorrow') toTomorrow(it.kind, it.id, it.k);
     else if (a === 'del') removeItem(it.kind, it.id, it.k, false);
     else if (a === 'delseries') removeItem(it.kind, it.id, it.k, true);
+    else if (a === 'delnext') delNext(it.id);
+    else if (a === 'slot' || a === 'tmrslot') { ed = null; placeMissed([it.id], a === 'slot' ? today() : addDays(today(), 1)); }
   }
   document.addEventListener('click', e => {
     const tg = e.target;
@@ -772,7 +1049,31 @@
     const pick = tg.closest('[data-pick]');
     if (pick && inMenu) { const [kind, id, k] = pick.dataset.pick.split('|'); closeMenu(); ML.dgOpen(kind, id, k); return; }
     const a = tg.closest('[data-act]');
+    if (a && a.dataset.act === 'menu') { const it = selItem(); if (it) openMenu(itemMenuHtml(it), 0, 0, a); return; }
     if (a && (inMenu || tg.closest('.dg-bar, #dg-ed'))) { e.preventDefault(); act(a.dataset.act); return; }
+    const mi = tg.closest('[data-miss]');
+    if (mi) {
+      const { list, to } = missedNow(), [w, id] = mi.dataset.miss.split(':');
+      if (w === 'one') placeMissed([id], to);
+      else if (w === 'all') placeMissed(list.map(b => b.id), to);
+      else if (w === 'ignore') { const snap = snapshot(); list.forEach(b => { b.skipped = true; }); changed(t('dg_removed'), snap); }
+      return;
+    }
+    const sp = tg.closest('[data-spread]');
+    if (sp) { spread(sp.dataset.spread); return; }
+    const tp = tg.closest('[data-tpl]');
+    if (tp && inMenu) {
+      const host = activeHost(); if (!host) return;
+      const [w, id] = tp.dataset.tpl.split(':');
+      if (w === 'apply') { closeMenu(); applyTpl(id, host.focus()); }
+      else if (w === 'save') { const inp = menu.querySelector('#dg-tplname'); if (saveTpl(host.focus(), inp ? inp.value.trim() : '')) menu.innerHTML = viewMenuHtml(host.view); }
+      else if (w === 'del') {
+        const i = TPLS().findIndex(x => x.id === id), gone = TPLS()[i]; if (i < 0) return;
+        TPLS().splice(i, 1); save(); menu.innerHTML = viewMenuHtml(host.view);
+        toast(t('dg_tpl_deleted'), { action: { label: t('dg_undo'), fn: () => { TPLS().splice(i, 0, gone); save(); } } });
+      }
+      return;
+    }
     if (tg.closest('[data-edclose]')) { if (tg.closest('.dg-sheet-bg') && Date.now() - sheetAt < 450) return; closeEditor(); return; }
     const kindBtn = tg.closest('[data-edkind]');
     if (kindBtn && ed && ed.mode === 'new') { const f = tg.closest('#dg-ed'); if (f) applyForm(f); ed.kind = kindBtn.dataset.edkind; edVer++; C().kind = ed.kind; renderActive(); setTimeout(focusTitle, 10); return; }
@@ -781,13 +1082,13 @@
       const f = tg.closest('#dg-ed'), d = readForm(f), [w, n] = step.dataset.step.split(':');
       let s = d.s, en = d.e != null && d.e <= s ? DAY : d.e;
       if (w === 's') { const dur = en - s; s = clamp(s + +n, 0, DAY - Math.max(SNAP, dur)); en = s + dur; } else en = clamp(en + +n, s + SNAP, DAY);
-      f.elements.start.value = hm(s); f.elements.end.value = hm(Math.min(en, DAY - 1));
+      f.elements.start.value = hm(s); f.elements.end.value = hm(en);
       applyForm(f, 'start'); if (ed && ed.mode === 'new') { ed.s = s; ed.e = en; } return;
     }
     const dur = tg.closest('[data-dur]');
     if (dur) {
       const f = tg.closest('#dg-ed'), d = readForm(f), en = Math.min(DAY, d.s + +dur.dataset.dur);
-      f.elements.end.value = hm(Math.min(en, DAY - 1));
+      f.elements.end.value = hm(en);
       if (ed && ed.mode === 'new') { ed.e = en; syncTimeUi(f, d.s, en); } else applyForm(f, 'end');
       return;
     }
@@ -823,6 +1124,7 @@
     else if (k === 'new') openNew({});
     else if (k === 'view') { if (menu) { closeMenu(); return; } openMenu(viewMenuHtml(host.view), 0, 0, b); }
     else if (k === 'wide') { C().wide = !C().wide; save(); applyWide(); render(host.name); }
+    else if (k === 'side') { C().sideOff = !C().sideOff; if (C().sideOff) ed = null; save(); render(host.name); }
     else if (k === 'tray') { C().trayOpen = !trayOpen(); save(); render(host.name); }
     else if (k === 'auto') host.autoPlan();
     else if (k === 'timer') { ML.toggleTimer(); render(host.name); }
@@ -899,7 +1201,7 @@
     if (d.type === 'press') {
       const it = d.it, wasSel = isSel(it), host = hostFrom(d.sc);
       sel = { kind: it.kind, id: it.id, k: it.k };
-      if (host && host.wideNow) setEd({ mode: 'edit', kind: it.kind, id: it.id, k: it.k });
+      if (host && host.sideNow && !C().sideOff) setEd({ mode: 'edit', kind: it.kind, id: it.id, k: it.k });
       else if (wasSel || (ed && ed.mode === 'edit')) setEd({ mode: 'edit', kind: it.kind, id: it.id, k: it.k }); // a second tap opens the form
       else ed = null;
       closeMenu(); renderActive(); return;
