@@ -900,9 +900,9 @@ button.ev-title:hover { color: var(--accent); }
 /* 2A: yesterday's blocks not done, on top of today's Journée */
 .dg-miss { display: grid; gap: 8px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line-2); border-radius: var(--radius); }
 .dg-miss h3 { margin: 0; font-size: var(--t-2); letter-spacing: 0; text-transform: none; }
-.dg-mrow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.dg-mrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; min-width: 0; }
 .dg-mrow + .dg-mrow { padding-top: 8px; border-top: 1px solid var(--line); }
-.dg-mrow > span { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; overflow: hidden; }
+.dg-mrow > span { flex: 1 1 140px; min-width: 0; display: flex; align-items: baseline; gap: 8px; overflow: hidden; }
 .dg-mrow b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: var(--t-2); }
 .dg-mrow small { flex: none; color: var(--mist); font-size: var(--t-1); }
 .dg-macts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -950,9 +950,29 @@ button.ev-title:hover { color: var(--accent); }
 .dg-drawer-bar { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 42px; padding: 6px 12px; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--text); font: var(--t-2) var(--f-body); letter-spacing: 0; text-transform: none; text-align: left; }
 .dg-drawer-bar b { font-weight: 600; }
 .dg-drawer-bar span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--mist); font-size: var(--t-1); }
-.dg-drawer .dg-tasks { padding: 0 10px 8px; }
+.dg-dbody { display: grid; gap: 8px; padding: 0 10px 8px; }
 .dg-drawer-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 0 10px 10px; }
-.dg-drawer-foot .hint { margin: 0; }
+.dg-drawer-foot .hint { margin: 0; flex: 1; min-width: 0; }
+/* 3.80: To place shows project names; one opens like a tab */
+.dg-ptabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.dg-ptab { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 11px; border: 1px solid var(--line-2); border-radius: 99px; background: none; box-shadow: none; color: var(--text); font: var(--t-1) var(--f-body); letter-spacing: 0; text-transform: none; }
+.dg-ptab i { width: 8px; height: 8px; border-radius: 50%; background: var(--pc); flex: none; }
+.dg-ptab small { color: var(--mist); }
+.dg-ptab:hover { background: var(--soft); }
+.dg-ptab[aria-expanded="true"] { background: var(--soft); border-color: var(--pc); }
+/* 3.80: parts that can be hidden (a quiet x, and Show in the View menu) */
+.dg-mhead { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.dg-mhead h3 { flex: 1; min-width: 0; }
+.dg-hide.dg-ib { width: 28px; height: 28px; min-height: 0; padding: 0; opacity: .55; }
+.dg-hide.dg-ib:hover, .dg-hide.dg-ib:focus-visible { opacity: 1; }
+.dg-strip:has(.dg-hide) { grid-template-columns: repeat(7, minmax(0, 1fr)) 28px; }
+.dg-strip .dg-hide { align-self: center; display: grid; place-items: center; }
+.dg-showp { display: flex; flex-wrap: wrap; gap: 6px; }
+.dg-showp button { min-height: 30px; padding: 4px 10px; border-radius: 99px; font: var(--t-1) var(--f-body); letter-spacing: 0; text-transform: none; }
+.dg-showp button[aria-pressed="true"] { background: var(--soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.dg-showp button[aria-pressed="false"] { color: var(--mist); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--mist) 60%, transparent); }
+.dg-mbtns { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.dg-ed .dg-colors .sw i { width: 22px; height: 22px; }
 .dg-tray { display: grid; gap: 8px; }
 .dg-tray h3 { margin: 0; }
 .dg-tray .hint { margin: 0; }

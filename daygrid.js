@@ -22,7 +22,8 @@
       dg_set_push: 'Faire de la place : poser un bloc sur un créneau pris décale les blocs suivants', dg_set_from: 'Mes heures : de', dg_set_to: 'Mes heures : à',
       dg_rep: 'Répéter', dg_rep_no: 'Non', dg_rep_daily: 'Chaque jour', dg_rep_days: 'Certains jours', dg_rep_until: 'Jusqu’au', dg_rep_once: 'Changé ce jour seulement', dg_rep_all: 'Tous les suivants', dg_rep_all_done: 'Les suivants sont changés', dg_del_next: 'Supprimer les suivants', dg_rep_stopped: 'Les suivants sont retirés',
       dg_of: 'sur', dg_score: 'Minuteur fait, sur le temps prévu en blocs à cocher',
-      dg_miss_n_one: '1 bloc pas fait', dg_miss_n: '{n} blocs pas faits', dg_miss_y: 'hier', dg_miss_t: 'aujourd’hui', dg_place: 'Placer', dg_place_today: 'Tout placer aujourd’hui', dg_place_tmr: 'Tout placer demain', dg_ignore: 'Ignorer',
+      dg_miss_n_one: '1 bloc pas fait', dg_miss_n: '{n} blocs pas faits', dg_miss_y: 'hier', dg_miss_t: 'aujourd’hui', dg_place: 'Placer', dg_place_today: 'Tout placer aujourd’hui', dg_place_tmr: 'Tout placer demain', dg_ignore: 'Ignorer', dg_unplan: 'À la liste', dg_unplanned_one: '1 bloc remis dans la liste', dg_unplanned: '{n} blocs remis dans la liste', dg_ignore_all: 'Tout ignorer',
+      dg_show: 'Afficher', dg_show_strip: 'Semaine', dg_show_miss: 'Blocs pas faits', dg_show_tray: 'À placer', dg_hide: 'Masquer', dg_hidden: 'Masqué. Pour le remettre : Affichage.', dg_no_proj: 'Sans projet',
       dg_placed_one: '1 bloc replacé', dg_placed: '{n} blocs replacés', dg_next_slot: 'Prochain créneau libre', dg_tmr_slot: 'Demain', dg_resched: 'Replacer', dg_no_free: 'Pas de créneau libre.',
       dg_tpls: 'Modèles de journée', dg_tpl_save: 'Enregistrer ce jour', dg_tpl_name: 'Nom du modèle', dg_tpl_saved: 'Modèle enregistré', dg_tpl_none: 'Enregistre une journée pour la reposer sur un autre jour.', dg_tpl_n_one: '1 bloc', dg_tpl_n: '{n} blocs',
       dg_tpl_added_one: '1 bloc ajouté', dg_tpl_added: '{n} blocs ajoutés', dg_tpl_empty: 'Aucun bloc ce jour-là.', dg_tpl_del: 'Supprimer le modèle', dg_tpl_deleted: 'Modèle supprimé',
@@ -45,7 +46,8 @@
       dg_set_push: 'Make room: dropping a block on a busy slot moves the next blocks later', dg_set_from: 'My hours: from', dg_set_to: 'My hours: to',
       dg_rep: 'Repeat', dg_rep_no: 'No', dg_rep_daily: 'Every day', dg_rep_days: 'Some days', dg_rep_until: 'Until', dg_rep_once: 'Changed this day only', dg_rep_all: 'All next ones', dg_rep_all_done: 'The next ones are changed', dg_del_next: 'Delete the next ones', dg_rep_stopped: 'The next ones are removed',
       dg_of: 'of', dg_score: 'Timer done, out of the time planned in blocks to tick',
-      dg_miss_n_one: '1 block not done', dg_miss_n: '{n} blocks not done', dg_miss_y: 'yesterday', dg_miss_t: 'today', dg_place: 'Place', dg_place_today: 'Place all today', dg_place_tmr: 'Place all tomorrow', dg_ignore: 'Ignore',
+      dg_miss_n_one: '1 block not done', dg_miss_n: '{n} blocks not done', dg_miss_y: 'yesterday', dg_miss_t: 'today', dg_place: 'Place', dg_place_today: 'Place all today', dg_place_tmr: 'Place all tomorrow', dg_ignore: 'Ignore', dg_unplan: 'Back to list', dg_unplanned_one: '1 block back in the list', dg_unplanned: '{n} blocks back in the list', dg_ignore_all: 'Ignore all',
+      dg_show: 'Show', dg_show_strip: 'Week', dg_show_miss: 'Blocks not done', dg_show_tray: 'To place', dg_hide: 'Hide', dg_hidden: 'Hidden. To bring it back: View.', dg_no_proj: 'No project',
       dg_placed_one: '1 block moved', dg_placed: '{n} blocks moved', dg_next_slot: 'Next free slot', dg_tmr_slot: 'Tomorrow', dg_resched: 'Move', dg_no_free: 'No free slot.',
       dg_tpls: 'Day templates', dg_tpl_save: 'Save this day', dg_tpl_name: 'Template name', dg_tpl_saved: 'Template saved', dg_tpl_none: 'Save a day to put it on another day later.', dg_tpl_n_one: '1 block', dg_tpl_n: '{n} blocks',
       dg_tpl_added_one: '1 block added', dg_tpl_added: '{n} blocks added', dg_tpl_empty: 'No blocks on this day.', dg_tpl_del: 'Delete the template', dg_tpl_deleted: 'Template deleted',
@@ -74,6 +76,10 @@
   /* ---------- State ---------- */
   ML.defaults(() => ({ blockRules: [], dayTpls: [] }));
   const C = () => S.cal || (S.cal = {});
+  // Parts that can be hidden (week strip, missed card, To place). To place uses the old panel switch (sideOff).
+  const hid = w => w === 'tray' ? !!C().sideOff : !!(C().hide && C().hide[w]);
+  function setHid(w, on) { if (w === 'tray') { C().sideOff = on; if (on) ed = null; } else { const h = C().hide || (C().hide = {}); if (on) h[w] = true; else delete h[w]; } save(); }
+  const hideBtn = w => `<button type="button" class="ghost icon-only dg-ib dg-hide" data-hide="${w}" aria-label="${esc(t('dg_hide'))}" title="${esc(t('dg_hide'))}">${ico('x')}</button>`;
   const myHours = () => [C().hFrom != null ? C().hFrom : 7, C().hTo != null ? C().hTo : 23];
   function disp(view) {
     const all = C().disp || (C().disp = {}), v = all[view] || {};
@@ -363,6 +369,22 @@
     if (ids.length === 1) sel = { kind: 'blk', id: ids[0], k: getB(ids[0]).date };
     changed(tn('dg_placed', n), snap);
   }
+  // Back to list: the block goes, its task stays open in To place (a block with only a title becomes a task)
+  function unplan(ids) {
+    const snap = snapshot(), rules = JSON.stringify(S.blockRules || []), made = [];
+    ids.forEach(id => {
+      const b = getB(id); if (!b) return;
+      const task = b.taskId && S.tasks.find(x => x.id === b.taskId);
+      if (task) { if (task.done && !task.repeat) task.done = false; }
+      else if (!S.tasks.some(x => !x.done && ML.titleOf(x) === blockName(b))) { const nt = { id: uid(), title: blockName(b), mins: b.mins, pri: 'med', done: false, created: Date.now() }; S.tasks.push(nt); made.push(nt.id); }
+      const r = ruleOf(b);
+      if (r) { r.skip = (r.skip || []).filter(x => x >= addDays(today(), -60)); if (!r.skip.includes(ruleDay(b))) r.skip.push(ruleDay(b)); }
+      S.blocks = S.blocks.filter(x => x.id !== id);
+      if (sel && sel.id === id) sel = null;
+    });
+    save(); emit('blocks'); emit('render'); renderActive();
+    toast(tn('dg_unplanned', ids.length), { action: { label: t('dg_undo'), fn: () => { S.tasks = S.tasks.filter(x => !made.includes(x.id)); S.blockRules = JSON.parse(rules); restore(snap); emit('render'); } } });
+  }
   function missedNow() {
     const td = today(), y = addDays(td, -1), late = nowMins() >= 20 * 60;
     ensureRules(y);
@@ -499,13 +521,13 @@
   }
   // 2A: yesterday's blocks not done (and today's after 20:00), on today's Journée
   function missedHtml(host) {
-    if (host.view !== 'day' || host.focus() !== today()) return '';
+    if (host.view !== 'day' || host.focus() !== today() || hid('miss')) return '';
     const { list, to } = missedNow(); if (!list.length) return '';
     const td = today();
     return `<div class="dg-miss">
-      <h3>${esc(tn('dg_miss_n', list.length))}</h3>
-      ${list.map(b => `<div class="dg-mrow"><span><b>${esc(blockName(b))}</b><small>${esc(t(b.date === td ? 'dg_miss_t' : 'dg_miss_y'))}, ${esc(fmtMins(b.mins))}</small></span><button type="button" class="small" data-miss="one:${b.id}">${esc(t('dg_place'))}</button></div>`).join('')}
-      <div class="dg-macts"><button type="button" class="small primary" data-miss="all">${esc(t(to === td ? 'dg_place_today' : 'dg_place_tmr'))}</button><span class="grow"></span><button type="button" class="small ghost" data-miss="ignore">${esc(t('dg_ignore'))}</button></div>
+      <div class="dg-mhead"><h3>${esc(tn('dg_miss_n', list.length))}</h3>${hideBtn('miss')}</div>
+      ${list.map(b => `<div class="dg-mrow"><span><b>${esc(blockName(b))}</b><small>${esc(t(b.date === td ? 'dg_miss_t' : 'dg_miss_y'))}, ${esc(fmtMins(b.mins))}</small></span><div class="dg-mbtns"><button type="button" class="small" data-miss="one:${b.id}">${esc(t('dg_place'))}</button><button type="button" class="small ghost" data-miss="back:${b.id}">${esc(t('dg_unplan'))}</button><button type="button" class="small ghost" data-miss="skip:${b.id}">${esc(t('dg_ignore'))}</button></div></div>`).join('')}
+      ${list.length > 1 ? `<div class="dg-macts"><button type="button" class="small primary" data-miss="all">${esc(t(to === td ? 'dg_place_today' : 'dg_place_tmr'))}</button><span class="grow"></span><button type="button" class="small ghost" data-miss="ignore">${esc(t('dg_ignore_all'))}</button></div>` : ''}
     </div>`;
   }
   function gridHtml(host, days, mainW) {
@@ -626,11 +648,12 @@
   // E3: the week of the shown day, each with how full it is
   function stripHtml(k) {
     const ws = addDays(k, -((parseDay(k).getDay() + 6) % 7)), td = today(), [h0, h1] = myHours();
+    if (hid('strip')) return '';
     return `<div class="dg-strip">${[...Array(7)].map((_, i) => {
       const d = addDays(ws, i), dd = parseDay(d);
       const load = busy(d).reduce((a, [s, e]) => a + Math.max(0, Math.min(e, h1 * 60) - Math.max(s, h0 * 60)), 0) / ((h1 - h0) * 60);
       return `<button type="button" class="${d === k ? 'on' : ''} ${d === td ? 'today' : ''}" data-dgday="${d}" aria-pressed="${d === k}" aria-label="${esc(dd.toLocaleDateString(loc(), { weekday: 'long', day: 'numeric', month: 'long' }))}"><small>${esc(dd.toLocaleDateString(loc(), { weekday: 'narrow' }))}</small><b>${dd.getDate()}</b><i style="--w:${Math.round(clamp(load, 0, 1) * 100)}%"></i></button>`;
-    }).join('')}</div>`;
+    }).join('')}${hideBtn('strip')}</div>`;
   }
   const trayOpen = () => C().trayOpen === true || (C().trayOpen == null && !isPhone()); // closed by default on a phone
   function trayTasks(host, days) {
@@ -655,16 +678,28 @@
       <button type="button" class="small" data-spread="${x.id}">${esc(t('dg_spread', { d: dayName }))}</button>
     </div>`;
   }
+  // To place: project names only; one opens like a tab to show its tasks
+  function trayGroups(list) {
+    const g = new Map();
+    list.forEach(x => { const k = x.project || ''; if (!g.has(k)) g.set(k, []); g.get(k).push(x); });
+    const keys = [...g.keys()];
+    let open = C().trayProj; if (open == null || !g.has(open)) open = keys.length === 1 ? keys[0] : null;
+    const tabs = keys.map(k => {
+      const xs = g.get(k);
+      return `<button type="button" class="dg-ptab" data-tproj="${esc(k)}" aria-expanded="${k === open}" style="--pc:${k && ML.projColor ? ML.projColor(k) : 'var(--mist)'}"><i></i><span>${esc(k || t('dg_no_proj'))}</span><small>${xs.length}</small></button>`;
+    }).join('');
+    return `<div class="dg-ptabs">${tabs}</div>${open != null ? `<div class="dg-tasks">${g.get(open).map(trayChip).join('')}</div>` : ''}`;
+  }
   function trayHtml(host, days, inSide) {
     const list = trayTasks(host, days), mins = list.reduce((a, x) => a + trayMins(x), 0);
-    const chips = list.map(trayChip).join('');
+    const chips = trayGroups(list);
     const auto = list.length ? `<button type="button" class="small" data-dg="auto">${esc(host.autoLabel())}</button>` : '';
-    if (inSide) return `<div class="dg-tray side"><h3>${esc(t('dg_to_place'))}</h3>${list.length ? `<p class="hint">${esc(tn('dg_to_place_n', list.length, { m: fmtMins(mins) }))}</p><div class="dg-tasks">${chips}</div>${auto}<p class="hint">${esc(t('dg_tray_hint'))}</p>` : `<p class="hint">${esc(t('dg_tray_empty'))}</p>`}</div>`;
-    if (!list.length) return '';
+    if (inSide) return `<div class="dg-tray side"><div class="dg-mhead"><h3>${esc(t('dg_to_place'))}</h3>${hideBtn('tray')}</div>${list.length ? `<p class="hint">${esc(tn('dg_to_place_n', list.length, { m: fmtMins(mins) }))}</p>${chips}${auto}<p class="hint">${esc(t('dg_tray_hint'))}</p>` : `<p class="hint">${esc(t('dg_tray_empty'))}</p>`}</div>`;
+    if (!list.length || hid('tray')) return '';
     const open = trayOpen();
     return `<div class="dg-drawer ${open ? 'open' : ''}">
       <button type="button" class="dg-drawer-bar" data-dg="tray" aria-expanded="${open}"><b>${esc(t('dg_to_place'))}</b><span>${esc(tn('dg_to_place_n', list.length, { m: fmtMins(mins) }))}</span>${ico(open ? 'down' : 'up')}</button>
-      ${open ? `<div class="dg-tasks">${chips}</div><div class="dg-drawer-foot">${auto}<span class="hint">${esc(t('dg_tray_hint'))}</span></div>` : ''}
+      ${open ? `<div class="dg-dbody">${chips}</div><div class="dg-drawer-foot">${auto}<span class="hint">${esc(t('dg_tray_hint'))}</span>${hideBtn('tray')}</div>` : ''}
     </div>`;
   }
   function headHtml(host, wide) {
@@ -715,7 +750,7 @@
     const now = blk && !isNew && d.date === today() && nowMins() >= d.s - 10 && nowMins() < d.e && !d.done;
     const durs = [25, 45, 60, 90, 120];
     const autoSlot = blk ? 0 : ({ class: 2, study: 8, work: 1, perso: 3, meal: 7, sport: 4, social: 5, deadline: 6 }[d.cat] || 3);
-    const sw = `<fieldset class="ev-colors"><legend>${esc(t('ev_color'))}</legend>
+    const sw = `<fieldset class="ev-colors dg-colors"><legend class="sr">${esc(t('ev_color'))}</legend>
       <label class="sw auto" title="${esc(t('ev_color_auto'))}"><input type="radio" name="color" value="" ${d.color ? '' : 'checked'}><i style="--c:${blk ? 'var(--accent)' : `var(--ev-${autoSlot})`}"></i><span>${esc(t('ev_color_auto'))}</span></label>
       ${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<label class="sw"><input type="radio" name="color" value="${n}" ${d.color === n ? 'checked' : ''} aria-label="${esc(t('ev_color'))} ${n}"><i style="--c:var(--ev-${n})"></i></label>`).join('')}
     </fieldset>`;
@@ -736,6 +771,7 @@
       </div>
       <div class="dg-durs" ${d.allday ? 'hidden' : ''}>${durs.map(m => `<button type="button" data-dur="${m}" aria-pressed="${d.e - d.s === m}">${fmtMins(m)}</button>`).join('')}</div>
       <label class="dg-ed-date"><span>${esc(t('dg_date'))}</span><input type="date" name="date" value="${esc(d.date)}" required></label>
+      ${sw}
       ${blk ? `<label class="opt dg-check"><input type="checkbox" name="check" ${d.check ? 'checked' : ''}> <span>${esc(t('dg_check'))}</span><small class="hint">${esc(t('dg_check_hint'))}</small></label>
       <fieldset class="dg-rep"><legend class="label">${esc(t('dg_rep'))}</legend>
         <div class="dg-seg">${['no', 'daily', 'days'].map(v => `<label><input type="radio" name="rep" value="${v}" ${d.rep === v ? 'checked' : ''}><span>${esc(t('dg_rep_' + v))}</span></label>`).join('')}</div>
@@ -748,7 +784,6 @@
           <label><span>${esc(t('repeat'))}</span><select name="repeat">${opt(['none', 'daily', 'weekdays', 'weekly', 'monthly'], d.repeat, 'rep_')}</select></label>
           <label><span>${esc(t('ev_remind'))}</span><select name="remind">${opt([0, 5, 15, 30, 60, 1440], d.remind, 'rem_')}</select></label>
         </div>`}
-        ${sw}
         ${blk ? '' : `<textarea name="notes" rows="2" placeholder="${esc(t('ev_notes_ph'))}">${esc(d.notes)}</textarea>`}
       </details>
       ${d.rep === true ? `<p class="hint">${esc(t('dg_series'))}</p>` : ''}${d.feed ? `<p class="hint">${esc(t('dg_feed'))}</p>` : ''}
@@ -801,6 +836,7 @@
     host.wideNow = !isPhone() && w - sideW - 14 >= minMain;
     host.sideNow = host.wideNow && (!C().sideOff || !!ed); // the panel can be hidden (it comes back for the form)
     const mainW = host.sideNow ? w - sideW - 14 : w;
+    const y0 = (document.scrollingElement || document.documentElement).scrollTop;
     const prev = el.querySelector('.dg-scroll');
     if (prev) scrollMem[name] = { key: prev.dataset.key, top: prev.scrollTop };
     if (opts.mainOnly && el.querySelector('.dg-main')) {
@@ -818,7 +854,17 @@
     }
     placeScroll(name, el, days);
     renderSheet();
+    holdPage(y0);
   }
+  // Phone: a redraw (place, move, add, the sheet and its keyboard) must not throw the page back to the top
+  function holdPage(y) {
+    if (!isPhone() || y < 120) return;
+    const page = document.scrollingElement || document.documentElement, until = Date.now() + 800, me = ++holdId;
+    const fix = () => { if (me !== holdId) return; if (page.scrollTop < y - 150) page.scrollTop = y; if (Date.now() < until) requestAnimationFrame(fix); };
+    fix();
+  }
+  let holdId = 0;
+  ['touchmove', 'wheel'].forEach(ev => addEventListener(ev, () => { holdId++; }, { passive: true })); // the user scrolls: let go
   function placeScroll(name, el, days) {
     const sc = el.querySelector('.dg-scroll'); if (!sc) return;
     const page = document.scrollingElement || document.documentElement;
@@ -994,7 +1040,8 @@
   function viewMenuHtml(view) {
     const dp = disp(view);
     const seg = (key, vals) => `<div class="seg-toggle" role="group">${vals.map(v => `<button type="button" data-dv="${key}:${v}" aria-pressed="${dp[key] === v}">${esc(t(`dg_${key}_${v}`))}</button>`).join('')}</div>`;
-    return `<div class="dg-vmenu"><span class="label">${esc(t('dg_density'))}</span>${seg('d', ['compact', 'normal', 'large'])}
+    const show = (view === 'day' ? ['strip', 'miss', 'tray'] : ['tray']).map(w => `<button type="button" data-showp="${w}" aria-pressed="${!hid(w)}">${esc(t('dg_show_' + w))}</button>`).join('');
+    return `<div class="dg-vmenu"><span class="label">${esc(t('dg_show'))}</span><div class="dg-showp">${show}</div><span class="label">${esc(t('dg_density'))}</span>${seg('d', ['compact', 'normal', 'large'])}
       <span class="label">${esc(t('dg_hours'))}</span>${seg('h', ['24', 'mine', 'auto'])}
       ${view === 'day' ? `<span class="label">${esc(t('dg_layout'))}</span>${seg('l', ['grid', 'lines'])}${tplMenuHtml()}` : ''}</div>`;
   }
@@ -1046,6 +1093,12 @@
       setDisp(host.view, key, val); delete scrollMem[host.name];
       render(host.name); menu.innerHTML = viewMenuHtml(host.view); return;
     }
+    const sp2 = tg.closest('[data-showp]');
+    if (sp2 && inMenu) { const host = activeHost(); if (!host) return; setHid(sp2.dataset.showp, !hid(sp2.dataset.showp)); render(host.name); menu.innerHTML = viewMenuHtml(host.view); return; }
+    const hb = tg.closest('[data-hide]');
+    if (hb) { const host = hostFrom(hb) || activeHost(), w = hb.dataset.hide; setHid(w, true); if (host) render(host.name); toast(t('dg_hidden'), { action: { label: t('dg_undo'), fn: () => { setHid(w, false); renderActive(); } } }); return; }
+    const tpj = tg.closest('[data-tproj]');
+    if (tpj) { C().trayProj = tpj.getAttribute('aria-expanded') === 'true' ? '\u0001' : tpj.dataset.tproj; save(); renderActive(); return; }
     const pick = tg.closest('[data-pick]');
     if (pick && inMenu) { const [kind, id, k] = pick.dataset.pick.split('|'); closeMenu(); ML.dgOpen(kind, id, k); return; }
     const a = tg.closest('[data-act]');
@@ -1056,7 +1109,9 @@
       const { list, to } = missedNow(), [w, id] = mi.dataset.miss.split(':');
       if (w === 'one') placeMissed([id], to);
       else if (w === 'all') placeMissed(list.map(b => b.id), to);
-      else if (w === 'ignore') { const snap = snapshot(); list.forEach(b => { b.skipped = true; }); changed(t('dg_removed'), snap); }
+      else if (w === 'ignore' || w === 'skip') { const snap = snapshot(); list.filter(b => w === 'ignore' || b.id === id).forEach(b => { b.skipped = true; }); changed(t('dg_removed'), snap); }
+      else if (w === 'back') unplan([id]);
+      else if (w === 'backall') unplan(list.map(b => b.id));
       return;
     }
     const sp = tg.closest('[data-spread]');
