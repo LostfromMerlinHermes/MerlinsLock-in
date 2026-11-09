@@ -15,11 +15,11 @@
   const T = '#7fcfbd', V = '#a49af0', TX = '#d8f3f5', MI = '#7fa9b4', LU = '#c8f2e8';
 
   ML.addStrings({
-    fr: { ab_depth: 'PROFONDEUR', dp_log: 'Carnet', dl_no: 'PLONGÉE N° {n}', dl_line: '{m} MIN · {d} M · {p}', dl_pauses: '{n} PAUSES', dl_pauses_one: '1 PAUSE', dl_nopause: 'SANS PAUSE', dl_surface: 'SURFACE', dl_stop: 'PALIER', dl_up: 'REMONTÉE',
+    fr: { ab_depth: 'PROFONDEUR', dp_log: 'Carnet', dl_no: 'Plongée n° {n}', dl_line: '{m} min sur {t} · {d} m{p}', dl_pz: ' · {p}', dl_pauses: '{n} pauses', dl_pauses_one: '1 pause', dl_surface: 'Surface', dl_stop: 'Palier', dl_up: 'REMONTÉE',
       dial_diver: 'Montre de plongée', dial_diver_d: 'Abysses · une lunette crantée, des index lumineux et un manomètre de profondeur.',
       dial_nautilus: 'Nautile', dial_nautilus_d: 'Abysses · les loges de la coquille s’éclairent de nacre une à une pendant la séance.',
       dial_jelly: 'Méduse lune', dial_jelly_d: 'Abysses · soixante tentacules : ceux des minutes qui restent brillent au bout.' },
-    en: { ab_depth: 'DEPTH', dp_log: 'Log', dl_no: 'DIVE N° {n}', dl_line: '{m} MIN · {d} M · {p}', dl_pauses: '{n} PAUSES', dl_pauses_one: '1 PAUSE', dl_nopause: 'NO PAUSE', dl_surface: 'SURFACE', dl_stop: 'STOP', dl_up: 'ASCENT',
+    en: { ab_depth: 'DEPTH', dp_log: 'Log', dl_no: 'Dive no. {n}', dl_line: '{m} of {t} min · {d} m{p}', dl_pz: ' · {p}', dl_pauses: '{n} pauses', dl_pauses_one: '1 pause', dl_surface: 'Surface', dl_stop: 'Stop', dl_up: 'ASCENT',
       dial_diver: 'Dive watch', dial_diver_d: 'Abyss · a notched bezel, glowing markers and a depth gauge.',
       dial_nautilus: 'Nautilus', dial_nautilus_d: 'Abyss · the shell’s chambers light up with nacre one by one during the session.',
       dial_jelly: 'Moon jellyfish', dial_jelly_d: 'Abyss · sixty tentacles: those of the minutes left glow at their tips.' },
@@ -479,7 +479,7 @@
     const ticks = Array.from({ length: 17 }, (_, i) => { const m = i * 25; return `<i class="${m % 100 ? '' : 'q'}" style="top:${m / 4}%">${m % 100 ? '' : `<b>${m} m</b>`}</i>`; }).join('');
     return `<div class="dl-snow" aria-hidden="true">${dots(34, 51)}</div>${top}
       <div class="dl">
-        <header class="dl-head"><span id="dl-no"></span><span id="dl-date"></span></header>
+        <header class="dl-head"><span id="dl-no"></span></header>
         <div class="dl-rule" aria-hidden="true"><span class="dl-fill" id="dl-fill"></span>${ticks}<em class="dl-pip" id="dl-pip"><span id="dl-pipl"></span></em></div>
         <div class="dl-main">
           <div class="dl-time" id="dl-time" role="timer"></div>
@@ -495,9 +495,8 @@
     const tot = S.total || 1, d = done ? 1 : clamp(1 - Math.max(0, rem) / tot), td = today(), n = (S.sessions || []).filter(s => dayKey(new Date(s.at)) === td).length;
     const last = (S.sessions || [])[S.sessions.length - 1], mins = done && last ? last.mins : Math.round((tot - Math.max(0, rem)) / 60), p = done && last ? last.pauses || 0 : S.pauses || 0;
     $('dl-no').textContent = t('dl_no', { n: done ? n : n + 1 });
-    $('dl-date').textContent = new Date().toLocaleDateString(ML.locale(), { day: 'numeric', month: 'short' }).toUpperCase() + ' · ' + t('mood_' + S.mood).toUpperCase();
     $('dl-time').textContent = MiniView.fmtClock(done ? 0 : rem);
-    $('dl-line').textContent = t('dl_line', { m: mins, d: Math.round(400 * d), p: p ? ML.tn('dl_pauses', p) : t('dl_nopause') });
+    $('dl-line').textContent = t('dl_line', { m: mins, t: done && last ? last.mins : Math.round(tot / 60), d: Math.round(400 * d), p: p ? t('dl_pz', { p: ML.tn('dl_pauses', p) }) : '' });
     $('dl-task').textContent = title;
     $('dl-fill').style.height = (done ? 0 : d * 100).toFixed(2) + '%';
     $('dl-pip').style.top = (done ? 0 : d * 100).toFixed(2) + '%';

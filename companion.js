@@ -216,7 +216,7 @@
     el.innerHTML = `
       <button type="button" class="fam-btn ${cele ? 'flying' : ''}" id="fam-btn" title="${esc(famName())} · ${esc(t('fam_' + species()))} · ${esc(t('stage_' + stage()))}" ${cele ? `style="--ce:-${Date.now() - cele.at}ms"` : ''}>${familiarSvg(species(), st, stage(), cele ? 'cele' + (cele.big ? ' big' : '') : '')}${species() === 'hippo' ? `<span class="shield-badge ${shieldReady() ? 'on' : 'used'}" title="${esc(t(shieldReady() ? 'shield_ready' : 'shield_used'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18 L3 7 L8.5 11 L12 4 L15.5 11 L21 7 L20 18 Z"/></svg></span>` : ''}</button>
       <div class="bubble"><b>${esc(famName())}</b><span>${esc(line || '')}</span></div>
-      <button type="button" class="mini-tower" id="mini-tower" title="${esc(t('tower'))}">${towerSvg(Math.min(8, Math.max(1, T.day === today() ? T.built : 0)), T.day === today() ? T.built : 0, true)}
+      <button type="button" class="mini-tower" id="mini-tower" title="${esc(t('tower'))}">${ML.islandThumb ? ML.islandThumb() : towerSvg(Math.min(8, Math.max(1, T.day === today() ? T.built : 0)), T.day === today() ? T.built : 0, true)}
         <span><b>${esc(ML.tn('floors_n', T.floors))}</b><small>${esc(t('floors_today', { n: T.day === today() ? T.built : 0 }))}</small></span></button>`;
     $('fam-btn').onclick = () => { react('happy', 3500); line = pick(lines('l_pet')); renderPerch(); ML.sfx && ML.sfx('task'); lastActive = Date.now(); };
     $('mini-tower').onclick = () => { ML.setTab('grim'); setTimeout(() => { const c = $('tower-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60); };
@@ -309,9 +309,10 @@
     const shown = Math.min(24, sea.floors), weekAgo = Date.now() - 7 * 864e5;
     const card = document.createElement('div');
     card.className = 'g-card tower-card'; card.id = 'tower-card';
-    card.innerHTML = `<h2>${esc(t('tower'))}</h2>
-      <div class="tower-row">
-        <div class="tower-big">${towerSvg(Math.max(1, shown), shown ? Math.min(shown, T.built) : 0, false, { gold, wings: sea.wings })}${sea.floors > 24 ? `<span class="tw-more">+${sea.floors - 24}</span>` : ''}</div>
+    const island = !!ML.islandMount;
+    card.innerHTML = `<h2>${esc(t('tower'))}</h2>${island ? '<div id="isl-slot"></div>' : ''}
+      <div class="tower-row ${island ? 'isl-on' : ''}">
+        ${island ? '' : `<div class="tower-big">${towerSvg(Math.max(1, shown), shown ? Math.min(shown, T.built) : 0, false, { gold, wings: sea.wings })}${sea.floors > 24 ? `<span class="tw-more">+${sea.floors - 24}</span>` : ''}</div>`}
         <div class="tower-info">
           <strong>${esc(ML.tn('floors_n', T.floors))}</strong>
           <span>${esc(t('floors_today', { n: T.built }))}</span>
@@ -326,6 +327,7 @@
         </div>
       </div>`;
     $('g-game').prepend(card);
+    if (island) ML.islandMount($('isl-slot'));
     $('fam-name').onchange = e => { S.companion.name = e.target.value.trim() || null; save(); renderPerch(); };
     $('fam-shop').onclick = () => ML.openShop();
   });

@@ -122,6 +122,7 @@
     familiar: { owl: 0, cat: 300, raven: 300, fox: 400, hippo: 10000 },
     potion: { seal: 150, elixir: 80, scroll: 40, midas: 120 },
     skin: { classic: 0, runic: 350, parchment: 300, gold: 450, ember: 300, holo: 600, astral: 800 },
+    island: { orbit: 900, pavilion: 900, fragment: 900, void: 900, keep: 900, pier: 900, coupe: 600, navette: 600 }, // the mage island's shop islands and the Ville néon's flying cars (island.js, 3.81)
     world: { abyss: 1500, sanctuary: 1500 }, // 3.74: the old Drained energy's worlds, a fourth world for Steady / Drained (Premium)
     dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300, spell: 0, circle: 400, city: 0, supercar: 600, valley: 0, pier: 1200, orbit: 900, worldtone: 0, redcream: 300, veil: 0, rose: 800, skeleton: 1200, incant: 0, door: 500 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43); the Cyber sorcier's two full screens (3.48); the Ville néon's two backgrounds (3.49); the Arcade's three sets (background + dial + palette) and a palette (3.51)
     tree: { lf_season: 0, lf_sakura: 250, lf_ember: 250, lf_jade: 250, lf_silver: 300, lf_violet: 300, lf_gold: 400, br_bark: 0, br_ash: 200, br_ebony: 200, br_ember: 250, br_verdigris: 250, br_gold: 400, fl_gold: 0, fl_plum: 200, fl_camellia: 250, fl_star: 350, hg_none: 0, hg_swing: 300, hg_birds: 350, hg_lanterns: 400, gd_grass: 0, gd_mush: 250, gd_stones: 300, gd_pond: 400, sk_dusk: 0, sk_night: 300, sk_dawn: 300, pine: 800, atlas: 800, coral: 800, crystal: 800, hanging: 800 }, // the year tree (tree.js): looks only, gold never buys growth. The last five are whole trees (3.63, 3.65). Premium gating comes with the Premium pass, not yet
@@ -133,7 +134,7 @@
   const SLOT = { abyss: 'dialAbyss', sorcerer: 'deepSorcerer', neoncity: 'bgNeon', arcade: 'arcadeSet', fog: 'dialFog' };
   const ITEM_SLOT = { worldtone: 'arcadePal', redcream: 'arcadePal', incant: 'deepFog', door: 'deepFog' }; // the Arcade's palettes go over its set
   const WORLD_ORDER = ['arcade', 'fog', 'sanctuary', 'abyss', 'sorcerer', 'neoncity']; // the shop shows world items world by world
-  const slotOf = (cat, k) => (cat === 'tree' ? (TREE_SKINS.includes(k) ? 'treeSkin' : TREE_SLOT[k.slice(0, 2)]) : cat !== 'dial' ? cat : ITEM_SLOT[k] || SLOT[DIAL_WORLD[k]] || cat);
+  const slotOf = (cat, k) => (cat === 'island' ? ML.islandSlot(k) : cat === 'tree' ? (TREE_SKINS.includes(k) ? 'treeSkin' : TREE_SLOT[k.slice(0, 2)]) : cat !== 'dial' ? cat : ITEM_SLOT[k] || SLOT[DIAL_WORLD[k]] || cat);
   const PREMIUM_ONLY = { skin: ['holo', 'astral'], dial: ['pier', 'skeleton'], world: ['abyss', 'sanctuary'] }; // need a Premium account to buy
   const premOnly = (cat, k) => (PREMIUM_ONLY[cat] || []).includes(k);
   // Categories added after launch: older saves lack them (nested defaults only merge one level deep)
@@ -152,6 +153,7 @@
     if (!Array.isArray(E.owned.tree)) E.owned.tree = []; for (const k of TREE_FREE) { if (!E.owned.tree.includes(k)) E.owned.tree.push(k); const sl = TREE_SLOT[k.slice(0, 2)]; if (!E.equip[sl]) E.equip[sl] = k; }
     if (!E.equip.treeSkin) E.equip.treeSkin = 'oak';
     if (!Array.isArray(E.owned.world)) E.owned.world = [];
+    if (!Array.isArray(E.owned.island)) E.owned.island = [];
     if (S.legacyDrained && !E.legacyWorlds) { for (const k of Object.keys(CATALOG.world)) if (!E.owned.world.includes(k)) E.owned.world.push(k); E.legacyWorlds = true; } // they had them free before 3.74
   }
 
@@ -305,6 +307,7 @@
     if (cat === 'familiar') return ML.familiarSvg ? ML.familiarSvg(k, 'idle') : '';
     if (cat === 'skin') return ML.sportSkinPreview ? ML.sportSkinPreview(k) : '';
     if (cat === 'tree') return ML.treePrev ? ML.treePrev(k) : '';
+    if (cat === 'island') return `<img class="isl-prev" data-isl="${k}" alt="">`;
     if (cat === 'world') return `<span class="world-art">${ML.worldArt ? ML.worldArt(k) : ''}${k === 'sanctuary' ? '<img src="world-sanctuary.jpg" alt="" loading="lazy">' : ''}</span>`;
     if (cat === 'dial') { const f = { abyss: ML.abyssDialSvg, sorcerer: ML.sorcererDeepSvg, neoncity: ML.neonShopPic, arcade: ML.arcadeShopPic, fog: ML.fogShopPic }[DIAL_WORLD[k]] || ML.sanctuaryDialSvg; return f ? f(k) : ''; }
     return `<span class="burst-swatch">${{ seal: '⛨', elixir: '⚗', scroll: '📜', midas: '♛' }[k]}</span>`;
@@ -316,8 +319,8 @@
   const coin = (n, short) => `<span class="coin-pill ${short ? 'short' : ''}"><i>◈</i>${n.toLocaleString(ML.locale())}</span>`;
   // The shop's state: which shelf is open (null = the window of shelves), the filter, the tree's fitting room and what is being tried on it
   let justBought = null, shelf = null, filter = 'all', fitting = false, tried = null, fitTab = 'leaf';
-  const SHELVES = ['tree', 'worlds', 'dial', 'familiar', 'seq', 'hat', 'ring', 'burst', 'potion']; // (character skins went with the Sport section, set aside in 3.25)
-  const SHELF_NAME = { tree: 'cat_tree', worlds: 'cat_worlds', dial: 'cat_dials', familiar: 'cat_familiars', seq: 'cat_seq', hat: 'cat_hats', ring: 'cat_rings', burst: 'cat_bursts', potion: 'cat_potions' };
+  const SHELVES = ['tree', 'worlds', 'island', 'dial', 'familiar', 'seq', 'hat', 'ring', 'burst', 'potion']; // (character skins went with the Sport section, set aside in 3.25)
+  const SHELF_NAME = { tree: 'cat_tree', worlds: 'cat_worlds', island: 'cat_islands', dial: 'cat_dials', familiar: 'cat_familiars', seq: 'cat_seq', hat: 'cat_hats', ring: 'cat_rings', burst: 'cat_bursts', potion: 'cat_potions' };
   ML.addStrings({
     fr: { sh_shelves: 'Rayons', sh_back: 'Rayons', sh_all: 'Tout', sh_tobuy: 'À acheter', sh_owned: 'Possédés', sh_count: '{a} sur {b}', sh_your_tree: 'Ton arbre', sh_your_tree_d: 'Essaie des feuilles, des branches, des fleurs, un sol et un ciel sur ton chêne avant d’acheter.', sh_try: 'Essayer',
       sh_other_trees: 'Autres arbres', sh_world_trees: 'Les arbres des mondes ne s’achètent pas : ils se gagnent dans l’onglet Arbre, après 25 h dans leur monde.', sh_trying: 'À l’essai', sh_free: 'Rien n’est dépensé.', sh_try_hint: 'Touche une option pour l’essayer sur ton arbre.', sh_cancel: 'Annuler', sh_buy_n: 'Acheter', sh_use: 'Utiliser',
@@ -400,11 +403,12 @@
   /* ---------- Shop UI (3.65): a window of shelves (R2), short tiles that open a sheet (D1), the tree's fitting room (T1),
      a filter (X1), and the sheet as a try-on: the item worn with what you have, arrows to go through the shelf (X3). Nothing is spent before Buy. ---------- */
   const isPrem = () => !!(ML.isPremium && ML.isPremium());
-  const FILTERED = ['tree', 'dial', 'familiar', 'hat', 'ring', 'burst'];
+  const FILTERED = ['tree', 'island', 'dial', 'familiar', 'hat', 'ring', 'burst'];
   // Every shelf as a list of [cat, key]. Costumes are earned with the Sequences, never bought
   function itemsOf(c) {
     if (c === 'seq') return ['none', ...(ML.COSTUMES || [])].map(k => ['costume', k]);
     if (c === 'tree') return TREE_SKINS.map(k => ['tree', k]);
+    if (c === 'island') return Object.keys(CATALOG.island).filter(k => { const w = ML.ISLAND_WORLD[k]; return !CATALOG.world[w] || (S.econ.owned.world || []).includes(w); }).map(k => ['island', k]);
     if (c === 'dial') return WORLD_ORDER.filter(w => !CATALOG.world[w] || (S.econ.owned.world || []).includes(w)).flatMap(w => Object.keys(CATALOG.dial).filter(k => DIAL_WORLD[k] === w)).map(k => ['dial', k]);
     return Object.keys(CATALOG[c] || {}).map(k => [c, k]);
   }
@@ -425,7 +429,7 @@
   const goldNow = () => S.econ.gold.toLocaleString(ML.locale());
 
   /* The window: one big picture per shelf */
-  const shelfPic = c => ({ tree: '<img class="tree-prev" data-tp="skin:oak" alt="">', worlds: '<img src="world-atelier.jpg" alt="" loading="lazy">', dial: preview('dial', 'nautilus'), familiar: preview('familiar', 'fox'), seq: picOf('costume', (ML.COSTUMES || [])[2] || 'none'), hat: hatSvg('crown'), ring: ringPreview('aurora'), burst: '<span class="burst-swatch">★</span>', potion: '<span class="burst-swatch">⚗</span>' }[c] || '');
+  const shelfPic = c => ({ tree: '<img class="tree-prev" data-tp="skin:oak" alt="">', worlds: '<img src="world-atelier.jpg" alt="" loading="lazy">', island: preview('island', 'orbit'), dial: preview('dial', 'nautilus'), familiar: preview('familiar', 'fox'), seq: picOf('costume', (ML.COSTUMES || [])[2] || 'none'), hat: hatSvg('crown'), ring: ringPreview('aurora'), burst: '<span class="burst-swatch">★</span>', potion: '<span class="burst-swatch">⚗</span>' }[c] || '');
   function countOf(c) {
     if (c === 'worlds') return String(LIGHTS.length + FREE.length + Object.keys(CATALOG.world).length);
     const list = c === 'tree' ? Object.keys(CATALOG.tree).map(k => ['tree', k]) : itemsOf(c);
@@ -450,7 +454,7 @@
   function shelfView(c) {
     if (c === 'worlds') return bar(t('cat_worlds')) + buySection() + lightSection();
     const list = shelfList(c), tiles = l => `<div class="shop-tiles">${l.map(([a, k]) => tile(a, k)).join('')}</div>`;
-    let grid = c === 'dial' ? WORLD_ORDER.map(w => { const l = list.filter(([, k]) => DIAL_WORLD[k] === w); return l.length ? `<h4 class="shop-world">${esc(t('th_' + w))}</h4>${tiles(l)}` : ''; }).join('') : tiles(list);
+    let grid = c === 'dial' || c === 'island' ? (c === 'island' ? ['observatory', 'sanctuary', 'netrunner', 'sorcerer', 'neoncity', 'arcade'] : WORLD_ORDER).map(w => { const l = list.filter(([, k]) => (c === 'island' ? ML.ISLAND_WORLD[k] : DIAL_WORLD[k]) === w); return l.length ? `<h4 class="shop-world">${esc(t('th_' + w))}</h4>${tiles(l)}` : ''; }).join('') : tiles(list);
     if (!list.length) grid = `<p class="hint">${esc(t('sh_none'))}</p>`;
     const hint = c === 'dial' ? t('dial_hint') : c === 'seq' ? t('seq_hint') : '';
     const hero = c === 'tree' ? `<button type="button" class="shop-hero" data-fit><span class="shop-prev"><img class="tree-prev" data-tp="skin:oak" alt=""></span><span><b>${esc(t('sh_your_tree'))}</b><small>${esc(t('sh_your_tree_d'))}</small><i>${esc(t('sh_try'))}</i></span></button><h4 class="shop-world">${esc(t('sh_other_trees'))}</h4>` : '';
@@ -492,6 +496,7 @@
     body.querySelectorAll('.world-pic img, .world-free img, .shop-shelf img:not(.tree-prev)').forEach(i => i.addEventListener('error', () => i.remove()));
     if (fitting) mountFit();
     if (ML.treePrevs) ML.treePrevs(body);
+    if (ML.islandPrevs) ML.islandPrevs(body);
     if (itemOpen && !ish.hidden) renderItem();
   }
 
@@ -517,6 +522,7 @@
       <div class="item-stage cat-${cat}">${nav(-1)}<span class="item-pic">${pic}</span>${nav(1)}${cat === 'familiar' && cos ? `<small class="item-note">${esc(t('sh_with'))}</small>` : ''}</div>
       <p>${esc(descOf(cat, k))}</p>${stock}<div class="item-cta">${cta}</div></div>`;
     if (ML.treePrevs) ML.treePrevs(ish);
+    if (ML.islandPrevs) ML.islandPrevs(ish);
   }
   function openItem(cat, k) { itemOpen = [cat, k]; ish.hidden = false; renderItem(); ML.openOverlay('shopitem'); }
 

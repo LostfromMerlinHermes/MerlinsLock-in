@@ -49,8 +49,8 @@
   'use strict';
   const { S, t, today, dayKey } = ML;
   ML.addStrings({
-    fr: { dp_chart: 'Carte', oc_no: 'OBSERVATION N° {n}', oc_line: '{m} MIN · ALT {a}° · {p}', oc_pauses: '{n} PAUSES', oc_pauses_one: '1 PAUSE', oc_nopause: 'CIEL CLAIR', oc_cloud: 'NUAGES', oc_seen: 'OBSERVÉ', oc_sky: 'CIEL DU JOUR · {n}/8' },
-    en: { dp_chart: 'Chart', oc_no: 'OBSERVATION N° {n}', oc_line: '{m} MIN · ALT {a}° · {p}', oc_pauses: '{n} PAUSES', oc_pauses_one: '1 PAUSE', oc_nopause: 'CLEAR SKY', oc_cloud: 'CLOUDS', oc_seen: 'OBSERVED', oc_sky: "TODAY'S SKY · {n}/8" },
+    fr: { dp_chart: 'Carte', oc_no: 'Observation n° {n}', oc_line: '{m} min sur {t} · altitude {a}°{p}', oc_pz: ' · {p}', oc_pauses: '{n} pauses', oc_pauses_one: '1 pause', oc_cloud: 'Nuages', oc_seen: 'OBSERVÉ', oc_sky: 'Ciel du jour, {n} sur 8' },
+    en: { dp_chart: 'Chart', oc_no: 'Observation no. {n}', oc_line: '{m} of {t} min · altitude {a}°{p}', oc_pz: ' · {p}', oc_pauses: '{n} pauses', oc_pauses_one: '1 pause', oc_cloud: 'Clouds', oc_seen: 'OBSERVED', oc_sky: "Today's sky, {n} of 8" },
   });
   const $ = id => document.getElementById(id);
   const clamp = v => Math.max(0, Math.min(1, v));
@@ -68,7 +68,7 @@
       return `<path d="M${(PX(p) - nx * l).toFixed(1)} ${(PY(p) - ny * l).toFixed(1)}L${(PX(p) + nx * l).toFixed(1)} ${(PY(p) + ny * l).toFixed(1)}"/>`; }).join('');
     return `<div class="oc-sky" aria-hidden="true">${stars}</div><div class="oc-cloud" aria-hidden="true"></div><i class="oc-shoot" aria-hidden="true"></i>${top}
       <div class="oc">
-        <header class="oc-head"><span id="oc-no"></span><span id="oc-date"></span></header>
+        <header class="oc-head"><span id="oc-no"></span></header>
         <figure class="oc-const" aria-hidden="true"><svg viewBox="0 0 200 80"><path class="oc-cl" id="oc-cl"/><path class="oc-cn" id="oc-cn"/>${STARS.map(([x, y], i) => `<circle class="oc-st" id="oc-s${i}" cx="${x}" cy="${y}" r="3"/>`).join('')}</svg><figcaption id="oc-sky"></figcaption></figure>
         <div class="oc-main">
           <div class="oc-time" id="oc-time" role="timer"></div>
@@ -85,9 +85,8 @@
     const tot = S.total || 1, p = done ? 1 : clamp(1 - Math.max(0, rem) / tot), td = today(), n = (S.sessions || []).filter(s => dayKey(new Date(s.at)) === td).length;
     const last = (S.sessions || [])[S.sessions.length - 1], mins = done && last ? last.mins : Math.round((tot - Math.max(0, rem)) / 60), ps = done && last ? last.pauses || 0 : S.pauses || 0;
     $('oc-no').textContent = t('oc_no', { n: done ? n : n + 1 });
-    $('oc-date').textContent = new Date().toLocaleDateString(ML.locale(), { day: 'numeric', month: 'short' }).toUpperCase() + ' · ' + t('mood_' + S.mood).toUpperCase();
     $('oc-time').textContent = MiniView.fmtClock(done ? 0 : rem);
-    $('oc-line').textContent = t('oc_line', { m: mins, a: Math.round(90 * Math.sin(Math.PI * p)), p: ps ? ML.tn('oc_pauses', ps) : t('oc_nopause') });
+    $('oc-line').textContent = t('oc_line', { m: mins, t: done && last ? last.mins : Math.round(tot / 60), a: Math.round(90 * Math.sin(Math.PI * p)), p: ps ? t('oc_pz', { p: ML.tn('oc_pauses', ps) }) : '' });
     $('oc-task').textContent = title;
     $('oc-done').style.strokeDasharray = `${p.toFixed(4)} 1`;
     $('oc-pl').setAttribute('transform', `translate(${PX(p).toFixed(1)} ${PY(p).toFixed(1)})`);

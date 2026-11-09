@@ -3033,6 +3033,18 @@ html.mnav-on .shop-top { padding: 10px 12px; } html.mnav-on .shop-gold { font-si
 .fam-card .fam { width: 84px; height: 84px; grid-row: span 3; }
 .fam-card .field { font-size: var(--t-1); } .fam-card input { padding: 4px 8px; width: 100%; }
 @media (max-width: 440px) { .tower-row { grid-template-columns: 90px minmax(0, 1fr); } .perch { grid-template-columns: auto minmax(0, 1fr); } .mini-tower { grid-column: 1 / -1; justify-content: center; } }
+/* The mage island (island.js, 3.81): the painting on top of the tower card, the small one in the perch */
+.tower-row.isl-on { grid-template-columns: minmax(0, 1fr); }
+.isl { display: grid; gap: 8px; min-width: 0; }
+.isl-frame { position: relative; aspect-ratio: 1200 / 780; border-radius: calc(var(--radius) - 4px); overflow: hidden; background: var(--void); }
+.isl-cv { display: block; width: 100%; height: 100%; touch-action: manipulation; }
+.isl-cv.pix { image-rendering: pixelated; }
+.isl-stage { margin: 0; font-size: var(--t-2); color: var(--mist); }
+.isl-stage b { color: var(--text); font-family: var(--f-display); font-weight: 600; }
+.isl .hint { margin: 0; }
+.mini-tower .isl-thumb { display: block; width: 60px; height: 39px; border-radius: 4px; object-fit: cover; background: var(--void); }
+.mini-tower.crumble .isl-thumb { animation: crumble .8s ease-in; }
+.shop-prev .isl-prev, .item-pic .isl-prev, .shop-shelf .isl-prev { display: block; width: 100%; aspect-ratio: 1200 / 780; object-fit: cover; border-radius: 6px; background: var(--void); }
 
 /* =================== Sections: Work / Sport switch =================== */
 .section-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; border: 1px solid var(--line); border-radius: calc(var(--radius) + 2px); background: var(--panel); }

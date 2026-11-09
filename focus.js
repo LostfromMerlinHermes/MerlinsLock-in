@@ -26,6 +26,9 @@
       rs_toast: 'Journée difficile ? Prépare demain.', rs_open: 'Ouvrir', rs_h: 'Journée difficile. C’est noté, et c’est fini.', rs_p: 'Une seule chose pour demain :', rs_ph: 'Lire 3 pages du chapitre 4', rs_save: 'Garder pour demain', rs_later: 'Pas ce soir', rs_ok: 'C’est prêt pour demain.',
       ov_toast: '{h} aujourd’hui. Le bonus du jour est acquis : tu peux t’arrêter.',
       ov_set: 'Arrêter les bonus et proposer de s’arrêter après une longue journée',
+      pj_h: 'Par projet', pj_this: 'Cette semaine', pj_last: 'La semaine dernière', pj_of: 'Semaine du {d}', pj_prev: 'Semaine d’avant', pj_next: 'Semaine d’après',
+      pj_none: 'Sans projet', pj_empty: 'Aucune session cette semaine.', pj_avg: 'd’habitude {m}', pj_new: 'nouveau', pj_same: 'comme d’habitude', pj_more: '{m} de plus que d’habitude', pj_less: '{m} de moins que d’habitude',
+      pj_trend: 'Tendances, 12 semaines', pj_trend_p: 'Les heures de chaque semaine. À droite, la moyenne des 4 dernières.', pj_wk: '{m} / sem.',
     },
     en: {
       tab_focus: 'Progress', tab_health: 'Wellbeing', tab_screen: 'Screen time', grp_progress: 'Progress', grp_well: 'Wellbeing', grp_more: 'More',
@@ -47,6 +50,9 @@
       rs_toast: 'Hard day? Set up tomorrow.', rs_open: 'Open', rs_h: 'Hard day. It’s noted, and it’s over.', rs_p: 'One thing for tomorrow:', rs_ph: 'Read 3 pages of chapter 4', rs_save: 'Keep for tomorrow', rs_later: 'Not tonight', rs_ok: 'Ready for tomorrow.',
       ov_toast: '{h} today. Today’s bonus is yours: you can stop now.',
       ov_set: 'Stop bonuses and suggest stopping after a long day',
+      pj_h: 'By project', pj_this: 'This week', pj_last: 'Last week', pj_of: 'Week of {d}', pj_prev: 'Week before', pj_next: 'Week after',
+      pj_none: 'No project', pj_empty: 'No session this week.', pj_avg: 'usually {m}', pj_new: 'new', pj_same: 'as usual', pj_more: '{m} more than usual', pj_less: '{m} less than usual',
+      pj_trend: 'Trends, 12 weeks', pj_trend_p: 'Hours each week. On the right, the average of the last 4.', pj_wk: '{m} / wk',
     },
   });
   ML.defaults(() => ({ period: { key: 'term', auto: true }, goalProfile: null, youStyle: 'calm', comebacks: 0, overGuard: true, resetDay: null, tiny: null }));
@@ -160,6 +166,76 @@
   ML.dayGoal = () => dayGoal();
   const dec = (v, n) => v.toLocaleString(ML.locale(), { minimumFractionDigits: 0, maximumFractionDigits: n });
   const openDet = new Set();
+
+  /* ---------- Hours by project (3.75) ----------
+     No category to tick before a session: a session knows its task, the task its project (3.75 also writes it on the
+     session, so a deleted task keeps its hours). No project: the task's subject, else « Sans projet ». The colour is the
+     project's own (ML.projColor). The week in stacked day columns, one line per project compared with its average over
+     the 4 weeks before, and a folded 12-week trend per project. */
+  const WEEK = 7 * 864e5, NONE = '\u0000';
+  const monday = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getTime(); };
+  const addWeeks = (ms, n) => { const d = new Date(ms); d.setDate(d.getDate() + 7 * n); return d.getTime(); }; // calendar weeks (summer time safe)
+  const projOfSession = s => {
+    if (s.project) return s.project;
+    const x = s.taskId && S.tasks.find(y => y.id === s.taskId);
+    if (x && x.project) return x.project;
+    const sid = s.subject || (x && x.subject), sub = sid && (S.subjects || []).find(y => y && y.id === sid);
+    return (sub && sub.name) || NONE;
+  };
+  ML.projOfSession = projOfSession;
+  const pjName = k => (k === NONE ? t('pj_none') : k);
+  const pjColor = k => (k === NONE ? 'var(--dim)' : ML.projColor ? ML.projColor(k) : 'var(--accent)');
+  let pjOff = 0; // 0 = this week, -1 the week before…
+  function byProject(from, to) {
+    const by = {}; S.sessions.forEach(s => { if (s.at >= from && s.at < to && s.mins > 0) { const k = projOfSession(s); by[k] = (by[k] || 0) + s.mins; } });
+    return by;
+  }
+  function projHtml() {
+    if (!S.sessions.length) return '';
+    const from = addWeeks(monday(Date.now()), pjOff), to = addWeeks(from, 1), first = monday(S.sessions[0].at);
+    const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(from); d.setDate(d.getDate() + i); return d.getTime(); });
+    const cols = days.map((d, i) => byProject(d, i < 6 ? days[i + 1] : to));
+    const week = byProject(from, to), prev = byProject(addWeeks(from, -4), from), weeksBefore = Math.max(0, Math.min(4, Math.round((from - first) / WEEK)));
+    const keys = Object.keys(week).sort((a, b) => (a === NONE) - (b === NONE) || week[b] - week[a]);
+    const max = Math.max(60, ...cols.map(c => Object.values(c).reduce((a, m) => a + m, 0)));
+    const td = today(), label = pjOff === 0 ? t('pj_this') : pjOff === -1 ? t('pj_last') : t('pj_of', { d: new Date(from).toLocaleDateString(ML.locale(), { day: 'numeric', month: 'long' }) });
+    const bars = days.map((d, i) => {
+      const c = cols[i], tot = Object.values(c).reduce((a, m) => a + m, 0), k = dayKey(new Date(d));
+      const segs = keys.filter(p => c[p]).map(p => `<i style="height:${(c[p] / max * 100).toFixed(2)}%;background:${pjColor(p)}"></i>`).join('');
+      return `<li class="${k === td ? 'today' : ''}${k > td ? ' later' : ''}"><span class="pj-col" title="${esc(tot ? fmtDur(tot) : '0 min')}">${segs}</span><small>${esc(ML.wdName((new Date(d).getDay()), 'narrow'))}</small></li>`;
+    }).join('');
+    const diff = k => {
+      if (weeksBefore < 2) return '';
+      const avg = (prev[k] || 0) / weeksBefore, dm = Math.round((week[k] || 0) - avg);
+      if (pjOff === 0) return avg ? t('pj_avg', { m: fmtDur(Math.round(avg)) }) : t('pj_new');
+      return Math.abs(dm) < 10 ? t('pj_same') : t(dm > 0 ? 'pj_more' : 'pj_less', { m: fmtDur(Math.abs(dm)) });
+    };
+    const rows = keys.map(k => `<li><span><i class="pl-dot" style="--pc:${pjColor(k)}"></i>${esc(pjName(k))}</span><b>${esc(fmtDur(week[k]))}</b><small>${esc(diff(k))}</small></li>`).join('');
+    const total = Object.values(week).reduce((a, m) => a + m, 0);
+    return `<section class="pj" aria-label="${esc(t('pj_h'))}">
+      <header class="pj-head"><h3>${esc(t('pj_h'))}</h3>
+        <div class="pj-nav"><button type="button" class="ghost icon-only" data-pj="-1" aria-label="${esc(t('pj_prev'))}"${from <= first ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <span>${esc(label)}${total ? ' · ' + esc(fmtDur(total)) : ''}</span>
+          <button type="button" class="ghost icon-only" data-pj="1" aria-label="${esc(t('pj_next'))}"${pjOff >= 0 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div></header>
+      <ol class="pj-bars" aria-hidden="true">${bars}</ol>
+      ${rows ? `<ul class="yl pj-list">${rows}</ul>` : `<p class="insight">${esc(t('pj_empty'))}</p>`}
+    </section>`;
+  }
+  // 12 weeks per project, the line of weekly hours and the average of the last 4 weeks
+  function trendHtml() {
+    const end = addWeeks(monday(Date.now()), 1), starts = Array.from({ length: 12 }, (_, i) => addWeeks(end, i - 12));
+    const per = starts.map((w, i) => byProject(w, i < 11 ? starts[i + 1] : end)), all = {};
+    per.forEach(by => Object.entries(by).forEach(([k, m]) => { all[k] = (all[k] || 0) + m; }));
+    const keys = Object.keys(all).sort((a, b) => (a === NONE) - (b === NONE) || all[b] - all[a]).slice(0, 8);
+    if (!keys.length) return `<p class="insight">${esc(t('pj_empty'))}</p>`;
+    const top = Math.max(60, ...keys.flatMap(k => per.map(by => by[k] || 0)));
+    const W = 240, H = 44, x = i => (i / 11 * (W - 8) + 4).toFixed(1), y = m => (H - 4 - m / top * (H - 10)).toFixed(1);
+    return `<p class="insight">${esc(t('pj_trend_p'))}</p><ul class="pj-trend">${keys.map(k => {
+      const v = per.map(by => by[k] || 0), avg = Math.round(v.slice(-4).reduce((a, m) => a + m, 0) / 4), pts = v.map((m, i) => `${x(i)},${y(m)}`).join(' ');
+      return `<li style="--pc:${pjColor(k)}"><span><i class="pl-dot" style="--pc:${pjColor(k)}"></i>${esc(pjName(k))}</span>
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path class="ar" d="M${x(0)},${H - 4} L${pts.split(' ').join(' L')} L${x(11)},${H - 4}Z"/><polyline points="${pts}"/></svg>
+        <b>${esc(t('pj_wk', { m: fmtDur(avg) }))}</b></li>`; }).join('')}</ul>`;
+  }
   function render() {
     const el = $('focus'); if (!el || S.tab !== 'focus') return;
     const n = chainOf(S.sessions), st = ML.streaks(), sp = span(), m = minsOn(today()), g = dayGoal(), lv = ML.seqInfo();
@@ -181,9 +257,11 @@
       <ul class="yl">${lines}</ul>
       <p class="insight">${esc(t('fc_rule'))}</p>
       <div class="y-btns">${tryM ? `<button type="button" class="primary" data-span="${tryM}">${esc(t('fc_span_try', { m: fmtDur(tryM) }))}</button>` : ''}<button type="button" class="ghost" data-stuck>${esc(t('st_btn'))}</button></div>
+      ${projHtml()}
       <div class="yl-level"><p><span>${esc(t('pg_level'))}</span> <b>${esc(lv.name)}</b></p><span class="y-track"><b style="width:${(lv.frac * 100).toFixed(1)}%"></b></span>
         <p class="insight">${esc(lv.next ? t('pg_xp_left', { n: (lv.next - S.xp).toLocaleString(ML.locale()), name: lv.nextName }) + ' ' : '')}${esc(t('xp_rules'))}</p></div>
       ${ach ? det('ach', t('pg_ach', { a: ach.got, b: ach.total }), () => ach.html()) : ''}
+      ${S.sessions.length ? det('trend', t('pj_trend'), trendHtml) : ''}
       ${det('heat', t('six_months'), () => ML.heatmapHtml ? ML.heatmapHtml() : '')}
       ${det('works', t('what_works'), () => (ML.whatWorksHtml ? ML.whatWorksHtml() : '') + (ML.distractHtml ? ML.distractHtml() : ''))}
     </div>`;
@@ -215,6 +293,7 @@
   $('focus').addEventListener('click', e => {
     const q = a => e.target.closest('[data-' + a + ']');
     if (q('stuck')) return openStuck();
+    if (q('pj')) { pjOff = Math.min(0, pjOff + +q('pj').dataset.pj); return render(); }
     if (q('span')) return ML.lockIn({ taskId: S.activeId, title: S.freeTitle, mins: +q('span').dataset.span });
   });
   // A folded part is only built when opened

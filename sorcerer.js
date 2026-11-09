@@ -251,12 +251,12 @@
   'use strict';
   const { S, t, today, dayKey } = ML;
   ML.addStrings({
-    fr: { dp_spell: 'Page de sort', dp_circle: 'Cercle', sp_no: 'SORT N° {n}', ci_no: 'INVOCATION N° {n}', sp_today: 'AUJOURD’HUI', sp_hold: 'EN SUSPENS', sp_pause: 'EN PAUSE',
-      sp_info: '{m} / {t} MIN · {p}', sp_nopause: 'SANS PAUSE', sp_pauses: '{n} PAUSES', sp_pauses_one: '1 PAUSE', sp_seal: 'SORT LANCÉ · {n} MIN', ci_seal: 'INVOQUÉ · {n} MIN',
+    fr: { dp_spell: 'Page de sort', dp_circle: 'Cercle', sp_no: 'Sort n° {n}', ci_no: 'Invocation n° {n}', sp_today: 'Aujourd’hui', sp_hold: 'En suspens', sp_pause: 'En pause',
+      sp_info: '{m} min sur {t}{p}', sp_pz: ' · {p}', sp_pauses: '{n} pauses', sp_pauses_one: '1 pause', sp_paused: 'en pause', sp_seal: 'SORT LANCÉ · {n} MIN', ci_seal: 'INVOQUÉ · {n} MIN',
       dial_spell: 'Page de sort', dial_spell_d: 'Cyber sorcier · plein écran : l’heure écrite en lumière et une rune par minute.',
       dial_circle: 'Cercle d’invocation', dial_circle_d: 'Cyber sorcier · plein écran : le cercle vu d’en haut, une rune par minute, des livres en orbite.' },
-    en: { dp_spell: 'Spell page', dp_circle: 'Circle', sp_no: 'SPELL N° {n}', ci_no: 'SUMMONING N° {n}', sp_today: 'TODAY', sp_hold: 'ON HOLD', sp_pause: 'PAUSED',
-      sp_info: '{m} / {t} MIN · {p}', sp_nopause: 'NO PAUSE', sp_pauses: '{n} PAUSES', sp_pauses_one: '1 PAUSE', sp_seal: 'SPELL CAST · {n} MIN', ci_seal: 'SUMMONED · {n} MIN',
+    en: { dp_spell: 'Spell page', dp_circle: 'Circle', sp_no: 'Spell no. {n}', ci_no: 'Summoning no. {n}', sp_today: 'Today', sp_hold: 'On hold', sp_pause: 'Paused',
+      sp_info: '{m} of {t} min{p}', sp_pz: ' · {p}', sp_pauses: '{n} pauses', sp_pauses_one: '1 pause', sp_paused: 'paused', sp_seal: 'SPELL CAST · {n} MIN', ci_seal: 'SUMMONED · {n} MIN',
       dial_spell: 'Spell page', dial_spell_d: 'Cyber sorcerer · full screen: the time written in light and one rune per minute.',
       dial_circle: 'Summoning circle', dial_circle_d: 'Cyber sorcerer · full screen: the circle seen from above, one rune per minute, books in orbit.' },
   });
@@ -280,8 +280,8 @@
     const tot = S.total || 1, p = done ? 1 : clamp(1 - Math.max(0, rem) / tot), n = count(), last = (S.sessions || [])[S.sessions.length - 1];
     const mins = done && last ? last.mins : Math.round((tot - Math.max(0, rem)) / 60), ps = done && last ? last.pauses || 0 : S.pauses || 0, paused = !run && !done && p > 0;
     return { p, n, paused, no: done ? n : n + 1, mins, total: Math.round(tot / 60), last: last ? last.mins : 0,
-      info: t('sp_info', { m: mins, t: done && last ? last.mins : Math.round(tot / 60), p: paused ? t('sp_pause') : ps ? ML.tn('sp_pauses', ps) : t('sp_nopause') }),
-      date: new Date().toLocaleDateString(ML.locale(), { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase().replace(/\./g, '.') + ' · ' + t('mood_' + S.mood).toUpperCase(),
+      // one plain line (3.75, C7 B): "18 min sur 40", pauses only when there are some
+      info: t('sp_info', { m: mins, t: done && last ? last.mins : Math.round(tot / 60), p: paused ? t('sp_pz', { p: t('sp_paused') }) : ps ? t('sp_pz', { p: ML.tn('sp_pauses', ps) }) : '' }),
       clock: MiniView.fmtClock(done ? 0 : rem) };
   }
   const seal = (x, y, w, id) => `<g class="sp-seal" transform="translate(${x} ${y})"><rect x="${-w / 2}" y="-26" width="${w}" height="44" rx="4" class="sp-sealb"/><rect x="${-w / 2 + 5}" y="-21" width="${w - 10}" height="34" rx="2" class="sp-sealr"/><text class="sp-sealt" y="3" id="${id}"></text></g>`;
@@ -293,7 +293,6 @@
     const P = port(), W = P ? 720 : 1600, H = P ? 1560 : 900, m = P ? 24 : 36, cx = W / 2, dy = P ? 640 : 350, Rd = P ? 260 : 280, fs = P ? 200 : 250;
     const ty = dy + fs * .36, fy = P ? 1080 : 668, x0 = P ? 80 : 300, x1 = W - x0, sp = (x1 - x0) / 24, rs = P ? 1.25 : 1.8;
     G = { P, W, H, cx, fy, x0, sp };
-    const corners = [[m + 12, m + 12], [W - m - 12, m + 12], [m + 12, H - m - 12], [W - m - 12, H - m - 12]].map(([x, y]) => `<g transform="translate(${x} ${y})" class="sp-corner"><circle r="9"/><path d="M-14 0H14M0 -14V14"/><circle r="2.4" class="d"/></g>`).join('');
     const diag = `<g transform="translate(${cx} ${dy})"><g class="sp-diag" id="sp-diag"><circle r="${Rd}"/><circle r="${Rd * .9}" stroke-dasharray="2 6"/><circle r="${Rd * .55}"/>
       <path d="M0 ${-Rd * .9}L${f(Rd * .78)} ${f(Rd * .45)}L${f(-Rd * .78)} ${f(Rd * .45)}Z"/>${Array.from({ length: 12 }, (_, i) => { const [x, y] = pt(i / 12, Rd * .95); return rune(i, x, y, P ? 1.5 : 1.8, 'sp-dr', i * 30); }).join('')}</g>
       <circle class="sp-ring r1" r="${Rd * 1.25}"/><circle class="sp-ring r2" r="${Rd * 1.6}"/></g>`;
@@ -301,8 +300,8 @@
     const runes = Array.from({ length: 25 }, (_, i) => `<g class="sp-r" id="sp-r${i}">${rune(i, x0 + i * sp, fy, rs, 'g', 0)}${rune(i, x0 + i * sp, fy, rs, 'c', 0)}</g>`).join('');
     const motes = Array.from({ length: 30 }, (_, i) => `<circle class="sp-mote${rnd(i, 3) < .3 ? ' cy' : ''}" cx="${f(x0 + rnd(i, 1) * (x1 - x0))}" cy="${fy - 16}" r="${f(1 + rnd(i, 2) * 1.8)}" style="--d:${f(5 + rnd(i, 4) * 5)}s;--l:-${f(rnd(i, 5) * 9)}s;--h:-${f(P ? 160 + rnd(i, 6) * 340 : 90 + rnd(i, 6) * 220)}px"/>`).join('');
     return `${top}<div class="sp" role="timer"><svg class="sp-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${DEFS}
-      <rect x="${m}" y="${m}" width="${W - 2 * m}" height="${H - 2 * m}" rx="6" class="sp-vel"/><rect x="${m + 12}" y="${m + 12}" width="${W - 2 * m - 24}" height="${H - 2 * m - 24}" rx="3" class="sp-in"/>${corners}${diag}
-      <text class="sp-no" x="${ix}" y="${m + (P ? 136 : 70)}" id="sp-no"></text><text class="sp-date" x="${ix}" y="${m + (P ? 166 : 102)}" id="sp-date"></text>
+      <rect x="${m}" y="${m}" width="${W - 2 * m}" height="${H - 2 * m}" rx="6" class="sp-vel"/><rect x="${m + 12}" y="${m + 12}" width="${W - 2 * m - 24}" height="${H - 2 * m - 24}" rx="3" class="sp-in"/>${diag}
+      <text class="sp-no" x="${ix}" y="${m + (P ? 136 : 70)}" id="sp-no"></text>
       <text class="sp-tl" x="${W - ix}" y="${m + (P ? 226 : 66)}">${t('sp_today')}</text>${mana(W - ix - 8, m + (P ? 252 : 92), 'sp-m')}
       <text class="sp-time g" x="${cx}" y="${f(ty)}" font-size="${fs}" id="sp-tg"></text><text class="sp-time" x="${cx}" y="${f(ty)}" font-size="${fs}" id="sp-time"></text>
       <text class="sp-hold" x="${cx}" y="${f(dy - fs * .55)}">${t('sp_hold')}</text>
@@ -314,7 +313,7 @@
   }
   function spellRender(ctx) {
     if (!G) return; const k = facts(ctx), wr = Math.round(k.p * 25), line = G.fy + (G.P ? 20 : 30), hx = G.x0 + G.sp * (wr - .5);
-    $('sp-no').textContent = t('sp_no', { n: k.no }); $('sp-date').textContent = k.date;
+    $('sp-no').textContent = t('sp_no', { n: k.no });
     $('sp-time').textContent = k.clock; $('sp-tg').textContent = k.clock; $('sp-info').textContent = k.info; $('sp-task').textContent = ctx.title;
     $('sp-diag').style.transform = `rotate(${ctx.done ? 360 : f(k.p * 360)}deg)`;
     for (let i = 0; i < 25; i++) $('sp-r' + i).classList.toggle('on', i < wr);
@@ -355,12 +354,12 @@
       <text class="sp-time g" x="${cx}" y="${f(cy + fs * .3)}" font-size="${fs}" id="ci-tg"></text><text class="sp-time" x="${cx}" y="${f(cy + fs * .3)}" font-size="${fs}" id="ci-time"></text>
       <text class="sp-hold" x="${cx}" y="${f(cy - fs * .6)}">${t('sp_pause')}</text>
       <text class="sp-info" x="${cx}" y="${f(cy + fs * .3 + (P ? 50 : 60))}" id="ci-info"></text><text class="sp-task" x="${cx}" y="${f(cy + fs * .3 + (P ? 86 : 98))}" id="ci-task"></text>
-      <text class="sp-no" x="${P ? 60 : 130}" y="${P ? 90 : 84}" id="ci-no"></text><text class="sp-date" x="${P ? 60 : 130}" y="${P ? 120 : 116}" id="ci-date"></text>
+      <text class="sp-no" x="${P ? 60 : 130}" y="${P ? 90 : 84}" id="ci-no"></text>
       ${seal(P ? cx : W - 290, P ? 1400 : 92, 320, 'ci-seal')}</svg></div>${dock}`;
   }
   function circleRender(ctx) {
     if (!C) return; const k = facts(ctx);
-    $('ci-no').textContent = t('ci_no', { n: k.no }); $('ci-date').textContent = k.date;
+    $('ci-no').textContent = t('ci_no', { n: k.no });
     $('ci-time').textContent = k.clock; $('ci-tg').textContent = k.clock; $('ci-info').textContent = k.info; $('ci-task').textContent = ctx.title;
     for (let i = 0; i < 60; i++) $('ci-t' + i).classList.toggle('on', i / 60 < k.p);
     for (let i = 0; i < 25; i++) $('ci-r' + i).classList.toggle('on', (i + .5) / 25 < k.p);

@@ -111,5 +111,11 @@
   }
   // The extension already notifies through its background alarms, and the artifact can't: show it only in the web app
   if (!ML.IS_EXT && FN) ML.settingsSection({ order: 22, render: () => `<div id="push-sec">${sectionHtml()}</div>`, bind: r => { const el = r.querySelector('#push-sec'); if (el) bind(el); } });
-  ML.push = { enable, disable, isOn, supported: SUPPORTED };
+  // Other one-off notifications (the evening reminder, health.js): returns the job id, or null
+  async function job(at, title, body, tag) {
+    if (!isOn()) return null;
+    try { const rows = await rest('/rest/v1/push_jobs', { method: 'POST', body: { send_at: new Date(at).toISOString(), title, body, tag }, prefer: 'return=representation' }); return rows && rows[0] ? rows[0].id : null; } catch (e) { return null; }
+  }
+  const del = id => rest('/rest/v1/push_jobs?id=eq.' + id, { method: 'DELETE' }).catch(() => {});
+  ML.push = { enable, disable, isOn, supported: SUPPORTED, job, del };
 })();

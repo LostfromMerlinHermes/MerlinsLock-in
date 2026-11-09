@@ -65,6 +65,7 @@
       : `<div class="td-next"><b>${esc(t('td_nothing'))}</b><div class="td-btns"><button type="button" class="primary" data-go="add">${esc(t('td_add'))}</button></div></div>`;
     const html = `<div class="td">
       <button type="button" class="td-energy" data-go="energy"><span class="ep-ico" style="--mood-c:${M.color}">${ML.svgIcon ? ML.svgIcon(M.icon) : ''}</span><span class="td-en-tx"><b>${esc(t('mood_' + S.mood))}</b><small>${esc(ML.worldName(S.mood))}</small></span><span class="td-chg">${esc(t('td_change'))}</span></button>
+      ${ML.eveCard ? ML.eveCard() : ''}
       ${card}
       <h2 class="td-h">${esc(t('td_hours'))}</h2><div class="td-list">${hoursHtml()}</div>
       ${coming ? `<h2 class="td-h">${esc(t('td_coming'))}</h2><div class="td-list">${coming}</div>` : ''}
@@ -122,8 +123,7 @@
     const el = $('yhome'); if (!el || S.tab !== 'yhome') return;
     const st = ML.streaks ? ML.streaks() : { cur: 0 }, lv = ML.seqInfo(), gold = (S.econ && S.econ.gold) || 0;
     const prog = st.cur && S.goalProfile !== 'start' ? t('yh_prog', { n: st.cur, lv: lv.name }) : t('yh_prog0', { lv: lv.name });
-    const hc = ML.priv ? ML.priv.get('healthCfg', { on: false }) : { on: false }, hDone = hc.on && ML.priv && (ML.priv.get('health', {}) || {})[today()];
-    const well = !hc.on ? t('yh_well_off') : hDone ? t('yh_well_done') : t('yh_well_todo');
+    const well = (ML.wellLine && ML.wellLine()) || t('yh_well_off');
     const row = (go, name, sub) => `<button type="button" class="td-row yh-row" data-go="${go}"><span><b>${esc(name)}</b><small>${esc(sub)}</small></span><svg class="yh-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`;
     const html = `<div class="td yh">
       <button type="button" class="yh-tree" data-go="tree" aria-label="${esc(t('tab_tree'))}"><span class="yh-stage" id="yh-stage"></span></button>
@@ -157,6 +157,8 @@
     const go = b.dataset.go;
     if (go === 'energy') return ML.energyPicker.open({ cancellable: true });
     if (go === 'pause') return ML.toggleTimer();
+    if (go === 'evecheck') return ML.openCheck && ML.openCheck();
+    if (go === 'evenot') return ML.eveNot && ML.eveNot();
     if (go === 'timer') { if (document.documentElement.classList.contains('mnav-on') && ML.setMobileView) ML.setMobileView('timer'); else $('start').focus(); return; }
     if (go === 'add') { ML.setTab('plan'); return ML.planSheet && ML.planSheet(true); }
     if (go === 'late') { S.plan.pview = 'all'; save(); ML.setTab('plan'); return ML.renderTasks(); }
