@@ -7,7 +7,7 @@
   const { $, S, t, esc, on, emit } = ML;
 
   ML.addStrings({
-    fr: { nav_timer: 'Minuteur', nav_shop: 'Boutique', nav_today: 'Jour', nav_back: 'Retour', nav_back_screen: 'Fermer le minuteur', nav_back_timer: 'Revenir au minuteur', nav_list: 'Liste', nav_month: 'Mois', grp_tasks: 'Tâches', grp_sched: 'Planning', rail_hide: 'Masquer la colonne', rail_show: 'Afficher la colonne', full_on: 'Plein écran', full_off: 'Quitter le plein écran (Échap)' },
+    fr: { nav_timer: 'Minuteur', nav_shop: 'Boutique', nav_today: 'Aujourd’hui', nav_back: 'Retour', nav_back_screen: 'Fermer le minuteur', nav_back_timer: 'Revenir au minuteur', nav_list: 'Liste', nav_month: 'Mois', grp_tasks: 'Tâches', grp_sched: 'Planning', rail_hide: 'Masquer la colonne', rail_show: 'Afficher la colonne', full_on: 'Plein écran', full_off: 'Quitter le plein écran (Échap)' },
     en: { nav_timer: 'Timer', nav_shop: 'Shop', nav_today: 'Today', nav_back: 'Back', nav_back_screen: 'Close the timer', nav_back_timer: 'Back to the timer', nav_list: 'List', nav_month: 'Month', grp_tasks: 'Tasks', grp_sched: 'Schedule', rail_hide: 'Hide the column', rail_show: 'Show the column', full_on: 'Full screen', full_off: 'Leave full screen (Esc)' },
   });
 

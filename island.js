@@ -22,6 +22,9 @@
       isl_cart: 'Touche une case pour la changer. Ton île est gardée.', isl_t_cut: 'Couper', isl_t_plant: 'Planter', isl_t_water: 'Ruisseau', isl_t_path: 'Chemin', isl_t_flowers: 'Fleurs', isl_t_move: 'Déplacer', isl_t_relief: 'Relief', isl_undo: 'Annuler',
       isl_alt: 'Ton île : {s}, {a} de focus.', cat_islands: 'Îles',
       isl_lamps: 'Une lumière s’élève au-dessus de l’île à chaque séance du jour. Aujourd’hui : {n}.',
+      isl_hour: 'Heure de l’île', isl_h_auto: 'Auto', isl_h_dawn: 'Aube', isl_h_day: 'Jour', isl_h_dusk: 'Crépuscule', isl_h_night: 'Nuit',
+      isl_tree_pick: 'Arbre du Jardin', isl_tree_world: 'Arbre du monde', isl_tree_oak: 'Chêne',
+      isl_decor: 'Décor', isl_d_books: 'Livres volants', isl_d_crystals: 'Cristaux', isl_d_circle: 'Cercle de pierres', isl_d_lock: '{d} : à {n} h de focus dans ce monde.',
       island_orbit: 'Les orbites', island_orbit_d: 'Pour l’Observatoire. L’île au cœur d’un planétaire en laiton, sous une aurore ou une nuit chaude.',
       island_pavilion: 'Le pavillon de lune', island_pavilion_d: 'Pour le Sanctuaire. Une pagode à balcons sur des orgues de basalte, des lanternes sous l’île.',
       island_fragment: 'Le fragment de ville', island_fragment_d: 'Pour la Grille. Un morceau de ville arraché au sol : la flèche, les rues sous la pluie, le marché.',
@@ -44,6 +47,9 @@
       isl_cart: 'Tap a tile to change it. Your island is kept.', isl_t_cut: 'Cut', isl_t_plant: 'Plant', isl_t_water: 'Stream', isl_t_path: 'Path', isl_t_flowers: 'Flowers', isl_t_move: 'Move', isl_t_relief: 'Relief', isl_undo: 'Undo',
       isl_alt: 'Your island: {s}, {a} of focus.', cat_islands: 'Islands',
       isl_lamps: 'A light rises above the island for each session of the day. Today: {n}.',
+      isl_hour: 'Hour on the island', isl_h_auto: 'Auto', isl_h_dawn: 'Dawn', isl_h_day: 'Day', isl_h_dusk: 'Dusk', isl_h_night: 'Night',
+      isl_tree_pick: 'Garden tree', isl_tree_world: 'World tree', isl_tree_oak: 'Oak',
+      isl_decor: 'Decor', isl_d_books: 'Flying books', isl_d_crystals: 'Crystals', isl_d_circle: 'Stone circle', isl_d_lock: '{d}: at {n} h of focus in this world.',
       island_orbit: 'The orbits', island_orbit_d: 'For the Observatoire. The island at the heart of a brass orrery, under an aurora or a warm night.',
       island_pavilion: 'The moon pavilion', island_pavilion_d: 'For the Sanctuaire. A pagoda with balconies on basalt columns, lanterns under the island.',
       island_fragment: 'The city fragment', island_fragment_d: 'For the Grid. A piece of city torn from the ground: the spire, rainy streets, the market.',
@@ -111,12 +117,21 @@
     const eq = E().equip['isl_' + world], pick = eq && SCENE[eq] && owns(eq) && WORLD[eq] === world ? eq : null;
     const car = world === 'neoncity' ? (owns(E().equip.islCar) ? E().equip.islCar : CARS.find(owns) || null) : null;
     const wm = minsIn(world), h = Math.floor(wm / 60), scene = pick ? SCENE[pick] : BASE[world];
-    return { cur, world, hold: world !== cur, mins, wm, stage, pick, scene, car, h, tree: !!TREE_SCENE[scene], oak: !!TREE_SCENE[scene] && h < 25,
-      sky: pick === 'orbit' ? skyOf() : null, lamps: Math.min(8, todayN()) };
+    // 3.84 options, per world: the hour (a tint of the sky), oak or world tree once it has grown, the decor earned by hours here
+    const I = isle(world), hourSet = HOURS.includes(I.hour) ? I.hour : 'night', L = LIFE[world];
+    const decorAll = L && !L.pix && scene !== 'cart' ? DECOR : [], decor = decorAll.filter(([k, n]) => h >= n && !(I.decor && I.decor[k] === false)).map(x => x[0]);
+    return { cur, world, hold: world !== cur, mins, wm, stage, pick, scene, car, h, tree: !!TREE_SCENE[scene], oak: !!TREE_SCENE[scene] && (h < 25 || I.tree === 'oak'),
+      sky: pick === 'orbit' ? skyOf() : null, lamps: Math.min(8, todayN()), hourSet, hour: hourSet === 'auto' ? hourNow() : hourSet, decorAll, decor };
   }
+  const HOURS = ['auto', 'dawn', 'day', 'dusk', 'night'], DECOR = [['books', 10], ['crystals', 50], ['circle', 125]];
+  const hourNow = () => { const h = new Date().getHours(); return h >= 5 && h < 8 ? 'dawn' : h >= 8 && h < 17 ? 'day' : h >= 17 && h < 20 ? 'dusk' : 'night'; };
+  // the hour is a wash of light over the sky layer (over the whole picture, lighter, when the painting has no sky apart)
+  const TINT = {
+    dawn: ['linear-gradient(#7fa8d8, #f2b8a8 70%, #ffd9b0)', .5], day: ['linear-gradient(#5aa0e0, #bfe0f6)', .72], dusk: ['linear-gradient(#3a2a6a, #c8507a 60%, #ff9a50)', .55],
+  };
   const opts = v => ({ stage: v.stage, oak: v.oak, sky: v.sky === 'warm' ? 'warm' : null, noCars: true, cartH: 14 + v.stage * 4 });
   const keyOf = v => [v.scene, v.stage, v.oak, v.sky, v.car].join('|');
-  const pageKey = v => [keyOf(v), v.mins, v.wm, v.hold, v.lamps, ML.worldsFixed && ML.worldsFixed(), t('isl_p_tower')].join('|'); // the World page also shows numbers and words
+  const pageKey = v => [keyOf(v), v.mins, v.wm, v.hold, v.lamps, v.hourSet, v.hour, v.decor.join('+'), ML.worldsFixed && ML.worldsFixed(), t('isl_p_tower')].join('|'); // the World page also shows numbers and words
 
   // The places of an island, in % of the painting (x, y, and the zoom when it is not the usual one). Touching one brings the view to it.
   const PLACES = ['tower', 'garden', 'workshop', 'quay', 'view'];
@@ -149,11 +164,46 @@
     arcade: { pix: 1, fly: '#ffd27a', lamp: '#ffb060' },
   };
   const still = () => !!(ML.reducedMotion && ML.reducedMotion());
-  function life(world, cb, cf, lamps) {
+  function life(world, cb, cf, lamps, cg, deco) {
     const L = LIFE[world]; if (!L) return null;
     const pix = !!L.pix, W = pix ? 300 : 600, H = pix ? 195 : 390, k = W / 1200;
-    cb.width = cf.width = W; cb.height = cf.height = H;
-    const gb = cb.getContext('2d'), gf = cf.getContext('2d');
+    cb.width = cf.width = cg.width = W; cb.height = cf.height = cg.height = H;
+    const gb = cb.getContext('2d'), gf = cf.getContext('2d'), gg = cg.getContext('2d');
+    // The decor earned by hours stands on the island: its own layer, which never shifts against the painting
+    const poly = (pts, fill, a) => { gg.globalAlpha = a; gg.fillStyle = fill; gg.beginPath(); pts.forEach(([x, y], i) => (i ? gg.lineTo(x * k, y * k) : gg.moveTo(x * k, y * k))); gg.closePath(); gg.fill(); };
+    const drawDecor = T => {
+      gg.clearRect(0, 0, W, H);
+      if (deco.circle) {
+        const [cx, cy] = deco.circle;
+        halo(gg, cx, cy, 52, L.lamp, .2 + .08 * Math.sin(T * .5), .3);
+        Array.from({ length: 7 }, (_, i) => i / 7 * 6.283 + .3).map(a => [cx + Math.cos(a) * 46, cy + Math.sin(a) * 13]).sort((a, b) => a[1] - b[1]).forEach(([x, y], i) => {
+          const h = 13 + (i % 3) * 3 + (y - cy) * .25, w = 7;
+          poly([[x - w / 2, y], [x - w / 2 + .6, y - h + 2], [x - 1, y - h], [x + w / 2 - .8, y - h + 1.5], [x + w / 2, y]], '#6c6878', 1);
+          poly([[x + .5, y], [x + .3, y - h + .6], [x + w / 2 - .8, y - h + 1.5], [x + w / 2, y]], '#2a2834', .55);
+          poly([[x - w / 2 + .6, y - h + 2], [x - 1, y - h], [x + w / 2 - .8, y - h + 1.5], [x - 1, y - h + 2.6]], '#c4c0d2', .8);
+        });
+      }
+      if (deco.crystals) {
+        const [cx, cy] = deco.crystals;
+        halo(gg, cx, cy - 12, 40, L.lamp, .22 + .1 * Math.sin(T * .7));
+        for (const [dx, h, w] of [[-10, 22, 8], [10, 18, 7], [0, 34, 10]]) {
+          const x = cx + dx, y = cy;
+          poly([[x - w / 2, y], [x - w / 2 + 1, y - h * .7], [x, y - h], [x + w / 2 - 1, y - h * .7], [x + w / 2, y]], L.lamp, .92);
+          poly([[x, y], [x, y - h], [x + w / 2 - 1, y - h * .7], [x + w / 2, y]], '#1a1030', .35);
+          poly([[x - w / 2, y], [x - w / 2 + 1, y - h * .7], [x, y - h], [x - w / 4, y]], '#ffffff', .3);
+        }
+      }
+      if (deco.books) {
+        const [cx, cy] = deco.books;
+        for (let i = 0; i < 5; i++) {
+          const a = i * 1.26 + .4, x = cx + Math.cos(a) * (84 + (i % 2) * 44), y = cy - 70 - i * 24 + Math.sin(T * .5 + i) * 5, f = .35 + .25 * Math.sin(T * 1.1 + i * 2);
+          poly([[x, y], [x - 11, y - 11 * f], [x - 11, y - 11 * f + 8], [x, y + 8]], '#f2e8ce', .96);
+          poly([[x, y], [x + 11, y - 11 * f], [x + 11, y - 11 * f + 8], [x, y + 8]], '#d6c9aa', .96);
+          poly([[x - .7, y], [x + .7, y], [x + .7, y + 9], [x - .7, y + 9]], '#4a3020', 1);
+        }
+      }
+      gg.globalAlpha = 1;
+    };
     let sd = world.length * 7919 + 13; const r = () => (sd = sd * 16807 % 2147483647, (sd - 1) / 2147483646);
     const N = (n, f) => Array.from({ length: n }, (_, i) => f(i));
     const stars = L.star ? N(18, () => ({ x: r() * 1200, y: 16 + r() * 290, w: .5 + r() * .9, p: r() * 6.28, s: 1.2 + r() * 1.4 })) : [];
@@ -173,6 +223,7 @@
     return (dt, frozen) => {
       const calm = ML.running && ML.running() ? .4 : 1; T += dt * calm;
       gb.clearRect(0, 0, W, H); gf.clearRect(0, 0, W, H);
+      if (deco.books || deco.crystals || deco.circle) drawDecor(T);
       for (const s of stars) dot(gb, s.x, s.y, s.s, L.star, .12 + .5 * Math.sin(T * s.w + s.p) ** 2);
       if (L.shoot && !frozen) {
         if (!shoot && T > nextShoot) shoot = { x: 150 + r() * 700, y: 30 + r() * 120, t: 0 };
@@ -233,7 +284,21 @@
     // 3.84: the sky on its own canvas behind the island, and two thin layers of life (behind and in front of it)
     const layer = cls => { const c = document.createElement('canvas'); c.className = cls; c.setAttribute('aria-hidden', 'true'); return c; };
     const back = layer('isl-sky'), lifeB = layer('isl-live b'), lifeF = layer('isl-live f' + (v.world === 'arcade' ? ' pix' : ''));
-    const step = cart ? null : life(v.world, lifeB, lifeF, v.lamps);
+    const lifeG = layer('isl-live g'), tint = document.createElement('i'); tint.className = 'isl-tint';
+    const at = k => [spots[k][0] * 12, spots[k][1] * 7.8], deco = {};
+    if (v.decor.includes('books')) deco.books = at('tower'); if (v.decor.includes('crystals')) deco.crystals = at('workshop'); if (v.decor.includes('circle')) deco.circle = at('quay');
+    const step = cart ? null : life(v.world, lifeB, lifeF, v.lamps, lifeG, deco);
+    d.dataset.hour = v.hour;
+    const options = R => {
+    // the Lookout sets the hour; the Garden chooses oak or world tree once it has grown; the Workshop shows or hides the decor
+    R.view.push(`<div class="chips" role="group" aria-label="${esc(t('isl_hour'))}">${HOURS.map(k => chip('data-isl-hour', k, v.hourSet === k, t('isl_h_' + k))).join('')}</div>`);
+    if (v.tree && v.h >= 25) R.garden.push(`<div class="chips" role="group" aria-label="${esc(t('isl_tree_pick'))}">${chip('data-isl-tree', 'world', !v.oak, t('isl_tree_world'))}${chip('data-isl-tree', 'oak', v.oak, t('isl_tree_oak'))}</div>`);
+    if (v.decorAll.length) {
+      const got = v.decorAll.filter(x => v.h >= x[1]), not = v.decorAll.filter(x => v.h < x[1]);
+      if (got.length) R.workshop.push(`<div class="chips" role="group" aria-label="${esc(t('isl_decor'))}">${got.map(([k]) => chip('data-isl-decor', k, v.decor.includes(k), t('isl_d_' + k))).join('')}</div>`);
+      if (not.length) R.workshop.push(`<p class="isl-tx">${esc(t('isl_d_lock', { d: t('isl_d_' + not[0][0]), n: not[0][1] }))}</p>`);
+    }
+    };
     const own = Object.keys(SCENE).filter(k => WORLD[k] === v.world && owns(k));
     const R = { tower: [], garden: [], workshop: [], quay: [], view: [] };
     if (own.length) R.workshop.push(`<div class="chips" role="group">${chip('data-isl-pick', '', !v.pick, t('isl_base'))}${own.map(k => chip('data-isl-pick', k, v.pick === k, t('island_' + k))).join('')}</div>`);
@@ -243,11 +308,16 @@
     const tx = s => `<p class="isl-tx">${esc(s)}</p>`;
     // Tower: the seven stages and their hours. Garden: the tree. Workshop: which island, and the tile tools. Quay: the way
     // to another world, and the cars. Lookout: the sky and the time counted.
-    R.tower.push(`<ol class="isl-steps">${STAGES.map((h, i) => `<li class="${i <= v.stage ? 'on' : ''}"${i === v.stage ? ' aria-current="step"' : ''}><span>${esc(t('isl_stage_' + i))}</span><span>${h} h</span></li>`).join('')}</ol>`);
+    // islands whose tower follows the stage show the seven towers painted (the ones to come faded); the others keep the list
+    const staged = !!TREE_SCENE[v.scene];
+    R.tower.push(staged
+      ? `<ol class="isl-stg">${STAGES.map((h, i) => `<li class="${i < v.stage ? 'on' : i === v.stage ? 'on now' : ''}"${i === v.stage ? ' aria-current="step"' : ''}><canvas data-stg="${i}" width="240" height="156" aria-hidden="true"></canvas><span>${esc(t('isl_stage_' + i))}</span><span>${h} h</span></li>`).join('')}</ol>`
+      : `<ol class="isl-steps">${STAGES.map((h, i) => `<li class="${i <= v.stage ? 'on' : ''}"${i === v.stage ? ' aria-current="step"' : ''}><span>${esc(t('isl_stage_' + i))}</span><span>${h} h</span></li>`).join('')}</ol>`);
     R.garden.push(tx(!v.tree ? t('isl_tree_none', { a: D(v.wm) }) : v.oak ? t('isl_tree', { h: v.h }) : t('isl_tree_on', { a: D(v.wm) })));
     if (!cart) R.workshop.push(tx(t(own.length ? 'isl_ws' : 'isl_ws_none')), `<div><button type="button" class="small" data-wd="shop">${esc(t('shop'))}</button></div>`);
     R.quay.unshift(tx(t(fixed ? 'isl_quay_fixed' : 'isl_quay')), fixed ? '' : `<div><button type="button" class="small" data-wd="worlds">${esc(t('wd_change'))}</button></div>`);
     R.view.unshift(tx(t('isl_view', { a: D(v.mins), b: D(v.wm), w: t('th_' + v.world) })), step ? tx(t('isl_lamps', { n: todayN() })) : '');
+    if (!cart) options(R);
     const next = v.stage < 6 ? STAGES[v.stage + 1] * 60 : 0, from = STAGES[v.stage] * 60, pct = next ? Math.max(0, Math.min(100, (v.mins - from) / (next - from) * 100)) : 100;
     d.innerHTML = `<div class="isl-frame"><div class="isl-cam">${PLACES.map(k => `<button type="button" class="isl-pin" data-place="${k}" style="left:${spots[k][0]}%;top:${spots[k][1]}%" aria-pressed="false"><i></i><span>${esc(t('isl_p_' + k))}</span></button>`).join('')}</div></div>
       <div class="chips isl-places" role="group" aria-label="${esc(t('isl_places'))}">${chip('data-place', '', true, t('isl_all'))}${PLACES.map(k => chip('data-place', k, false, t('isl_p_' + k))).join('')}</div>
@@ -256,7 +326,13 @@
         <div class="isl-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}"><i style="width:${pct.toFixed(1)}%"></i></div>
         <p class="isl-tx">${esc(next ? t('isl_next', { s: t('isl_stage_' + (v.stage + 1)), n: STAGES[v.stage + 1] }) : t('isl_top'))}</p></div>`;
     const frame = d.querySelector('.isl-frame'), camEl = d.querySelector('.isl-cam');
-    camEl.prepend(back, lifeB, cv, lifeF);
+    camEl.prepend(back, tint, lifeB, cv, lifeG, lifeF);
+    // the seven towers are painted the first time the Tower is opened, one after the other
+    let stgDone = false;
+    const paintStages = () => {
+      if (stgDone || !staged || !ML.IslandArt) return; stgDone = true;
+      [...d.querySelectorAll('canvas[data-stg]')].forEach((c, i) => setTimeout(() => { try { ML.IslandArt.paint(c, v.scene, Object.assign(opts(v), { stage: +c.dataset.stg })); } catch (err) { console.error('island stage', err); } }, 60 + i * 40));
+    };
     // The view: the painting covers the frame; on a place it comes closer and centres it, without ever showing an edge
     // look: where a drag left the view (its centre, in parts of the painting); hov: the mouse over the frame, for a slight shift of the layers
     let look = null, last = null; const hov = { x: 0, y: 0 };
@@ -284,6 +360,7 @@
       d.dataset.place = place; d.toggleAttribute('data-edit', !!edit && place === edit); // the tile tools and the flight only answer in their place
       d.querySelectorAll('[data-place]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.place === place)));
       d.querySelectorAll('[data-pp]').forEach(x => { x.hidden = x.dataset.pp !== place; });
+      if (place === 'tower') paintStages();
       cam();
       const pp = place && byHand ? d.querySelector(`[data-pp="${place}"]`) : null; // on a phone the place's lines are under the frame: bring them in
       if (pp) pp.scrollIntoView({ block: 'nearest', behavior: ML.reducedMotion && ML.reducedMotion() ? 'auto' : 'smooth' });
@@ -298,6 +375,9 @@
       if (b.hasAttribute('data-place')) go(b.dataset.place === place && b.classList.contains('isl-pin') ? '' : b.dataset.place, true);
       else if (b.hasAttribute('data-isl-pick')) { E().equip['isl_' + v.world] = b.dataset.islPick || 'base'; save(); remount(); }
       else if (b.dataset.islSky) { isle('observatory').sky = b.dataset.islSky; save(); remount(); }
+      else if (b.dataset.islHour) { isle(v.world).hour = b.dataset.islHour; save(); remount(); }
+      else if (b.dataset.islTree) { isle(v.world).tree = b.dataset.islTree; save(); remount(); }
+      else if (b.dataset.islDecor) { const I = isle(v.world), k = b.dataset.islDecor; I.decor = Object.assign({}, I.decor, { [k]: !v.decor.includes(k) }); save(); remount(); }
       else if (b.dataset.car && neo) { E().equip.islCar = b.dataset.car; save(); }
     });
     // Look around: drag the picture (it never shows an edge). On the whole island a wide frame has nothing more to show,
@@ -342,6 +422,8 @@
         else A.paint(cv, v.scene, Object.assign(opts(v), { back }));
       } catch (err) { console.error('island', err); }
       d.classList.toggle('deep', back.dataset.on === '1'); // the painting gave its sky apart
+      const tn = TINT[v.hour], deep = back.dataset.on === '1';
+      if (tn && !cart) { if (!deep) cv.after(tint); tint.style.cssText = `background:${tn[0]};opacity:${deep ? tn[1] : tn[1] * .45}`; } else tint.remove();
       d._wake();
     }, 30);
     return d;

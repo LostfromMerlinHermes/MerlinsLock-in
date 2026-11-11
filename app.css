@@ -5106,6 +5106,65 @@ html.no-world .tabs .tab-world { display: none; }
 .wd-tx h2 { margin: 0; font: 600 var(--t-5) var(--f-title, var(--f-display)); color: var(--text); }
 .wd-tx p { margin: 2px 0 0; max-width: 52ch; font-size: var(--t-2); color: var(--mist); }
 .wd-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+/* The island as a place (3.83): the painting covers its frame, a touch on a place brings the view to it */
+.wd .isl { gap: 12px; }
+.wd .isl-frame { cursor: default; }
+.isl-cam { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 1200 / 780; transform-origin: 0 0; transition: transform .5s cubic-bezier(.3, .7, .2, 1); will-change: transform; }
+.isl-cam.still { transition: none; }
+.isl-cam .isl-cv { pointer-events: none; }
+.isl[data-edit] .isl-cam .isl-cv { pointer-events: auto; }
+.isl[data-place]:not([data-place=""]):not([data-edit]) .isl-frame { cursor: zoom-out; }
+.isl-pin { position: absolute; display: grid; justify-items: center; gap: 3px; width: 44px; min-height: 44px; margin: -22px 0 0 -22px; padding: 15px 0 0; border: 0; background: none; box-shadow: none; color: #fff; transform: scale(var(--k, 1)); transform-origin: 50% 22px; transition: transform .5s cubic-bezier(.3, .7, .2, 1); cursor: pointer; }
+.isl-cam.still .isl-pin { transition: none; }
+.isl-pin:hover, .isl-pin:active { background: none; transform: scale(var(--k, 1)); }
+.isl-pin i { display: block; width: 14px; height: 14px; border-radius: 50%; background: rgba(8, 10, 16, .55); border: 2px solid #fff; box-shadow: 0 0 0 3px rgba(8, 10, 16, .35); }
+.isl-pin span { padding: 1px 6px; border-radius: 4px; font: 500 var(--t-1)/1.4 var(--f-body, inherit); white-space: nowrap; color: #fff; background: rgba(8, 10, 16, .62); }
+.isl-pin:hover i, .isl-pin:focus-visible i { background: #fff; }
+.isl-pin[aria-pressed=true] i { background: var(--accent); border-color: #fff; }
+.isl-pin:focus-visible { outline: none; } .isl-pin:focus-visible span { outline: 2px solid #fff; outline-offset: 1px; }
+.isl[data-edit] .isl-pin { display: none; }
+.isl-places .chip-btn { min-height: 34px; }
+.isl-prog { display: grid; gap: 6px; max-width: 560px; }
+.isl-stage { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.isl-stage b { font-size: var(--t-4); }
+.isl-bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.isl-bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+.isl-tx { margin: 0; max-width: 56ch; font-size: var(--t-2); color: var(--mist); }
+.isl-panel > div { display: grid; gap: 10px; max-width: 560px; padding-top: 12px; border-top: 1px solid var(--line); }
+.isl-panel > div[hidden] { display: none; }
+.isl-panel h3 { margin: 0; font: 600 var(--t-3) var(--f-display); color: var(--text); }
+.isl-steps { list-style: none; margin: 0; padding: 0; display: grid; }
+.isl-steps li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: var(--t-2); color: var(--mist); border-bottom: 1px solid var(--line); }
+.isl-steps li:last-child { border-bottom: 0; }
+.isl-steps li.on { color: var(--text); }
+.isl-steps li[aria-current] { font-weight: 600; }
+.isl-steps li span:last-child { font-variant-numeric: tabular-nums; }
+@media (max-width: 899px) { .wd .isl-frame { aspect-ratio: 1 / 1; max-height: 58vh; width: 100%; } }
+/* World part 2 (3.84): the sky on its own layer behind the island, a thin layer of life behind and in front of it.
+   Both shift a little with the view (--px / --py, half the way at most); a drag moves the view itself. */
+.isl-cam .isl-cv { position: relative; }
+.isl-sky, .isl-live { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; transition: transform .5s cubic-bezier(.3, .7, .2, 1); }
+.isl-sky, .isl-live.b { display: none; transform: translate(calc(var(--px, 0) * 6%), calc(var(--py, 0) * 6%)) scale(1.06); }
+.isl.deep .isl-sky, .isl.deep .isl-live.b { display: block; }
+.isl-live.f { transform: translate(calc(var(--px, 0) * -5%), calc(var(--py, 0) * -5%)) scale(1.05); }
+.isl-live.pix { image-rendering: pixelated; }
+.isl-cam.still .isl-sky, .isl-cam.still .isl-live, .isl-cam.drag, .isl-cam.drag .isl-sky, .isl-cam.drag .isl-live, .isl-cam.drag .isl-pin { transition: none; }
+/* The hour: a wash of light over the sky. The decor layer stands on the island and never shifts. The seven towers of the Tower. */
+.isl-tint { position: absolute; inset: -4%; pointer-events: none; mix-blend-mode: screen; }
+.isl-live.g { transform: none; }
+.isl[data-hour="day"] .isl-live.b, .isl[data-hour="dawn"] .isl-live.b { display: none; }
+.isl-stg { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px 8px; }
+.isl-stg li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 6px; font-size: var(--t-1); color: var(--mist); }
+.isl-stg canvas { grid-column: 1 / -1; display: block; width: 100%; aspect-ratio: 240 / 156; border-radius: 4px; background: var(--void); opacity: .4; filter: grayscale(.7); }
+.isl-stg li.on canvas { opacity: 1; filter: none; }
+.isl-stg li.on { color: var(--text); }
+.isl-stg li.now { font-weight: 600; }
+.isl-stg li.now canvas { outline: 2px solid var(--accent); outline-offset: -2px; }
+.isl-stg li span:last-child { font-variant-numeric: tabular-nums; }
+.wd .isl-frame { touch-action: pan-y; }
+.wd .isl[data-place]:not([data-place=""]):not([data-edit]) .isl-frame { touch-action: none; }
+.wd .isl-frame:has(.isl-cam.drag) { cursor: grabbing; }
+@media (prefers-reduced-motion: reduce) { .isl-cam, .isl-pin { transition: none; } }
 /* Energies: the chips share the row whatever their number; on a computer the chosen world sits at their right */
 .mood-chips { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
 html.no-world .world-btn { display: none !important; }

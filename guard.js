@@ -78,7 +78,7 @@
     return `<div class="g-card"><div class="y-row"><h2>${esc(t('sc_web_h'))}</h2><strong class="y-num">${fmtMins(Math.round(total / 60))}</strong></div>
       ${off >= 60 ? `<p class="insight">${esc(t('sc_insess'))} : <b>${fmtMins(Math.round(off / 60))}</b></p>` : ''}
       ${rows.length ? `<div class="y-sites">${rows.slice(0, 8).map(([h, s]) => { const c = catOf(h); return `<div class="y-site"><span>${esc(h)}</span><span class="y-track"><b class="c-${c}" style="width:${(s / max * 100).toFixed(0)}%"></b></span><span class="mono">${fmtMins(Math.round(s / 60))}</span><button type="button" class="small ghost" data-cat="${esc(h)}" title="${esc(t('sc_cat_tip'))}">${esc(t('sc_cat_' + c))}</button></div>`; }).join('')}</div>` : `<p class="insight">${esc(t('sc_none'))}</p>`}
-      <div class="y-btns"><button type="button" class="small ghost" data-track="off">${esc(t('sc_web_off'))}</button><button type="button" class="small ghost" id="sc-clear"></button></div></div>`;
+      <div class="y-btns"><button type="button" class="small ghost" data-track="off">${esc(t('sc_web_off'))}</button><button type="button" class="small ghost" id="sc-clear">${esc(t('sc_web_clear'))}</button></div></div>`;
   }
   function blockCard() {
     if (!hasChrome) return '';
@@ -98,11 +98,26 @@
     return `<div class="g-card"><h2>${esc(t('ur_h'))}</h2><p class="insight">${esc(t('ur_p'))}</p><button type="button" class="small" data-urge>${esc(t('ur_go'))}</button>
       ${log.length ? `<p class="insight">${esc(t('ur_stats', { n: log.length, d: log.filter(x => x.dropped).length }))}</p>` : ''}${u.length ? `<p class="insight">${esc(t('ur_pause', { b: back, n: u.length }))}</p>` : ''}</div>`;
   }
+  // Wellbeing page (3.76): three rows with an icon, like You; each opens in place
+  ML.addStrings({
+    fr: { wr_sc_phone: 'Hier {m} sur le téléphone', wr_sc_web: 'Aujourd’hui {m} dans le navigateur', wr_sc_none: 'Navigateur, téléphone, blocage', wr_if: '{n} règles', wr_if1: '1 règle', wr_if0: 'Aucune règle pour l’instant', wr_ur: 'Trois minutes sans agir' },
+    en: { wr_sc_phone: 'Yesterday {m} on the phone', wr_sc_web: 'Today {m} in the browser', wr_sc_none: 'Browser, phone, blocking', wr_if: '{n} rules', wr_if1: '1 rule', wr_if0: 'No rule yet', wr_ur: 'Three minutes without acting' },
+  });
+  const ICO = {
+    screen: '<rect x="7" y="3" width="10" height="18" rx="2.2"/><path d="M11 18h2"/>',
+    plan: '<path d="M5 6h9M5 12h6M5 18h9M15 11l2 2 4-4.5"/>',
+    wave: '<path d="M3 14c2.5 0 2.5-4 5-4s2.5 4 5 4 2.5-4 5-4 2.5 4 3 4"/>',
+  };
+  const wRow = (k, ico, title, sub, body) => `<details class="wb-row" data-wbrow="${k}"><summary><span class="wb-ic"><svg viewBox="0 0 24 24" aria-hidden="true">${ICO[ico]}</svg></span><span class="wb-tx"><b>${esc(title)}</b><small>${esc(sub)}</small></span><svg class="yh-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></summary><div class="wb-body">${body}</div></details>`;
   function render() {
     const el = $('screen'); if (!el || S.tab !== 'health') return; // Screen time sits under Health on the Wellbeing page (3.66)
-    const html = `<div class="y-page">${webCard()}${phoneCard()}${blockCard()}${ifCard()}${urgeCard()}</div>`;
+    const phone = P.get('screen', {})[yKey()], day = sites[today()], web = day && day.all ? Object.values(day.all).reduce((a, b) => a + b, 0) : 0;
+    const scSub = phone != null ? t('wr_sc_phone', { m: fmtMins(phone) }) : trackOn && web >= 60 ? t('wr_sc_web', { m: fmtMins(Math.round(web / 60)) }) : t('wr_sc_none');
+    const nIf = P.get('ifthen', []).length;
+    const html = `<div class="wb-rows">${wRow('screen', 'screen', t('tab_screen'), scSub, webCard() + phoneCard() + blockCard())}${wRow('if', 'plan', t('if_h'), nIf ? (nIf === 1 ? t('wr_if1') : t('wr_if', { n: nIf })) : t('wr_if0'), ifCard())}${wRow('urge', 'wave', t('ur_h'), t('wr_ur'), urgeCard())}</div>`;
     if (el.dataset.h === html) return;
-    ML.keepInputs(el, () => { el.innerHTML = html; el.dataset.h = html; });
+    const open = [...el.querySelectorAll('details[open][data-wbrow]')].map(d => d.dataset.wbrow);
+    ML.keepInputs(el, () => { el.innerHTML = html; el.dataset.h = html; open.forEach(k => { const d = el.querySelector(`[data-wbrow="${k}"]`); if (d) d.open = true; }); });
     const c = el.querySelector('#sc-clear');
     if (c) ML.armedButton(c, 'sc_web_clear', () => { chrome.storage.local.remove(['mli-sites', 'mli-urges']); P.del('cats'); sites = {}; extUrges = []; render(); });
   }
