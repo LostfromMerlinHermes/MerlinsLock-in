@@ -489,7 +489,7 @@
   // keyboard on the Inbox view: J / K (or arrows) to move, T task, N note, X let go
   let parkKb = false;
   document.addEventListener('keydown', e => {
-    if (S.tab !== 'plan' || S.plan.pview !== 'inbox' || e.ctrlKey || e.metaKey || e.altKey || ML.isTyping(e) || document.querySelector('.overlay:not([hidden])')) return;
+    if (S.tab !== 'plan' || !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#tab-park')) || e.ctrlKey || e.metaKey || e.altKey || ML.isTyping(e) || document.querySelector('.overlay:not([hidden])')) return;
     const items = [...$('parked').querySelectorAll('li[data-id]')]; if (!items.length) return;
     const k = e.key.toLowerCase(), at = items.indexOf(document.activeElement && document.activeElement.closest && document.activeElement.closest('#parked li[data-id]'));
     if (k === 'j' || k === 'k' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -513,13 +513,20 @@
     const m = MODS[k]; if (!m) return true;
     return typeof m.def === 'function' ? !!m.def() : m.def !== false;
   }
-  function applyMods() { for (const k of Object.keys(MODS)) document.documentElement.classList.toggle('mod-off-' + k, !modOn(k)); }
+  // The World (3.82) can be switched off as a whole: the place leaves the navigation and the energy bar keeps only the
+  // energies. No setting yet: it is the base of the pro mode to come (S.modules.world === false).
+  ML.hasWorld = () => !(S.modules && S.modules.world === false);
+  function applyMods() {
+    for (const k of Object.keys(MODS)) document.documentElement.classList.toggle('mod-off-' + k, !modOn(k));
+    document.documentElement.classList.toggle('no-world', !ML.hasWorld());
+  }
   ML.module = (k, o) => { MODS[k] = o; applyMods(); };
   ML.modules = () => Object.entries(MODS).sort((a, b) => (a[1].order || 50) - (b[1].order || 50));
   ML.modOn = modOn;
   ML.setMod = (k, v) => {
     S.modules = Object.assign({}, S.modules, { [k]: !!v }); save(); applyMods(); emit('modules', k);
     if (!v && ML.SPACE[S.tab] && ((k === 'game' && S.tab === 'grim') || (k === 'wellbeing' && S.tab === 'health'))) setTab(SPACE_FIRST.you);
+    if (!v && k === 'world' && S.tab === 'world') setTab('today');
     renderAll();
   };
   on('loaded', applyMods); on('started', applyMods); on('remote', applyMods); on('render', applyMods);
@@ -532,27 +539,32 @@
   ML.module('game', { label: 'mod_game', hint: 'mod_game_d', order: 10, def: () => (S.sessions || []).some(x => x.at < GAME_CUTOFF) });
 
   /* ---------- Tabs ---------- */
-  // today, shome and yhome are the phone's home pages (today.js): they have no tab button
-  const TABS = { today: [null, 'tab-today'], shome: [null, 'tab-shome'], yhome: [null, 'tab-yhome'], plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], focus: ['t-focus', 'tab-focus'], tree: ['t-tree', 'tab-tree'], health: ['t-health', 'tab-health'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'], subjects: ['t-subjects', 'tab-subjects'], lectures: ['t-lectures', 'tab-lectures'], room: ['t-room', 'tab-room'], guide: ['t-guide', 'tab-guide'] };
+  // shome and yhome are the phone's home pages (today.js): they have no tab button. Today and World are places of their own (3.82)
+  const TABS = { today: ['t-today', 'tab-today'], world: ['t-world', 'tab-world'], shome: [null, 'tab-shome'], yhome: [null, 'tab-yhome'], plan: ['t-plan', 'tab-plan'], day: ['t-day', 'tab-day'], cal: ['t-cal', 'tab-cal'], notes: ['t-notes', 'tab-notes'], focus: ['t-focus', 'tab-focus'], tree: ['t-tree', 'tab-tree'], health: ['t-health', 'tab-health'], grim: ['t-grim', 'tab-grim'], study: ['t-study', 'tab-study'], lib: ['t-lib', 'tab-lib'], learn: ['t-learn', 'tab-learn'], subjects: ['t-subjects', 'tab-subjects'], lectures: ['t-lectures', 'tab-lectures'], room: ['t-room', 'tab-room'], guide: ['t-guide', 'tab-guide'] };
   // Spaces: Plan, Study and You. A computer lists a space's sections in a column, a phone opens its home page (3.60)
-  const SPACE = { plan: 'plan', day: 'plan', cal: 'plan', notes: 'study', lib: 'study', study: 'study', subjects: 'study', lectures: 'study', learn: 'study', shome: 'study', focus: 'you', tree: 'you', health: 'you', grim: 'you', room: 'study', guide: 'you', yhome: 'you', today: 'today' };
+  const SPACE = { plan: 'plan', day: 'plan', cal: 'plan', notes: 'study', lib: 'study', study: 'study', subjects: 'study', lectures: 'study', learn: 'study', shome: 'study', focus: 'you', tree: 'you', health: 'you', grim: 'you', room: 'study', guide: 'you', yhome: 'you', today: 'today', world: 'world' };
   // You (3.66): the Tree first, then Progress (Focus + Grimoire stats), The game (module), Wellbeing (Health + Screen time). The Room moved to Study
-  const SPACE_FIRST = { plan: 'plan', study: 'notes', you: 'tree' }, HOME_OF = { today: 'plan', shome: 'study', yhome: 'you' };
+  const SPACE_FIRST = { plan: 'plan', study: 'notes', you: 'tree' }, HOME_OF = { shome: 'study', yhome: 'you' };
   const wideNow = () => !document.documentElement.classList.contains('mnav-on') && matchMedia('(min-width: 900px)').matches;
   ML.SPACE = SPACE;
-  ML.addStrings({ fr: { sp_study: 'Étude', sp_you: 'Toi', tab_cards: 'Cartes' }, en: { sp_study: 'Study', sp_you: 'You', tab_cards: 'Cards' } });
+  ML.addStrings({ fr: { sp_study: 'Étude', sp_you: 'Toi', sp_world: 'Monde', tab_cards: 'Cartes' }, en: { sp_study: 'Study', sp_you: 'You', sp_world: 'World', tab_cards: 'Cards' } });
+  // The Calendar is two tabs behind one entry: "day" (its Day view, the old Journée) and "cal" (Week and Month)
+  const calTab = () => (S.tab === 'day' || S.tab === 'cal' ? S.tab : (S.spaceTab && S.spaceTab.calx) === 'cal' ? 'cal' : 'day');
+  ML.calTab = calTab;
   function setTab(name) {
-    if (name === 'park') { S.plan.pview = 'inbox'; name = 'plan'; if (ML.renderTasks) ML.renderTasks(); } // Parked became the Plan's Inbox view (3.56)
+    if (name === 'park') { S.plan.pview = 'inbox'; name = 'plan'; if (ML.renderTasks) ML.renderTasks(); } // Parked became the Plan's Inbox (3.56), a group of the List (3.82)
     if (name === 'screen') name = 'health'; // Screen time is part of Wellbeing (3.66)
     if ((name === 'grim' && !modOn('game')) || (name === 'health' && !modOn('wellbeing'))) name = 'focus';
+    if (name === 'world' && !ML.hasWorld()) name = 'today';
     if (!TABS[name]) name = 'plan';
     if (HOME_OF[name] && wideNow()) name = spaceTab(HOME_OF[name]); // the home pages are for phones
     S.tab = name;
     const sp = SPACE[name] || '';
-    if (sp && !HOME_OF[name]) { S.spaceTab = Object.assign({}, S.spaceTab, { [sp]: name }); }
+    if (sp && !HOME_OF[name]) { S.spaceTab = Object.assign({}, S.spaceTab, { [sp]: name }, name === 'day' || name === 'cal' ? { calx: name } : null); }
     save();
     for (const [k, [b, p]] of Object.entries(TABS)) { if (b) $(b).setAttribute('aria-selected', k === name); $(p).hidden = k !== name; }
     $('t-plan').setAttribute('aria-selected', sp === 'plan');
+    $('t-list').setAttribute('aria-selected', name === 'plan'); $('t-calx').setAttribute('aria-selected', name === 'day' || name === 'cal');
     ['study', 'you'].forEach(k => $('sp-' + k).setAttribute('aria-selected', k === sp));
     $('subtabs').hidden = !SPACE_FIRST[sp]; $('subtabs').dataset.space = sp;
     if (name === 'grim') renderGrimoire();
@@ -562,6 +574,8 @@
   ML.spaceTab = spaceTab;
   for (const k of Object.keys(TABS)) if (TABS[k][0]) $(TABS[k][0]).onclick = () => setTab(k);
   $('t-plan').onclick = () => setTab(spaceTab('plan'));
+  $('t-list').onclick = () => setTab('plan');
+  $('t-calx').onclick = () => setTab(calTab());
   ['study', 'you'].forEach(k => { $('sp-' + k).onclick = () => setTab(spaceTab(k)); });
   $('t-shop').onclick = () => ML.openShop && ML.openShop();
   $('seq-badge').onclick = () => { setTab(modOn('game') ? 'grim' : 'focus'); $('sp-you').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
@@ -757,6 +771,7 @@
     clearTimeout(resetArmed); resetArmed = 0; b.textContent = t('reset'); b.classList.remove('armed');
     if (S.mode === 'focus' && spent >= 5) emit('abandon', { mins: spent });
     stop(); S.remaining = S.total; save(); renderTimer();
+    emit('timer'); // the session is over only now: session mode (today.js) must let the energies and durations come back
   };
   const finish = () => { if (S.remaining < S.total || running()) complete(true); else toast(t('start_first')); };
   $('skip').onclick = finish; $('c-skip').onclick = finish;
@@ -1101,7 +1116,7 @@
     else if (k === 's') { emit('gesture'); emit('sound:toggle'); }
     else if (k === 'c') $('compact-btn').click();
     else if (k === 'f') openFloat();
-    else if ('12345'.includes(k)) setTab(['plan', 'day', 'cal', spaceTab('study'), spaceTab('you')][+k - 1]);
+    else if ('12345'.includes(k)) setTab(['today', 'plan', calTab(), spaceTab('study'), 'world'][+k - 1]);
     else if (e.key === '?') showHelp();
   });
 

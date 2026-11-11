@@ -28,7 +28,7 @@
       dg_tpls: 'Modèles de journée', dg_tpl_save: 'Enregistrer ce jour', dg_tpl_name: 'Nom du modèle', dg_tpl_saved: 'Modèle enregistré', dg_tpl_none: 'Enregistre une journée pour la reposer sur un autre jour.', dg_tpl_n_one: '1 bloc', dg_tpl_n: '{n} blocs',
       dg_tpl_added_one: '1 bloc ajouté', dg_tpl_added: '{n} blocs ajoutés', dg_tpl_empty: 'Aucun bloc ce jour-là.', dg_tpl_del: 'Supprimer le modèle', dg_tpl_deleted: 'Modèle supprimé',
       dg_due_plan: '{p} prévues sur {e}', dg_due_left: '{d} à placer', dg_spread: 'Répartir d’ici {d}', dg_spread_n_one: '1 bloc posé', dg_spread_n: '{n} blocs posés', dg_spread_short: '{d} n’ont pas trouvé de place',
-      key_dg_new: 'Nouvel élément (Journée, Agenda)', key_dg_today: 'Aujourd’hui (Journée, Agenda)', key_dg_move: 'Déplacer de 15 min ; avec Maj, changer la durée', key_dg_day: 'Jour ou semaine précédent, suivant', key_dg_del: 'Retirer l’élément sélectionné',
+      key_dg_new: 'Nouvel élément (Calendrier)', key_dg_today: 'Aujourd’hui (Calendrier)', key_dg_move: 'Déplacer de 15 min ; avec Maj, changer la durée', key_dg_day: 'Jour ou semaine précédent, suivant', key_dg_del: 'Retirer l’élément sélectionné',
     },
     en: {
       dg_add: 'Add', dg_block: 'Block', dg_event: 'Event', dg_title_ph: 'Task or title', dg_start: 'Start', dg_end: 'End', dg_date: 'Date',
@@ -52,7 +52,7 @@
       dg_tpls: 'Day templates', dg_tpl_save: 'Save this day', dg_tpl_name: 'Template name', dg_tpl_saved: 'Template saved', dg_tpl_none: 'Save a day to put it on another day later.', dg_tpl_n_one: '1 block', dg_tpl_n: '{n} blocks',
       dg_tpl_added_one: '1 block added', dg_tpl_added: '{n} blocks added', dg_tpl_empty: 'No blocks on this day.', dg_tpl_del: 'Delete the template', dg_tpl_deleted: 'Template deleted',
       dg_due_plan: '{p} planned of {e}', dg_due_left: '{d} to place', dg_spread: 'Spread until {d}', dg_spread_n_one: '1 block placed', dg_spread_n: '{n} blocks placed', dg_spread_short: '{d} found no room',
-      key_dg_new: 'New item (Journée, Agenda)', key_dg_today: 'Today (Journée, Agenda)', key_dg_move: 'Move by 15 min; with Shift, change the length', key_dg_day: 'Previous or next day, week', key_dg_del: 'Remove the selected item',
+      key_dg_new: 'New item (Calendar)', key_dg_today: 'Today (Calendar)', key_dg_move: 'Move by 15 min; with Shift, change the length', key_dg_day: 'Previous or next day, week', key_dg_del: 'Remove the selected item',
     },
   });
 
@@ -148,7 +148,7 @@
         let cum = 0; for (const x of di.list) { cum += x.mins; if (x === b) break; }
         flag = fmtMins(cum) + ' / ' + fmtMins(di.est);
       }
-      out.push({ kind: 'blk', id: b.id, k, s: b.start, e: Math.min(b.start + b.mins, DAY), b, title: blockName(b), c: b.color ? `var(--ev-${b.color})` : 'var(--accent)', done: blockDone(b) && b.check !== false, nock: b.check === false, active: S.activeBlock === b.id && ML.running(), miss: isMissed(b), rep: !!b.rule, flag });
+      out.push({ kind: 'blk', id: b.id, k, s: b.start, e: Math.min(b.start + b.mins, DAY), b, dim: offProj(b), title: blockName(b), c: b.color ? `var(--ev-${b.color})` : 'var(--accent)', done: blockDone(b) && b.check !== false, nock: b.check === false, active: S.activeBlock === b.id && ML.running(), miss: isMissed(b), rep: !!b.rule, flag });
     });
     return out;
   }
@@ -489,12 +489,15 @@
   /* ---------- Rendering ---------- */
   const isSel = it => sel && sel.kind === it.kind && sel.id === it.id && sel.k === it.k;
   let moreLists = [];
+  // The Plan's project filter also applies here (3.82): the blocks of other projects fade, the tray lists only this project
+  const projNow = () => (S.plan && S.plan.proj) || '';
+  const offProj = b => { const p = projNow(); if (!p) return false; const x = b.taskId && S.tasks.find(y => y.id === b.taskId); return !x || x.project !== p; };
   function itemHtml(it, top, h, colPx, pad = 0) {
     const short = h < 36, lines = Math.max(1, Math.floor((h - (it.flag ? 38 : 22)) / 15));
     const px = colPx * it.W - it.R - 3 - pad;
     const time = hm(it.s) + '–' + hm(it.e === DAY ? DAY - 0.001 : it.e).replace('23:60', '24:00');
     const marksOn = !short && px > 120 && (it.rep || it.rem);
-    const cls = ['dg-it', it.kind, short && 'short', it.done && 'done', it.active && 'active', isSel(it) && 'sel', it.feed && 'feed', marksOn && 'has-mk', it.nock && 'nock', it.miss && 'miss'].filter(Boolean).join(' ');
+    const cls = ['dg-it', it.kind, short && 'short', it.done && 'done', it.active && 'active', isSel(it) && 'sel', it.feed && 'feed', marksOn && 'has-mk', it.nock && 'nock', it.miss && 'miss', it.dim && 'dim'].filter(Boolean).join(' ');
     const tspan = short ? (px < 130 ? '' : `<span>${hm(it.s)}</span>`) : `<span>${time}</span>`;
     const marks = marksOn ? (it.rep ? ico('rep', 'dg-mk') : '') + (it.rem ? ico('bell', 'dg-mk') : '') : '';
     const flag = it.flag && !short && h >= 46 ? `<em class="dg-flag">${esc(it.flag)}</em>` : '';
@@ -662,7 +665,7 @@
     const td = today();
     // A task with a due day stays while its planned time is short of its estimate, and those come first by due day
     const keep = x => { const di = x.due >= td && dueInfo(x); return di ? di.left >= SNAP : !placed.has(x.id); };
-    const list = ML.orderedOpen().filter(keep);
+    const pj = projNow(), list = ML.orderedOpen().filter(x => keep(x) && (!pj || x.project === pj));
     const dd = x => (x.due && x.due >= td ? x.due : '9999');
     return list.map((x, i) => [x, i]).sort((a, b) => dd(a[0]).localeCompare(dd(b[0])) || a[1] - b[1]).map(p => p[0]);
   }

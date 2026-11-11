@@ -9,7 +9,7 @@
     fr: {
       dp_title: 'Préparer ma journée', dp_hint: 'Coche ce que tu feras aujourd’hui.', dp_planned: '{m} prévues', dp_free: '{m} libres aujourd’hui',
       dp_over: '{m} de trop.', dp_over_sug: '« {title} » ({m}, {pri}) peut passer à demain.', dp_fits: 'Ça tient dans ta journée.', dp_move: 'Passer à demain', dp_keep: 'Garder quand même',
-      dp_ok: 'Valider', dp_place: 'Placer dans Journée', dp_saved: 'Journée prête : {n} tâche(s).', dp_none: 'Aucune tâche ouverte.', dp_moved: 'Passée à demain.',
+      dp_ok: 'Valider', dp_place: 'Placer dans le Calendrier', dp_saved: 'Journée prête : {n} tâche(s).', dp_none: 'Aucune tâche ouverte.', dp_moved: 'Passée à demain.',
       key_pl_move: 'Plan : passer d’une tâche à l’autre', key_pl_done: 'Plan : terminer la tâche choisie', key_pl_edit: 'Plan : modifier', key_pl_pin: 'Plan : épingler',
       key_pl_pri: 'Plan : priorité haute, moyenne, basse', key_pl_date: 'Plan : date', key_pl_proj: 'Plan : projet', key_pl_lock: 'Plan : lancer le chrono', key_pl_search: 'Plan : chercher',
     },

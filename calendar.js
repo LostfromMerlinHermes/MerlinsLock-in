@@ -13,10 +13,10 @@
       rem_0: 'Aucun', rem_5: '5 min avant', rem_15: '15 min avant', rem_30: '30 min avant', rem_60: '1 h avant', rem_1440: 'La veille',
       rep_none: 'Une fois', rep_daily: 'Chaque jour', rep_weekdays: 'En semaine', rep_weekly: 'Chaque semaine', rep_monthly: 'Chaque mois',
       ev_saved: 'Événement enregistré', ev_deleted: 'Événement supprimé', day_empty: 'Rien ce jour-là.',
-      due_tasks: 'Tâches à rendre', plan_this_day: 'Ouvrir dans la Journée', blocks_planned_one: '{n} bloc planifié ({m})', blocks_planned: '{n} blocs planifiés ({m})',
+      due_tasks: 'Tâches à rendre', plan_this_day: 'Ouvrir dans la vue Jour', blocks_planned_one: '{n} bloc planifié ({m})', blocks_planned: '{n} blocs planifiés ({m})',
       import_ics: 'Importer un .ics', export_ics: 'Exporter en .ics', ics_hint: 'Exporte ton agenda Google ou Outlook en fichier .ics, puis importe-le ici.',
       imported: '{n} événement(s) importé(s)', import_none: 'Aucun événement trouvé dans ce fichier.', reminder: 'Rappel : {title} à {time}', reminder_day: 'Demain : {title}',
-      delete_event: 'Supprimer l’événement', cal_v_week: 'Semaine', cal_v_month: 'Mois', ev_repeats: 'Se répète', ev_reminds: 'Avec rappel',
+      delete_event: 'Supprimer l’événement', cal_v_day: 'Jour', cal_v_week: 'Semaine', cal_v_month: 'Mois', ev_repeats: 'Se répète', ev_reminds: 'Avec rappel',
     },
     en: {
       new_event: 'Event', today_btn: 'Today', upcoming: 'Upcoming', nothing_upcoming: 'Nothing planned in the next 14 days.',
@@ -26,10 +26,10 @@
       rem_0: 'None', rem_5: '5 min before', rem_15: '15 min before', rem_30: '30 min before', rem_60: '1 h before', rem_1440: 'The day before',
       rep_none: 'Once', rep_daily: 'Daily', rep_weekdays: 'Weekdays', rep_weekly: 'Weekly', rep_monthly: 'Monthly',
       ev_saved: 'Event saved', ev_deleted: 'Event deleted', day_empty: 'Nothing that day.',
-      due_tasks: 'Tasks due', plan_this_day: 'Open in the Journée', blocks_planned_one: '{n} block planned ({m})', blocks_planned: '{n} blocks planned ({m})',
+      due_tasks: 'Tasks due', plan_this_day: 'Open in the Day view', blocks_planned_one: '{n} block planned ({m})', blocks_planned: '{n} blocks planned ({m})',
       import_ics: 'Import .ics', export_ics: 'Export .ics', ics_hint: 'Export your Google or Outlook calendar as an .ics file, then import it here.',
       imported: '{n} event(s) imported', import_none: 'No events found in that file.', reminder: 'Reminder: {title} at {time}', reminder_day: 'Tomorrow: {title}',
-      delete_event: 'Delete event', cal_v_week: 'Week', cal_v_month: 'Month', ev_repeats: 'Repeats', ev_reminds: 'With a reminder',
+      delete_event: 'Delete event', cal_v_day: 'Day', cal_v_week: 'Week', cal_v_month: 'Month', ev_repeats: 'Repeats', ev_reminds: 'With a reminder',
     },
   });
 
@@ -66,14 +66,24 @@
 
   /* ---------- Rendering ---------- */
   const monthOf = k => k.slice(0, 7);
-  const VIEWS = ['week', 'month'];
-  const view = () => S.cal.view === 'month' ? 'month' : 'week'; // the old Day view is the Journée now
+  // One Calendar with three views (3.82): Day is the old Journée (planner.js, tab "day"), Week and Month live here (tab "cal")
+  const VIEWS = ['day', 'week', 'month'];
+  const view = () => S.cal.view === 'month' ? 'month' : 'week';
+  const viewNow = () => (S.tab === 'day' ? 'day' : view());
   const weekStart = k => addDays(k, -((parseDay(k).getDay() + 6) % 7));
   const weekDays = () => [...Array(7)].map((_, i) => addDays(weekStart(S.cal.sel || today()), i));
   const loc = () => ML.locale();
   const blocksOn = k => (S.blocks || []).filter(b => b.date === k);
   const sumBlocks = blocks => tn('blocks_planned', blocks.length, { m: fmtMins(blocks.reduce((a, b) => a + b.mins, 0)) });
-  const viewsSeg = () => `<div class="seg-toggle cal-views" role="group" aria-label="${esc(t('tab_cal'))}">${VIEWS.map(k => `<button type="button" data-calv="${k}" aria-pressed="${k === view()}">${esc(t('cal_v_' + k))}</button>`).join('')}</div>`;
+  const viewsSeg = () => `<div class="seg-toggle cal-views" role="group" aria-label="${esc(t('tab_cal'))}">${VIEWS.map(k => `<button type="button" data-calv="${k}" aria-pressed="${k === viewNow()}">${esc(t('cal_v_' + k))}</button>`).join('')}</div>`;
+  ML.calViewsSeg = viewsSeg;
+  function setCalView(v) {
+    if (v === 'day') { if (S.tab !== 'day') ML.plannerGoto(S.cal.sel || today()); return; }
+    if (S.tab === 'day') { S.cal.sel = (S.planner && S.planner.date) || today(); S.cal.month = monthOf(S.cal.sel); } // the week or month of the day on screen
+    S.cal.view = v; save();
+    if (S.tab !== 'cal') ML.setTab('cal'); else { $('calendar').innerHTML = ''; render(); }
+  }
+  $('planner').addEventListener('click', e => { const b = e.target.closest('[data-calv]'); if (b) setCalView(b.dataset.calv); });
 
   ML.dgHost('week', {
     view: 'week',
@@ -203,7 +213,7 @@
   root.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     const C = S.cal;
-    if (b.dataset.calv) { C.view = b.dataset.calv; save(); root.innerHTML = ''; render(); return; }
+    if (b.dataset.calv) { setCalView(b.dataset.calv); return; }
     if (b.dataset.day) { C.sel = b.dataset.day; if (monthOf(C.sel) !== C.month) C.month = monthOf(C.sel); }
     else if (b.dataset.cal === 'prev' || b.dataset.cal === 'next') {
       const [y, m] = C.month.split('-').map(Number), d = new Date(y, m - 1 + (b.dataset.cal === 'next' ? 1 : -1), 1);

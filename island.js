@@ -159,5 +159,26 @@
     });
   };
 
+  /* ---------- The World place (3.82): the island on a page of its own, whatever the game module says ---------- */
+  ML.addStrings({
+    fr: { wd_energy: 'Le monde de ton énergie {e}. Ton île grandit avec ton temps de focus.', wd_change: 'Changer de monde', wd_go: 'Voir l’île dans Monde' },
+    en: { wd_energy: 'The world of your {e} energy. Your island grows with your focus time.', wd_change: 'Change world', wd_go: 'See the island in World' },
+  });
+  function renderWorld() {
+    const el = $('world'); if (!el || S.tab !== 'world') return;
+    const fixed = ML.worldsFixed && ML.worldsFixed();
+    const html = `<div class="wd"><div class="wd-head"><div class="wd-tx"><h2>${esc(ML.worldName ? ML.worldName(S.mood) : t('sp_world'))}</h2><p>${esc(t('wd_energy', { e: t('mood_' + S.mood) }))}</p></div>
+      <div class="wd-acts">${fixed ? '' : `<button type="button" class="small" data-wd="worlds">${esc(t('wd_change'))}</button>`}<button type="button" class="ghost small" data-wd="shop">${esc(t('shop'))}</button></div></div>
+      <div id="wd-isl"></div></div>`;
+    if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
+    if (blk && el.contains(blk) && keyOf(view()) === blkKey) return;
+    mount(el.querySelector('#wd-isl') || (blk && el.contains(blk) ? blk : null));
+  }
+  $('world').addEventListener('click', e => {
+    const b = e.target.closest('[data-wd]'); if (!b) return;
+    if (b.dataset.wd === 'worlds') ML.openWorlds && ML.openWorlds(); else ML.openShop && ML.openShop();
+  });
+  ['tab', 'mood', 'world', 'theme', 'render', 'lang', 'session', 'cosmetics', 'started'].forEach(ev => on(ev, renderWorld));
+
   on('mood', () => thumb()); on('theme', () => thumb()); on('cosmetics', () => thumb());
 })();

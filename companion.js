@@ -310,7 +310,8 @@
     const card = document.createElement('div');
     card.className = 'g-card tower-card'; card.id = 'tower-card';
     const island = !!ML.islandMount;
-    card.innerHTML = `<h2>${esc(t('tower'))}</h2>${island ? '<div id="isl-slot"></div>' : ''}
+    // the island has its own place since 3.82 (World): here, a link to it
+    card.innerHTML = `<h2>${esc(t('tower'))}</h2>${island && ML.hasWorld() ? `<button type="button" class="ghost small" id="isl-go">${esc(t('wd_go'))}</button>` : ''}
       <div class="tower-row ${island ? 'isl-on' : ''}">
         ${island ? '' : `<div class="tower-big">${towerSvg(Math.max(1, shown), shown ? Math.min(shown, T.built) : 0, false, { gold, wings: sea.wings })}${sea.floors > 24 ? `<span class="tw-more">+${sea.floors - 24}</span>` : ''}</div>`}
         <div class="tower-info">
@@ -327,7 +328,7 @@
         </div>
       </div>`;
     $('g-game').prepend(card);
-    if (island) ML.islandMount($('isl-slot'));
+    if ($('isl-go')) $('isl-go').onclick = () => ML.setTab('world');
     $('fam-name').onchange = e => { S.companion.name = e.target.value.trim() || null; save(); renderPerch(); };
     $('fam-shop').onclick = () => ML.openShop();
   });

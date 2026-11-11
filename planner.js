@@ -10,14 +10,14 @@
       no_slot: 'Plus de créneau libre aujourd’hui.', block_now: 'C’est l’heure : {title}', start_block: 'Lock in', mark_block_done: 'Fait',
       review: 'Bilan', planned: 'Prévu', done_lc: 'Réalisé', journal: 'Journal du jour', journal_ph: 'Trois lignes : ce qui a marché, ce qui a bloqué, la priorité de demain.',
       block_deleted: 'Bloc retiré', review_day: 'Bilan et journal',
-      set_planner: 'Planning', opt_autostart: 'Lancer automatiquement les blocs à l’heure prévue', day_start: 'Planification auto : à partir de', day_end: 'Planification auto : jusqu’à', day_hint: 'Tu peux toujours planifier à n’importe quelle heure ; l’affichage se règle avec le bouton Affichage de la Journée.',
+      set_planner: 'Planning', opt_autostart: 'Lancer automatiquement les blocs à l’heure prévue', day_start: 'Planification auto : à partir de', day_end: 'Planification auto : jusqu’à', day_hint: 'Tu peux toujours planifier à n’importe quelle heure ; l’affichage se règle avec le bouton Affichage du Calendrier.',
     },
     en: {
       auto_plan: 'Auto-plan', planned_n_one: '{n} block planned', planned_n: '{n} blocks planned',
       no_slot: 'No free slot left today.', block_now: "It's time: {title}", start_block: 'Lock in', mark_block_done: 'Done',
       review: 'Review', planned: 'Planned', done_lc: 'Done', journal: "Today's journal", journal_ph: 'Three lines: what worked, what got in the way, tomorrow’s priority.',
       block_deleted: 'Block removed', review_day: 'Review and journal',
-      set_planner: 'Planner', opt_autostart: 'Auto-start blocks at their planned time', day_start: 'Auto-plan: from', day_end: 'Auto-plan: until', day_hint: 'You can always plan at any hour; the Journée’s View button sets what is shown.',
+      set_planner: 'Planner', opt_autostart: 'Auto-start blocks at their planned time', day_start: 'Auto-plan: from', day_end: 'Auto-plan: until', day_hint: 'You can always plan at any hour; the Calendar’s View button sets what is shown.',
     },
   });
 
@@ -38,7 +38,7 @@
       const k = viewDate(), d = parseDay(k), td = today();
       const date = d.toLocaleDateString(ML.locale(), wide ? { weekday: 'long', day: 'numeric', month: 'long' } : { weekday: 'short', day: 'numeric', month: 'short' });
       const rel = k === td ? t('today') : k === addDays(td, 1) ? t('tomorrow') : null;
-      return rel ? (wide ? `${rel}, ${date}` : rel) : date; // on a phone the week strip already shows the date
+      return rel || date; // the week strip already shows the date, and the Day / Week / Month switch needs the room (3.82)
     },
     showToday: () => viewDate() !== today(),
     nav: dir => { const k = addDays(viewDate(), dir); S.planner.date = k === today() ? null : k; },
@@ -47,6 +47,7 @@
     autoPlan: () => autoPlan(),
     autoLabel: () => t('auto_plan'),
     defaultKind: 'blk',
+    extraHead: () => (ML.calViewsSeg ? ML.calViewsSeg() : ''), // Day / Week / Month: this is the Calendar's Day view (3.82)
     after: reviewHtml,
   });
   function reviewHtml() {

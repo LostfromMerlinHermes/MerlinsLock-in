@@ -63,7 +63,16 @@
   // pcolor (3.70): each project keeps the color slot (1-8) it got when it first showed up, so two projects never share one
   ML.defaults(() => ({ plan: { view: 'list', pview: 'all', group: 'moment', sort: 'energy', dir: 1, proj: '', fold: {}, day: null, cols: ['project', 'due', 'mins', 'pri'], plist: [], pnotes: {}, pdue: {}, pcolor: {} } }));
   // The Projects view (3.50) became a filter that works in every view (3.70): its old state opens All grouped by project
-  const P = () => { const p = S.plan; if (p.pview === 'projects') { p.pview = 'all'; p.group = 'project'; } return p; };
+  // One list since 3.82: Today, Upcoming and the Inbox are groups of it, not views. A view saved before (or asked for by
+  // another module: "inbox") opens the list; asking for the Inbox unfolds its group and scrolls to it.
+  let inboxJump = false;
+  const P = () => {
+    const p = S.plan;
+    if (p.pview === 'projects') { p.pview = 'all'; p.group = 'project'; }
+    if (p.pview === 'inbox') { p.fold = Object.assign({}, p.fold, { inbox: false }); inboxJump = true; }
+    if (p.pview !== 'all') p.pview = 'all';
+    return p;
+  };
   const PRI = { high: 0, med: 1, low: 2 };
   const reduced = () => ML.reducedMotion();
 
@@ -408,22 +417,24 @@
   const ICON_SEL = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/><path d="M14 7.5l1.8 1.8L19 6"/></svg>';
   const ICON_SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="4"/><path d="M12 4v2M4 13h2M18 13h2M6.3 7.3l1.4 1.4M17.7 7.3l-1.4 1.4M3 20h18"/></svg>';
   // The views stay on top in every energy and even with no task. Scattered keeps its single card: only Next and Inbox.
+  // The Inbox ("À trier") is the first group of the list, shown while something waits in it (3.82)
+  const inboxG = document.createElement('div'); inboxG.className = 'pgroup pl-inboxg'; inboxG.hidden = true;
+  const inboxHead = document.createElement('button'); inboxHead.type = 'button'; inboxHead.className = 'pg-head';
+  inboxG.append(inboxHead, $('tab-park')); list.before(inboxG);
+  // open while something waits (thoughts to sort, links to read later), folded to one line when empty, unless you chose
+  const inboxFolded = () => P().fold.inbox ?? !((S.parked || []).length + (S.reading || []).length);
+  inboxHead.onclick = () => { const p = P(); p.fold = Object.assign({}, p.fold, { inbox: !inboxFolded() }); save(); renderViews(); };
   function renderViews() {
-    const p = P(), M = ML.MOODS[S.mood], single = M && M.single && !S.showAll, inbox = p.pview === 'inbox', n = (S.parked || []).length;
-    const btn = (v, label, on, id = '') => `<button type="button" ${id ? `id="${id}"` : ''} data-pv2="${v}" aria-pressed="${on}">${label}</button>`;
-    const inboxBtn = btn('inbox', esc(t('pl_v_inbox')) + (n ? ` <span class="count">${n}</span>` : ''), inbox, 'pl-inbox-btn');
-    const html = `<div class="pl-views" role="group" aria-label="${esc(t('pl_views'))}">${single ? btn('back', esc(t('pl_v_next')), !inbox) : VIEWS.map(v => btn(v, esc(t('pl_v_' + v)), p.pview === v)).join('')}${inboxBtn}</div>
-      ${single || inbox ? '' : `<button type="button" class="ghost icon-only pl-tb" data-ptool="display" aria-haspopup="true" aria-expanded="false" aria-label="${esc(t('pl_display'))}" title="${esc(t('pl_display'))}">${ICON_DISPLAY}</button>`}`;
+    const p = P(), M = ML.MOODS[S.mood], single = M && M.single && !S.showAll, n = (S.parked || []).length, folded = inboxFolded();
+    const html = single ? '' : `<button type="button" class="ghost icon-only pl-tb" data-ptool="display" aria-haspopup="true" aria-expanded="false" aria-label="${esc(t('pl_display'))}" title="${esc(t('pl_display'))}">${ICON_DISPLAY}</button>`;
     if (viewsRow.dataset.h !== html) { viewsRow.innerHTML = html; viewsRow.dataset.h = html; }
-    tabPlan.classList.toggle('pl-inboxing', inbox);
-    $('tab-park').hidden = !inbox;
-    // The same views in the computer's section column
-    document.querySelectorAll('#subtabs [data-pvw]').forEach(b => {
-      const v = b.dataset.pvw;
-      b.hidden = single ? v !== 'next' && v !== 'inbox' : v === 'next';
-      b.setAttribute('aria-selected', S.tab === 'plan' && (v === 'next' ? !inbox : p.pview === v));
-    });
+    inboxG.hidden = single && !n; inboxG.classList.toggle('folded', folded);
+    $('tab-park').hidden = folded;
+    const hh = `<b>${esc(t('pl_v_inbox'))}</b><span class="pg-n">${n || ''}</span><span class="pg-r"></span><svg class="pg-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>`;
+    if (inboxHead.dataset.h !== hh) { inboxHead.innerHTML = hh; inboxHead.dataset.h = hh; }
+    inboxHead.setAttribute('aria-expanded', !folded);
     $('sub-inbox').textContent = n || '';
+    if (inboxJump) { inboxJump = false; if (n && S.tab === 'plan') setTimeout(() => inboxG.scrollIntoView({ block: 'start', behavior: ML.reducedMotion && ML.reducedMotion() ? 'auto' : 'smooth' }), 60); }
   }
   ML.planRenderViews = renderViews;
   function setPview(v) {
@@ -448,11 +459,10 @@
   }
   ML.planMenu = anchor => {
     const p = P(), M = ML.MOODS[S.mood], single = M && M.single && !S.showAll, n = (S.parked || []).length, projs = ML.planProjects();
-    const views = single ? [['next', t('pl_v_next')]] : VIEWS.map(v => [v, t('pl_v_' + v)]);
-    const html = `<div class="pp-list">${views.map(([v, l]) => item({ pv: v }, esc(l), S.tab === 'plan' && p.pview === v)).join('')}
-      ${item({ pv: 'inbox' }, esc(t('pl_v_inbox')), S.tab === 'plan' && p.pview === 'inbox', n ? String(n) : '')}
-      ${projs.length ? `<hr class="pp-sep">${projItems()}` : ''}
-      ${single ? '' : `<hr class="pp-sep">${item({ act: 'display' }, esc(t('pl_display')), false, '', ICON_DISPLAY)}`}</div>`;
+    if (single && !projs.length && !n) return;
+    const html = `<div class="pp-list">${n ? item({ pv: 'inbox' }, esc(t('pl_v_inbox')), false, String(n)) : ''}
+      ${projs.length ? `${n ? '<hr class="pp-sep">' : ''}${projItems()}` : ''}
+      ${single ? '' : `${n || projs.length ? '<hr class="pp-sep">' : ''}${item({ act: 'display' }, esc(t('pl_display')), false, '', ICON_DISPLAY)}`}</div>`;
     openPop(anchor, html, r => {
       if (!r) return;
       if (r.pv) setPview(r.pv);
@@ -538,7 +548,8 @@
   }
   side.addEventListener('click', e => {
     const b = e.target.closest('[data-pproj]'), n = e.target.closest('[data-snew]');
-    if (b) { P().proj = b.dataset.pproj; save(); if (S.tab !== 'plan') ML.setTab('plan'); ML.renderTasks(); }
+    // the same filter in the List and in the Calendar (3.82): the Calendar stays on screen and fades the other projects
+    if (b) { P().proj = b.dataset.pproj; save(); if (ML.SPACE[S.tab] !== 'plan') ML.setTab('plan'); ML.renderTasks(); if (S.tab !== 'plan') { renderSide(); ML.setTab(S.tab); } }
     if (n) { newProj = true; renderSide(); }
   });
   side.addEventListener('submit', e => {
@@ -568,7 +579,7 @@
     }
     const chip = n ? `<span class="pl-ctx-proj" style="--pc:${projColor(n)}"><button type="button" class="chip proj on" data-ctx="pick" aria-haspopup="true" aria-expanded="false"><i></i>${esc(n)}</button><button type="button" class="icon-btn pl-ctx-x" data-ctx="clear" aria-label="${esc(t('pl_unfilter'))}" title="${esc(t('pl_unfilter'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button></span>`
       : projs.length ? `<button type="button" class="chip pl-ctx-all" data-ctx="pick" aria-haspopup="true" aria-expanded="false">${esc(t('pl_allproj'))} <svg class="pl-ctx-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>` : '';
-    const html = `<b class="pl-ctx-v">${esc(t('pl_v_' + p.pview))}</b>${chip}${meta}`;
+    const html = `<b class="pl-ctx-v">${esc(t('nav_list'))}</b>${chip}${meta}`;
     if (ctx.dataset.h !== html) { ctx.innerHTML = html; ctx.dataset.h = html; }
     ctx.classList.toggle('pl-ctx-empty', !chip);
   }

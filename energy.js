@@ -130,14 +130,14 @@
           <button type="button" class="ghost icon-only ep-arr" data-ep="prev" aria-label="${esc(t('ep_prev'))}">${ARROW(-1)}</button>
           <div class="ep-name" aria-live="polite">
             <span class="ep-yday"${k === S.mood && !st.onboard ? '' : ' hidden'}>${esc(t(st.fresh ? 'ep_yday' : 'ep_now'))}</span>
-            <b>${esc(t('mood_' + k))}</b><small>${esc(ML.worldName ? ML.worldName(k) : '')}</small>
+            <b>${esc(t('mood_' + k))}</b><small>${esc(ML.worldName && ML.hasWorld() ? ML.worldName(k) : '')}</small>
           </div>
           <button type="button" class="ghost icon-only ep-arr" data-ep="next" aria-label="${esc(t('ep_next'))}">${ARROW(1)}</button>
         </div>
         <div class="ep-chips"><span>${esc(t('ep_mins', { m: focusOf(k) }))}</span><span>${esc(t('ep_sort_' + k))}</span><span>${esc(t('ep_buff', { b: t('buff_' + k) }))}</span></div>
         <div class="ep-seg" role="radiogroup" aria-label="${esc(t('ep_label'))}">${KEYS().map((m, i) =>
           `<button type="button" role="radio" aria-checked="${m === k}" data-ep-mood="${m}" style="--mood-c:${ML.MOODS[m].color}">${svgIcon(ML.MOODS[m].icon)}<span>${esc(t('mood_' + m))}</span><kbd>${i + 1}</kbd></button>`).join('')}</div>
-        ${ML.worldTiles && !ML.worldsFixed() ? `<div class="ep-worlds"><span class="label">${esc(t('ep_world'))}</span>
+        ${ML.worldTiles && !ML.worldsFixed() && ML.hasWorld() ? `<div class="ep-worlds"><span class="label">${esc(t('ep_world'))}</span>
           <div class="wtiles">${ML.worldTiles(k, ML.worldSel(st.wp), 'data-ep-world')}</div>
           <button type="button" class="ep-clock" role="switch" aria-checked="${st.wp.clock}" data-ep="clock"><i></i>${esc(t('ep_clock', ML.worldClockText(k, st.wp.w)))}</button></div>` : ''}
         <button type="button" class="primary ep-go" data-ep="choose">${esc(t('ep_choose'))}</button>
@@ -254,7 +254,7 @@
   function renderPill() {
     const k = S.mood, M = ML.MOODS[k]; if (!M) return;
     pill.innerHTML = `<span class="ep-ico" style="--mood-c:${M.color}">${svgIcon(M.icon)}</span>
-      <span class="ep-tx"><small>${esc(t('ep_label'))}</small><b>${esc(t('mood_' + k))}<em>✦ ${esc(t('buff_' + k))}</em></b><span>${esc(t('ep_mins', { m: focusOf(k) }))} · ${esc(t('ep_sort_' + k))}</span></span>
+      <span class="ep-tx"><small>${esc(t('ep_label'))}</small><b>${esc(t('mood_' + k))}<em data-mod="game">${esc(t('buff_' + k))}</em></b><span>${esc(t('ep_mins', { m: focusOf(k) }))} · ${esc(t('ep_sort_' + k))}</span></span>
       <span class="ep-chg">${esc(t('ep_change'))}</span>`;
     pill.setAttribute('aria-label', `${t('ep_label')} : ${t('mood_' + k)}. ${t('ep_change')}`);
   }

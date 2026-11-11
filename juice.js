@@ -8,7 +8,7 @@
     fr: {
       set_juice: 'Effets', opt_title: 'Écran titre au premier lancement du jour', opt_clicks: 'Petits sons sur les boutons', opt_tod: 'Lumière qui suit l’heure (aube, jour, crépuscule, nuit)',
       press_start: 'Appuie sur une touche pour commencer', press_start_touch: 'Touche l’écran pour commencer',
-      ts_streak: 'Série : {n} j', ts_quests: 'Quêtes : {n}/3', ts_events: 'Agenda : {n} aujourd’hui', ts_back: 'Bon retour,',
+      ts_streak: 'Série : {n} j', ts_quests: 'Quêtes : {n}/3', ts_events: 'Calendrier : {n} aujourd’hui', ts_back: 'Bon retour,',
       boss_fight: 'Combat de boss',
     },
     en: {

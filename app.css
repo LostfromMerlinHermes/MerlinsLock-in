@@ -5084,3 +5084,53 @@ html .tasks.pl-f-proj .task .t-extra > .chip.proj, html .tasks.pl-f-today .task 
 @media (prefers-reduced-motion: reduce) { .hc-choice, .wb-row .yh-car { transition: none; } }
 .wb-row[data-wbrow="if"] .g-card > h2, .wb-row[data-wbrow="urge"] .g-card > h2 { display: none; }
 .wb-row[data-wbrow="if"] .g-card, .wb-row[data-wbrow="urge"] .g-card { border-top: 0 !important; padding-top: 0 !important; }
+
+/* ===== 3.82 · structure: five places, You as a profile, energies and world side by side, one List and one Calendar ===== */
+/* You: the profile button of the header on a phone, the last entry of the tab row on a computer */
+.you-btn, .tabs .tab-you { display: none; }
+html.mnav-on:not(.no-world)[data-mview="tab"] .top-actions > #you-btn { display: inline-grid; }
+html.mnav-on[data-mview="tab"] .top-actions > :is(#sound-btn, #settings-btn) { display: none; } /* sound is in Quick tools, Settings in You: the title gets the room */
+.you-btn[aria-pressed="true"] { color: var(--text); border-color: var(--accent); }
+html.no-world .tabs .tab-world { display: none; }
+@media (min-width: 900px) {
+  .tabs .tab-you { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; }
+  .tabs .tab-you svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .panel:has(> .subtabs[hidden]) > .tabpanel { grid-column: 1 / -1; } /* Today and World have no section column */
+  #tab-today .td { max-width: 640px; }
+  #tab-today .td-energy { display: none; } /* the energies are in the left zone */
+}
+/* The World place */
+.wd { display: grid; gap: 14px; max-width: 980px; }
+.wd-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; }
+.wd-tx { min-width: 0; }
+.wd-tx h2 { margin: 0; font: 600 var(--t-5) var(--f-title, var(--f-display)); color: var(--text); }
+.wd-tx p { margin: 2px 0 0; max-width: 52ch; font-size: var(--t-2); color: var(--mist); }
+.wd-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Energies: the chips share the row whatever their number; on a computer the chosen world sits at their right */
+.mood-chips { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+html.no-world .world-btn { display: none !important; }
+html.mnav-on.no-world .moodbar { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) {
+  .moodbar { grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; }
+  .moodbar .mood-chips { grid-column: 1; grid-row: 1; gap: 4px; }
+  .moodbar .mood-chips { grid-auto-columns: auto; grid-template-columns: none; }
+  .moodbar .mood-chip { padding: 7px 9px; gap: 5px; white-space: nowrap; }
+  .moodbar .mood-chip:not([aria-pressed="true"]) svg { display: none; } /* 360 px for three energies and a world: only the chosen one keeps its icon */
+  .moodbar .world-btn { grid-column: 2; grid-row: 1; width: auto; max-width: 150px; min-width: 0; }
+  .moodbar .world-nm { max-width: none; min-width: 0; }
+  .moodbar .world-car { display: none; }
+  .moodbar .mood-foot { grid-column: 1 / -1; }
+  .moodbar:has(> .world-btn[hidden]) .mood-chips, html.no-world .moodbar .mood-chips { grid-column: 1 / -1; }
+}
+/* Plan: the Inbox as the first group of the List; the project filter fades the other projects in the Calendar */
+.pl-inboxg { display: grid; gap: 6px; margin-bottom: 12px; }
+.pl-inboxg[hidden], .pl-inboxg .pl-inbox[hidden] { display: none; }
+.pl-inboxg .pl-inbox { display: grid; gap: 6px; }
+.dg-it.dim { opacity: .35; }
+html.mnav-on .parked li:not(.empty) { grid-template-columns: minmax(0, 1fr); } /* the text above its actions: beside them it broke letter by letter */
+html.mnav-on .m-seg:not([hidden]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* phone: Day / Week / Month takes its own row above the date, so the title and Add keep theirs */
+.dg-top { flex-wrap: wrap; row-gap: 6px; }
+.dg-top .dg-title { min-width: min(11ch, 100%); } /* the date never shrinks to one letter: the buttons go to a second row instead */
+html.mnav-on .dg-top .cal-views { order: -1; flex: 1 0 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.distract-btn svg { width: 13px; height: 13px; vertical-align: -2px; fill: currentColor; stroke: none; }

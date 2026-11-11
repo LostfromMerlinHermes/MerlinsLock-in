@@ -8,7 +8,7 @@
 
   ML.addStrings({
     fr: {
-      td_next: 'Prochaine', td_next_e: 'Prochaine, selon ton énergie', td_hours: 'Heures du jour', td_coming: 'À venir', td_quests: 'Quêtes du jour', td_nothing: 'Rien de prévu pour l’instant.', td_add: 'Ajouter une tâche', td_plan: 'Placer dans la journée', td_empty_h: 'Aucun créneau placé aujourd’hui.', td_late: '{n} en retard', td_due: '{n} cartes à réviser', td_due_one: '1 carte à réviser', td_inbox: '{n} dans l’Inbox', td_in: 'dans {n} j', td_today: 'aujourd’hui', td_change: 'Changer', td_now: 'Maintenant', td_done: 'Terminer', td_paused: 'En pause', td_open_timer: 'Ouvrir le minuteur',
+      td_next: 'Prochaine', td_next_e: 'Prochaine, selon ton énergie', td_hours: 'Heures du jour', td_coming: 'À venir', td_quests: 'Quêtes du jour', td_nothing: 'Rien de prévu pour l’instant.', td_add: 'Ajouter une tâche', td_plan: 'Placer dans la journée', td_empty_h: 'Aucun créneau placé aujourd’hui.', td_late: '{n} en retard', td_due: '{n} cartes à réviser', td_due_one: '1 carte à réviser', td_inbox: '{n} à trier', td_in: 'dans {n} j', td_today: 'aujourd’hui', td_change: 'Changer', td_now: 'Maintenant', td_done: 'Terminer', td_paused: 'En pause', td_open_timer: 'Ouvrir le minuteur',
       hb_review: 'Réviser', hb_open: 'Ouvrir', hb_open_subj: 'Ouvrir Matières', hb_next_exam: 'Prochain examen', hb_cards_free: 'Révision espacée', hb_lib_free: 'Lire et surligner tes PDF', hb_lect_free: 'Enregistrer en prenant des notes',hb_subjects: '{n} matières', hb_nosubj: 'Ajoute tes matières', hb_exam: '{name} · {left}', hb_nocards: 'Aucune à réviser', hb_premium: 'Premium', hb_pages: '{n} pages', hb_nopage: 'Page du jour', hb_docs: '{n} documents', hb_nodocs: 'Importe un PDF', hb_lect: '{n} enregistrements', hb_nolect: 'Enregistre un cours', hb_learn: 'Méthodes par situation', hb_streak: 'Série de {n} j', hb_gold: '{n} or', hb_room_on: 'Salle {c}', hb_room: 'Étudier à plusieurs', hb_worlds: 'Mondes', hb_worlds_d: '{w}', hb_guide: 'Toutes les fonctions', hb_settings: 'Compte, son, langue', hb_grim: 'Stats et progression', hb_start: 'Examen', hb_health: 'Check du jour', hb_screen: 'Sites, blocage, pause', yh_prog: 'Série de {n} jours, niveau {lv}', yh_prog0: 'Niveau {lv}', yh_game: 'Tour, expéditions, saison', yh_well_off: 'Point santé et temps d’écran', yh_well_todo: 'Point santé du jour à faire', yh_well_done: 'Point santé du jour fait',
       ss_title: 'Mode séance', ss_tools: 'Outils', ss_docs: 'Documents · {g}', ss_opt: 'Mode séance : pendant un Lock in, retirer XP, quêtes, boutique et énergies de l’écran',
     },
@@ -64,7 +64,7 @@
       : x ? `<div class="td-next"><small>${esc(t('td_next_e'))}</small><b>${esc(ML.titleOf(x))}</b><p>${bits}</p><div class="td-btns"><button type="button" class="primary" data-lock="${x.id}">${esc(t('lock_in'))}</button><button type="button" class="ghost" data-done="${x.id}">${esc(t('td_done'))}</button></div></div>`
       : `<div class="td-next"><b>${esc(t('td_nothing'))}</b><div class="td-btns"><button type="button" class="primary" data-go="add">${esc(t('td_add'))}</button></div></div>`;
     const html = `<div class="td">
-      <button type="button" class="td-energy" data-go="energy"><span class="ep-ico" style="--mood-c:${M.color}">${ML.svgIcon ? ML.svgIcon(M.icon) : ''}</span><span class="td-en-tx"><b>${esc(t('mood_' + S.mood))}</b><small>${esc(ML.worldName(S.mood))}</small></span><span class="td-chg">${esc(t('td_change'))}</span></button>
+      <button type="button" class="td-energy" data-go="energy"><span class="ep-ico" style="--mood-c:${M.color}">${ML.svgIcon ? ML.svgIcon(M.icon) : ''}</span><span class="td-en-tx"><b>${esc(t('mood_' + S.mood))}</b>${ML.hasWorld() ? `<small>${esc(ML.worldName(S.mood))}</small>` : ''}</span><span class="td-chg">${esc(t('td_change'))}</span></button>
       ${ML.eveCard ? ML.eveCard() : ''}
       ${card}
       <h2 class="td-h">${esc(t('td_hours'))}</h2><div class="td-list">${hoursHtml()}</div>
@@ -134,7 +134,7 @@
         ${ML.modOn('game') ? row('grim', t('tab_grim'), t('yh_game')) : ''}
         ${ML.modOn('wellbeing') ? row('health', t('tab_health'), well) : ''}
       </div>
-      <div class="yh-links"><button type="button" class="ghost" data-go="shop">${esc(t('shop'))} <small>${esc(t('hb_gold', { n: gold.toLocaleString(ML.locale()) }))}</small></button><button type="button" class="ghost" data-go="guide">${esc(t('tab_guide'))}</button></div>
+      <div class="yh-links"><button type="button" class="ghost" data-go="shop">${esc(t('shop'))} <small>${esc(t('hb_gold', { n: gold.toLocaleString(ML.locale()) }))}</small></button><button type="button" class="ghost" data-go="guide">${esc(t('tab_guide'))}</button><button type="button" class="ghost" data-go="settings">${esc(t('settings'))}</button></div>
     </div>`;
     if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
     if (ML.treeMount) ML.treeMount($('yh-stage'));
