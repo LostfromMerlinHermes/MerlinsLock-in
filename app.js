@@ -531,8 +531,8 @@
   };
   on('loaded', applyMods); on('started', applyMods); on('remote', applyMods); on('render', applyMods);
   ML.addStrings({
-    fr: { set_mods: 'Modules', set_mods_hint: 'Éteins ce dont tu ne te sers pas. Tes données restent gardées.', mod_game: 'Le jeu', mod_game_d: 'Tour, expéditions, saison, boss de la semaine et échelle des Séquences.' },
-    en: { set_mods: 'Modules', set_mods_hint: 'Turn off what you don’t use. Your data is kept.', mod_game: 'The game', mod_game_d: 'Tower, expeditions, season, weekly boss and the Sequence ladder.' },
+    fr: { set_mods: 'Modules', set_mods_hint: 'Éteins ce dont tu ne te sers pas. Tes données restent gardées.', mod_game: 'Le jeu', mod_game_d: 'Tour, expéditions, saison, boss de la semaine et échelle des Cercles.' },
+    en: { set_mods: 'Modules', set_mods_hint: 'Turn off what you don’t use. Your data is kept.', mod_game: 'The game', mod_game_d: 'Tower, expeditions, season, weekly boss and the Circle ladder.' },
   });
   // The game parts: off for accounts that start with 3.66, on for anyone who already had sessions before it
   const GAME_CUTOFF = new Date(2026, 10, 6).getTime();

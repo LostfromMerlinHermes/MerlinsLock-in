@@ -2,7 +2,7 @@
 // The painting engine of the mage island (tower by stages, base and shop islands per world). Exposes ML.IslandArt.
 (() => {
   'use strict';
-  const ISL = { stage: null, oak: false, noCars: false, cartH: 0 };
+  const ISL = { stage: null, oak: false, noCars: false, cartH: 0, split: null };
 /* Round 3 painting library. Everything is drawn in a virtual space 1200 units wide (C.k scales it to the canvas).
    Volumes are surfaces of revolution (lathe) or prisms lit by one key light, with per-block tint, mortar, shingles, rim light and glow. */
 const TAU = Math.PI * 2;
@@ -2149,7 +2149,7 @@ function codexAirship(C, ax, ay, s) {
   });
 }
 function baseScene(C, key, o = {}) {
-  const B = BASE[key]; C.L = makeL(B.L); B.sky(C); B.sea(C);
+  const B = BASE[key]; C.L = makeL(B.L); B.sky(C); if (typeof skyDone === "function") skyDone(C); B.sea(C);
   const cx = 600, cy = 470;
   const I = DEFAULT_ISLAND(C, cx, cy, 250, { rock: B.isle.rock, grass: B.isle.grass, bounce: B.isle.bounce }, 700 + key.length * 13, Object.assign({ depth: 170, lobes: [[600, 1, .6], [480, .55, .3]] }, B.isle));
   if (key === "obs" || key === "san" || key === "cdx") waterfall(C, 760, I.rimY(760) + 4, 200, 9, key === 'cdx' || key === 'est' || key === 'cart' ? '#ffffff' : '#cfe0ff', 4);
@@ -3808,10 +3808,17 @@ function cartPlay7(cv, opt = {}) {
   draw();
 }
 
+  // the sky painters tell when the sky is done (the outermost one, some call another)
+  let skyDepth = 0;
+  const skyDone = C => { if (!skyDepth && ISL.split) { const f = ISL.split; ISL.split = null; f(C); } };
+  const skyWrap = fn => function (C) { skyDepth++; try { return fn.apply(this, arguments); } finally { skyDepth--; skyDone(C); } };
+  obsSky = skyWrap(obsSky); sanSky = skyWrap(sanSky); gridSky = skyWrap(gridSky); sorSky = skyWrap(sorSky); neoSky = skyWrap(neoSky); shimmerSky = skyWrap(shimmerSky); warmSky = skyWrap(warmSky); pinkSky = skyWrap(pinkSky);
   const paintScene = (cv, scene, o = {}) => {
     Object.assign(ISL, { stage: o.stage == null ? null : o.stage, oak: !!o.oak, noCars: !!o.noCars, cartH: o.cartH || 0 });
     cv.dataset.scene = scene; if (o.sky) cv.dataset.sky = o.sky; else delete cv.dataset.sky;
-    try { paintCanvas(cv); } finally { Object.assign(ISL, { stage: null, oak: false, noCars: false }); }
+    // o.back: a second canvas that takes the sky, so the island can move in front of it (the painting is cut when its sky is done)
+    if (o.back) { o.back.width = cv.width; o.back.height = cv.height; delete o.back.dataset.on; ISL.split = C => { flushGlows(C); const g = C.g; o.back.getContext("2d").drawImage(cv, 0, 0); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height); g.restore(); o.back.dataset.on = "1"; }; }
+    try { paintCanvas(cv); } finally { Object.assign(ISL, { stage: null, oak: false, noCars: false, split: null }); }
     // one car: parked on the landing pad (o.car), or big in the middle for the shop (o.carBig)
     const kind = o.car || o.carBig;
     if (kind) {

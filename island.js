@@ -11,11 +11,17 @@
   ML.addStrings({
     fr: {
       isl_stage_0: 'Cabane', isl_stage_1: 'Tour', isl_stage_2: 'Tourelle et balcon', isl_stage_3: 'Coupole', isl_stage_4: 'Citadelle', isl_stage_5: 'Flèche', isl_stage_6: 'Couronne flottante',
-      isl_next: 'Prochain palier : {s} à {n} étages cette saison.', isl_top: 'Dernier palier atteint.', isl_base: 'Île de base', isl_more: 'Autres îles',
+      isl_next: 'Prochain palier : {s}, à {n} h de focus.', isl_top: 'Dernier palier atteint.', isl_gauge: '{a} de focus',
+      isl_places: 'Lieux de l’île', isl_all: 'Vue d’ensemble', isl_p_tower: 'Tour', isl_p_garden: 'Jardin', isl_p_workshop: 'Atelier', isl_p_quay: 'Quai', isl_p_view: 'Belvédère',
+      isl_tree_on: 'L’arbre de ce monde a poussé ici. Tu as passé {a} de focus dans ce monde.', isl_tree_none: 'Tu as passé {a} de focus dans ce monde.',
+      isl_ws: 'Choisis l’île de ce monde. Les autres sont dans la Boutique.', isl_ws_none: 'Ce monde a d’autres îles dans la Boutique.',
+      isl_quay: 'D’ici tu passes à un autre monde de ton énergie.', isl_quay_fixed: 'Ton monde est fixé dans les Réglages (Thème).',
+      isl_view: 'Focus en tout : {a}. Dans le monde {w} : {b}.', isl_base: 'Île de base', isl_more: 'Autres îles',
       isl_sky: 'Ciel', isl_sky_shimmer: 'Aurore', isl_sky_warm: 'Nuit chaude', isl_tree: 'L’arbre de ce monde pousse sur l’île après 25 h ici ({h} h pour l’instant).',
       isl_hold: 'L’île de ce monde arrive plus tard. En attendant, c’est celle du monde {w}.', isl_fly: 'Touche le ciel pour voler.', isl_land: 'Se poser',
       isl_cart: 'Touche une case pour la changer. Ton île est gardée.', isl_t_cut: 'Couper', isl_t_plant: 'Planter', isl_t_water: 'Ruisseau', isl_t_path: 'Chemin', isl_t_flowers: 'Fleurs', isl_t_move: 'Déplacer', isl_t_relief: 'Relief', isl_undo: 'Annuler',
-      isl_alt: 'Ton île : {s}, {n} étages cette saison.', cat_islands: 'Îles',
+      isl_alt: 'Ton île : {s}, {a} de focus.', cat_islands: 'Îles',
+      isl_lamps: 'Une lumière s’élève au-dessus de l’île à chaque séance du jour. Aujourd’hui : {n}.',
       island_orbit: 'Les orbites', island_orbit_d: 'Pour l’Observatoire. L’île au cœur d’un planétaire en laiton, sous une aurore ou une nuit chaude.',
       island_pavilion: 'Le pavillon de lune', island_pavilion_d: 'Pour le Sanctuaire. Une pagode à balcons sur des orgues de basalte, des lanternes sous l’île.',
       island_fragment: 'Le fragment de ville', island_fragment_d: 'Pour la Grille. Un morceau de ville arraché au sol : la flèche, les rues sous la pluie, le marché.',
@@ -27,11 +33,17 @@
     },
     en: {
       isl_stage_0: 'Hut', isl_stage_1: 'Tower', isl_stage_2: 'Turret and balcony', isl_stage_3: 'Dome', isl_stage_4: 'Citadel', isl_stage_5: 'Spire', isl_stage_6: 'Floating crown',
-      isl_next: 'Next stage: {s} at {n} floors this season.', isl_top: 'Last stage reached.', isl_base: 'Base island', isl_more: 'More islands',
+      isl_next: 'Next stage: {s}, at {n} h of focus.', isl_top: 'Last stage reached.', isl_gauge: '{a} of focus',
+      isl_places: 'Places on the island', isl_all: 'Whole island', isl_p_tower: 'Tower', isl_p_garden: 'Garden', isl_p_workshop: 'Workshop', isl_p_quay: 'Dock', isl_p_view: 'Lookout',
+      isl_tree_on: 'This world’s tree has grown here. You spent {a} of focus in this world.', isl_tree_none: 'You spent {a} of focus in this world.',
+      isl_ws: 'Choose this world’s island. The others are in the Shop.', isl_ws_none: 'This world has more islands in the Shop.',
+      isl_quay: 'From here you move to another world of your energy.', isl_quay_fixed: 'Your world is fixed in Settings (Theme).',
+      isl_view: 'Focus in all: {a}. In the {w} world: {b}.', isl_base: 'Base island', isl_more: 'More islands',
       isl_sky: 'Sky', isl_sky_shimmer: 'Aurora', isl_sky_warm: 'Warm night', isl_tree: 'This world’s tree grows on the island after 25 h here ({h} h so far).',
       isl_hold: 'This world’s island comes later. Meanwhile, this is the {w} island.', isl_fly: 'Tap the sky to fly.', isl_land: 'Land',
       isl_cart: 'Tap a tile to change it. Your island is kept.', isl_t_cut: 'Cut', isl_t_plant: 'Plant', isl_t_water: 'Stream', isl_t_path: 'Path', isl_t_flowers: 'Flowers', isl_t_move: 'Move', isl_t_relief: 'Relief', isl_undo: 'Undo',
-      isl_alt: 'Your island: {s}, {n} floors this season.', cat_islands: 'Islands',
+      isl_alt: 'Your island: {s}, {a} of focus.', cat_islands: 'Islands',
+      isl_lamps: 'A light rises above the island for each session of the day. Today: {n}.',
       island_orbit: 'The orbits', island_orbit_d: 'For the Observatoire. The island at the heart of a brass orrery, under an aurora or a warm night.',
       island_pavilion: 'The moon pavilion', island_pavilion_d: 'For the Sanctuaire. A pagoda with balconies on basalt columns, lanterns under the island.',
       island_fragment: 'The city fragment', island_fragment_d: 'For the Grid. A piece of city torn from the ground: the spire, rainy streets, the market.',
@@ -42,10 +54,37 @@
       island_navette: 'The Shuttle', island_navette_d: 'For the Ville néon. A small pod under a glass dome parked on your island. Tap the sky to fly it.',
     },
   });
-  ML.defaults(() => ({ island: { sky: 'shimmer', cart: null } }));
+  ML.defaults(() => ({ island: { sky: 'shimmer', cart: null }, monde: { v: 0, isles: {} } }));
 
-  const STAGES = [0, 10, 40, 100, 250, 500, 1000];
-  const stageOf = f => STAGES.reduce((a, v, i) => (f >= v ? i : a), 0);
+  // The island grows with focus time alone (3.83): seven stages, in hours of focus over all time. One old floor was
+  // half an hour, so the thresholds are the old ones halved, and the floors already earned still count (nobody goes down).
+  const STAGES = [0, 5, 20, 50, 125, 250, 500];
+  const stageOf = h => STAGES.reduce((a, v, i) => (h >= v ? i : a), 0);
+  function focusMins() {
+    const T = S.tower || {}, log = Object.values(T.log || {}).reduce((a, v) => a + (+v || 0), 0);
+    return Math.max((S.sessions || []).reduce((a, s) => a + (s.mins || 0), 0), Math.max(+T.floors || 0, log) * 30);
+  }
+  /* ---------- What you chose for the World: S.monde = { v, isles: { <world>: { sky, cart, hour, crown, tree, decor } } } ----------
+     One entry per world, filled as you choose (hour, crown, tree and decor come with the options). The island and the car
+     stay in the Shop's slots (equip.isl_<world>, equip.islCar). Before 3.83 the sky and the tile island were in S.island:
+     they are copied once, and S.island is left as it was. */
+  function monde() {
+    if (!S.monde || typeof S.monde !== 'object') S.monde = { v: 0, isles: {} };
+    if (!S.monde.isles || typeof S.monde.isles !== 'object') S.monde.isles = {};
+    return S.monde;
+  }
+  const isle = w => { const I = monde().isles; if (!I[w] || typeof I[w] !== 'object') I[w] = {}; return I[w]; };
+  function migrate() {
+    const M = monde(); if (M.v >= 1) return false;
+    const old = S.island && typeof S.island === 'object' ? S.island : {};
+    if (old.sky && old.sky !== 'shimmer' && !isle('observatory').sky) isle('observatory').sky = old.sky;
+    if (old.cart && !isle('cartouche').cart) isle('cartouche').cart = JSON.parse(JSON.stringify(old.cart));
+    M.v = 1; save();
+    return true;
+  }
+  const skyOf = () => isle('observatory').sky || (S.island && S.island.sky) || 'shimmer';
+  const cartOf = () => isle('cartouche').cart || (S.island && S.island.cart) || null;
+  ML.worldFocusMins = focusMins;
   // Base island per world; the shop islands (economy.js) by world, and their paintings
   const BASE = { observatory: 'base-obs', sanctuary: 'base-san', netrunner: 'base-grid', sorcerer: 'base-sor', neoncity: 'neo-roof7', arcade: 'base-arc5', cartouche: 'cart' };
   const HOLD = { abyss: 'observatory', atelier: 'observatory', tokyo: 'netrunner', fog: 'arcade' }; // on hold: their energy's day world
@@ -59,62 +98,257 @@
   const LIGHT_NAME = { observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' };
   const DAY_WORLD = { drained: 'sanctuary', steady: 'observatory', fired: 'netrunner', scattered: 'arcade' };
   const minsIn = w => (S.sessions || []).reduce((a, s) => a + ((s.world || DAY_WORLD[s.mood]) === w ? s.mins || 0 : 0), 0);
+  const todayN = () => { const d0 = new Date(); d0.setHours(0, 0, 0, 0); return (S.sessions || []).reduce((a, x) => a + (x.at >= +d0 ? 1 : 0), 0); };
   const E = () => S.econ || { owned: {}, equip: {} };
   const owns = k => ((E().owned.island) || []).includes(k);
-  const isl = () => { if (!S.island || typeof S.island !== 'object') S.island = { sky: 'shimmer', cart: null }; return S.island; };
 
   // What to paint now: the world, its island (base or the equipped shop one), the stage, the oak or the world tree
   function view() {
+    migrate();
     const w = ML.worldNow ? ML.worldNow(S.mood) : { th: 'observatory' }, cur = w.light ? LIGHT_NAME[w.th] || w.th : w.th;
     const world = BASE[cur] ? cur : HOLD[cur] || 'observatory';
-    const floors = ML.seasonNow ? ML.seasonNow().floors : (S.tower && S.tower.floors) || 0, stage = stageOf(floors);
+    const mins = focusMins(), stage = stageOf(mins / 60);
     const eq = E().equip['isl_' + world], pick = eq && SCENE[eq] && owns(eq) && WORLD[eq] === world ? eq : null;
     const car = world === 'neoncity' ? (owns(E().equip.islCar) ? E().equip.islCar : CARS.find(owns) || null) : null;
-    const h = Math.floor(minsIn(world) / 60);
-    return { cur, world, hold: world !== cur, floors, stage, pick, scene: pick ? SCENE[pick] : BASE[world], car, h, oak: !!TREE_SCENE[pick ? SCENE[pick] : BASE[world]] && h < 25,
-      sky: pick === 'orbit' ? isl().sky : null };
+    const wm = minsIn(world), h = Math.floor(wm / 60), scene = pick ? SCENE[pick] : BASE[world];
+    return { cur, world, hold: world !== cur, mins, wm, stage, pick, scene, car, h, tree: !!TREE_SCENE[scene], oak: !!TREE_SCENE[scene] && h < 25,
+      sky: pick === 'orbit' ? skyOf() : null, lamps: Math.min(8, todayN()) };
   }
   const opts = v => ({ stage: v.stage, oak: v.oak, sky: v.sky === 'warm' ? 'warm' : null, noCars: true, cartH: 14 + v.stage * 4 });
   const keyOf = v => [v.scene, v.stage, v.oak, v.sky, v.car].join('|');
+  const pageKey = v => [keyOf(v), v.mins, v.wm, v.hold, v.lamps, ML.worldsFixed && ML.worldsFixed(), t('isl_p_tower')].join('|'); // the World page also shows numbers and words
+
+  // The places of an island, in % of the painting (x, y, and the zoom when it is not the usual one). Touching one brings the view to it.
+  const PLACES = ['tower', 'garden', 'workshop', 'quay', 'view'];
+  const SPOT0 = { tower: [51, 42], garden: [37, 46], workshop: [42, 63], quay: [65, 65], view: [82, 16] };
+  const SPOTS = {
+    'base-san': { view: [86, 22] }, 'base-sor': { view: [20, 17] }, 'obs-orbit5': { view: [14, 13] },
+    'base-grid': { tower: [51, 46], garden: [37, 50], workshop: [47, 71], quay: [67, 69], view: [80, 20] },
+    'neo-roof7': { tower: [51, 26], garden: [62, 52], workshop: [40, 60], quay: [84, 62, 1], view: [28, 18] },
+    'base-arc5': { garden: [38, 57], workshop: [47, 62], quay: [65, 62], view: [80, 28] },
+    cart: { tower: [50, 36], garden: [33, 68], workshop: [50, 52, 1], quay: [42, 66], view: [87, 42] },
+    'san-a5': { tower: [49, 40], garden: [36, 58], workshop: [58, 58], quay: [71, 62], view: [70, 22] },
+    'grid-frag5': { tower: [50, 35], garden: [40, 45], workshop: [62, 50], quay: [72, 60], view: [20, 20] },
+    'arc-a5': { tower: [51, 45], garden: [30, 57], workshop: [62, 60], quay: [71, 65], view: [26, 30] },
+    'arc-b5': { tower: [79, 42], garden: [15, 56], workshop: [25, 58], quay: [50, 58], view: [50, 18] },
+  };
+  const spotsOf = scene => Object.assign({}, SPOT0, SPOTS[scene] || {});
+  const ZOOM = 1.9, RATIO = 780 / 1200;
+  let place = ''; // the place the view is on ('' = the whole island); kept while the page is rebuilt, not saved
+
+  /* ---------- The place lives (3.84): a few slow things over the painting, drawn small and seldom ----------
+     Behind the island (when the painting gave its sky apart): stars that breathe, a rare shooting star. In front: low
+     mist, motes, fireflies or rain by world, and one light per session of the day. Slower while a session runs; one still
+     frame under reduced motion. Positions are in the painting's 1200 x 780 units. */
+  const LIFE = {
+    observatory: { star: '#fff1cc', shoot: 1, mist: '#aebcf0', lamp: '#ffc878', body: 1 },
+    sanctuary: { star: '#e6fff6', fly: '#ffe9a0', mist: '#8cc8c0', lamp: '#ffc070', body: 1 },
+    netrunner: { rain: '#bfe6ff', mist: '#58c8f0', lamp: '#7df9ff' },
+    sorcerer: { star: '#eadcff', shoot: 1, mote: '#c8a8ff', mist: '#8a6ad8', lamp: '#d9b8ff' },
+    neoncity: { mote: '#ffe0ec', mist: '#ffc0d8', lamp: '#fff0c0' },
+    arcade: { pix: 1, fly: '#ffd27a', lamp: '#ffb060' },
+  };
+  const still = () => !!(ML.reducedMotion && ML.reducedMotion());
+  function life(world, cb, cf, lamps) {
+    const L = LIFE[world]; if (!L) return null;
+    const pix = !!L.pix, W = pix ? 300 : 600, H = pix ? 195 : 390, k = W / 1200;
+    cb.width = cf.width = W; cb.height = cf.height = H;
+    const gb = cb.getContext('2d'), gf = cf.getContext('2d');
+    let sd = world.length * 7919 + 13; const r = () => (sd = sd * 16807 % 2147483647, (sd - 1) / 2147483646);
+    const N = (n, f) => Array.from({ length: n }, (_, i) => f(i));
+    const stars = L.star ? N(18, () => ({ x: r() * 1200, y: 16 + r() * 290, w: .5 + r() * .9, p: r() * 6.28, s: 1.2 + r() * 1.4 })) : [];
+    const mists = L.mist ? N(3, i => ({ x: r() * 1500 - 150, y: 600 + i * 46 + r() * 20, rx: 250 + r() * 170, ry: 24 + r() * 14, v: (5 + r() * 5) * (i % 2 ? -1 : 1), a: .11 + r() * .06 })) : [];
+    const motes = L.mote ? N(16, () => ({ x: 240 + r() * 720, y: r() * 780, v: 5 + r() * 8, p: r() * 6.28, s: .9 + r() * 1.3 })) : [];
+    const flies = L.fly ? N(9, () => ({ x: 380 + r() * 440, y: 400 + r() * 110, p: r() * 6.28, q: r() * 6.28 })) : [];
+    const rain = L.rain ? N(44, () => ({ x: r() * 1300, y: r() * 780, l: 12 + r() * 12 })) : [];
+    const lampAt = N(lamps, i => ({ x: 600 + (i - (lamps - 1) / 2) * 64 + (r() - .5) * 18, y: 150 + ((i * 37) % 5) * 26, p: r() * 6.28 }));
+    let shoot = null, nextShoot = 14 + r() * 20, T = 3;
+    const dot = (g, x, y, rad, col, a) => { g.globalAlpha = a; g.fillStyle = col; g.beginPath(); g.arc(x * k, y * k, Math.max(.6, rad * k), 0, 6.283); g.fill(); };
+    // a soft round light (or, squashed by sy, a bank of mist)
+    const halo = (g, x, y, rad, col, a, sy = 1) => {
+      g.save(); g.translate(x * k, y * k); g.scale(1, sy);
+      const gr = g.createRadialGradient(0, 0, 0, 0, 0, rad * k); gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.globalAlpha = a; g.fillStyle = gr; g.fillRect(-rad * k, -rad * k, rad * 2 * k, rad * 2 * k); g.restore();
+    };
+    return (dt, frozen) => {
+      const calm = ML.running && ML.running() ? .4 : 1; T += dt * calm;
+      gb.clearRect(0, 0, W, H); gf.clearRect(0, 0, W, H);
+      for (const s of stars) dot(gb, s.x, s.y, s.s, L.star, .12 + .5 * Math.sin(T * s.w + s.p) ** 2);
+      if (L.shoot && !frozen) {
+        if (!shoot && T > nextShoot) shoot = { x: 150 + r() * 700, y: 30 + r() * 120, t: 0 };
+        if (shoot) {
+          shoot.t += dt; const u = shoot.t / .9, x = shoot.x + u * 260, y = shoot.y + u * 90;
+          const gr = gb.createLinearGradient((x - 90) * k, (y - 31) * k, x * k, y * k); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, L.star);
+          gb.globalAlpha = Math.sin(Math.min(1, u) * 3.1416) * .8; gb.strokeStyle = gr; gb.lineWidth = Math.max(1, 1.6 * k);
+          gb.beginPath(); gb.moveTo((x - 90) * k, (y - 31) * k); gb.lineTo(x * k, y * k); gb.stroke();
+          if (u >= 1) { shoot = null; nextShoot = T + 25 + r() * 35; }
+        }
+      }
+      gb.globalAlpha = 1;
+      for (const m of mists) {
+        m.x += m.v * dt * calm; if (m.x > 1200 + m.rx) m.x = -m.rx; if (m.x < -m.rx) m.x = 1200 + m.rx;
+        halo(gf, m.x, m.y, m.rx, L.mist, m.a, m.ry / m.rx);
+      }
+      for (const m of motes) {
+        m.y -= m.v * dt * calm; if (m.y < -10) m.y = 790;
+        dot(gf, m.x + Math.sin(T * .4 + m.p) * 12, m.y, m.s, L.mote, Math.max(0, .38 * Math.min(1, m.y / 120, (780 - m.y) / 120)));
+      }
+      for (const f of flies) {
+        const x = f.x + Math.sin(T * .21 + f.p) * 26 + Math.sin(T * .13 + f.q) * 14, y = f.y + Math.cos(T * .17 + f.p) * 14, a = Math.max(0, Math.sin(T * .9 + f.q)) ** 2 * .85;
+        if (pix) { gf.globalAlpha = a; gf.fillStyle = L.fly; gf.fillRect(Math.round(x * k), Math.round(y * k), 1, 1); }
+        else { halo(gf, x, y, 9, L.fly, a * .5); dot(gf, x, y, 1.5, '#fffbe0', a); }
+      }
+      if (rain.length && !frozen) {
+        gf.globalAlpha = .17; gf.strokeStyle = L.rain; gf.lineWidth = 1; gf.beginPath();
+        for (const p of rain) { p.y += 520 * dt; p.x -= 90 * dt; if (p.y > 790) { p.y = -20; p.x = r() * 1300; } gf.moveTo(p.x * k, p.y * k); gf.lineTo((p.x - p.l * .17) * k, (p.y + p.l) * k); }
+        gf.stroke();
+      }
+      for (const l of lampAt) {
+        const x = l.x + Math.sin(T * .22 + l.p) * 5, y = l.y + Math.sin(T * .35 + l.p * 2) * 6;
+        if (pix) { const X = Math.round(x * k), Y = Math.round(y * k); gf.globalAlpha = .95; gf.fillStyle = '#5a2a2a'; gf.fillRect(X, Y - 1, 2, 1); gf.fillStyle = L.lamp; gf.fillRect(X, Y, 2, 3); gf.fillStyle = '#fff2c8'; gf.fillRect(X, Y + 1, 1, 1); continue; }
+        halo(gf, x, y, 30, L.lamp, .42);
+        if (L.body) {
+          gf.globalAlpha = .95; gf.fillStyle = '#3a2618'; gf.fillRect((x - 5) * k, (y - 9) * k, 10 * k, 2.4 * k);
+          const gr = gf.createLinearGradient(0, (y - 7) * k, 0, (y + 8) * k); gr.addColorStop(0, L.lamp); gr.addColorStop(1, '#fff3d0'); gf.fillStyle = gr;
+          gf.beginPath(); gf.moveTo((x - 5) * k, (y - 7) * k); gf.lineTo((x + 5) * k, (y - 7) * k); gf.lineTo((x + 6.5) * k, (y + 7) * k); gf.lineTo((x - 6.5) * k, (y + 7) * k); gf.closePath(); gf.fill();
+        } else dot(gf, x, y, 2.6, '#ffffff', .95);
+      }
+      gf.globalAlpha = 1;
+    };
+  }
 
   /* ---------- The card's picture: one block kept across renders (the editors bind to it), rebuilt when the look changes ---------- */
   let blk = null, blkKey = '';
+  const D = m => (ML.fmtDur ? ML.fmtDur(m) : Math.floor(m / 60) + ' h');
   const chip = (attr, val, on, label) => `<button type="button" class="chip-btn" ${attr}="${esc(val)}" aria-pressed="${on}">${esc(label)}</button>`;
   function build(v) {
     const d = document.createElement('div'); d.className = 'isl play';
     const cart = v.scene === 'cart', neo = v.scene === 'neo-roof7' && v.car;
+    const edit = cart ? 'workshop' : neo ? 'quay' : '', spots = spotsOf(v.scene);
+    if (v.stage === 0 && TREE_SCENE[v.scene]) spots.tower = [51, 55]; // these towers start as a hut on the ground
+    const fixed = !!(ML.worldsFixed && ML.worldsFixed());
     const cv = document.createElement('canvas'); cv.className = 'isl-cv' + (cart ? ' pix' : ''); cv.width = cart ? 800 : 1000; cv.height = cart ? 520 : 650;
-    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', t('isl_alt', { s: t('isl_stage_' + v.stage), n: v.floors }));
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', t('isl_alt', { s: t('isl_stage_' + v.stage), a: D(v.mins) }));
     if (neo) cv.tabIndex = 0;
+    // 3.84: the sky on its own canvas behind the island, and two thin layers of life (behind and in front of it)
+    const layer = cls => { const c = document.createElement('canvas'); c.className = cls; c.setAttribute('aria-hidden', 'true'); return c; };
+    const back = layer('isl-sky'), lifeB = layer('isl-live b'), lifeF = layer('isl-live f' + (v.world === 'arcade' ? ' pix' : ''));
+    const step = cart ? null : life(v.world, lifeB, lifeF, v.lamps);
     const own = Object.keys(SCENE).filter(k => WORLD[k] === v.world && owns(k));
-    const rows = [];
-    if (own.length) rows.push(`<div class="chips" role="group">${chip('data-isl-pick', '', !v.pick, t('isl_base'))}${own.map(k => chip('data-isl-pick', k, v.pick === k, t('island_' + k))).join('')}</div>`);
-    if (v.pick === 'orbit') rows.push(`<div class="chips" role="group" aria-label="${esc(t('isl_sky'))}">${['shimmer', 'warm'].map(s => chip('data-isl-sky', s, (v.sky || 'shimmer') === s, t('isl_sky_' + s))).join('')}</div>`);
-    if (neo) { const cs = CARS.filter(owns); rows.push(`<div class="chips" role="group">${cs.length > 1 ? cs.map(k => chip('data-car', k, v.car === k, t('island_' + k))).join('') : ''}<button type="button" class="chip-btn" data-land>${esc(t('isl_land'))}</button></div><p class="hint">${esc(t('isl_fly'))}</p>`); }
-    if (cart) rows.push(`<div class="chips isl-tools" role="group">${['cut', 'plant', 'water', 'path', 'flowers', 'move', 'relief'].map((k, i) => chip('data-tool', k, i === 0, t('isl_t_' + k))).join('')}<button type="button" class="chip-btn" data-undo disabled>${esc(t('isl_undo'))}</button></div><p class="hint">${esc(t('isl_cart'))}</p>`);
-    d.innerHTML = `<div class="isl-frame"></div><p class="isl-stage"><b>${esc(t('isl_stage_' + v.stage))}</b> <span>${esc(v.stage < 6 ? t('isl_next', { s: t('isl_stage_' + (v.stage + 1)), n: STAGES[v.stage + 1] }) : t('isl_top'))}</span></p>${rows.join('')}`
-      + (v.hold ? `<p class="hint">${esc(t('isl_hold', { w: t('th_' + v.world) }))}</p>` : v.oak ? `<p class="hint">${esc(t('isl_tree', { h: v.h }))}</p>` : '');
-    d.querySelector('.isl-frame').appendChild(cv);
+    const R = { tower: [], garden: [], workshop: [], quay: [], view: [] };
+    if (own.length) R.workshop.push(`<div class="chips" role="group">${chip('data-isl-pick', '', !v.pick, t('isl_base'))}${own.map(k => chip('data-isl-pick', k, v.pick === k, t('island_' + k))).join('')}</div>`);
+    if (v.pick === 'orbit') R.view.push(`<div class="chips" role="group" aria-label="${esc(t('isl_sky'))}">${['shimmer', 'warm'].map(s => chip('data-isl-sky', s, (v.sky || 'shimmer') === s, t('isl_sky_' + s))).join('')}</div>`);
+    if (neo) { const cs = CARS.filter(owns); R.quay.push(`<div class="chips" role="group">${cs.length > 1 ? cs.map(k => chip('data-car', k, v.car === k, t('island_' + k))).join('') : ''}<button type="button" class="chip-btn" data-land>${esc(t('isl_land'))}</button></div><p class="hint">${esc(t('isl_fly'))}</p>`); }
+    if (cart) R.workshop.push(`<div class="chips isl-tools" role="group">${['cut', 'plant', 'water', 'path', 'flowers', 'move', 'relief'].map((k, i) => chip('data-tool', k, i === 0, t('isl_t_' + k))).join('')}<button type="button" class="chip-btn" data-undo disabled>${esc(t('isl_undo'))}</button></div><p class="hint">${esc(t('isl_cart'))}</p>`);
+    const tx = s => `<p class="isl-tx">${esc(s)}</p>`;
+    // Tower: the seven stages and their hours. Garden: the tree. Workshop: which island, and the tile tools. Quay: the way
+    // to another world, and the cars. Lookout: the sky and the time counted.
+    R.tower.push(`<ol class="isl-steps">${STAGES.map((h, i) => `<li class="${i <= v.stage ? 'on' : ''}"${i === v.stage ? ' aria-current="step"' : ''}><span>${esc(t('isl_stage_' + i))}</span><span>${h} h</span></li>`).join('')}</ol>`);
+    R.garden.push(tx(!v.tree ? t('isl_tree_none', { a: D(v.wm) }) : v.oak ? t('isl_tree', { h: v.h }) : t('isl_tree_on', { a: D(v.wm) })));
+    if (!cart) R.workshop.push(tx(t(own.length ? 'isl_ws' : 'isl_ws_none')), `<div><button type="button" class="small" data-wd="shop">${esc(t('shop'))}</button></div>`);
+    R.quay.unshift(tx(t(fixed ? 'isl_quay_fixed' : 'isl_quay')), fixed ? '' : `<div><button type="button" class="small" data-wd="worlds">${esc(t('wd_change'))}</button></div>`);
+    R.view.unshift(tx(t('isl_view', { a: D(v.mins), b: D(v.wm), w: t('th_' + v.world) })), step ? tx(t('isl_lamps', { n: todayN() })) : '');
+    const next = v.stage < 6 ? STAGES[v.stage + 1] * 60 : 0, from = STAGES[v.stage] * 60, pct = next ? Math.max(0, Math.min(100, (v.mins - from) / (next - from) * 100)) : 100;
+    d.innerHTML = `<div class="isl-frame"><div class="isl-cam">${PLACES.map(k => `<button type="button" class="isl-pin" data-place="${k}" style="left:${spots[k][0]}%;top:${spots[k][1]}%" aria-pressed="false"><i></i><span>${esc(t('isl_p_' + k))}</span></button>`).join('')}</div></div>
+      <div class="chips isl-places" role="group" aria-label="${esc(t('isl_places'))}">${chip('data-place', '', true, t('isl_all'))}${PLACES.map(k => chip('data-place', k, false, t('isl_p_' + k))).join('')}</div>
+      <div class="isl-panel">${v.hold ? `<div data-pp="">${tx(t('isl_hold', { w: t('th_' + v.world) }))}</div>` : ''}${PLACES.map(k => `<div data-pp="${k}" hidden><h3>${esc(t('isl_p_' + k))}</h3>${R[k].join('')}</div>`).join('')}</div>
+      <div class="isl-prog"><p class="isl-stage"><b>${esc(t('isl_stage_' + v.stage))}</b> <span>${esc(t('isl_gauge', { a: D(v.mins) }))}</span></p>
+        <div class="isl-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}"><i style="width:${pct.toFixed(1)}%"></i></div>
+        <p class="isl-tx">${esc(next ? t('isl_next', { s: t('isl_stage_' + (v.stage + 1)), n: STAGES[v.stage + 1] }) : t('isl_top'))}</p></div>`;
+    const frame = d.querySelector('.isl-frame'), camEl = d.querySelector('.isl-cam');
+    camEl.prepend(back, lifeB, cv, lifeF);
+    // The view: the painting covers the frame; on a place it comes closer and centres it, without ever showing an edge
+    // look: where a drag left the view (its centre, in parts of the painting); hov: the mouse over the frame, for a slight shift of the layers
+    let look = null, last = null; const hov = { x: 0, y: 0 };
+    const cam = () => {
+      const fw = frame.clientWidth, fh = frame.clientHeight; if (!fw) return;
+      const ch = fw * RATIO, s0 = Math.max(1, fh / ch), sp = place ? spots[place] : null;
+      const s = s0 * (sp ? sp[2] || ZOOM : 1), px = look ? look.x : sp ? sp[0] / 100 : .5, py = look ? look.y : sp ? sp[1] / 100 : .5;
+      const cl = (x, lo) => Math.min(0, Math.max(lo, x)), half = x => Math.max(-.5, Math.min(.5, x));
+      const tx0 = cl(fw / 2 - px * fw * s, fw - fw * s), ty0 = cl(fh / 2 - py * ch * s, fh - ch * s);
+      const cx = (fw / 2 - tx0) / (fw * s), cy = (fh / 2 - ty0) / (ch * s); // where the view really is, once kept inside the painting
+      if (look) { look.x = cx; look.y = cy; }
+      last = { s, fw, ch, cx, cy };
+      camEl.classList.toggle('still', still());
+      camEl.style.transform = `translate(${tx0.toFixed(1)}px,${ty0.toFixed(1)}px) scale(${s.toFixed(3)})`;
+      camEl.style.setProperty('--k', (1 / s).toFixed(3));
+      // depth: the sky follows the view a little less than the island, the life in front a little more (never under reduced motion)
+      camEl.style.setProperty('--px', still() ? 0 : half(cx - .5 + hov.x).toFixed(3));
+      camEl.style.setProperty('--py', still() ? 0 : half(cy - .5 + hov.y).toFixed(3));
+      // on the whole island a narrow frame hides the sides of the painting: the marks of what is there come to its edge
+      const lo = (-tx0 + 46) / (fw * s) * 100, hi = (fw - tx0 - 46) / (fw * s) * 100;
+      d.querySelectorAll('.isl-pin').forEach(b => { const x = spots[b.dataset.place][0]; b.style.left = (place ? x : Math.min(hi, Math.max(lo, x))).toFixed(1) + '%'; });
+    };
+    const go = (p, byHand) => {
+      place = PLACES.includes(p) ? p : ''; look = null;
+      d.dataset.place = place; d.toggleAttribute('data-edit', !!edit && place === edit); // the tile tools and the flight only answer in their place
+      d.querySelectorAll('[data-place]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.place === place)));
+      d.querySelectorAll('[data-pp]').forEach(x => { x.hidden = x.dataset.pp !== place; });
+      cam();
+      const pp = place && byHand ? d.querySelector(`[data-pp="${place}"]`) : null; // on a phone the place's lines are under the frame: bring them in
+      if (pp) pp.scrollIntoView({ block: 'nearest', behavior: ML.reducedMotion && ML.reducedMotion() ? 'auto' : 'smooth' });
+    };
+    go(place);
+    if (window.ResizeObserver) new ResizeObserver(cam).observe(frame);
+    d.addEventListener('keydown', e => { if (e.key === 'Escape' && place) { e.stopPropagation(); go(''); } });
     d.addEventListener('click', e => {
-      const b = e.target.closest('button'); if (!b) return;
-      if (b.hasAttribute('data-isl-pick')) { E().equip['isl_' + v.world] = b.dataset.islPick || 'base'; save(); remount(); }
-      else if (b.dataset.islSky) { isl().sky = b.dataset.islSky; save(); remount(); }
+      const b = e.target.closest('button');
+      const slid = downAt && e.clientX + e.clientY > 0 && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 8; // a press that moved is not a touch beside the places
+      if (!b) { if (place && !dragged && !slid && !d.hasAttribute('data-edit') && e.target.closest('.isl-frame')) go(''); return; } // a touch beside the places: back to the whole island
+      if (b.hasAttribute('data-place')) go(b.dataset.place === place && b.classList.contains('isl-pin') ? '' : b.dataset.place, true);
+      else if (b.hasAttribute('data-isl-pick')) { E().equip['isl_' + v.world] = b.dataset.islPick || 'base'; save(); remount(); }
+      else if (b.dataset.islSky) { isle('observatory').sky = b.dataset.islSky; save(); remount(); }
       else if (b.dataset.car && neo) { E().equip.islCar = b.dataset.car; save(); }
     });
+    // Look around: drag the picture (it never shows an edge). On the whole island a wide frame has nothing more to show,
+    // so there the mouse only shifts the layers a little.
+    let drag = null, dragged = false, downAt = null;
+    const endDrag = () => { if (drag && drag.on) { dragged = true; setTimeout(() => { dragged = false; }, 60); camEl.classList.remove('drag'); } drag = null; };
+    frame.addEventListener('pointerdown', e => {
+      downAt = [e.clientX, e.clientY];
+      if (e.button || !last || d.hasAttribute('data-edit') || e.target.closest('button')) return;
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, cx: last.cx, cy: last.cy, on: false };
+    });
+    frame.addEventListener('pointermove', e => {
+      if (drag && e.pointerId === drag.id) {
+        const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+        if (!drag.on) { if (Math.hypot(dx, dy) < 8) return; drag.on = true; camEl.classList.add('drag'); try { frame.setPointerCapture(e.pointerId); } catch (err) { /* the pointer is gone */ } }
+        look = { x: drag.cx - dx / (last.fw * last.s), y: drag.cy - dy / (last.ch * last.s) }; cam();
+      } else if (e.pointerType === 'mouse' && !still() && !d.hasAttribute('data-edit')) {
+        const b = frame.getBoundingClientRect(); hov.x = ((e.clientX - b.left) / b.width - .5) * .5; hov.y = ((e.clientY - b.top) / b.height - .5) * .5; cam();
+      }
+    });
+    frame.addEventListener('pointerup', endDrag); frame.addEventListener('pointercancel', endDrag);
+    frame.addEventListener('pointerleave', () => { if (hov.x || hov.y) { hov.x = hov.y = 0; cam(); } });
+    // The life: about fifteen frames a second, only while the World is on screen; one still frame under reduced motion
+    let raf = 0, lastT = 0;
+    const tick = ts => {
+      raf = 0; if (!d.isConnected || !step) return;
+      if (S.tab !== 'world' || document.hidden || still()) return;
+      if (ts - lastT > 62) { step(Math.min(.1, (ts - lastT) / 1000), false); lastT = ts; }
+      raf = requestAnimationFrame(tick);
+    };
+    d._wake = () => {
+      if (!step) return;
+      if (still()) { try { step(0, true); } catch (err) { console.error('island life', err); } cam(); return; }
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
     // Paint after the card is on screen, so opening the tab stays quick
     setTimeout(() => {
       const A = ML.IslandArt; if (!A) return;
       try {
-        if (cart) A.cartPlay(cv, { cartH: 14 + v.stage * 4, T: isl().cart || null, save: T => { if (isl().cart !== T) isl().cart = T; save(); } });
+        if (cart) A.cartPlay(cv, { cartH: 14 + v.stage * 4, T: cartOf(), save: T => { const c = isle('cartouche'); if (c.cart !== T) c.cart = T; save(); } });
         else if (neo) A.neoPlay(cv, { kind: v.car });
-        else A.paint(cv, v.scene, opts(v));
+        else A.paint(cv, v.scene, Object.assign(opts(v), { back }));
       } catch (err) { console.error('island', err); }
+      d.classList.toggle('deep', back.dataset.on === '1'); // the painting gave its sky apart
+      d._wake();
     }, 30);
     return d;
   }
   function mount(slot) {
     if (!slot) return;
-    const v = view(), k = keyOf(v);
+    const v = view(), k = pageKey(v);
     if (!blk || k !== blkKey) { blk = build(v); blkKey = k; }
     slot.replaceWith(blk);
   }
@@ -161,8 +395,8 @@
 
   /* ---------- The World place (3.82): the island on a page of its own, whatever the game module says ---------- */
   ML.addStrings({
-    fr: { wd_energy: 'Le monde de ton énergie {e}. Ton île grandit avec ton temps de focus.', wd_change: 'Changer de monde', wd_go: 'Voir l’île dans Monde' },
-    en: { wd_energy: 'The world of your {e} energy. Your island grows with your focus time.', wd_change: 'Change world', wd_go: 'See the island in World' },
+    fr: { wd_energy: 'Le monde de ton énergie {e}. Touche un lieu de l’île pour t’en approcher.', wd_change: 'Changer de monde', wd_go: 'Voir l’île dans Monde' },
+    en: { wd_energy: 'The world of your {e} energy. Touch a place on the island to come closer.', wd_change: 'Change world', wd_go: 'See the island in World' },
   });
   function renderWorld() {
     const el = $('world'); if (!el || S.tab !== 'world') return;
@@ -171,14 +405,17 @@
       <div class="wd-acts">${fixed ? '' : `<button type="button" class="small" data-wd="worlds">${esc(t('wd_change'))}</button>`}<button type="button" class="ghost small" data-wd="shop">${esc(t('shop'))}</button></div></div>
       <div id="wd-isl"></div></div>`;
     if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
-    if (blk && el.contains(blk) && keyOf(view()) === blkKey) return;
+    if (blk && el.contains(blk) && pageKey(view()) === blkKey) return;
     mount(el.querySelector('#wd-isl') || (blk && el.contains(blk) ? blk : null));
   }
+  const wake = () => { if (blk && blk._wake && blk.isConnected) blk._wake(); };
+  on('tab', wake); on('motion', wake); document.addEventListener('visibilitychange', wake);
   $('world').addEventListener('click', e => {
     const b = e.target.closest('[data-wd]'); if (!b) return;
     if (b.dataset.wd === 'worlds') ML.openWorlds && ML.openWorlds(); else ML.openShop && ML.openShop();
   });
-  ['tab', 'mood', 'world', 'theme', 'render', 'lang', 'session', 'cosmetics', 'started'].forEach(ev => on(ev, renderWorld));
+  ['tab', 'mood', 'world', 'theme', 'render', 'lang', 'session', 'cosmetics', 'started', 'remote'].forEach(ev => on(ev, renderWorld));
+  on('started', migrate); on('remote', migrate);
 
   on('mood', () => thumb()); on('theme', () => thumb()); on('cosmetics', () => thumb());
 })();
