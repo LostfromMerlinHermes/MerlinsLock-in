@@ -7,13 +7,13 @@
 
   ML.addStrings({
     fr: {
-      tab_lectures: 'Cours', lc_intro: 'Enregistre ton cours et prends tes notes ici : chaque note garde son moment. Touche-la plus tard pour réentendre ce qui se disait.', lc_consent: 'Demande son accord à la personne qui parle avant d’enregistrer.', lc_local: 'L’audio reste sur cet appareil, tes notes te suivent sur les autres.',
-      lc_title_ph: 'Nom du cours (ex. Droit civil, cours 4)', lc_start: 'Enregistrer', lc_pause: 'Pause', lc_resume: 'Reprendre', lc_stop: 'Terminer', lc_note_ph: 'Écris une note, Entrée pour la garder', lc_add: 'Garder', lc_live: 'Enregistrement', lc_paused: 'En pause', lc_none: 'Aucun cours enregistré.', lc_back: 'Tous les cours', lc_notes_n: 'Notes : {n}', lc_no_notes: 'Pas encore de note.', lc_no_audio: 'L’audio de ce cours est sur un autre appareil.', lc_send: 'Envoyer au Carnet', lc_sent: 'Notes envoyées au Carnet.', lc_delete: 'Supprimer ce cours', lc_used: '{used} utilisés sur cet appareil', lc_premium: 'Lecture capture fait partie de Premium.',
+      tab_lectures: 'Cours', lc_intro: 'Enregistre le cours et note en même temps. Chaque note garde son moment : touche-la pour réentendre ce qui se disait.', lc_consent: 'Demande d’abord l’accord de la personne qui parle.', lc_local: 'L’audio reste sur cet appareil. Tes notes te suivent sur les autres.', lc_local_n: 'L’audio reste sur cet appareil ({used}). Tes notes te suivent sur les autres.', lc_mine: 'Tes cours', lc_nn: '{n} notes', lc_nn_one: '1 note', lc_nn_zero: 'Sans note',
+      lc_title_ph: 'Nom du cours', lc_start: 'Enregistrer', lc_pause: 'Pause', lc_resume: 'Reprendre', lc_stop: 'Terminer', lc_note_ph: 'Écris une note, Entrée pour la garder', lc_add: 'Garder', lc_live: 'Enregistrement', lc_paused: 'En pause', lc_none: 'Aucun cours enregistré.', lc_back: 'Tous les cours', lc_notes_n: 'Notes : {n}', lc_no_notes: 'Pas encore de note.', lc_no_audio: 'L’audio de ce cours est sur un autre appareil.', lc_send: 'Envoyer au Carnet', lc_sent: 'Notes envoyées au Carnet.', lc_delete: 'Supprimer ce cours', lc_used: '{used} utilisés sur cet appareil', lc_premium: 'Lecture capture fait partie de Premium.',
       lc_mic: 'Le micro n’est pas disponible. Autorise-le dans ton navigateur, puis réessaie.', lc_mic_ext: 'Le panneau latéral ne peut pas demander le micro. Ouvre l’app dans un onglet et enregistre depuis cet onglet.', lc_open_tab: 'Ouvrir dans un onglet', lc_unsupported: 'Ce navigateur ne sait pas enregistrer.', lc_full: 'Plus assez de place : l’enregistrement s’est arrêté.', lc_bg: 'Sur téléphone, garde l’app ouverte : certains appareils coupent le micro en arrière-plan.', lc_leave: 'Un enregistrement est en cours.',
     },
     en: {
-      tab_lectures: 'Lectures', lc_intro: 'Record your class and take your notes here: each note keeps its moment. Tap it later to hear what was being said.', lc_consent: 'Ask the speaker for permission before you record.', lc_local: 'The audio stays on this device, your notes follow you on the others.',
-      lc_title_ph: 'Class name (e.g. Civil law, lecture 4)', lc_start: 'Record', lc_pause: 'Pause', lc_resume: 'Resume', lc_stop: 'Finish', lc_note_ph: 'Type a note, Enter to keep it', lc_add: 'Keep', lc_live: 'Recording', lc_paused: 'Paused', lc_none: 'No lecture recorded yet.', lc_back: 'All lectures', lc_notes_n: 'Notes: {n}', lc_no_notes: 'No notes yet.', lc_no_audio: 'The audio of this lecture is on another device.', lc_send: 'Send to Notes', lc_sent: 'Notes sent to Notes.', lc_delete: 'Delete this lecture', lc_used: '{used} used on this device', lc_premium: 'Lecture capture is part of Premium.',
+      tab_lectures: 'Lectures', lc_intro: 'Record the class and take notes as it goes. Each note keeps its moment: tap it to hear what was being said.', lc_consent: 'Ask the speaker for permission first.', lc_local: 'The audio stays on this device. Your notes follow you on the others.', lc_local_n: 'The audio stays on this device ({used}). Your notes follow you on the others.', lc_mine: 'Your lectures', lc_nn: '{n} notes', lc_nn_one: '1 note', lc_nn_zero: 'No notes',
+      lc_title_ph: 'Class name', lc_start: 'Record', lc_pause: 'Pause', lc_resume: 'Resume', lc_stop: 'Finish', lc_note_ph: 'Type a note, Enter to keep it', lc_add: 'Keep', lc_live: 'Recording', lc_paused: 'Paused', lc_none: 'No lecture recorded yet.', lc_back: 'All lectures', lc_notes_n: 'Notes: {n}', lc_no_notes: 'No notes yet.', lc_no_audio: 'The audio of this lecture is on another device.', lc_send: 'Send to Notes', lc_sent: 'Notes sent to Notes.', lc_delete: 'Delete this lecture', lc_used: '{used} used on this device', lc_premium: 'Lecture capture is part of Premium.',
       lc_mic: 'The microphone isn’t available. Allow it in your browser, then try again.', lc_mic_ext: 'The side panel can’t ask for the microphone. Open the app in a tab and record from that tab.', lc_open_tab: 'Open in a tab', lc_unsupported: 'This browser can’t record.', lc_full: 'Not enough space left: the recording stopped.', lc_bg: 'On a phone, keep the app open: some devices cut the microphone in the background.', lc_leave: 'A recording is in progress.',
     },
   });
@@ -112,12 +112,15 @@
       <div class="lc-btns"><button type="button" class="small" data-lc="send" ${lec.notes.length ? '' : 'disabled'}>${esc(t('lc_send'))}</button><button type="button" class="small ghost danger" id="lc-del">${esc(t('lc_delete'))}</button></div></div>`;
   }
   function homeHtml() {
-    return `<p class="hint">${esc(t('lc_intro'))}</p>
+    // Text page rules (3.86): one lead sentence, help on one line beside its object, rows on hairlines, the figure on the right
+    const day = ms => { const d = new Date(ms), age = (Date.now() - ms) / 864e5; const s = d.toLocaleDateString(ML.locale(), age < 6 ? { weekday: 'long' } : { day: 'numeric', month: 'short' }); return s.charAt(0).toUpperCase() + s.slice(1); };
+    const nn = n => (n ? ML.tn('lc_nn', n) : t('lc_nn_zero'));
+    return `<p class="tx-lead">${esc(t('lc_intro'))}</p>
       <form class="lc-new" id="lc-new" autocomplete="off"><input type="text" id="lc-title" maxlength="80" placeholder="${esc(t('lc_title_ph'))}" aria-label="${esc(t('lc_title_ph'))}"><button type="submit" class="primary small">${esc(t('lc_start'))}</button></form>
       ${micErr ? `<p class="lc-err" role="alert">${esc(t(micErr))}${micErr === 'lc_mic_ext' ? ` <button type="button" class="link" data-lc="tab">${esc(t('lc_open_tab'))}</button>` : ''}</p>` : ''}
-      <p class="hint">${esc(t('lc_consent'))} ${esc(t('lc_local'))}</p>
-      ${list().length ? `<ul class="lc-list">${list().map(x => `<li><button type="button" data-lc-open="${x.id}"><b>${esc(x.title)}</b><small>${esc(fmtDate(x.at))} · ${esc(clock(x.secs))} · ${esc(t('lc_notes_n', { n: x.notes.length }))}</small></button></li>`).join('')}</ul>` : `<p class="hint">${esc(t('lc_none'))}</p>`}
-      <p class="hint" id="lc-used"></p>`;
+      <p class="tx-aside">${esc(t('lc_consent'))}</p>
+      ${list().length ? `<h3 class="tx-h">${esc(t('lc_mine'))}</h3><ul class="tx-rows">${list().map(x => `<li><button type="button" data-lc-open="${x.id}"><b>${esc(x.title)}</b><span>${esc(ML.fmtMins(Math.max(1, x.secs / 60)))}</span><small>${esc(day(x.at))} · ${esc(nn(x.notes.length))}</small></button></li>`).join('')}</ul>` : `<p class="tx-aside">${esc(t('lc_none'))}</p>`}
+      <p class="tx-aside tx-foot" id="lc-used">${esc(t('lc_local'))}</p>`;
   }
   const root = $('lectures');
   function render() {
@@ -128,7 +131,7 @@
     root.innerHTML = `<div class="lc">${rec ? liveHtml() : lec ? detailHtml(lec) : homeHtml()}</div>`;
     if (lec && !rec) mountPlayer(lec);
     const u = $('lc-used');
-    if (u && navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(e => { if (u.isConnected && e.usage) u.textContent = t('lc_used', { used: (e.usage / 1048576).toFixed(0) + ' Mo' }); }).catch(() => {});
+    if (u && navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(e => { if (u.isConnected && e.usage) u.textContent = t('lc_local_n', { used: (e.usage / 1048576).toFixed(0) + (S.lang === 'en' ? ' MB' : ' Mo') }); }).catch(() => {});
     if (lec) { const b = $('lc-del'); if (b) ML.armedButton(b, 'lc_delete', () => remove(lec.id)); }
   }
   // MediaRecorder's webm files don't state their length: asking for a far-away time makes the browser work it out, and seeking then works

@@ -179,14 +179,14 @@
   }
   function linksHtml() {
     const { out, total } = links();
-    if (!out.length) return `<p class="insight">${esc(t('hl_wait', { n: MIN_DAYS }))}</p>`;
+    if (!out.length) return `<p class="tx-aside">${esc(t('hl_wait', { n: MIN_DAYS }))}</p>`;
     const num = (kind, v) => kind === 'rating' ? v.toLocaleString(ML.locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : fmtMins(Math.round(v));
     return out.slice(0, 3).map(({ k, kind, a, b }) => {
       const max = kind === 'rating' ? 5 : Math.max(a, b), w = v => Math.max(4, Math.round(v / max * 100));
       return `<div class="hl-cmp"><span class="hl-lab">${esc(t('f_' + k))} <small>· ${esc(t(kind === 'rating' ? 'hl_rating' : 'hl_work'))}</small></span>
         <div class="hl-bar"><span>${esc(t('y_' + k))}</span><span class="hl-t"><b style="width:${w(a)}%"></b></span><em>${esc(num(kind, a))}</em></div>
         <div class="hl-bar"><span>${esc(t('n_' + k))}</span><span class="hl-t"><b class="lo" style="width:${w(b)}%"></b></span><em>${esc(num(kind, b))}</em></div></div>`;
-    }).join('') + `<p class="insight hl-foot">${esc(t('hl_note', { n: total }))}</p>`;
+    }).join('') + `<p class="tx-aside hl-foot">${esc(t('hl_note', { n: total }))}</p>`;
   }
 
   /* ---------- Support: only when the mood stays low ---------- */
@@ -214,13 +214,13 @@
       ${c.rem ? `<label class="hl-rem-at"><span>${esc(t('rm_at'))}</span>${ML.ui.sel('hl-at', TIMES.map(x => [x, x]), c.at)}</label>` : ''}
       ${c.rem && quiet ? `<p class="insight">${esc(t('rm_muted'))}</p>` : ''}
       ${c.rem && note ? `<p class="insight">${esc(note)}</p>${note === t('rm_push') ? `<button type="button" class="small" data-push-on>${esc(t('rm_push_on'))}</button>` : ''}` : ''}
-      ${c.rem && !note ? `<p class="insight"><small>${esc(t('rm_card'))}</small></p>` : ''}</div>`;
+      ${c.rem && !note ? `<p class="tx-aside">${esc(t('rm_card'))}</p>` : ''}</div>`;
   }
   function render() {
     const el = $('health'); if (!el || S.tab !== 'health') return;
     const c = cfg();
     let html;
-    if (!c.on) html = `<div class="y-page"><div class="g-card"><h2>${esc(t('hl_h'))}</h2><p class="insight">${esc(t('hl_intro'))}</p><button type="button" class="small primary" data-hon>${esc(t('hl_on'))}</button></div></div>`;
+    if (!c.on) html = `<div class="y-page"><div class="g-card"><h2>${esc(t('hl_h'))}</h2><p class="tx-lead">${esc(t('hl_intro'))}</p><button type="button" class="small primary" data-hon>${esc(t('hl_on'))}</button></div></div>`;
     else {
       const low = moodLow() && !(P.get('spHide') >= eveDay()), done = doneTonight(), n = activeLines().length;
       html = `<div class="y-page">${low ? supportCard() : ''}

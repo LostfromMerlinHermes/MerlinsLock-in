@@ -5193,3 +5193,60 @@ html.mnav-on .m-seg:not([hidden]) { grid-template-columns: repeat(2, minmax(0, 1
 .dg-top .dg-title { min-width: min(11ch, 100%); } /* the date never shrinks to one letter: the buttons go to a second row instead */
 html.mnav-on .dg-top .cal-views { order: -1; flex: 1 0 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .distract-btn svg { width: 13px; height: 13px; vertical-align: -2px; fill: currentColor; stroke: none; }
+
+/* ---------- 3.85: Plain look (S.sober), folders in folders, sub-decks, flip-only review ---------- */
+/* Plain look: a bare palette, no canvas, no world dial (no module answers to data-theme="sober"); the base ring stays */
+:root[data-theme="sober"] { --radius: 5px; --f-world: var(--f-display); --timer-ring: var(--accent); --glow: transparent;
+  --ev-1: #6f9fd8; --ev-2: #4fb286; --ev-3: #c9a24d; --ev-4: #c9705f; --ev-5: #9a86c9; --ev-6: #5aa9a6; --ev-7: #b7895a; --ev-8: #8d9291; }
+:root[data-theme="sober"][data-sober="black"] { --void: #0e0f10; --panel: #151718; --panel-2: #1b1e1f; --line: #2a2d2f; --line-2: #3b3f41; --text: #ececea; --mist: #a3a8a6; --dim: #7b807e; --accent: #4fb286; --accent-2: #4fb286; --ink: #07130d; --good: #6fcf9d; --warn: #e8806f; }
+:root[data-theme="sober"][data-sober="green"] { --void: #0f1a15; --panel: #14221b; --panel-2: #1a2b23; --line: #29402f; --line-2: #3a5743; --text: #e8f1ea; --mist: #a3b8aa; --dim: #7a9282; --accent: #8fd3ae; --accent-2: #8fd3ae; --ink: #0b1a12; --good: #8fd3ae; --warn: #eb9a7e; }
+:root[data-theme="sober"][data-sober="slate"] { --void: #12161c; --panel: #181d25; --panel-2: #1f2530; --line: #2d3644; --line-2: #3f4a5c; --text: #e9edf3; --mist: #a4aebd; --dim: #7a8596; --accent: #8fb4e0; --accent-2: #8fb4e0; --ink: #0b1220; --good: #7fcfa5; --warn: #ec8f86; }
+:root[data-theme="sober"][data-sober="white"] { --void: #fafaf7; --panel: #ffffff; --panel-2: #f3f2ed; --line: #dedcd5; --line-2: #c4c1b7; --text: #1b1c1a; --mist: #5d605b; --dim: #7c7f79; --accent: #1f7a55; --accent-2: #1f7a55; --ink: #ffffff; --good: #1f7a55; --warn: #b3402e;
+  --ev-1: #2f6fb5; --ev-2: #1f7a55; --ev-3: #8a6a10; --ev-4: #a8472f; --ev-5: #6a4fa8; --ev-6: #1f7577; --ev-7: #7d5a2c; --ev-8: #5d605b; }
+:root[data-theme="sober"] #fx, :root[data-theme="sober"] .theme-fx { display: none; }
+:root[data-theme="sober"] body { background: var(--void); }
+.look-seg { width: fit-content; }
+.look-pals { display: flex; flex-wrap: wrap; gap: 6px; }
+.look-pal { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 6px 12px 6px 8px; font: 400 var(--t-2) var(--f-body); }
+.look-pal[aria-pressed="true"] { border-color: var(--accent); }
+.look-sw { width: 30px; height: 18px; border-radius: 4px; border: 1px solid var(--line-2); background: linear-gradient(90deg, var(--x) 0 62%, var(--y) 62% 100%); }
+.look-black { --x: #0e0f10; --y: #4fb286; } .look-white { --x: #fafaf7; --y: #1f7a55; } .look-green { --x: #0f1a15; --y: #8fd3ae; } .look-slate { --x: #12161c; --y: #8fb4e0; }
+/* Library folders */
+.lb-gpath { grid-column: 1 / -1; font-size: var(--t-1); color: var(--mist); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-ghead label.lb-gform { display: flex; align-items: center; gap: 8px; font-size: var(--t-1); color: var(--mist); }
+.lb-ghead label.lb-gform select { flex: 1; min-width: 0; }
+.lb-ghead + .lb-groups { margin-top: 8px; }
+/* Cards: sub-decks and the flip-only review */
+.fc-h { margin: 6px 0 0; font: 600 var(--t-1) var(--f-body); color: var(--mist); }
+.fc-anspick { display: flex; }
+.fc-subform input { min-width: 0; }
+.fc-rate[hidden] { display: none; }
+.fc-rate-one { grid-template-columns: minmax(0, 1fr); }
+.fc-rate-one button { min-height: 44px; }
+.fc-review:not(.shown) .fc-miss { visibility: hidden; }
+/* Plain look: a bare ring (no seal, runes or hexagon), no quests, no rarity or XP on tasks */
+:root[data-theme="sober"] .ring .seal-deco, :root[data-theme="sober"] .ring .runes, :root[data-theme="sober"] .ring .hex,
+:root[data-theme="sober"] #quest-strip, :root[data-theme="sober"] .chip.rar { display: none; }
+:root[data-theme="sober"] .set-sec:has(#set-theme) > .field, :root[data-theme="sober"] .set-sec:has(#set-theme) > .hint { display: none; }
+.lb-ind { flex: none; height: 1px; }
+
+/* ---------- 3.86: text pages (Lectures, Wellbeing, Room). One lead sentence that reads, help on one line beside its
+   object, lists on hairlines instead of a box per row, the figure on the right, the storage line once at the bottom ---------- */
+.tx-lead { margin: 0 0 6px; max-width: 58ch; font-size: var(--t-3); line-height: 1.5; color: var(--text); }
+.tx-aside { margin: -4px 0 0; max-width: 62ch; font-size: var(--t-1); color: var(--mist); }
+.tx-foot { margin-top: 8px; }
+.tx-h { margin: 16px 0 -6px; font: 600 var(--t-2) var(--f-display); color: var(--text); }
+.tx-rows { list-style: none; margin: 0; padding: 0; }
+.tx-rows > li { border-bottom: 1px solid var(--line); }
+.tx-rows > li > button, .tx-rows > li.tx-row { box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 2px 12px; width: 100%; min-height: 52px; padding: 10px 2px; text-align: left; }
+.tx-rows > li > button { border: 0; border-radius: 0; background: none; box-shadow: none; font: inherit; color: inherit; }
+.tx-rows > li > button:hover { background: var(--soft); }
+.tx-rows b { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.tx-rows span { font-size: var(--t-1); color: var(--mist); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tx-rows small { grid-column: 1 / -1; font-size: var(--t-1); font-weight: 400; color: var(--mist); }
+.rm-signin { justify-self: start; width: fit-content; }
+/* Wellbeing: its three parts sit on hairlines instead of three boxes (the support card keeps its frame: it must stand out) */
+#health .y-page > .g-card:not(.y-support) { padding: 16px 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; box-shadow: none; }
+#health .y-page > .g-card:not(.y-support):first-child { border-top: 0; padding-top: 4px; }
+#health .y-page { gap: 0; }
+#health .hl-foot { margin: 6px 0 0; }

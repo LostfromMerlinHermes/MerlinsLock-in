@@ -30,6 +30,8 @@
       fc_done_h: 'Session terminée', fc_done_p: '{n} carte(s) révisée(s). +{xp} XP', fc_nothing: 'Rien à réviser pour l’instant. Reviens plus tard ou ajoute des cartes.',
       fc_keys: 'Espace : retourner · 1 à 4 : noter', fc_today: 'Aujourd’hui : {n} révision(s)', fc_new: 'nouvelle', fc_edit: 'Modifier', fc_delete: 'Supprimer', fc_save: 'Enregistrer',
       fc_tr_deck: 'Traductions', fc_nb_deck: 'Carnet',
+      fc_next: 'Suivante', fc_keys_s: 'Espace : retourner, puis suivante', fc_ans: 'Réponses', fc_ans_simple: 'Retourner', fc_ans_four: 'Quatre notes', fc_to_four: 'Noter en quatre', fc_to_simple: 'Retourner seulement',
+      fc_sub_ph: 'Nom du sous-paquet', fc_sub_add: 'Sous-paquet', fc_subs: 'Sous-paquets', fc_in: 'Rangé dans', fc_top: 'Aucun (premier niveau)', fc_here: '{n} ici', fc_del_hint: 'Ses sous-paquets remontent d’un niveau.',
       qz_start: 'Quiz', qz_done: 'Quiz terminé', qz_xp: '+{xp} XP', qz_fix: 'Revoir mes {n} erreur(s)', qz_type_ph: 'Ta réponse…', qz_check: 'Valider', qz_right: 'Bonne réponse !', qz_wrong: 'Raté.', qz_answer: 'Réponse', qz_next: 'Question suivante', qz_finish: 'Voir mon score',
       sr_ph: 'Chercher un sujet, une notion, une personne…', sr_go: 'Chercher', sr_web: 'Recherche web complète', sr_read: 'Lire l’article', sr_to_note: 'Ajouter au Carnet', sr_noted: 'Ajouté à la page du jour du Carnet',
       sr_none: 'Aucun résultat sur Wikipédia.', sr_err: 'Recherche impossible. Vérifie ta connexion.', sr_more: 'Autres résultats', sr_hint: 'Les résumés viennent de Wikipédia. Le web complet s’ouvre dans un nouvel onglet.',
@@ -61,6 +63,8 @@
       fc_done_h: 'Session complete', fc_done_p: '{n} card(s) reviewed. +{xp} XP', fc_nothing: 'Nothing to review right now. Come back later or add cards.',
       fc_keys: 'Space: flip · 1 to 4: rate', fc_today: 'Today: {n} review(s)', fc_new: 'new', fc_edit: 'Edit', fc_delete: 'Delete', fc_save: 'Save',
       fc_tr_deck: 'Translations', fc_nb_deck: 'Notebook',
+      fc_next: 'Next', fc_keys_s: 'Space: flip, then next', fc_ans: 'Answers', fc_ans_simple: 'Flip only', fc_ans_four: 'Four ratings', fc_to_four: 'Rate in four', fc_to_simple: 'Flip only',
+      fc_sub_ph: 'Sub-deck name', fc_sub_add: 'Sub-deck', fc_subs: 'Sub-decks', fc_in: 'Kept in', fc_top: 'None (top level)', fc_here: '{n} here', fc_del_hint: 'Its sub-decks move up one level.',
       qz_start: 'Quiz', qz_done: 'Quiz complete', qz_xp: '+{xp} XP', qz_fix: 'Review my {n} mistake(s)', qz_type_ph: 'Your answer…', qz_check: 'Check', qz_right: 'Correct!', qz_wrong: 'Missed.', qz_answer: 'Answer', qz_next: 'Next question', qz_finish: 'See my score',
       sr_ph: 'Search a topic, a concept, a person…', sr_go: 'Search', sr_web: 'Full web search', sr_read: 'Read the article', sr_to_note: 'Add to Notebook', sr_noted: "Added to today's Notebook page",
       sr_none: 'No Wikipedia results.', sr_err: "Can't search right now. Check your connection.", sr_more: 'More results', sr_hint: 'Summaries come from Wikipedia. The full web opens in a new tab.',
@@ -156,11 +160,25 @@
   /* ---------- Flashcards (spaced repetition, Anki-style) ---------- */
   let view = { kind: 'decks' }; // { kind: 'decks' } | { kind: 'deck', id } | { kind: 'review', id, queue, shown, done, editing }
   const deckCards = id => ST().cards.filter(c => c.deck === id);
+  /* Sub-decks (3.85, F1): a deck may sit in another one (d.parent). Old decks have no parent: nothing to migrate. A parent
+     that is gone, or a loop made by two devices, reads as the first level. Reviewing a deck takes its sub-decks' cards too. */
+  const deckById = id => ST().decks.find(d => d.id === id);
+  const dParent = d => {
+    if (!d.parent || !deckById(d.parent)) return '';
+    const seen = new Set([d.id]);
+    for (let x = deckById(d.parent); x; x = x.parent && deckById(x.parent)) { if (seen.has(x.id)) return ''; seen.add(x.id); }
+    return d.parent;
+  };
+  const dKids = pid => ST().decks.filter(d => dParent(d) === (pid || ''));
+  const dTree = (pid = '', depth = 0) => (depth > 20 ? [] : dKids(pid).flatMap(d => [{ d, depth }, ...dTree(d.id, depth + 1)]));
+  const dUnder = id => new Set([id, ...dTree(id).map(x => x.d.id)]);
+  const allCards = id => { const u = dUnder(id); return u.size === 1 ? deckCards(id) : ST().cards.filter(c => u.has(c.deck)); };
+  const simple = () => ST().simple !== false; // flip, then next: the four ratings are a choice
   const isDue = c => !c.due || c.due <= today();
   const NEW_PER_SESSION = 20, NEW_PER_CHOICES = [10, 20, 30, 50, 100, 0]; // 0 = all, kept per deck in d.newPer
   const newPerOf = id => { const d = ST().decks.find(x => x.id === id), n = d && d.newPer; return n === 0 || n > 0 ? n : NEW_PER_SESSION; };
   function queueFor(id) {
-    const cs = deckCards(id).filter(isDue), lim = newPerOf(id);
+    const cs = allCards(id).filter(isDue), lim = newPerOf(id);
     const fresh = cs.filter(c => !c.reps).slice(0, lim || Infinity), old = cs.filter(c => c.reps);
     return [...old.sort((a, b) => (a.due || '').localeCompare(b.due || '')), ...fresh].map(c => c.id);
   }
@@ -190,21 +208,26 @@
     return `<div class="fc-head"><h3>${esc(t('fc_decks'))}</h3>${todayN ? `<span class="chip">${esc(t('fc_today', { n: todayN }))}</span>` : ''}<button type="button" class="small" data-fi-open>${esc(t('fi_btn'))}</button></div>
       <div class="fc-viewpick"><span>${esc(t('fc_where'))}</span><div class="seg-toggle">${['panel', 'full'].map(m => `<button type="button" data-fc-where="${m}" aria-pressed="${reviewMode() === m}">${esc(t(m === 'full' ? 'fc_in_full' : 'fc_in_panel'))}</button>`).join('')}</div></div>
       <form class="fc-newdeck" id="fc-newdeck" autocomplete="off"><input type="text" maxlength="60" placeholder="${esc(t('fc_new_deck_ph'))}" required><button type="submit" class="primary small">${esc(t('fc_create'))}</button></form>
-      ${D.decks.length ? `<ul class="fc-decks">${D.decks.map(d => {
-        const all = deckCards(d.id), due = queueFor(d.id).length;
-        return `<li><button type="button" class="fc-deck-name" data-fc-open="${d.id}"><b>${esc(d.name)}</b><small>${esc(tn('fc_cards_n', all.length))}</small></button>
+      <div class="fc-viewpick fc-anspick"><span>${esc(t('fc_ans'))}</span><div class="seg-toggle">${[true, false].map(m => `<button type="button" data-fc-simple="${m ? 1 : 0}" aria-pressed="${simple() === m}">${esc(t(m ? 'fc_ans_simple' : 'fc_ans_four'))}</button>`).join('')}</div></div>
+      ${D.decks.length ? `<ul class="fc-decks">${dTree().map(({ d, depth }) => {
+        const all = allCards(d.id), due = queueFor(d.id).length;
+        return `<li${depth ? ` class="fc-sub" style="margin-left:${Math.min(depth, 4) * 16}px"` : ''}><button type="button" class="fc-deck-name" data-fc-open="${d.id}"><b>${esc(d.name)}</b><small>${esc(tn('fc_cards_n', all.length))}</small></button>
           ${due ? `<span class="chip due-chip">${esc(tn('fc_due', due))}</span>` : ''}
           <button type="button" class="small ${due ? 'primary' : ''}" data-fc-review="${d.id}" ${due ? '' : 'disabled'}>${esc(t('fc_review'))}</button>
           <button type="button" class="small ghost" data-qzstart="${d.id}" ${all.length >= 2 ? '' : 'disabled'}>${esc(t('qz_start'))}</button></li>`;
       }).join('')}</ul>` : `<p class="hint">${esc(t('fc_none'))}</p>`}`;
   }
   function deckHtml(id) {
-    const d = ST().decks.find(x => x.id === id), cs = deckCards(id), due = queueFor(id).length;
-    return `<div class="fc-head"><button type="button" class="ghost small" data-fc-back>${esc(t('fc_back'))}</button><h3>${esc(d.name)}</h3>
+    const d = ST().decks.find(x => x.id === id), cs = deckCards(id), due = queueFor(id).length, up = deckById(dParent(d)), kids = dKids(id), mine = dUnder(id);
+    const dest = dTree().filter(x => !mine.has(x.d.id)), total = allCards(id).length;
+    return `<div class="fc-head"><button type="button" class="ghost small" data-fc-back>${up ? '← ' + esc(up.name) : esc(t('fc_back'))}</button><h3>${esc(d.name)}</h3>
         <button type="button" class="small ${due ? 'primary' : ''}" data-fc-review="${id}" ${due ? '' : 'disabled'}>${esc(t('fc_review'))}${due ? ' · ' + due : ''}</button>
-        <button type="button" class="small" data-qzstart="${id}" ${cs.length >= 2 ? '' : 'disabled'}>${esc(t('qz_start'))}</button>
+        <button type="button" class="small" data-qzstart="${id}" ${total >= 2 ? '' : 'disabled'}>${esc(t('qz_start'))}</button>
         <button type="button" class="small" data-fi-open="${id}">${esc(t('fi_btn'))}</button></div>
       ${cs.some(c => !c.reps) ? `<label class="fc-newper"><span>${esc(t('fc_new_per'))}</span><select id="fc-newper">${NEW_PER_CHOICES.map(n => `<option value="${n}" ${n === newPerOf(id) ? 'selected' : ''}>${n ? n : esc(t('fc_all'))}</option>`).join('')}</select></label>` : ''}
+      ${kids.length ? `<h4 class="fc-h">${esc(t('fc_subs'))}</h4><ul class="fc-decks">${kids.map(k => { const n = allCards(k.id).length, kd = queueFor(k.id).length; return `<li><button type="button" class="fc-deck-name" data-fc-open="${k.id}"><b>${esc(k.name)}</b><small>${esc(tn('fc_cards_n', n))}</small></button>${kd ? `<span class="chip due-chip">${esc(tn('fc_due', kd))}</span>` : ''}</li>`; }).join('')}</ul>` : ''}
+      <form class="fc-newdeck fc-subform" id="fc-subdeck" autocomplete="off"><input type="text" maxlength="60" placeholder="${esc(t('fc_sub_ph'))}" aria-label="${esc(t('fc_sub_ph'))}" required><button type="submit" class="small">+ ${esc(t('fc_sub_add'))}</button></form>
+      ${kids.length ? `<h4 class="fc-h">${esc(d.name)} · ${esc(t('fc_here', { n: cs.length }))}</h4>` : ''}
       <form class="fc-add" id="fc-add" autocomplete="off">
         <textarea name="front" rows="2" maxlength="${FRONT_MAX}" placeholder="${esc(t('fc_front'))}" required></textarea>
         <textarea name="back" rows="2" maxlength="${BACK_MAX}" placeholder="${esc(t('fc_backside'))}" required></textarea>
@@ -213,7 +236,8 @@
       ${cs.length > 12 ? `<input type="search" id="fc-find" maxlength="80" placeholder="${esc(t('fc_find'))}" value="${esc(view.find || '')}" autocomplete="off">` : ''}
       <div id="fc-list-box">${cardListHtml(id)}</div>
       ${ML.Rooms && ML.Rooms.active() ? `<button type="button" class="small" data-room-deck="${id}">${esc(t('rm_share_in'))}</button>` : ''}
-      <button type="button" class="small ghost danger" id="fc-del-deck">${esc(t('fc_del_deck'))}</button>`;
+      ${ST().decks.length > 1 ? `<label class="fc-newper"><span>${esc(t('fc_in'))}</span><select id="fc-move"><option value="">${esc(t('fc_top'))}</option>${dest.map(x => `<option value="${esc(x.d.id)}" ${up === x.d ? 'selected' : ''}>${'   '.repeat(x.depth)}${esc(x.d.name)}</option>`).join('')}</select></label>` : ''}
+      <button type="button" class="small ghost danger" id="fc-del-deck"${kids.length ? ` title="${esc(t('fc_del_hint'))}"` : ''}>${esc(t('fc_del_deck'))}</button>`;
   }
   // A long deck shows in pages, so an import of thousands of cards stays fast
   const LIST_STEP = 60;
@@ -290,9 +314,10 @@
       </div></div>
       <div class="fc-acts">
         <button type="button" class="primary fc-show" data-fc-show>${esc(t('fc_show'))}</button>
-        <div class="fc-rate">${opts.map(({ q, s }) => `<button type="button" class="r${q}" data-fc-rate="${q}"><b>${esc(t(['', 'fc_again', 'fc_hard', 'fc_good', 'fc_easy'][q]))}</b><small>${esc(ivlLabel(s.ivl))}</small></button>`).join('')}</div>
+        ${simple() ? `<div class="fc-rate fc-rate-one"><button type="button" class="primary" data-fc-rate="3"><b>${esc(t('fc_next'))}</b></button></div>` : ''}
+        <div class="fc-rate"${simple() ? ' hidden' : ''}>${opts.map(({ q, s }) => `<button type="button" class="r${q}" data-fc-rate="${q}"><b>${esc(t(['', 'fc_again', 'fc_hard', 'fc_good', 'fc_easy'][q]))}</b><small>${esc(ivlLabel(s.ivl))}</small></button>`).join('')}</div>
       </div>
-      <div class="fc-foot"><p class="hint fc-keys">${esc(t('fc_keys'))}</p>${view.last ? `<button type="button" class="link" data-fc-undo>${esc(t('fc_undo'))}</button>` : ''}</div>
+      <div class="fc-foot"><p class="hint fc-keys">${esc(t(simple() ? 'fc_keys_s' : 'fc_keys'))}</p>${simple() ? `<button type="button" class="link fc-miss" data-fc-rate="1">${esc(t('fc_again'))}</button>` : ''}<button type="button" class="link" data-fc-simple="${simple() ? 0 : 1}">${esc(t(simple() ? 'fc_to_four' : 'fc_to_simple'))}</button>${view.last ? `<button type="button" class="link" data-fc-undo>${esc(t('fc_undo'))}</button>` : ''}</div>
     </div>`;
   }
 
@@ -495,7 +520,7 @@
   ML.answerMatches = closeEnough;
   const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
   function startQuiz(id) {
-    const cs = deckCards(id); if (cs.length < 2) return;
+    const cs = allCards(id); if (cs.length < 2) return;
     // Weak and due cards first, then the rest, 10 questions at most
     const pool = shuffle(cs.slice()).sort((a, b) => ((b.lapses || 0) + (isDue(b) ? 1 : 0)) - ((a.lapses || 0) + (isDue(a) ? 1 : 0))).slice(0, 10);
     const qs = pool.map(c => {
@@ -1076,9 +1101,11 @@
     if (b.hasAttribute('data-qzfix') && view.kind === 'quiz') { view.wrong.forEach(id => { const c = ST().cards.find(x => x.id === id); if (c) { c.due = today(); c.ivl = 0; } }); save(); startReview(view.id); return; }
     if (b.hasAttribute('data-fc-back')) {
       if (inSession()) { leaveSession(); return; }
-      view = view.kind === 'import' && view.deckId ? { kind: 'deck', id: view.deckId } : { kind: 'decks' };
+      const here = view.kind === 'deck' && deckById(view.id), upId = here ? dParent(here) : '';
+      view = view.kind === 'import' && view.deckId ? { kind: 'deck', id: view.deckId } : upId ? { kind: 'deck', id: upId } : { kind: 'decks' };
       renderTool(); return;
     }
+    if (b.dataset.fcSimple) { ST().simple = b.dataset.fcSimple === '1'; save(); renderTool(); return; }
     if (b.dataset.fcWhere) { ST().reviewMode = b.dataset.fcWhere; save(); renderTool(); return; }
     if (b.hasAttribute('data-fc-mode')) { ST().reviewMode = reviewMode() === 'full' ? 'panel' : 'full'; save(); renderTool(); return; }
     if (b.hasAttribute('data-fc-timer')) { ML.toggleTimer(); refreshClock(); return; }
@@ -1114,6 +1141,7 @@
     const f = e.target;
     if (f.id === 'qz-type' && view.kind === 'quiz' && !view.answered) { const q = view.qs[view.pos], c = ST().cards.find(x => x.id === q.cardId), given = $('qz-in').value; if (!given.trim()) return; quizAnswer(closeEnough(given, c.back), { given }); return; }
     if (f.id === 'fc-newdeck') { const v = f.querySelector('input').value.trim(); if (!v) return; const d = { id: uid(), name: v.slice(0, 60), created: Date.now() }; ST().decks.push(d); save(); view = { kind: 'deck', id: d.id }; renderTool(); return; }
+    if (f.id === 'fc-subdeck' && view.kind === 'deck') { const v = f.querySelector('input').value.trim(); if (!v) return; ST().decks.push({ id: uid(), name: v.slice(0, 60), created: Date.now(), parent: view.id }); save(); renderTool(); const n = root.querySelector('#fc-subdeck input'); if (n) n.focus(); return; }
     if (f.id === 'fc-add') { addCard(view.id, f.front.value, f.back.value); save(); renderTool(); toast(t('fc_added')); const n = root.querySelector('#fc-add [name=front]'); if (n) n.focus(); return; }
     if (f.dataset.fcEdit) { const c = ST().cards.find(x => x.id === f.dataset.fcEdit); if (c) { c.front = f.front.value.trim(); c.back = f.back.value.trim(); c.updated = Date.now(); save(); } view.editing = null; renderTool(); return; }
     if (f.id === 'sr-form') { const q = $('sr-q').value.trim(); if (q) search(q); }
@@ -1138,6 +1166,7 @@
   listen('change', e => {
     if (e.target.id === 'fi-input') importFile(e.target.files[0]);
     else if (e.target.id === 'fi-target' && view.kind === 'import') { view.target = e.target.value; importRefresh(); }
+    else if (e.target.id === 'fc-move' && view.kind === 'deck') { const d = deckById(view.id), v = e.target.value; if (d && !dUnder(d.id).has(v) && (!v || deckById(v))) { if (v) d.parent = v; else delete d.parent; save(); renderTool(); } }
     else if (e.target.id === 'fc-newper' && view.kind === 'deck') { const d = ST().decks.find(x => x.id === view.id); if (d) { d.newPer = +e.target.value; save(); renderTool(); } }
   });
   listen('dragover', e => { const z = e.target.closest('#fi-zone'); if (z) { e.preventDefault(); z.classList.add('over'); } });
@@ -1149,9 +1178,10 @@
   listen('click', e => {
     const b = e.target.closest('#fc-del-deck'); if (!b) return;
     if (delArmed !== view.id) { delArmed = view.id; b.textContent = t('tap_again'); setTimeout(() => { if (delArmed) { delArmed = null; const x = $('fc-del-deck'); if (x) x.textContent = t('fc_del_deck'); } }, 3000); return; }
-    const id = view.id; delArmed = null;
+    const id = view.id, gone = deckById(id), up = gone ? dParent(gone) : ''; delArmed = null;
+    ST().decks.forEach(d => { if (d.parent === id) { if (up) d.parent = up; else delete d.parent; } }); // sub-decks move up one level, with their cards
     ST().decks = ST().decks.filter(d => d.id !== id); ST().cards = ST().cards.filter(c => c.deck !== id);
-    view = { kind: 'decks' }; save(); renderTool(); toast(t('fc_deck_deleted'));
+    view = up ? { kind: 'deck', id: up } : { kind: 'decks' }; save(); renderTool(); toast(t('fc_deck_deleted'));
   });
   // Review keys: Space flips, 1-4 rate, Esc leaves a panel. Capture phase so the tab shortcuts (1-7) don't fire meanwhile.
   addEventListener('keydown', e => {

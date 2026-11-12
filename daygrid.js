@@ -751,7 +751,7 @@
     const isNew = ed.mode === 'new', blk = d.kind === 'blk';
     const opt = (vals, cur, pre) => vals.map(v => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${esc(t(pre + v))}</option>`).join('');
     const now = blk && !isNew && d.date === today() && nowMins() >= d.s - 10 && nowMins() < d.e && !d.done;
-    const durs = [25, 45, 60, 90, 120];
+    const durs = [25, 40, 45, 60, 90, 120];
     const autoSlot = blk ? 0 : ({ class: 2, study: 8, work: 1, perso: 3, meal: 7, sport: 4, social: 5, deadline: 6 }[d.cat] || 3);
     const sw = `<fieldset class="ev-colors dg-colors"><legend class="sr">${esc(t('ev_color'))}</legend>
       <label class="sw auto" title="${esc(t('ev_color_auto'))}"><input type="radio" name="color" value="" ${d.color ? '' : 'checked'}><i style="--c:${blk ? 'var(--accent)' : `var(--ev-${autoSlot})`}"></i><span>${esc(t('ev_color_auto'))}</span></label>

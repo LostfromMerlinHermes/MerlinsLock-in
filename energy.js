@@ -211,6 +211,7 @@
     S.onboarded = true; S.epIntro = false; save();
     close(); ML.renderAll();
     if (go) setTimeout(() => ML.lockIn(id ? { taskId: id, mins } : { mins }), 300);
+    else if (ML.setFocusMins) ML.setFocusMins(mins);
   }
 
   el.addEventListener('click', e => {

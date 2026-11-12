@@ -206,7 +206,7 @@
         + item(null, esc(t('pl_d_none')), !cur)
         + `<form class="pp-form" data-pk="due"><input type="date" value="${esc(cur || '')}" aria-label="${esc(t('pl_d_pick'))}"><button type="submit" class="small">${esc(t('pl_ok'))}</button></form>`;
     },
-    mins: cur => [15, 25, 30, 45, 60, 90, 120, 180].map(m => item(m, esc(fmtMins(m)), cur === m)).join('')
+    mins: cur => [15, 25, 30, 40, 45, 60, 90, 120, 180].map(m => item(m, esc(fmtMins(m)), cur === m)).join('')
       + `<form class="pp-form" data-pk="mins"><input type="text" inputmode="text" maxlength="8" placeholder="${esc(t('pl_m_custom'))}" aria-label="${esc(t('pl_m_custom'))}"><button type="submit" class="small">${esc(t('pl_ok'))}</button></form>`,
     pri: cur => ['high', 'med', 'low'].map(p => item(p, esc(t('pri_' + p)), cur === p, '', `<i class="pp-pri p-${p}"></i>`)).join(''),
     // cur: { repeat, days }. The day buttons stay open and toggle; picking one switches to "chosen days"

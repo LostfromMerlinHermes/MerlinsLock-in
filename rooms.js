@@ -482,9 +482,9 @@
       <ul class="rm-members">${members.map(m => { const st = fresh(m) ? m.status : 'away'; return `<li class="st-${st}"><i></i><b>${esc(m.name)}</b>${m.user_id === room.host ? `<small>${esc(t('rm_host'))}</small>` : ''}<span>${esc(t('rm_' + st))}</span>${isHost() && extraOk && m.user_id !== room.host ? armed('data-rmmember-del', m.user_id, 'rm_remove') : ''}</li>`; }).join('')}</ul>`;
   }
   function html() {
-    if (!me()) return `<p class="hint">${esc(t('rm_intro'))}</p><p class="hint">${esc(t('rm_signin'))}</p><button type="button" class="small primary" id="rm-signin">${esc(t('rm_signin_btn'))}</button>`;
-    if (!R().code || !room) return `<p class="hint">${esc(t('rm_intro'))}</p>
-      ${lastErr ? `<p class="hint">${esc(t('rm_err'))}</p>` : ''}
+    if (!me()) return `<p class="tx-lead">${esc(t('rm_intro'))}</p><button type="button" class="small primary rm-signin" id="rm-signin">${esc(t('rm_signin_btn'))}</button><p class="tx-aside tx-foot">${esc(t('rm_signin'))}</p>`;
+    if (!R().code || !room) return `<p class="tx-lead">${esc(t('rm_intro'))}</p>
+      ${lastErr ? `<p class="tx-aside">${esc(t('rm_err'))}</p>` : ''}
       <label class="field"><span>${esc(t('rm_you_ph'))}</span><input type="text" id="rm-me" maxlength="24" value="${esc(R().me || me().email.split('@')[0])}"></label>
       <form class="sr-form" id="rm-create" autocomplete="off"><input type="text" id="rm-name" maxlength="40" placeholder="${esc(t('rm_name_ph'))}"><button type="submit" class="primary small">${esc(t('rm_create'))}</button></form>
       <form class="sr-form" id="rm-join" autocomplete="off"><input type="text" id="rm-code" maxlength="6" placeholder="${esc(t('rm_code_ph'))}" autocapitalize="characters" spellcheck="false"><button type="submit" class="small">${esc(t('rm_join'))}</button></form>`;

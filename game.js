@@ -394,6 +394,7 @@
   const themeOf = m => worldOf(m, pickFor(m)).th;
   function effectiveTheme() {
     if (S.section === 'sport') return 'arena'; // the Sport section has its own look
+    if (ML.sober && ML.sober()) return 'sober'; // the plain look (3.85): a bare palette, no world module answers to it
     return themeOf(previewMood || S.mood);
   }
   // m: the energy to show (null = the current one); pick: a world to show for it instead of its saved one
@@ -440,16 +441,19 @@
   }
   ML.setDayNight = setDayNight;
   on('minute', applyTheme); // "follow the hour" turns at 21:00 and 6:00
+  on('sober', () => applyTheme()); on('remote', () => applyTheme());
   let themed = false;
   function applyTheme() {
-    const th = effectiveTheme(), root = document.documentElement, light = isLight() && LIGHT_NAME[th] ? '1' : '';
-    if (root.dataset.theme === th && (root.dataset.light || '') === light) return;
+    const th = effectiveTheme(), root = document.documentElement, pal = th === 'sober' ? ML.soberPal() : '';
+    const light = pal ? (pal === 'white' ? '1' : '') : isLight() && LIGHT_NAME[th] ? '1' : '';
+    if (root.dataset.theme === th && (root.dataset.light || '') === light && (root.dataset.sober || '') === pal) return;
     root.dataset.theme = th;
+    if (pal) root.dataset.sober = pal; else delete root.dataset.sober;
     if (light) root.dataset.light = light; else delete root.dataset.light;
     const meta = document.querySelector('meta[name=theme-color]');
-    if (meta) meta.content = light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#F7F5EF', arcade: '#c6d29c' }[th]
+    if (meta) meta.content = pal ? { black: '#0e0f10', white: '#fafaf7', green: '#0f1a15', slate: '#12161c' }[pal] : light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#F7F5EF', arcade: '#c6d29c' }[th]
       : { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#150d20', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
-    if (themed) playTransition(light ? LIGHT_NAME[th] : th); // the light worlds have their own (3.38.2): aube, atelier, tokyo, cartouche
+    if (themed && !pal) playTransition(light ? LIGHT_NAME[th] : th); // the light worlds have their own (3.38.2): aube, atelier, tokyo, cartouche
     themed = true;
     setTimeout(FX.reset, 30);
   }

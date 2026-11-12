@@ -14,8 +14,8 @@
       lb_none: 'Aucun document ne correspond.', lb_rename: 'Nom', lb_tags: 'Étiquettes', lb_tag_ph: 'Ajouter une étiquette', lb_download: 'Télécharger', lb_delete: 'Supprimer', lb_deleted: 'Document supprimé', lb_edit: 'Modifier', lb_done: 'Terminé',
       lb_added: '{n} document(s) ajouté(s)', lb_bad: 'Ce type de fichier n’est pas pris en charge : {name}', lb_cut: 'Fichier « {name} » trop long : seul le début a été gardé (environ 1000 pages).', lb_full: 'Plus assez de place sur cet appareil.', lb_err: 'La bibliothèque ne peut pas s’ouvrir ici (navigation privée ?).', lb_new_sheet: 'Nouvelle fiche', lb_used: '{used} utilisés sur cet appareil', lb_free: '{free} disponibles', lb_local: 'Les fichiers restent sur cet appareil. Garde une copie de ce qui compte : vider les données du navigateur les efface.',
       lb_hit: 'p. {n}', lb_today: 'aujourd’hui', lb_yest: 'hier', lb_worked: '{t} de travail',
-      lb_groups: 'Groupes', lb_nogroup: 'Sans groupe', lb_gnew: 'Nouveau groupe', lb_gnew_s: '+ Groupe', lb_gname: 'Nom du groupe', lb_gn: '{n} documents', lb_gn_one: '1 document', lb_gn_zero: 'Vide', lb_gopened: 'ouvert {d}',
-      lb_move: 'Déplacer vers', lb_moved: 'Déplacé dans « {g} »', lb_moved_none: 'Retiré du groupe', lb_back: 'Bibliothèque', lb_gren: 'Renommer', lb_gdel: 'Supprimer le groupe', lb_gdel_hint: 'Les documents restent, sans groupe.', lb_gdeleted: 'Groupe supprimé, ses documents restent', lb_ok: 'OK', lb_gdrop: 'Glisse un document sur un groupe pour l’y ranger.',
+      lb_groups: 'Dossiers', lb_nogroup: 'Sans dossier', lb_gnew: 'Nouveau dossier', lb_gnew_s: '+ Dossier', lb_gname: 'Nom du dossier', lb_gmove: 'Déplacer le dossier', lb_gtop: 'Bibliothèque (premier niveau)', lb_gsub: '{n} dossiers', lb_gsub_one: '1 dossier', lb_gn: '{n} documents', lb_gn_one: '1 document', lb_gn_zero: 'Vide', lb_gopened: 'ouvert {d}',
+      lb_move: 'Déplacer vers', lb_moved: 'Déplacé dans « {g} »', lb_moved_none: 'Retiré du dossier', lb_back: 'Bibliothèque', lb_gren: 'Renommer', lb_gdel: 'Supprimer le dossier', lb_gdel_hint: 'Son contenu remonte d’un niveau.', lb_gdeleted: 'Dossier supprimé, son contenu est remonté d’un niveau', lb_ok: 'OK', lb_gdrop: 'Glisse un document sur un dossier pour l’y ranger.',
       rd_close: 'Fermer', rd_doc: 'Document', rd_notes: 'Notes', rd_cards: 'Cartes', rd_sheet: 'Fiche', rd_prev: 'Page précédente', rd_next: 'Page suivante', rd_of: 'sur {n}', rd_zoom_in: 'Agrandir', rd_zoom_out: 'Réduire', rd_fit: 'Ajuster', rd_flash: 'Flashcard', rd_loading: 'Ouverture…', rd_load_err: 'Ce document ne s’ouvre pas ici.', rd_open_out: 'Ouvrir dans un onglet',
       rd_native: 'Lecteur du navigateur : la sélection, le suivi des pages et la recherche dans le PDF ne sont pas disponibles.',
       rd_notes_ph: 'Tes notes sur ce document. Elles s’enregistrent toutes seules.', rd_mark: 'Marquer la page', rd_to_nb: 'Envoyer au Carnet', rd_sent: 'Notes envoyées au Carnet', rd_sheet_ph: 'Écris ta fiche ici. Elle s’enregistre toute seule.',
@@ -27,8 +27,8 @@
       lb_none: 'No document matches.', lb_rename: 'Name', lb_tags: 'Tags', lb_tag_ph: 'Add a tag', lb_download: 'Download', lb_delete: 'Delete', lb_deleted: 'Document deleted', lb_edit: 'Edit', lb_done: 'Done',
       lb_added: '{n} document(s) added', lb_bad: "This file type isn't supported: {name}", lb_cut: '"{name}" is too long: only the start was kept (about 1000 pages).', lb_full: 'Not enough space left on this device.', lb_err: "The library can't open here (private browsing?).", lb_new_sheet: 'New sheet', lb_used: '{used} used on this device', lb_free: '{free} available', lb_local: 'Files stay on this device. Keep a copy of what matters: clearing browser data erases them.',
       lb_hit: 'p. {n}', lb_today: 'today', lb_yest: 'yesterday', lb_worked: '{t} of work',
-      lb_groups: 'Groups', lb_nogroup: 'No group', lb_gnew: 'New group', lb_gnew_s: '+ Group', lb_gname: 'Group name', lb_gn: '{n} documents', lb_gn_one: '1 document', lb_gn_zero: 'Empty', lb_gopened: 'opened {d}',
-      lb_move: 'Move to', lb_moved: 'Moved to "{g}"', lb_moved_none: 'Taken out of the group', lb_back: 'Library', lb_gren: 'Rename', lb_gdel: 'Delete group', lb_gdel_hint: 'The documents stay, without a group.', lb_gdeleted: 'Group deleted, its documents stay', lb_ok: 'OK', lb_gdrop: 'Drag a document onto a group to put it there.',
+      lb_groups: 'Folders', lb_nogroup: 'No folder', lb_gnew: 'New folder', lb_gnew_s: '+ Folder', lb_gname: 'Folder name', lb_gmove: 'Move folder', lb_gtop: 'Library (top level)', lb_gsub: '{n} folders', lb_gsub_one: '1 folder', lb_gn: '{n} documents', lb_gn_one: '1 document', lb_gn_zero: 'Empty', lb_gopened: 'opened {d}',
+      lb_move: 'Move to', lb_moved: 'Moved to "{g}"', lb_moved_none: 'Taken out of the folder', lb_back: 'Library', lb_gren: 'Rename', lb_gdel: 'Delete folder', lb_gdel_hint: 'What it holds moves up one level.', lb_gdeleted: 'Folder deleted, what it held moved up one level', lb_ok: 'OK', lb_gdrop: 'Drag a document onto a folder to put it there.',
       rd_close: 'Close', rd_doc: 'Document', rd_notes: 'Notes', rd_cards: 'Cards', rd_sheet: 'Sheet', rd_prev: 'Previous page', rd_next: 'Next page', rd_of: 'of {n}', rd_zoom_in: 'Zoom in', rd_zoom_out: 'Zoom out', rd_fit: 'Fit', rd_flash: 'Flashcard', rd_loading: 'Opening…', rd_load_err: "This document can't open here.", rd_open_out: 'Open in a tab',
       rd_native: "Browser viewer: text selection, page tracking and PDF search aren't available.",
       rd_notes_ph: 'Your notes on this document. They save by themselves.', rd_mark: 'Mark the page', rd_to_nb: 'Send to Notebook', rd_sent: 'Notes sent to the Notebook', rd_sheet_ph: 'Write your sheet here. It saves by itself.',
@@ -43,15 +43,32 @@
   const groups = () => (Array.isArray(L().groups) ? L().groups : (L().groups = []));
   const gkey = s => String(s || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const groupById = id => groups().find(g => g.id === id);
-  const groupByName = name => groups().find(g => gkey(g.name) === gkey(name));
+  /* Folders in folders (3.85, L1): a group may have a parent (g.parent, another group's id). Old groups have none, so they
+     are the first level and nothing is migrated. A parent that is gone, or a loop made by two devices, reads as the first level. */
+  const parentId = g => {
+    if (!g.parent || !groupById(g.parent)) return '';
+    const seen = new Set([g.id]);
+    for (let x = groupById(g.parent); x; x = x.parent && groupById(x.parent)) { if (seen.has(x.id)) return ''; seen.add(x.id); }
+    return g.parent;
+  };
+  const kidsOf = pid => groups().filter(g => parentId(g) === (pid || '')).sort((a, b) => a.name.localeCompare(b.name, ML.locale(), { numeric: true }));
+  const treeOf = (pid = '', depth = 0) => (depth > 20 ? [] : kidsOf(pid).flatMap(g => [{ g, depth }, ...treeOf(g.id, depth + 1)]));
+  const underOf = id => new Set([id, ...treeOf(id).map(x => x.g.id)]); // the folder and everything below it
+  const pathOf = g => { const out = []; for (let x = g; x; x = groupById(parentId(x))) out.unshift(x); return out; };
+  const pathName = g => pathOf(g).map(x => x.name).join(' › ');
+  const docsUnder = id => { const u = underOf(id); return (docs || []).filter(d => u.has(d.group)); };
+  const optName = x => '   '.repeat(x.depth) + x.g.name;
+  // A project's folder is looked for on the first level first
+  const groupByName = name => { const all = groups().filter(g => gkey(g.name) === gkey(name)); return all.find(g => !parentId(g)) || all[0]; };
   const groupOf = d => (d.group && groupById(d.group)) || null;
   const projOf = g => (ML.planProjects ? ML.planProjects().find(p => gkey(p) === gkey(g.name)) : null) || null;
   const gColor = g => { const p = projOf(g); return p && ML.projColor ? ML.projColor(p) : ''; };
   let openG = ''; // the group shown in the list ('' = the top of the Library)
-  function addGroup(name) {
+  function addGroup(name, parent) {
     name = String(name || '').trim().slice(0, 40); if (!name) return null;
-    let g = groupByName(name);
-    if (!g) { g = { id: uid(), name }; groups().push(g); save(); }
+    const pid = parent && groupById(parent) ? parent : '';
+    let g = kidsOf(pid).find(x => gkey(x.name) === gkey(name));
+    if (!g) { g = { id: uid(), name }; if (pid) g.parent = pid; groups().push(g); save(); }
     return g;
   }
   function moveDoc(d, gid) {
@@ -199,7 +216,7 @@
   }
 
   /* ---------- The list ---------- */
-  let host = null, query = '', editing = null, armed = null, moveFor = null, gNew = false, gRen = false, gDelArmed = 0;
+  let host = null, query = '', editing = null, armed = null, moveFor = null, gNew = false, gRen = false, gMove = false, gDelArmed = 0;
   const canDrag = () => matchMedia('(pointer: fine)').matches;
   const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const fmtSize = b => { const u = S.lang === 'en' ? ['B', 'KB', 'MB', 'GB'] : ['o', 'Ko', 'Mo', 'Go']; let i = 0; while (b >= 1024 && i < 3) { b /= 1024; i++; } return (i > 1 ? (+b.toFixed(1)).toLocaleString(ML.locale()) : Math.round(b)) + ' ' + u[i]; };
@@ -241,32 +258,39 @@
           ${allTags().filter(([x]) => !d.tags.includes(x)).slice(0, 8).map(([x]) => `<button type="button" class="lb-tag" data-lb-addtag="${esc(x)}">+ ${esc(x)}</button>`).join('')}
           <form class="lb-tagform" data-lb-tagform="${d.id}" autocomplete="off"><input type="text" maxlength="30" placeholder="${esc(t('lb_tag_ph'))}" aria-label="${esc(t('lb_tag_ph'))}"></form></div>
         ${moveFor === d.id ? `<form class="lb-gform" data-lb-gform="${d.id}" autocomplete="off"><label><span>${esc(t('lb_gnew'))}</span><input type="text" maxlength="40" placeholder="${esc(t('lb_gname'))}"></label><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>`
-          : `<label><span>${esc(t('lb_move'))}</span><select data-lb-move="${d.id}"><option value="">${esc(t('lb_nogroup'))}</option>${groups().map(g => `<option value="${esc(g.id)}" ${groupOf(d) === g ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}<option value="+">${esc(t('lb_gnew'))}…</option></select></label>`}
+          : `<label><span>${esc(t('lb_move'))}</span><select data-lb-move="${d.id}"><option value="">${esc(t('lb_nogroup'))}</option>${treeOf().map(x => `<option value="${esc(x.g.id)}" ${groupOf(d) === x.g ? 'selected' : ''}>${esc(optName(x))}</option>`).join('')}<option value="+">${esc(t('lb_gnew'))}…</option></select></label>`}
         <div class="lb-editacts"><button type="button" class="small ghost danger" data-lb-del="${d.id}">${esc(t(armed === d.id ? 'tap_again' : 'lb_delete'))}</button>
           ${ML.CAN_DOWNLOAD ? `<button type="button" class="small ghost" data-lb-dl="${d.id}">${esc(t('lb_download'))}</button>` : ''}
           <button type="button" class="small primary" data-lb-editdone>${esc(t('lb_done'))}</button></div></div></li>`;
     const g = m.showGroup && groupOf(d);
     return `<li class="lb-row"${canDrag() ? ` draggable="true" data-lb-drag="${d.id}"` : ''}><button type="button" class="lb-open" data-lb-open="${d.id}"${m.page ? ` data-lb-page="${m.page}"` : ''}>${tileHtml(d)}
-        <span class="lb-tx"><b>${esc(d.name)}</b><small>${g ? esc(g.name) + ' · ' : ''}${esc(metaOf(d))}</small>${m.hit ? `<em>${m.page ? esc(t('lb_hit', { n: m.page })) + ' · ' : ''}${esc(m.hit)}</em>` : ''}</span></button>
+        <span class="lb-tx"><b>${esc(d.name)}</b><small>${g ? esc(pathName(g)) + ' · ' : ''}${esc(metaOf(d))}</small>${m.hit ? `<em>${m.page ? esc(t('lb_hit', { n: m.page })) + ' · ' : ''}${esc(m.hit)}</em>` : ''}</span></button>
       ${d.tags.length ? `<span class="lb-rowtags">${d.tags.slice(0, 2).map(x => `<i class="lb-tag">${esc(x)}</i>`).join('')}${d.tags.length > 2 ? `<i class="lb-tag">+${d.tags.length - 2}</i>` : ''}</span>` : ''}
       <button type="button" class="icon-btn lb-more" data-lb-edit="${d.id}" aria-label="${esc(t('lb_edit'))} : ${esc(d.name)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></li>`;
   }
   const lastOpened = list => list.filter(d => d.opened).sort((a, b) => b.opened - a.opened)[0];
   const gDot = g => { const c = gColor(g); return c ? `<i class="pl-dot" style="--pc:${c}"></i>` : '<i class="pl-dot lb-nodot"></i>'; };
-  const gMeta = g => { const ds = (docs || []).filter(d => d.group === g.id), lo = lastOpened(ds); return [ds.length ? ML.tn('lb_gn', ds.length) : t('lb_gn_zero'), lo ? t('lb_gopened', { d: fmtDay(lo.opened) }) : ''].filter(Boolean).join(' · '); };
+  const gMeta = g => { const ds = docsUnder(g.id), lo = lastOpened(ds), k = kidsOf(g.id).length; return [k ? ML.tn('lb_gsub', k) : '', ds.length ? ML.tn('lb_gn', ds.length) : k ? '' : t('lb_gn_zero'), lo ? t('lb_gopened', { d: fmtDay(lo.opened) }) : ''].filter(Boolean).join(' · '); };
+  const grpRow = g => `<li><button type="button" class="lb-grp" data-lb-gopen="${g.id}" data-lb-drop="${g.id}">${gDot(g)}<b>${esc(g.name)}</b><small>${esc(gMeta(g))}</small>${CHEV}</button></li>`;
   const CHEV = '<svg class="lb-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
   const newGroupHtml = cls => (gNew ? `<form class="lb-gform ${cls}" data-lb-gform="new" autocomplete="off"><input type="text" maxlength="40" placeholder="${esc(t('lb_gname'))}" aria-label="${esc(t('lb_gname'))}"><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>`
     : `<button type="button" class="ghost small lb-gnew ${cls}" data-lb-gnew>+ ${esc(t('lb_gnew'))}</button>`);
   // One group opened: its name, rename, delete (the documents stay), then its documents
   function groupViewHtml(g) {
-    const ms = matches(g.id);
+    const ms = matches(g.id), up = groupById(parentId(g)), kids = kidsOf(g.id), path = pathOf(g).slice(0, -1), mine = underOf(g.id);
+    // Where this folder may go: anywhere but inside itself
+    const dest = treeOf().filter(x => !mine.has(x.g.id));
     return `<div class="lb-ghead" data-lb-drop="${g.id}">
-        <button type="button" class="ghost small lb-gback" data-lb-gopen="" data-lb-drop="">‹ ${esc(t('lb_back'))}</button>
-        ${gRen ? `<form class="lb-gform lb-gren" data-lb-gform="ren" autocomplete="off"><input type="text" maxlength="40" value="${esc(g.name)}" aria-label="${esc(t('lb_gren'))}"><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>`
+        <button type="button" class="ghost small lb-gback" data-lb-gopen="${up ? up.id : ''}" data-lb-drop="${up ? up.id : ''}">‹ ${esc(up ? up.name : t('lb_back'))}</button>
+        ${path.length > 1 ? `<small class="lb-gpath">${esc(path.map(x => x.name).join(' › '))}</small>` : ''}
+        ${gMove ? `<label class="lb-gform lb-gren"><span>${esc(t('lb_gmove'))}</span><select data-lb-gmove><option value="">${esc(t('lb_gtop'))}</option>${dest.map(x => `<option value="${esc(x.g.id)}" ${up === x.g ? 'selected' : ''}>${esc(optName(x))}</option>`).join('')}</select></label>` : ''}
+        ${gRen ?`<form class="lb-gform lb-gren" data-lb-gform="ren" autocomplete="off"><input type="text" maxlength="40" value="${esc(g.name)}" aria-label="${esc(t('lb_gren'))}"><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>`
           : `<h3 class="lb-gtitle">${gDot(g)}<span>${esc(g.name)}</span></h3><small class="lb-gsub">${esc(gMeta(g))}</small>
-          <span class="lb-gacts"><button type="button" class="ghost small" data-lb-gren>${esc(t('lb_gren'))}</button><button type="button" class="ghost small" data-lb-gdel title="${esc(t('lb_gdel_hint'))}">${esc(t(gDelArmed ? 'tap_again' : 'lb_gdel'))}</button></span>`}
+          <span class="lb-gacts"><button type="button" class="ghost small" data-lb-gren>${esc(t('lb_gren'))}</button>${gMove || !(groups().length > 1) ? '' : `<button type="button" class="ghost small" data-lb-gmv>${esc(t('lb_move'))}</button>`}<button type="button" class="ghost small" data-lb-gdel title="${esc(t('lb_gdel_hint'))}">${esc(t(gDelArmed ? 'tap_again' : 'lb_gdel'))}</button></span>`}
       </div>
-      ${ms.length ? `<ul class="lb-list">${ms.map(rowHtml).join('')}</ul>` : `<p class="hint">${esc(query || L().tag || L().kind ? t('lb_none') : t('lb_gn_zero'))}</p>`}`;
+      ${kids.length ? `<ul class="lb-groups">${kids.map(grpRow).join('')}</ul>` : ''}
+      ${newGroupHtml('')}
+      ${ms.length ? `<ul class="lb-list">${ms.map(rowHtml).join('')}</ul>` : kids.length ? '' : `<p class="hint">${esc(query || L().tag || L().kind ? t('lb_none') : t('lb_gn_zero'))}</p>`}`;
   }
   function listHtml() {
     const f = L(), flat = !!(query || f.tag || f.kind), og = openG && groupById(openG);
@@ -277,10 +301,10 @@
     // A search or a filter: one list across the groups, each row says its group
     if (flat) { const ms = matches().map(m => Object.assign(m, { showGroup: true })); return chips + (ms.length ? `<ul class="lb-list">${ms.map(rowHtml).join('')}</ul>` : `<p class="hint">${esc(t('lb_none'))}</p>`); }
     // The top: groups as compact rows first, then the documents without a group (B1)
-    const last = lastOpened(docs || []), gs = [...groups()].sort((a, b) => a.name.localeCompare(b.name, ML.locale(), { numeric: true })), loose = matches('-');
+    const last = lastOpened(docs || []), gs = kidsOf(''), loose = matches('-');
     return `${last ? `<button type="button" class="lb-resume" data-lb-open="${last.id}">${tileHtml(last)}<span><small>${esc(t('lb_resume'))}</small><b>${esc(last.name)}</b>${last.kind === 'pdf' && last.page > 1 ? `<small>${esc(t('lb_page', { n: last.page }))}</small>` : ''}</span></button>` : ''}
       ${chips}
-      ${gs.length ? `<section class="lb-gsec"><h3 class="lb-h">${esc(t('lb_groups'))}</h3><ul class="lb-groups">${gs.map(g => `<li><button type="button" class="lb-grp" data-lb-gopen="${g.id}" data-lb-drop="${g.id}">${gDot(g)}<b>${esc(g.name)}</b><small>${esc(gMeta(g))}</small>${CHEV}</button></li>`).join('')}</ul>${newGroupHtml('')}</section>` : ''}
+      ${gs.length ? `<section class="lb-gsec"><h3 class="lb-h">${esc(t('lb_groups'))}</h3><ul class="lb-groups">${gs.map(grpRow).join('')}</ul>${newGroupHtml('')}</section>` : ''}
       <section class="lb-gsec">${gs.length && (loose.length || canDrag()) ? `<h3 class="lb-h" data-lb-drop="">${esc(t('lb_nogroup'))}</h3>` : ''}
       ${gs.length && !loose.length && canDrag() ? `<p class="hint lb-dropnote" data-lb-drop="">${esc(t('lb_gdrop'))}</p>` : ''}
       ${loose.length ? `<ul class="lb-list">${loose.map(rowHtml).join('')}</ul>` : gs.length ? '' : `<p class="hint">${esc(t('lb_none'))}</p>`}
@@ -299,7 +323,8 @@
       <div class="lb-filters">
         <select id="lb-kind" aria-label="${esc(t('lb_any'))}">${[['', 'lb_any'], ['pdf', 'lb_pdf'], ['image', 'lb_images'], ['sheet', 'lb_sheets']].map(([v, k]) => `<option value="${v}" ${f.kind === v ? 'selected' : ''}>${esc(t(k))}</option>`).join('')}</select>
         <select id="lb-sort" aria-label="${esc(t('lb_s_recent'))}">${['recent', 'opened', 'name', 'size'].map(v => `<option value="${v}" ${f.sort === v ? 'selected' : ''}>${esc(t('lb_s_' + v))}</option>`).join('')}</select>
-      </div>
+      </div>` : ''}
+      ${docs.length || groups().length ? `
       <div id="lb-results">${listHtml()}</div>
       <p class="hint lb-foot" id="lb-usage">${esc(t('lb_local'))}</p>` : `<div class="lb-empty"><h3>${esc(t('lb_empty_h'))}</h3><p class="hint">${esc(t('lb_empty'))}</p></div>`}`;
   }
@@ -341,9 +366,9 @@
   function renderSide() {
     if (!sideEl) return;
     const ok = ML.isPremium && ML.isPremium() && docs;
-    const gs = ok ? [...groups()].sort((a, b) => a.name.localeCompare(b.name, ML.locale(), { numeric: true })) : [];
+    const gs = ok ? treeOf() : [];
     const n = id => docs.filter(d => d.group === id).length;
-    const html = !ok ? '' : `${gs.map(g => `<button type="button" class="pl-sit ${S.tab === 'lib' && openG === g.id ? 'on' : ''}" data-lb-sgo="${g.id}" data-lb-drop="${g.id}" title="${esc(g.name)}">${gDot(g)}<span>${esc(g.name)}</span><small>${n(g.id)}</small></button>`).join('')}
+    const html = !ok ? '' : `${gs.map(({ g, depth }) => `<button type="button" class="pl-sit ${S.tab === 'lib' && openG === g.id ? 'on' : ''}" data-lb-sgo="${g.id}" data-lb-drop="${g.id}" title="${esc(pathName(g))}">${depth ? `<i class="lb-ind" style="width:${Math.min(depth, 4) * 12 - 7}px"></i>` : gDot(g)}<span>${esc(g.name)}</span><small>${n(g.id) || ''}</small></button>`).join('')}
       ${sideNew ? `<form class="pl-snew" data-lb-snew><input type="text" maxlength="40" placeholder="${esc(t('lb_gname'))}" aria-label="${esc(t('lb_gnew'))}"><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>` : `<button type="button" class="pl-sit pl-sadd" data-lb-sadd>${esc(t('lb_gnew_s'))}</button>`}`;
     if (sideEl.dataset.h !== html) { sideEl.innerHTML = html; sideEl.dataset.h = html; if (sideNew) sideEl.querySelector('input').focus(); }
     sideEl.hidden = !ok;
@@ -366,10 +391,10 @@
   ML.libGroupInfo = name => {
     if (!name || !(ML.isPremium && ML.isPremium())) return null;
     const g = groupByName(name); if (!g) return null;
-    return { id: g.id, name: g.name, n: docs ? docs.filter(d => d.group === g.id).length : null };
+    return { id: g.id, name: g.name, n: docs ? docsUnder(g.id).length : null };
   };
   function libOpenGroup(id) {
-    openG = groupById(id) ? id : ''; gRen = false; gNew = false; editing = null;
+    openG = groupById(id) ? id : ''; gRen = false; gNew = false; gMove = false; editing = null;
     if (S.tab === 'lib') refresh(); else if (ML.setMobileView && document.documentElement.classList.contains('mnav-on')) ML.setMobileView('lib'); else ML.setTab('lib');
     renderSide();
   }
@@ -396,16 +421,20 @@
       armed = null; removeDoc(b.dataset.lbDel); return;
     }
     // Groups: open one (or back to the top), new group, rename, delete (its documents stay, without a group)
-    if (b.dataset.lbGopen != null) { openG = b.dataset.lbGopen; gRen = false; gDelArmed = 0; editing = null; refresh(); host.scrollIntoView({ block: 'nearest' }); return; }
+    if (b.dataset.lbGopen != null) { openG = b.dataset.lbGopen; gRen = false; gNew = false; gMove = false; gDelArmed = 0; editing = null; refresh(); host.scrollIntoView({ block: 'nearest' }); return; }
     if (b.hasAttribute('data-lb-gnew')) { gNew = true; refresh(); const i = tab.querySelector('[data-lb-gform="new"] input'); if (i) i.focus(); return; }
     if (b.hasAttribute('data-lb-gren')) { gRen = true; refresh(); const i = tab.querySelector('[data-lb-gform="ren"] input'); if (i) { i.focus(); i.select(); } return; }
     if (b.hasAttribute('data-lb-gdel')) {
       if (Date.now() - gDelArmed > 3000) { gDelArmed = Date.now(); b.textContent = t('tap_again'); return; }
       gDelArmed = 0;
-      const id = openG; L().groups = groups().filter(g => g.id !== id);
-      (docs || []).forEach(x => { if (x.group === id) { x.group = null; putDoc(x).catch(() => {}); } });
-      openG = ''; toast(t('lb_gdeleted')); groupsChanged(); return;
+      // What the folder holds (folders and documents) moves up one level: nothing is deleted with it
+      const id = openG, gone = groupById(id), up = gone ? parentId(gone) : '';
+      groups().forEach(g => { if (g.parent === id) { if (up) g.parent = up; else delete g.parent; } });
+      L().groups = groups().filter(g => g.id !== id);
+      (docs || []).forEach(x => { if (x.group === id) { x.group = up || null; putDoc(x).catch(() => {}); } });
+      openG = up; gMove = false; toast(t('lb_gdeleted')); groupsChanged(); return;
     }
+    if (b.hasAttribute('data-lb-gmv')) { gMove = true; refresh(); const s = tab.querySelector('[data-lb-gmove]'); if (s) s.focus(); return; }
     const cur = editing && d(editing); if (!cur) return;
     if (b.dataset.lbUntag) { cur.tags = cur.tags.filter(x => x !== b.dataset.lbUntag); putDoc(cur).catch(() => {}); if (L().tag === b.dataset.lbUntag && !docs.some(x => x.tags.includes(L().tag))) { L().tag = ''; save(); } refresh(); return; }
     if (b.dataset.lbAddtag) { cur.tags.push(b.dataset.lbAddtag); putDoc(cur).catch(() => {}); refresh(); }
@@ -415,8 +444,8 @@
     if (gf) {
       e.preventDefault(); e.stopPropagation();
       const v = e.target.querySelector('input').value.trim().slice(0, 40);
-      if (gf === 'ren') { const g = groupById(openG), other = v && groupByName(v); if (g && v && (!other || other === g)) g.name = v; gRen = false; groupsChanged(); return; }
-      const g = v ? addGroup(v) : null;
+      if (gf === 'ren') { const g = groupById(openG), other = g && v && kidsOf(parentId(g)).find(x => gkey(x.name) === gkey(v)); if (g && v && (!other || other === g)) g.name = v; gRen = false; groupsChanged(); return; }
+      const g = v ? addGroup(v, gf === 'new' ? openG : '') : null;
       if (gf === 'new') gNew = false;
       else { moveFor = null; const x = docs.find(y => y.id === gf); if (x && g) moveDoc(x, g.id); }
       groupsChanged(); return;
@@ -441,6 +470,11 @@
     if (e.target.id === 'lb-file' || e.target.id === 'lb-cam') { addFiles(e.target.files); e.target.value = ''; }
     else if (e.target.id === 'lb-kind') { L().kind = e.target.value; save(); refresh(); }
     else if (e.target.id === 'lb-sort') { L().sort = e.target.value; save(); refresh(); }
+    else if (e.target.hasAttribute('data-lb-gmove')) {
+      const g = groupById(openG), v = e.target.value;
+      if (g && !underOf(g.id).has(v) && (!v || groupById(v))) { if (v) g.parent = v; else delete g.parent; }
+      gMove = false; groupsChanged();
+    }
     else if (e.target.dataset.lbMove) {
       const x = docs.find(y => y.id === e.target.dataset.lbMove), v = e.target.value; if (!x) return;
       if (v === '+') { moveFor = x.id; refresh(); const i = tab.querySelector(`[data-lb-gform="${x.id}"] input`); if (i) i.focus(); return; }

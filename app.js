@@ -508,14 +508,37 @@
   // html gets the class mod-off-<key>, so CSS hides [data-mod="<key>"] elements; modules also check ML.modOn(key).
   const MODS = {};
   ML.defaults(() => ({ modules: {} }));
+  /* Plain look (3.85, the « pro mode », option A): one switch. While it is on the game and the World read as off, motion
+     reads as reduced and the theme is a bare palette (game.js applies it). Nothing else is written: S.modules and the
+     worlds keep their values, so switching back restores everything as it was. */
+  const SOBER_PALS = ['black', 'white', 'green', 'slate'];
+  ML.defaults(() => ({ sober: { on: false, pal: 'black' } }));
+  const soberOn = () => !!(S.sober && S.sober.on);
+  ML.sober = soberOn;
+  ML.soberPal = () => (S.sober && SOBER_PALS.includes(S.sober.pal) ? S.sober.pal : 'black');
+  {
+    const base = ML.reducedMotion;
+    ML.reducedMotion = () => base() || soberOn();
+    const syncSober = () => { if (soberOn()) document.documentElement.classList.add('reduce-motion'); };
+    on('motion', syncSober); on('sober', syncSober); on('started', syncSober); on('loaded', syncSober); on('remote', syncSober);
+  }
+  ML.setSober = (onNow, pal) => {
+    const was = soberOn();
+    S.sober = { on: !!onNow, pal: SOBER_PALS.includes(pal) ? pal : ML.soberPal() }; save();
+    if (was && !onNow) ML.setReducedMotion(ML.motionPref()); // puts html.reduce-motion back to what the device asks
+    applyMods(); emit('sober'); emit('motion', ML.reducedMotion()); emit('modules', 'world');
+    if (onNow && (S.tab === 'world' || S.tab === 'grim')) setTab('today');
+    renderAll();
+  };
   function modOn(k) {
+    if (k === 'game' && soberOn()) return false;
     const v = S.modules && S.modules[k]; if (v === true || v === false) return v;
     const m = MODS[k]; if (!m) return true;
     return typeof m.def === 'function' ? !!m.def() : m.def !== false;
   }
   // The World (3.82) can be switched off as a whole: the place leaves the navigation and the energy bar keeps only the
   // energies. No setting yet: it is the base of the pro mode to come (S.modules.world === false).
-  ML.hasWorld = () => !(S.modules && S.modules.world === false);
+  ML.hasWorld = () => !(S.modules && S.modules.world === false) && !soberOn();
   function applyMods() {
     for (const k of Object.keys(MODS)) document.documentElement.classList.toggle('mod-off-' + k, !modOn(k));
     document.documentElement.classList.toggle('no-world', !ML.hasWorld());
@@ -669,6 +692,8 @@
     return true;
   }
   ML.lockIn = lockIn;
+  // One duration (3.85, Q3): what was chosen at the welcome is what the dial shows, even without starting
+  ML.setFocusMins = m => { if (!running() && S.mode === 'focus' && m > 0) setDuration(m); };
 
   // Fits a time to the room it has: long times (1:30:00) and small screens shrink it instead of letting it run over the dial or off the screen
   const fitMemo = new WeakMap();
@@ -987,9 +1012,24 @@
   const chk = (id, label, on) => `<label class="opt"><input type="checkbox" id="${id}" ${on ? 'checked' : ''}> ${esc(label)}</label>`;
   ML.ui = { sel, chk };
 
+  ML.addStrings({
+    fr: { look_h: 'Apparence', look_worlds: 'Mondes', look_sober: 'Sobre', look_sober_d: 'Sans Monde, sans jeu, sans animations. Tout revient tel quel si tu repasses sur Mondes.', look_pal: 'Couleurs', pal_black: 'Noir', pal_white: 'Blanc', pal_green: 'Vert', pal_slate: 'Ardoise', mod_sober_off: 'Coupé par l’apparence Sobre.' },
+    en: { look_h: 'Look', look_worlds: 'Worlds', look_sober: 'Plain', look_sober_d: 'No World, no game, no animations. Everything comes back as it was when you return to Worlds.', look_pal: 'Colours', pal_black: 'Black', pal_white: 'White', pal_green: 'Green', pal_slate: 'Slate', mod_sober_off: 'Off while the Plain look is on.' },
+  });
+  ML.settingsSection({
+    order: 1, cat: 'look',
+    render: () => `<h3>${esc(t('look_h'))}</h3>
+      <div class="seg-toggle look-seg" role="group" aria-label="${esc(t('look_h'))}">${[false, true].map(v => `<button type="button" data-look="${v ? 1 : 0}" aria-pressed="${soberOn() === v}">${esc(t(v ? 'look_sober' : 'look_worlds'))}</button>`).join('')}</div>
+      <p class="hint">${esc(t('look_sober_d'))}</p>
+      ${soberOn() ? `<div class="look-pals" role="group" aria-label="${esc(t('look_pal'))}">${SOBER_PALS.map(p => `<button type="button" class="look-pal" data-pal="${p}" aria-pressed="${ML.soberPal() === p}"><i class="look-sw look-${p}"></i>${esc(t('pal_' + p))}</button>`).join('')}</div>` : ''}`,
+    bind: root => {
+      root.querySelectorAll('[data-look]').forEach(b => { b.onclick = () => { ML.setSober(b.dataset.look === '1'); renderSettings(); }; });
+      root.querySelectorAll('[data-pal]').forEach(b => { b.onclick = () => { ML.setSober(true, b.dataset.pal); renderSettings(); }; });
+    },
+  });
   ML.settingsSection({
     order: 30, cat: 'general',
-    render: () => `<h3>${esc(t('set_mods'))}</h3><p class="hint">${esc(t('set_mods_hint'))}</p>${ML.modules().map(([k, m]) => `<label class="opt mod-opt"><input type="checkbox" data-mod-set="${k}" ${modOn(k) ? 'checked' : ''}><span><b>${esc(t(m.label))}</b>${m.hint ? `<small>${esc(t(m.hint))}</small>` : ''}</span></label>`).join('')}`,
+    render: () => `<h3>${esc(t('set_mods'))}</h3><p class="hint">${esc(t('set_mods_hint'))}</p>${ML.modules().map(([k, m]) => `<label class="opt mod-opt"><input type="checkbox" data-mod-set="${k}" ${modOn(k) ? 'checked' : ''}${k === 'game' && soberOn() ? ' disabled' : ''}><span><b>${esc(t(m.label))}</b>${m.hint ? `<small>${esc(t(m.hint))}</small>` : ''}</span></label>`).join('')}`,
     bind: root => { root.querySelectorAll('[data-mod-set]').forEach(c => { c.onchange = () => ML.setMod(c.dataset.modSet, c.checked); }); },
   });
 
