@@ -10,7 +10,8 @@ window.ML = (() => {
   // Signed-in users get their own key ('merlins-lockin-v2:u:<id>'), so people sharing a browser never mix data.
   // The current key is mirrored in localStorage for the extension's mini popup.
   let KEY = GUEST_KEY;
-  function setStorageKey(k) { KEY = k || GUEST_KEY; try { localStorage.setItem('mli-current-key', KEY); } catch (e) {} }
+  let storedBody = null; // what this tab knows to be stored under KEY, without the time stamp (null = unknown, next save writes)
+  function setStorageKey(k) { KEY = k || GUEST_KEY; storedBody = null; try { localStorage.setItem('mli-current-key', KEY); } catch (e) {} }
 
   /* ---------- Helpers ---------- */
   const pad2 = n => String(n).padStart(2, '0');
@@ -146,14 +147,32 @@ window.ML = (() => {
   function saveNow() {
     clearTimeout(saveT); saveT = null;
     if (S.sessions && S.sessions.length > 4000) S.sessions = S.sessions.slice(-4000);
+    const prevAt = S._savedAt;
     S._savedAt = Date.now();
     const json = JSON.stringify(S);
+    // Nothing changed since the stored copy but the time stamp (typically: a copy just taken from another tab, saved back
+    // by a render): skip the write, or two open windows bounce the same state between them forever through 'storage'.
+    if (storedBody !== null && unstamp(json) === storedBody) { S._savedAt = prevAt; return; }
+    storedBody = null;
     if (!writeMain(json)) {
       // Storage full: free the space used by restore points and old copies, then try again. The live data comes first.
       try { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k && (k.startsWith('mli-snaps:') || k.startsWith('mli-corrupt:'))) localStorage.removeItem(k); } } catch (e) {}
       if (!writeMain(json)) { emit('save-failed'); return; }
     }
+    storedBody = unstamp(json);
     emit('saved');
+  }
+  const unstamp = s => s.replace(/"_savedAt":\d+,?/, '');
+  const canon = v => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.keys(x).sort().reduce((o, j) => (o[j] = x[j], o), {}) : x));
+  // Called after taking another tab's saved copy (raw = the stored text): if the state now equals it, key order aside,
+  // the next save with no change in between is skipped.
+  function markStored(raw) {
+    storedBody = null;
+    try {
+      const inc = JSON.parse(raw), cur = JSON.parse(JSON.stringify(S));
+      delete inc._savedAt; delete cur._savedAt;
+      if (canon(inc) === canon(cur)) storedBody = unstamp(JSON.stringify(S));
+    } catch (e) {}
   }
   function writeMain(json) { try { localStorage.setItem(KEY, json); return localStorage.getItem(KEY) === json; } catch (e) { return false; } }
   // Write now if a save is waiting (used before syncing, so a change made a split second earlier is never skipped)
@@ -239,7 +258,7 @@ window.ML = (() => {
   return {
     $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, reducedMotion, setReducedMotion, motionPref, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon, isTyping, keepInputs,
     addStrings, t, tn, locale, applyI18n,
-    defaults: fn => defaultFns.push(fn), load, loadState: () => loadState, replaceState, save, saveNow, flushSave, savePending: () => !!saveT,
+    defaults: fn => defaultFns.push(fn), load, loadState: () => loadState, replaceState, save, saveNow, flushSave, markStored, savePending: () => !!saveT,
     on, emit, toast, armedButton, bgSend,
   };
 })();

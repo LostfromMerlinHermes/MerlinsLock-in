@@ -1189,7 +1189,7 @@
     if (ML.savePending && ML.savePending() && ML.auth && ML.auth.merge3) {
       const merged = ML.auth.merge3(undefined, JSON.parse(JSON.stringify(S)), incoming, true, '');
       ML.applyRemote(merged); ML.saveNow();
-    } else ML.applyRemote(incoming);
+    } else { ML.applyRemote(incoming); if (ML.markStored) ML.markStored(e.newValue); }
   });
 
   /* ---------- Render + day change ---------- */

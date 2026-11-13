@@ -3,7 +3,7 @@
 (() => {
   'use strict';
   const { $, S, t, esc } = ML;
-  const LEGAL_VERSION = '2026-11-05';
+  const LEGAL_VERSION = '2026-11-13';
   ML.LEGAL_VERSION = LEGAL_VERSION;
   const CFG = () => window.MLI_CONFIG || {}; // config.js loads after this file
   const EMAIL = () => CFG().contactEmail || '—';
@@ -48,6 +48,7 @@
           <li><b>Appels</b> : le bouton Lancer un appel ouvre le service Jitsi Meet (meet.jit.si) dans un nouvel onglet. Meet, Zoom et les liens épinglés mènent aussi à des services tiers, avec leurs propres conditions. Nous n’y envoyons rien d’autre que l’ouverture de la page.</li>
           <li><b>Santé et temps d’écran</b> (si tu les actives) : ton check du jour, le temps par site (le nom du site seulement), tes plans si-alors et le temps d’écran que tu notes restent dans un stockage séparé sur l’appareil. Ils ne sont ni synchronisés ni envoyés à personne, et tu peux tout effacer depuis ces pages. Ce n’est pas un service médical.</li>
           <li><b>Agenda en direct</b> (si tu l’actives) : dans l’app web, l’adresse de ton agenda passe par une fonction Supabase qui lit l’agenda et te le renvoie, sans rien garder. Les <b>mails</b> écrits dans l’app s’ouvrent dans Gmail, Outlook ou ton app Mail : nous ne les envoyons pas et ne les lisons pas.</li>
+          <li><b>Outils d’étude</b> (seulement quand tu t’en sers) : le mot ou la phrase que tu cherches part directement depuis ton appareil vers Wikipédia et Wiktionnaire (Wikimedia, définitions et résumés), MyMemory (traduction : le texte à traduire quitte l’appareil) ou Crossref et Open Library (références de livres et d’articles). Nous ne recevons rien de ces échanges ; chaque service a ses propres conditions.</li>
         </ul>
         <p>Les polices sont hébergées avec l’app : aucune requête n’est faite à Google. Le stockage local utilisé est strictement nécessaire au fonctionnement ; il n’y a pas de cookie publicitaire ni de mesure d’audience.</p>
         <h4>Tes droits</h4>
@@ -105,6 +106,7 @@
           <li><b>Calls</b>: the Start a call button opens the Jitsi Meet service (meet.jit.si) in a new tab. Meet, Zoom and pinned links also lead to third-party services with their own terms. We send them nothing beyond opening the page.</li>
           <li><b>Health and screen time</b> (if you turn them on): your daily check, time per site (the site’s name only), your if-then plans and the screen time you type stay in separate storage on your device. They are neither synced nor sent to anyone, and you can clear them from those pages. This is not a medical service.</li>
           <li><b>Live calendar</b> (if you turn it on): in the web app, your calendar’s address goes through a Supabase function that reads the calendar and returns it, keeping nothing. <b>Emails</b> written in the app open in Gmail, Outlook or your Mail app: we don’t send or read them.</li>
+          <li><b>Study tools</b> (only when you use them): the word or phrase you look up goes straight from your device to Wikipedia and Wiktionary (Wikimedia, definitions and summaries), MyMemory (translation: the text to translate leaves your device) or Crossref and Open Library (book and article references). We receive nothing from these requests; each service has its own terms.</li>
         </ul>
         <p>Fonts are hosted with the app: no requests go to Google. The local storage used is strictly necessary for the app to work; there are no advertising cookies and no analytics.</p>
         <h4>Your rights</h4>
@@ -167,6 +169,10 @@
   ML.openLegal = openLegal;
   ML.legalLinks = () => Object.keys(TITLE).map(k => `<button type="button" class="link" data-legal="${k}">${esc(t(TITLE[k]))}</button>`).join(' · ');
   document.addEventListener('click', e => { const b = e.target.closest('[data-legal]'); if (b && !b.closest('#legal')) openLegal(b.dataset.legal); });
+  // Direct links for the store listings: …/MerlinsLock-in/#privacy, #terms, #notice
+  const fromHash = () => { const k = (location.hash || '').slice(1); if (TITLE[k]) openLegal(k); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fromHash); else fromHash();
+  addEventListener('hashchange', fromHash);
 
   ML.settingsSection({
     order: 99, group: 'info',
