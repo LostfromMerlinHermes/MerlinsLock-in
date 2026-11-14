@@ -1437,8 +1437,7 @@ kbd { font-family: var(--f-code); font-size: var(--t-1); padding: 2px 7px; borde
   --f-world: "Cinzel", "Trajan Pro", Georgia, serif;
   --ev-1: #e58c52; --ev-2: #8fb0e8; --ev-3: #a8d98a; --ev-4: #f08a5d; --ev-5: #d79bc4; --ev-6: #e8806a; --ev-7: #f2dc9b; --ev-8: #8fa3e0;
 }
-:root[data-theme="observatory"] body { background-image: radial-gradient(1000px 640px at 100% -10%, rgba(255, 170, 110, .13), transparent 60%), radial-gradient(800px 520px at -10% 110%, rgba(143, 176, 232, .08), transparent 60%),
-  repeating-radial-gradient(circle at 8% 92%, transparent 0 79px, rgba(229, 140, 82, .06) 79px 80px), repeating-conic-gradient(from 0deg at 8% 92%, transparent 0 14deg, rgba(229, 140, 82, .035) 14deg 14.3deg); }
+:root[data-theme="observatory"] body { background-image: radial-gradient(1000px 640px at 100% -10%, rgba(255, 170, 110, .13), transparent 60%), radial-gradient(800px 520px at -10% 110%, rgba(143, 176, 232, .08), transparent 60%); }
 :root[data-theme="observatory"] body::before { opacity: .12; }
 :root[data-theme="observatory"] h1 { }
 :root[data-theme="observatory"] h1 span { color: var(--accent); text-shadow: 0 0 18px rgba(229, 140, 82, .45); }
@@ -3864,6 +3863,8 @@ html.mnav-on .gd-item { grid-template-columns: minmax(0, 1fr); justify-items: st
 .lc-notes { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .lc-notes li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 10px; padding: 5px 6px; border-radius: 6px; }
 .lc-notes li.now { background: var(--soft); }
+.lc-tr-on { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 6px; }
+.lc-tr { margin-top: 14px; }
 .lc-time { min-width: 46px; padding: 3px 6px; border: 0; background: none; font: 500 var(--t-1) var(--f-clock); color: var(--accent); text-align: left; }
 .lc-text { overflow-wrap: anywhere; }
 .lc-audio { width: 100%; }
@@ -5250,3 +5251,31 @@ html.mnav-on .dg-top .cal-views { order: -1; flex: 1 0 100%; display: grid; grid
 #health .y-page > .g-card:not(.y-support):first-child { border-top: 0; padding-top: 4px; }
 #health .y-page { gap: 0; }
 #health .hl-foot { margin: 6px 0 0; }
+/* Cards 3.91 (C1-C5): today's review on top, decks under their subject on hairlines, filters inside a deck */
+.fc-optsbtn { letter-spacing: .08em; min-width: 40px; }
+.fc-opts { display: grid; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.fc-opts .fc-viewpick { display: flex; }
+.fc-todaybox { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--panel-2); border: 1px solid var(--accent); border-radius: var(--radius); }
+.fc-todaybox > span { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.fc-todaybox small { color: var(--mist); font-size: var(--t-1); }
+.fc-todaybox button { flex: none; }
+.fc-alldone { margin: 2px 0; }
+.fc-grp { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; font: 600 var(--t-1) var(--f-body); color: var(--text); }
+.fc-grp i { width: 9px; height: 9px; border-radius: 50%; background: var(--pc, var(--line-2)); flex: none; }
+.fc-grp-none i { background: none; border: 1.5px solid var(--mist); }
+.fc-grp .chip { margin-left: auto; font-weight: 400; }
+.fc-decks .fc-row { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; padding: 10px 2px; min-height: 52px; }
+.fc-decks:has(.fc-row) { gap: 0; }
+.fc-row .fc-deck-name small { white-space: normal; }
+.fc-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+.fc-filter button { border-radius: 99px; padding: 5px 11px; font-size: var(--t-1); background: none; border: 1px solid var(--line); color: var(--mist); min-height: 32px; }
+.fc-filter button small { opacity: .75; margin-left: 2px; }
+.fc-filter button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.fc-sortrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; }
+/* V2 (3.91): the card really turns over. Off with reduced motion and in the Plain look, where the cross-fade above stays. */
+html.fc-3d .fc-card { perspective: 1200px; }
+html.fc-3d .fc-turn { transform-style: preserve-3d; transition: transform .46s cubic-bezier(.3, .7, .2, 1); }
+html.fc-3d .fc-review.shown .fc-turn { transform: rotateY(180deg); }
+html.fc-3d .fc-side { -webkit-backface-visibility: hidden; backface-visibility: hidden; transition: none; }
+html.fc-3d .fc-side-a, html.fc-3d .fc-review.shown .fc-side-a { opacity: 1; visibility: visible; translate: none; transform: rotateY(180deg); transition: none; }
+html.fc-3d .fc-review.shown .fc-side-q { opacity: 1; visibility: visible; transition: none; }
