@@ -267,7 +267,8 @@
     const has = k => Object.prototype.hasOwnProperty.call(draft, k);
     return {
       project: has('project') ? draft.project : q.project !== undefined ? q.project : (P().proj || null),
-      due: has('due') ? draft.due : q.due || null,
+      // 3.91: a task added from the List is for today unless typed or picked otherwise (« Sans date » stays one tap away in the chip); Upcoming adds for tomorrow, the Inbox adds undated
+      due: has('due') ? draft.due : q.due || (P().pview === 'inbox' ? null : P().pview === 'upcoming' ? ML.addDays(ML.today(), 1) : ML.today()),
       mins: draft.mins || q.mins || +$('new-mins').value,
       pri: draft.pri || q.pri || $('new-pri').value,
       repeat: { repeat: draft.repeat || '', days: draft.days || [] },

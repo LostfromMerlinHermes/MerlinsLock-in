@@ -1,7 +1,7 @@
 // UI text for core.js, app.js and index.html. Other modules register their own strings.
 ML.addStrings({
   fr: {
-    update_ready: 'Nouvelle version prête.', update_reload: 'Mettre à jour', sequence: 'Cercle', rk_1: 'Porte-lanterne', rk_2: 'Lieur d’encre', rk_3: 'Gardien des heures', rk_4: 'Tisseur d’esprit', rk_5: 'Lecteur d’étoiles', rk_6: 'Plieur du temps', rk_7: 'Grand Enchanteur', tap_again: 'Appuie encore pour confirmer', close: 'Fermer', install_app: "Installer l'app", float_timer: 'Minuteur flottant', settings: 'Réglages',
+    update_ready: 'Nouvelle version prête.', update_reload: 'Mettre à jour', sequence: 'Cercle', rk_1: 'Porte-lanterne', rk_2: 'Lieur d’encre', rk_3: 'Gardien des heures', rk_4: 'Tisseur d’esprit', rk_5: 'Lecteur d’étoiles', rk_6: 'Plieur du temps', rk_7: 'Grand Enchanteur', tap_again: 'Appuie encore pour confirmer', reset_sure: 'Sûr ?', close: 'Fermer', install_app: "Installer l'app", float_timer: 'Minuteur flottant', settings: 'Réglages',
     focus: 'Focus', break: 'Repos', break_lc: 'repos', compact_toggle: 'Réduire / agrandir le minuteur', finish: 'Terminer', reset: 'Annuler',
     rate_q: 'Ta concentration sur cette session ?', skip: 'Passer', custom: 'Perso', set: 'OK',
     park_ph: 'Note une pensée parasite', park: 'Noter',
@@ -69,7 +69,7 @@ ML.addStrings({
     installed: 'MerlinsLockIN est installé. Tu le trouveras dans le menu Démarrer.',
   },
   en: {
-    update_ready: 'A new version is ready.', update_reload: 'Update', sequence: 'Circle', rk_1: 'Lantern Bearer', rk_2: 'Ink Binder', rk_3: 'Hour Keeper', rk_4: 'Mind Weaver', rk_5: 'Star Reader', rk_6: 'Time Bender', rk_7: 'Grand Enchanter', tap_again: 'Tap again to confirm', close: 'Close', install_app: 'Install the app', float_timer: 'Floating timer', settings: 'Settings',
+    update_ready: 'A new version is ready.', update_reload: 'Update', sequence: 'Circle', rk_1: 'Lantern Bearer', rk_2: 'Ink Binder', rk_3: 'Hour Keeper', rk_4: 'Mind Weaver', rk_5: 'Star Reader', rk_6: 'Time Bender', rk_7: 'Grand Enchanter', tap_again: 'Tap again to confirm', reset_sure: 'Sure?', close: 'Close', install_app: 'Install the app', float_timer: 'Floating timer', settings: 'Settings',
     focus: 'Focus', break: 'Break', break_lc: 'break', compact_toggle: 'Shrink / expand the timer', finish: 'Finish', reset: 'Cancel',
     rate_q: 'How focused were you?', skip: 'Skip', custom: 'Custom', set: 'Set',
     park_ph: 'Note a stray thought', park: 'Note',

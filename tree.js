@@ -20,7 +20,8 @@
       tab_tree: 'Arbre', hb_tree: 'Ton année', tr_year: 'Ton année {y}', tr_prev: 'Année précédente', tr_next: 'Année suivante',
       tr_none: 'Ta première session fera pousser la première branche.', tr_week: 'Semaine {n}', tr_week_range: '{a} au {b}', tr_week_v: '{m}, {s} sessions, dont {f} Flow', tr_week_v1: '{m}, 1 session, {f} Flow', tr_week_empty: 'Semaine vide : la branche reste nue.', tr_week_prev: 'Semaine précédente', tr_week_next: 'Semaine suivante', tr_alt: 'Ton arbre : {n} semaines, {f} sessions Flow.',
       tr_key: 'Lire son arbre', tr_key_1: 'Une semaine ajoute une branche, et ses sessions la font grandir.', tr_key_2: 'Une session Flow ouvre une fleur. Un retour après un trou fait un bourgeon vif.', tr_key_3: 'Une semaine vide laisse une branche nue. L’arbre ne meurt jamais.', tr_key_4: 'Les racines viennent du point santé : sommeil, eau, bougé. Elles restent sur cet appareil.',
-      tr_roots_off: 'Active le point santé pour faire pousser les racines.', tr_roots_go: 'Ouvrir Bien-être', tr_skins: 'Arbres', tr_use: 'Utiliser', tr_used: 'Utilisé', tr_custom: 'Personnaliser dans la boutique', tr_prog: '{a} h sur {b} h', tr_in: 'dans {w}', tr_all: 'de travail', tr_shop: 'À la boutique', tr_unlocked: 'Nouvel arbre débloqué : {name}',
+      tr_roots_off: 'Active le point santé pour faire pousser les racines.', tr_roots_go: 'Ouvrir Bien-être', tr_skins: 'Arbres débloqués', tr_use: 'Utiliser', tr_used: 'Utilisé', tr_custom: 'Personnaliser dans la boutique', tr_prog: '{a} h sur {b} h', tr_in: 'dans {w}', tr_all: 'de travail', tr_shop: 'À la boutique', tr_unlocked: 'Nouvel arbre débloqué : {name}',
+      tr_bonsai: 'Bonsaï', tr_cherry: 'Cerisier', tr_ginkgo: 'Ginkgo', tr_premium: 'Inclus dans Premium', tr_3d: 'Se fait tourner du doigt', tr_turn: 'Glisse sur l’arbre pour le faire tourner.',
       tr_oak: 'Chêne', tr_plate: 'Planche gravée', tr_willow: 'Saule de l’étang', tr_pine: 'Pin taillé', tr_holo: 'Hologramme', tr_pixel: 'Arbre du lac',
       tr_orrery: 'Planétaire', tr_atlas: 'Atlas des étoiles', tr_fan: 'Éventail de mer', tr_coral: 'Corail noir', tr_pages: 'Arbre aux pages', tr_crystal: 'Arbre de cristal', tr_wired: 'Arbre câblé', tr_silver: 'Arbre d’argent', tr_hanging: 'Arbre suspendu',
       tree_atlas: 'Atlas des étoiles', tree_atlas_d: 'Ton année tracée comme une constellation sur une vieille carte du ciel.', tree_coral: 'Corail noir', tree_coral_d: 'Un corail sombre dont chaque semaine libère une méduse.', tree_crystal: 'Arbre de cristal', tree_crystal_d: 'Un tronc taillé comme une gemme, des grappes de cristaux qui flottent.', tree_hanging: 'Arbre suspendu', tree_hanging_d: 'Il pousse vers le bas, sous un rocher, au-dessus d’une mer de brume.',
@@ -50,7 +51,8 @@
       tab_tree: 'Tree', hb_tree: 'Your year', tr_year: 'Your year {y}', tr_prev: 'Previous year', tr_next: 'Next year',
       tr_none: 'Your first session will grow the first branch.', tr_week: 'Week {n}', tr_week_range: '{a} to {b}', tr_week_v: '{m}, {s} sessions, {f} in Flow', tr_week_v1: '{m}, 1 session, {f} Flow', tr_week_empty: 'Empty week: the branch stays bare.', tr_week_prev: 'Previous week', tr_week_next: 'Next week', tr_alt: 'Your tree: {n} weeks, {f} Flow sessions.',
       tr_key: 'How to read it', tr_key_1: 'A week adds a branch, and its sessions make it grow.', tr_key_2: 'A Flow session opens a flower. A comeback after a gap makes a bright bud.', tr_key_3: 'An empty week leaves a bare branch. The tree never dies.', tr_key_4: 'The roots come from the Health check: sleep, water, moving. They stay on this device.',
-      tr_roots_off: 'Turn on the Health check to grow the roots.', tr_roots_go: 'Open Wellbeing', tr_skins: 'Trees', tr_use: 'Use', tr_used: 'In use', tr_custom: 'Customize in the shop', tr_prog: '{a} h of {b} h', tr_in: 'in {w}', tr_all: 'of work', tr_shop: 'In the shop', tr_unlocked: 'New tree unlocked: {name}',
+      tr_roots_off: 'Turn on the Health check to grow the roots.', tr_roots_go: 'Open Wellbeing', tr_skins: 'Unlocked trees', tr_use: 'Use', tr_used: 'In use', tr_custom: 'Customize in the shop', tr_prog: '{a} h of {b} h', tr_in: 'in {w}', tr_all: 'of work', tr_shop: 'In the shop', tr_unlocked: 'New tree unlocked: {name}',
+      tr_bonsai: 'Bonsai', tr_cherry: 'Cherry tree', tr_ginkgo: 'Ginkgo', tr_premium: 'Included in Premium', tr_3d: 'Turns under your finger', tr_turn: 'Drag across the tree to turn it.',
       tr_oak: 'Oak', tr_plate: 'Engraved plate', tr_willow: 'Pond willow', tr_pine: 'Cloud pine', tr_holo: 'Hologram', tr_pixel: 'Lake tree',
       tr_orrery: 'Orrery', tr_atlas: 'Star atlas', tr_fan: 'Sea fan', tr_coral: 'Black coral', tr_pages: 'Page tree', tr_crystal: 'Crystal tree', tr_wired: 'Wired tree', tr_silver: 'Silver tree', tr_hanging: 'Hanging tree',
       tree_atlas: 'Star atlas', tree_atlas_d: 'Your year drawn as a constellation on an old sky chart.', tree_coral: 'Black coral', tree_coral_d: 'A dark coral; each week sets a jellyfish free.', tree_crystal: 'Crystal tree', tree_crystal_d: 'A trunk cut like a gem, clusters of crystal floating free.', tree_hanging: 'Hanging tree', tree_hanging_d: 'It grows downward under a rock, above a sea of fog.',
@@ -81,13 +83,16 @@
   // World trees: 25 h in their world. Shop trees: bought with gold (economy.js, category tree)
   const RULES = { oak: null, plate: { h: 10 }, willow: { h: 25, world: 'sanctuary' }, orrery: { h: 25, world: 'observatory' }, holo: { h: 25, world: 'netrunner' }, pixel: { h: 25, world: 'arcade' },
     fan: { h: 25, world: 'abyss' }, pages: { h: 25, world: 'sorcerer' }, wired: { h: 25, world: 'neoncity' }, silver: { h: 25, world: 'fog' },
-    pine: { shop: true }, atlas: { shop: true }, coral: { shop: true }, crystal: { shop: true }, hanging: { shop: true } };
-  const SKIN_ORDER = ['oak', 'plate', 'willow', 'orrery', 'holo', 'pixel', 'fan', 'pages', 'wired', 'silver', 'pine', 'atlas', 'coral', 'crystal', 'hanging'];
+    pine: { shop: true }, atlas: { shop: true }, coral: { shop: true }, crystal: { shop: true }, hanging: { shop: true },
+    bonsai: { premium: true }, cherry: { premium: true }, ginkgo: { premium: true } }; // in volume, tree3d.js: included in Premium, no gold
+  const SKIN_ORDER = ['oak', 'bonsai', 'cherry', 'ginkgo', 'plate', 'willow', 'orrery', 'holo', 'pixel', 'fan', 'pages', 'wired', 'silver', 'pine', 'atlas', 'coral', 'crystal', 'hanging'];
+  const is3d = k => !!(ML.Tree3D && ML.Tree3D.is(k));
   ML.TREE_SHOP_SKINS = Object.keys(RULES).filter(k => RULES[k] && RULES[k].shop);
   const ownedSkin = k => !!(S.econ && S.econ.owned && (S.econ.owned.tree || []).includes(k));
   function hasSkin(k, list) {
     const r = RULES[k]; if (r === undefined) return false; if (r === null) return true;
     if (r.shop) return ownedSkin(k);
+    if (r.premium) return !!(ML.isPremium && ML.isPremium());
     return minsIn(r.world, list) >= r.h * 60;
   }
   const skinNow = () => { const k = S.econ && S.econ.equip && S.econ.equip.treeSkin; return hasSkin(k) ? k : 'oak'; };
@@ -101,7 +106,7 @@
   const subjOf = s => { if (s.subject) return s.subject; const x = s.taskId && S.tasks.find(y => y.id === s.taskId); return (x && x.subject) || null; };
   const subjList = () => S.subjects || [];
   const tintOn = () => T().subj !== false && subjList().length > 0;
-  const TINT_SKINS = ['oak', 'plate', 'willow', 'pine', 'pixel'];
+  const TINT_SKINS = ['oak', 'plate', 'willow', 'pine', 'pixel', 'bonsai', 'cherry', 'ginkgo'];
   const mixHex = (a, b, k) => '#' + [1, 3, 5].map(i => Math.round(parseInt(a.substr(i, 2), 16) * (1 - k) + parseInt(b.substr(i, 2), 16) * k).toString(16).padStart(2, '0')).join('');
   const palCache = {};
   const palFrom = hex => (/^#[0-9a-f]{6}$/i.test(hex || '') ? palCache[hex] || (palCache[hex] = [mixHex(hex, '#0d0a12', .58), mixHex(hex, '#0d0a12', .26), mixHex(hex, '#ffffff', .12), mixHex(hex, '#ffffff', .56)]) : null);
@@ -163,6 +168,8 @@
     const skin = skinNow(), weeks = nowWeeks(), roots = rootValues(viewY), o = Object.assign(dress(), { roots, rootNames: rootNames(), title: t('tr_week', { n: weeks.length }) });
     const key = JSON.stringify([skin, weeks, o]);
     fit(skin);
+    if (is3d(skin)) { paintedKey = ''; ML.Tree3D.live(cv, skin, weeks, o, h => { hits = h; marker(); }); return; } // it turns: repainted by tree3d.js
+    if (ML.Tree3D) ML.Tree3D.stop(cv);
     if (key !== paintedKey) { hits = A.paint(ctx, skin, weeks, o) || []; paintedKey = key; }
     marker();
   }
@@ -332,8 +339,9 @@
     if (cur) state = `<span class="eq-tag">✓ ${esc(t('tr_used'))}</span>`;
     else if (own) state = `<button type="button" class="small" data-skin="${k}">${esc(t('tr_use'))}</button>`;
     else if (r.shop) state = `<button type="button" class="small" data-open-shop>${esc(t('tr_shop'))}</button>`;
+    else if (r.premium) state = `<small>${esc(t('tr_premium'))}</small>`;
     else { const m = minsIn(r.world); state = `<small>${esc(t('tr_prog', { a: Math.floor(m / 60).toLocaleString(ML.locale()), b: r.h }))} ${esc(r.world ? t('tr_in', { w: t('th_' + r.world) }) : t('tr_all'))}</small><span class="y-track"><b style="width:${Math.min(100, m / (r.h * 60) * 100).toFixed(0)}%"></b></span>`; }
-    return `<div class="tr-skin ${cur ? 'on' : ''} ${own ? '' : 'locked'}"><img class="tree-prev" data-tp="skin:${k}" alt=""><b>${esc(nameOf(k))}</b>${state}</div>`;
+    return `<div class="tr-skin ${cur ? 'on' : ''} ${own ? '' : 'locked'}"><img class="tree-prev" data-tp="skin:${k}" alt=""><b>${esc(nameOf(k))}</b>${is3d(k) ? `<small class="tr-3d">${esc(t('tr_3d'))}</small>` : ''}${state}</div>`;
   }
   /* ---------- Weekly challenge (Lively) ---------- */
   const CH = { further: ['flow3', 'morning3', 'long'], start: ['days3', 'starts5'], phone: ['days4', 'clean5'] };
@@ -359,6 +367,7 @@
     const html = `<div class="y-page tr-page">
       <div class="tr-top"><h2>${esc(t('tr_year', { y: viewY + '–' + (viewY + 1) }))}</h2>${ys.length > 1 ? `<div class="tr-years"><button type="button" class="icon-btn" data-yr="-1" aria-label="${esc(t('tr_prev'))}" ${yi ? '' : 'disabled'}>‹</button><button type="button" class="icon-btn" data-yr="1" aria-label="${esc(t('tr_next'))}" ${yi < ys.length - 1 ? '' : 'disabled'}>›</button></div>` : ''}</div>
       <div class="tr-stage" id="tr-stage"><i class="tr-mark" id="tr-mark" hidden></i></div>
+      ${is3d(skinNow()) ? `<p class="insight tr-turn">${esc(t('tr_turn'))}</p>` : ''}
       ${isNow ? weekLine(false, true) + ML.youCards() : ''}
       <div class="g-card">${weekCard(weeks)}
         ${roots || !ML.modOn('wellbeing') ? '' : `<p class="insight tr-rootsoff">${esc(t('tr_roots_off'))} <button type="button" class="link" data-go-health>${esc(t('tr_roots_go'))}</button></p>`}</div>
@@ -438,6 +447,8 @@
     hT = setTimeout(() => {
       const skin = skinNow(), y = yearOf(Date.now()), weeks = weeksOf(y), o = Object.assign(dress(), { roots: rootValues(y), rootNames: rootNames(), title: null }), key = JSON.stringify([skin, weeks, o]);
       hcv.setAttribute('aria-label', t('tr_alt', { n: weeks.length, f: weeks.reduce((a, w) => a + w.f, 0) }));
+      if (is3d(skin)) { const [W, H] = A.SIZE(skin); if (hcv.width !== W) { hcv.width = W; hcv.height = H; } hcv.classList.remove('tr-px'); hKey = ''; ML.Tree3D.live(hcv, skin, weeks, o, null); return; }
+      if (ML.Tree3D) ML.Tree3D.stop(hcv);
       if (key === hKey) return;
       const [W, H] = A.SIZE(skin); hcv.width = W; hcv.height = H; hcv.classList.toggle('tr-px', skin === 'pixel');
       A.paint(hcv.getContext('2d'), skin, weeks, o); hKey = key;

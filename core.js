@@ -231,7 +231,7 @@ window.ML = (() => {
   function armedButton(btn, labelKey, action) {
     let armed = false, tm;
     btn.addEventListener('click', () => {
-      if (!armed) { armed = true; btn.textContent = t('tap_again'); tm = setTimeout(() => { armed = false; btn.textContent = t(labelKey); }, 3000); return; }
+      if (!armed) { armed = true; btn.textContent = t('tap_again'); tm = setTimeout(() => { armed = false; btn.textContent = t(labelKey); }, 6000); return; }
       clearTimeout(tm); armed = false; btn.textContent = t(labelKey); action();
     });
   }

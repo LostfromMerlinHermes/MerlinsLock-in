@@ -28,8 +28,7 @@
   const leftTxt = n => (n ? t('td_in', { n }) : t('td_today'));
   const nextExam = () => ((S.study && S.study.exams) || []).filter(x => daysTo(x.date) >= 0).sort((a, b) => a.date.localeCompare(b.date))[0];
   // Cards waiting across every deck (free users have no decks to review: the section is Premium)
-  const cardsDue = () => (ML.studyDecks ? ML.studyDecks().reduce((a, d) => a + ML.studyDeckInfo(d.id).due, 0) : 0);
-  const firstDueDeck = () => (ML.studyDecks ? ML.studyDecks().find(d => ML.studyDeckInfo(d.id).due > 0) : null);
+  const cardsDue = () => (ML.studyDueAll ? ML.studyDueAll().n : 0); // every deck once (a parent's count includes its sub-decks)
   const dueLine = n => (n === 1 ? t('td_due_one') : t('td_due', { n }));
 
   /* ---------- Today ---------- */
@@ -95,6 +94,7 @@
     study: '<rect x="3" y="7" width="13" height="12" rx="2"/><path d="M8 4h11a2 2 0 0 1 2 2v9"/>',
     lib: '<path d="M5 4h4v16H5zM10 4h4v16h-4zM15.5 5l3.5 1-3 14-3.5-1"/>',
     lectures: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+    stools: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
     learn: '<path d="M12 3a6 6 0 0 0-3 11v3h6v-3a6 6 0 0 0-3-11zM10 21h4"/>',
     room: '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c1-3 3-4 5-4s4 1 5 4M11 19c1-3 3-4 5-4s4 1 5 4"/>',
   };
@@ -112,6 +112,7 @@
       ${hbRow('study', t('tab_cards'), prem ? (due ? dueLine(due) : t('hb_nocards')) : t('hb_cards_free'), { hot: due > 0, locked: !prem })}
       ${hbRow('lib', t('nav_lib'), prem ? (docs ? t('hb_docs', { n: docs }) : t('hb_nodocs')) : t('hb_lib_free'), { locked: !prem })}
       ${hbRow('lectures', t('tab_lectures'), prem ? (lect ? t('hb_lect', { n: lect }) : t('hb_nolect')) : t('hb_lect_free'), { locked: !prem })}
+      ${hbRow('stools', t('st_tools'), t('hb_tools'), { locked: !prem })}
       ${hbRow('learn', t('tab_learn'), t('hb_learn'))}
       ${hbRow('room', t('tab_room'), S.room && S.room.code ? t('hb_room_on', { c: S.room.code }) : t('hb_room'))}
     </div></div>`;
@@ -164,7 +165,8 @@
     if (go === 'late') { S.plan.pview = 'all'; save(); ML.setTab('plan'); return ML.renderTasks(); }
     if (go === 'inbox') { S.plan.pview = 'inbox'; save(); ML.setTab('plan'); return ML.renderTasks(); }
     if (go === 'cards') return ML.setTab('study');
-    if (go === 'review') { const d = firstDueDeck(); ML.setTab('study'); return d && ML.studyReview(d.id); }
+    if (go === 'review') { ML.setTab('study'); return ML.studyReviewAll && ML.studyReviewAll(); }
+    if (go === 'stools') return ML.openStudyTools && ML.openStudyTools();
     if (go === 'shop') return ML.openShop();
     if (go === 'worlds') return ML.openWorlds && ML.openWorlds();
     if (go === 'settings') return $('settings-btn').click();

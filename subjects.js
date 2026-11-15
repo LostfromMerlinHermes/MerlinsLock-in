@@ -184,7 +184,7 @@
   });
   root.addEventListener('change', e => {
     const id = e.target.dataset.sjDeck; if (id === undefined) return;
-    const decks = S.study.decks; decks.forEach(d => { if (d.subject === id) delete d.subject; });
+    const decks = S.study.decks, prev = decks.find(d => d.subject === id); if (prev) delete prev.subject; // only the deck shown here: a subject may hold several decks (3.91)
     const d = decks.find(y => y.id === e.target.value); if (d) d.subject = id; save();
   });
 

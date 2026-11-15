@@ -5279,3 +5279,9 @@ html.fc-3d .fc-review.shown .fc-turn { transform: rotateY(180deg); }
 html.fc-3d .fc-side { -webkit-backface-visibility: hidden; backface-visibility: hidden; transition: none; }
 html.fc-3d .fc-side-a, html.fc-3d .fc-review.shown .fc-side-a { opacity: 1; visibility: visible; translate: none; transform: rotateY(180deg); transition: none; }
 html.fc-3d .fc-review.shown .fc-side-q { opacity: 1; visibility: visible; transition: none; }
+/* 3.91, from the first-time-user test: no empty box when a group's only task is on the next-task card; Cancel's « Sûr ? » stays on one line; world names in the picker wrap instead of being cut */
+.tasks.pg-list:empty { display: none; }
+#reset { white-space: nowrap; }
+.wtile-n { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.2; overflow-wrap: break-word; }
+.wtiles:has(> :nth-child(4)) .wtile-n { font-size: 11.5px; }
+.isl-yeartree { justify-self: start; }

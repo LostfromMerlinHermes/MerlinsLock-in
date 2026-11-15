@@ -23,7 +23,7 @@
       isl_alt: 'Ton île : {s}, {a} de focus.', cat_islands: 'Îles',
       isl_lamps: 'Une lumière s’élève au-dessus de l’île à chaque séance du jour. Aujourd’hui : {n}.',
       isl_hour: 'Heure de l’île', isl_h_auto: 'Auto', isl_h_dawn: 'Aube', isl_h_day: 'Jour', isl_h_dusk: 'Crépuscule', isl_h_night: 'Nuit',
-      isl_tree_pick: 'Arbre du Jardin', isl_tree_world: 'Arbre du monde', isl_tree_oak: 'Chêne',
+      isl_tree_pick: 'Arbre du Jardin', isl_tree_world: 'Arbre du monde', isl_tree_oak: 'Chêne', isl_tree_oakpick: 'Le chêne pousse sur l’île à la place de l’arbre de ce monde.', isl_year_tree: 'Mon arbre de l’année ›',
       isl_decor: 'Décor', isl_d_books: 'Livres volants', isl_d_crystals: 'Cristaux', isl_d_circle: 'Cercle de pierres', isl_d_lock: '{d} : à {n} h de focus dans ce monde.',
       island_orbit: 'Les orbites', island_orbit_d: 'Pour l’Observatoire. L’île au cœur d’un planétaire en laiton, sous une aurore ou une nuit chaude.',
       island_pavilion: 'Le pavillon de lune', island_pavilion_d: 'Pour le Sanctuaire. Une pagode à balcons sur des orgues de basalte, des lanternes sous l’île.',
@@ -48,7 +48,7 @@
       isl_alt: 'Your island: {s}, {a} of focus.', cat_islands: 'Islands',
       isl_lamps: 'A light rises above the island for each session of the day. Today: {n}.',
       isl_hour: 'Hour on the island', isl_h_auto: 'Auto', isl_h_dawn: 'Dawn', isl_h_day: 'Day', isl_h_dusk: 'Dusk', isl_h_night: 'Night',
-      isl_tree_pick: 'Garden tree', isl_tree_world: 'World tree', isl_tree_oak: 'Oak',
+      isl_tree_pick: 'Garden tree', isl_tree_world: 'World tree', isl_tree_oak: 'Oak', isl_tree_oakpick: 'The oak grows on the island instead of this world’s tree.', isl_year_tree: 'My year tree ›',
       isl_decor: 'Decor', isl_d_books: 'Flying books', isl_d_crystals: 'Crystals', isl_d_circle: 'Stone circle', isl_d_lock: '{d}: at {n} h of focus in this world.',
       island_orbit: 'The orbits', island_orbit_d: 'For the Observatoire. The island at the heart of a brass orrery, under an aurora or a warm night.',
       island_pavilion: 'The moon pavilion', island_pavilion_d: 'For the Sanctuaire. A pagoda with balconies on basalt columns, lanterns under the island.',
@@ -313,7 +313,8 @@
     R.tower.push(staged
       ? `<ol class="isl-stg">${STAGES.map((h, i) => `<li class="${i < v.stage ? 'on' : i === v.stage ? 'on now' : ''}"${i === v.stage ? ' aria-current="step"' : ''}><canvas data-stg="${i}" width="240" height="156" aria-hidden="true"></canvas><span>${esc(t('isl_stage_' + i))}</span><span>${h} h</span></li>`).join('')}</ol>`
       : `<ol class="isl-steps">${STAGES.map((h, i) => `<li class="${i <= v.stage ? 'on' : ''}"${i === v.stage ? ' aria-current="step"' : ''}><span>${esc(t('isl_stage_' + i))}</span><span>${h} h</span></li>`).join('')}</ol>`);
-    R.garden.push(tx(!v.tree ? t('isl_tree_none', { a: D(v.wm) }) : v.oak ? t('isl_tree', { h: v.h }) : t('isl_tree_on', { a: D(v.wm) })));
+    R.garden.push(tx(!v.tree ? t('isl_tree_none', { a: D(v.wm) }) : v.oak ? t('isl_tree_oakpick') : t('isl_tree_on', { a: D(v.wm) })));
+    R.garden.push(`<button type="button" class="link isl-yeartree" data-isl-year>${esc(t('isl_year_tree'))}</button>`); // 3.91: the year tree (Tree page) was only reachable through search
     if (!cart) R.workshop.push(tx(t(own.length ? 'isl_ws' : 'isl_ws_none')), `<div><button type="button" class="small" data-wd="shop">${esc(t('shop'))}</button></div>`);
     R.quay.unshift(tx(t(fixed ? 'isl_quay_fixed' : 'isl_quay')), fixed ? '' : `<div><button type="button" class="small" data-wd="worlds">${esc(t('wd_change'))}</button></div>`);
     R.view.unshift(tx(t('isl_view', { a: D(v.mins), b: D(v.wm), w: t('th_' + v.world) })), step ? tx(t('isl_lamps', { n: todayN() })) : '');
@@ -377,6 +378,7 @@
       else if (b.dataset.islSky) { isle('observatory').sky = b.dataset.islSky; save(); remount(); }
       else if (b.dataset.islHour) { isle(v.world).hour = b.dataset.islHour; save(); remount(); }
       else if (b.dataset.islTree) { isle(v.world).tree = b.dataset.islTree; save(); remount(); }
+      else if (b.hasAttribute('data-isl-year')) ML.setTab('tree');
       else if (b.dataset.islDecor) { const I = isle(v.world), k = b.dataset.islDecor; I.decor = Object.assign({}, I.decor, { [k]: !v.decor.includes(k) }); save(); remount(); }
       else if (b.dataset.car && neo) { E().equip.islCar = b.dataset.car; save(); }
     });

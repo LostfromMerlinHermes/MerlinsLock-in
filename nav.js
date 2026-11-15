@@ -29,7 +29,7 @@
   };
   const svg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>`;
   const label = k => t(k === 'today' ? 'nav_today' : k === 'timer' ? 'nav_timer' : k === 'study' ? 'sp_study' : k === 'you' ? 'sp_you' : k === 'world' ? 'sp_world' : 'tab_' + k);
-  const tabName = k => t(k === 'today' ? 'nav_today' : k === 'world' ? 'sp_world' : k === 'day' || k === 'cal' ? 'tab_plan' : k === 'shome' ? 'sp_study' : k === 'yhome' ? 'sp_you' : k === 'lib' ? 'nav_lib' : k === 'study' ? 'tab_cards' : 'tab_' + k);
+  const tabName = k => t(k === 'today' ? 'nav_today' : k === 'world' ? 'sp_world' : k === 'day' || k === 'cal' ? 'tab_plan' : k === 'shome' ? 'sp_study' : k === 'yhome' ? 'sp_you' : k === 'lib' ? 'nav_lib' : k === 'study' ? (S.study && S.study.tool && S.study.tool !== 'cards' ? 'st_tools' : 'tab_cards') : 'tab_' + k);
 
   let view = null;
   try { view = localStorage.getItem(KEY); } catch (e) {}
