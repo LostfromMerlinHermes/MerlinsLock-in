@@ -5304,3 +5304,8 @@ html.fc-3d .fc-review.shown .fc-side-q { opacity: 1; visibility: visible; transi
 .nh-cards textarea { resize: vertical; min-height: 44px; font: inherit; font-size: var(--t-2); }
 .nh-cards li:has(input[type="checkbox"]:not(:checked)) > div { opacity: .45; }
 .nh-dl { margin: 0; }
+
+/* World object (3.97, worldobj.js): one small object in volume in the corner of the dial */
+.ring-wrap canvas.world-obj { position: absolute; right: -14px; bottom: -10px; width: 76px; height: 76px; z-index: 3; touch-action: pan-y; cursor: grab; }
+.ring-wrap canvas.world-obj:active { cursor: grabbing; }
+:root[data-timer="running"] .ring-wrap canvas.world-obj { opacity: .8; }
