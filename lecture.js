@@ -10,11 +10,13 @@
       tab_lectures: 'Cours', lc_intro: 'Enregistre le cours et note en même temps. Chaque note garde son moment : touche-la pour réentendre ce qui se disait.', lc_consent: 'Demande d’abord l’accord de la personne qui parle.', lc_local: 'L’audio reste sur cet appareil. Tes notes te suivent sur les autres.', lc_local_n: 'L’audio reste sur cet appareil ({used}). Tes notes te suivent sur les autres.', lc_mine: 'Tes cours', lc_nn: '{n} notes', lc_nn_one: '1 note', lc_nn_zero: 'Sans note',
       lc_title_ph: 'Nom du cours', lc_start: 'Enregistrer', lc_pause: 'Pause', lc_resume: 'Reprendre', lc_stop: 'Terminer', lc_note_ph: 'Écris une note, Entrée pour la garder', lc_add: 'Garder', lc_live: 'Enregistrement', lc_paused: 'En pause', lc_none: 'Aucun cours enregistré.', lc_back: 'Tous les cours', lc_notes_n: 'Notes : {n}', lc_no_notes: 'Pas encore de note.', lc_no_audio: 'L’audio de ce cours est sur un autre appareil.', lc_send: 'Envoyer au Carnet', lc_sent: 'Notes envoyées au Carnet.', lc_delete: 'Supprimer ce cours', lc_used: '{used} utilisés sur cet appareil', lc_premium: 'Lecture capture fait partie de Premium.',
       lc_mic: 'Le micro n’est pas disponible. Autorise-le dans ton navigateur, puis réessaie.', lc_mic_ext: 'Le panneau latéral ne peut pas demander le micro. Ouvre l’app dans un onglet et enregistre depuis cet onglet.', lc_open_tab: 'Ouvrir dans un onglet', lc_unsupported: 'Ce navigateur ne sait pas enregistrer.', lc_full: 'Plus assez de place : l’enregistrement s’est arrêté.', lc_bg: 'Sur téléphone, garde l’app ouverte : certains appareils coupent le micro en arrière-plan.', lc_leave: 'Un enregistrement est en cours.',
+      lc_tr_on: 'Transcrire en direct (bêta)', lc_tr: 'Transcription', lc_tr_beta: 'Bêta. Pendant l’enregistrement, la reconnaissance vocale de ton navigateur écrit ce qui se dit. Le son est envoyé à son service de reconnaissance (Google sur Chrome et Edge). Vérifie le texte avant de t’y fier.', lc_tr_empty: 'Parle : le texte apparaît ici.', lc_tr_none: 'Pas de transcription pour ce cours.', lc_tr_unsupported: 'Ce navigateur ne sait pas transcrire. Le cours reste enregistré.', lc_tr_fail: 'La transcription s’est arrêtée (réseau ou micro).',
     },
     en: {
       tab_lectures: 'Lectures', lc_intro: 'Record the class and take notes as it goes. Each note keeps its moment: tap it to hear what was being said.', lc_consent: 'Ask the speaker for permission first.', lc_local: 'The audio stays on this device. Your notes follow you on the others.', lc_local_n: 'The audio stays on this device ({used}). Your notes follow you on the others.', lc_mine: 'Your lectures', lc_nn: '{n} notes', lc_nn_one: '1 note', lc_nn_zero: 'No notes',
       lc_title_ph: 'Class name', lc_start: 'Record', lc_pause: 'Pause', lc_resume: 'Resume', lc_stop: 'Finish', lc_note_ph: 'Type a note, Enter to keep it', lc_add: 'Keep', lc_live: 'Recording', lc_paused: 'Paused', lc_none: 'No lecture recorded yet.', lc_back: 'All lectures', lc_notes_n: 'Notes: {n}', lc_no_notes: 'No notes yet.', lc_no_audio: 'The audio of this lecture is on another device.', lc_send: 'Send to Notes', lc_sent: 'Notes sent to Notes.', lc_delete: 'Delete this lecture', lc_used: '{used} used on this device', lc_premium: 'Lecture capture is part of Premium.',
       lc_mic: 'The microphone isn’t available. Allow it in your browser, then try again.', lc_mic_ext: 'The side panel can’t ask for the microphone. Open the app in a tab and record from that tab.', lc_open_tab: 'Open in a tab', lc_unsupported: 'This browser can’t record.', lc_full: 'Not enough space left: the recording stopped.', lc_bg: 'On a phone, keep the app open: some devices cut the microphone in the background.', lc_leave: 'A recording is in progress.',
+      lc_tr_on: 'Transcribe live (beta)', lc_tr: 'Transcript', lc_tr_beta: 'Beta. While recording, your browser’s speech recognition writes down what is said. The sound is sent to its recognition service (Google on Chrome and Edge). Check the text before you rely on it.', lc_tr_empty: 'Talk: the text appears here.', lc_tr_none: 'No transcript for this lecture.', lc_tr_unsupported: 'This browser can’t transcribe. The lecture is still recorded.', lc_tr_fail: 'The transcript stopped (network or microphone).',
     },
   });
   ML.defaults(() => ({ lectures: [] }));
@@ -44,7 +46,7 @@
   const MIME = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'];
   const elapsed = () => (rec ? rec.before + (rec.paused ? 0 : (Date.now() - rec.startedAt) / 1000) : 0);
 
-  async function start(title) {
+  async function start(title, tr) {
     micErr = '';
     if (!window.MediaRecorder || !navigator.mediaDevices) { micErr = 'lc_unsupported'; return render(); }
     let stream;
@@ -54,20 +56,55 @@
     const mr = new MediaRecorder(stream, Object.assign({ audioBitsPerSecond: 32000 }, mime ? { mimeType: mime } : {}));
     const lec = { id: uid(), title: title || new Date().toLocaleDateString(ML.locale(), { day: 'numeric', month: 'long' }), at: Date.now(), secs: 0, mime: mr.mimeType || mime, device: true, live: true, notes: [] };
     list().unshift(lec); save();
-    rec = { id: lec.id, mr, stream, n: 0, startedAt: Date.now(), before: 0, paused: false, wake: null };
+    rec = { id: lec.id, mr, stream, n: 0, startedAt: Date.now(), before: 0, paused: false, wake: null, tr: !!tr && !!SR, asrFails: 0 };
     mr.ondataavailable = e => { if (!e.data || !e.data.size) return; const n = rec ? rec.n++ : 0; putChunk(lec.id, n, e.data).catch(() => { toast(t('lc_full'), { ms: 8000 }); stop(); }); lec.secs = Math.floor(elapsed()); save(); };
     mr.start(10000);
+    if (rec.tr) asrOn();
     try { rec.wake = await navigator.wakeLock.request('screen'); } catch (e) {}
     openId = null; render(); tickOn();
   }
   function togglePause() {
     if (!rec) return;
-    if (rec.paused) { rec.mr.resume(); rec.startedAt = Date.now(); rec.paused = false; }
-    else { rec.before = elapsed(); rec.mr.pause(); rec.paused = true; }
+    if (rec.paused) { rec.mr.resume(); rec.startedAt = Date.now(); rec.paused = false; if (rec.tr) asrOn(); }
+    else { rec.before = elapsed(); rec.mr.pause(); rec.paused = true; asrOff(); }
     render(); renderPill();
   }
+
+  /* ---------- Live transcript (T1, beta): the browser's speech recognition, while recording. Final phrases only, each with its moment ---------- */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let asr = null;
+  function asrOn() {
+    if (!SR || !rec || rec.paused || !rec.tr || asr) return;
+    const id = rec.id, r = new SR();
+    r.lang = S.lang === 'en' ? 'en-US' : 'fr-FR'; r.continuous = true; r.interimResults = false;
+    r.onresult = e => {
+      const lec = byId(id); if (!lec) return;
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const res = e.results[i]; if (!res.isFinal) continue;
+        const text = (res[0].transcript || '').trim(); if (!text) continue;
+        if (!lec.transcript) lec.transcript = [];
+        lec.transcript.push({ id: uid(), t: Math.floor(elapsed()), text: text.slice(0, 2000) });
+      }
+      if (rec && rec.id === id) rec.asrFails = 0;
+      save(); if (rec && rec.id === id) liveTranscript();
+    };
+    // « no-speech » and « aborted » are normal (silence, or a pause); anything else (network, not allowed) stops it for good
+    r.onerror = e => { if (rec && rec.id === id && e.error !== 'no-speech' && e.error !== 'aborted') { rec.asrFails = 99; toast(t('lc_tr_fail'), { ms: 6000 }); } };
+    r.onend = () => {
+      if (asr === r) asr = null;
+      if (!rec || rec.id !== id || rec.paused || !rec.tr || rec.asrFails >= 99) return;
+      // Chrome ends a session after a while on its own (and on silence): start a new one, a little later, and give up only after a long run of empty sessions
+      if (++rec.asrFails > 200) { rec.asrFails = 99; return; }
+      setTimeout(() => { if (rec && rec.id === id) asrOn(); }, 300);
+    };
+    asr = r;
+    try { r.start(); } catch (err) { asr = null; }
+  }
+  function asrOff() { const r = asr; asr = null; if (r) { try { r.stop(); } catch (e) {} } }
+  function liveTranscript() { const b = $('lc-trbox'), lec = rec && byId(rec.id); if (b && lec) b.innerHTML = trHtml(lec, false); }
   function stop() {
     if (!rec) return;
+    rec.tr = false; asrOff();
     const r = rec, lec = byId(r.id), secs = elapsed();
     r.mr.onstop = () => { r.stream.getTracks().forEach(x => x.stop()); if (lec) { lec.secs = Math.floor(secs); lec.live = false; save(); } rec = null; openId = r.id; render(); renderPill(); };
     try { r.mr.state !== 'inactive' ? r.mr.stop() : r.mr.onstop(); } catch (e) { r.mr.onstop(); }
@@ -103,12 +140,21 @@
     return `<div class="lc-live ${rec.paused ? 'paused' : ''}"><h3>${esc(lec.title)}</h3>
       <div class="lc-meter"><i></i><b id="lc-clock" role="timer">${esc(clock(elapsed()))}</b><span>${esc(t(rec.paused ? 'lc_paused' : 'lc_live'))}</span></div>
       <div class="lc-btns"><button type="button" class="small" data-lc="pause">${esc(t(rec.paused ? 'lc_resume' : 'lc_pause'))}</button><button type="button" class="small primary" data-lc="stop">${esc(t('lc_stop'))}</button></div>
-      ${noteForm()}${notesHtml(lec, false)}<p class="hint">${esc(t('lc_bg'))}</p></div>`;
+      ${noteForm()}${notesHtml(lec, false)}<div id="lc-trbox">${trHtml(lec, false)}</div><p class="hint">${esc(t('lc_bg'))}</p></div>`;
+  }
+  // Transcript (T1, beta): final phrases with their moment; seek buttons only once the audio can be played back
+  function trHtml(lec, seek) {
+    const rows = lec.transcript || [], live = !!rec && rec.id === lec.id;
+    if (!rows.length && !live) return '';
+    const body = rows.length
+      ? `<ul class="lc-notes">${rows.map(r => `<li>${seek ? `<button type="button" class="lc-time" data-lc-seek="${r.t}">${esc(clock(r.t))}</button>` : `<span class="lc-time">${esc(clock(r.t))}</span>`}<span class="lc-text">${esc(r.text)}</span></li>`).join('')}</ul>`
+      : `<p class="hint">${esc(t(!SR ? 'lc_tr_unsupported' : rec.tr ? 'lc_tr_empty' : 'lc_tr_none'))}</p>`;
+    return `<div class="lc-tr"><h3 class="tx-h">${esc(t('lc_tr'))}</h3>${(live && rec.tr) || rows.length ? `<p class="tx-aside">${esc(t('lc_tr_beta'))}</p>` : ''}${body}</div>`;
   }
   function detailHtml(lec) {
     return `<div class="lc-detail"><button type="button" class="link" data-lc="back">${esc(t('lc_back'))}</button>
       <input type="text" class="lc-rename" id="lc-rename" maxlength="80" value="${esc(lec.title)}" aria-label="${esc(t('lc_title_ph'))}"><small class="hint">${esc(fmtDate(lec.at))} · ${esc(clock(lec.secs))}</small>
-      <div id="lc-player"></div>${noteForm()}${notesHtml(lec, true)}
+      <div id="lc-player"></div>${noteForm()}${notesHtml(lec, true)}<div id="lc-trbox">${trHtml(lec, true)}</div>
       <div class="lc-btns"><button type="button" class="small" data-lc="send" ${lec.notes.length ? '' : 'disabled'}>${esc(t('lc_send'))}</button><button type="button" class="small ghost danger" id="lc-del">${esc(t('lc_delete'))}</button></div></div>`;
   }
   function homeHtml() {
@@ -117,6 +163,7 @@
     const nn = n => (n ? ML.tn('lc_nn', n) : t('lc_nn_zero'));
     return `<p class="tx-lead">${esc(t('lc_intro'))}</p>
       <form class="lc-new" id="lc-new" autocomplete="off"><input type="text" id="lc-title" maxlength="80" placeholder="${esc(t('lc_title_ph'))}" aria-label="${esc(t('lc_title_ph'))}"><button type="submit" class="primary small">${esc(t('lc_start'))}</button></form>
+      ${SR ? `<label class="lc-tr-on"><input type="checkbox" id="lc-tr-on" checked> ${esc(t('lc_tr_on'))}</label>` : ''}
       ${micErr ? `<p class="lc-err" role="alert">${esc(t(micErr))}${micErr === 'lc_mic_ext' ? ` <button type="button" class="link" data-lc="tab">${esc(t('lc_open_tab'))}</button>` : ''}</p>` : ''}
       <p class="tx-aside">${esc(t('lc_consent'))}</p>
       ${list().length ? `<h3 class="tx-h">${esc(t('lc_mine'))}</h3><ul class="tx-rows">${list().map(x => `<li><button type="button" data-lc-open="${x.id}"><b>${esc(x.title)}</b><span>${esc(ML.fmtMins(Math.max(1, x.secs / 60)))}</span><small>${esc(day(x.at))} · ${esc(nn(x.notes.length))}</small></button></li>`).join('')}</ul>` : `<p class="tx-aside">${esc(t('lc_none'))}</p>`}
@@ -161,7 +208,7 @@
 
   root.addEventListener('submit', e => {
     e.preventDefault();
-    if (e.target.id === 'lc-new') { start(($('lc-title').value || '').trim()); return; }
+    if (e.target.id === 'lc-new') { start(($('lc-title').value || '').trim(), !!($('lc-tr-on') && $('lc-tr-on').checked)); return; }
     if (e.target.id === 'lc-noteform') {
       const i = $('lc-note'), v = i.value.trim(); if (!v) return;
       addNote(v, rec ? elapsed() : audio ? audio.currentTime : 0);

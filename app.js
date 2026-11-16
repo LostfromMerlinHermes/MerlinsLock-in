@@ -792,7 +792,7 @@
   $('reset').onclick = () => {
     const b = $('reset'), spent = (S.total - Math.max(0, remainingNow())) / 60;
     if (!running() && spent <= 0) return;
-    if (!resetArmed) { b.textContent = t('pl_sel_sure'); b.classList.add('armed'); resetArmed = setTimeout(() => { resetArmed = 0; b.textContent = t('reset'); b.classList.remove('armed'); }, 3000); return; }
+    if (!resetArmed) { b.textContent = t('reset_sure'); b.classList.add('armed'); resetArmed = setTimeout(() => { resetArmed = 0; b.textContent = t('reset'); b.classList.remove('armed'); }, 6000); return; }
     clearTimeout(resetArmed); resetArmed = 0; b.textContent = t('reset'); b.classList.remove('armed');
     if (S.mode === 'focus' && spent >= 5) emit('abandon', { mins: spent });
     stop(); S.remaining = S.total; save(); renderTimer();

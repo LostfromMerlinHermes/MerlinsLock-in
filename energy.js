@@ -13,7 +13,8 @@
       ep_sort_drained: 'Petites victoires d’abord', ep_sort_steady: 'Par priorité', ep_sort_fired: 'Tâche la plus dure d’abord', ep_sort_scattered: 'Une tâche à la fois',
       ob_intro: 'Le minuteur, l’ordre des tâches et le décor suivent ton énergie.', ob_task_h: 'Sur quoi ?', ob_task_p: 'Une tâche suffit. Tu peux laisser vide.',
       ob_sugg: 'Réviser|Projet perso|Lire 20 pages|Ranger mes mails', ob_next: 'Suivant',
-      ob_later: 'Plus tard', ob_step: 'Étape {n} sur 2', ob_dur_h: 'Combien de temps veux-tu travailler ?', ob_dur_p: 'Tu pourras changer à chaque session.', ob_dur_25: 'Pour se lancer', ob_dur_40: 'Le plus courant', ob_dur_other: 'Autre', ob_dur_pick: 'Choisir', ob_dur_min: 'Durée en minutes',
+      ob_look_h: 'Quel style pour l’app ?', ob_look_p: 'Tu pourras changer dans Réglages › Apparence.', ob_look_worlds: 'Mondes', ob_look_worlds_p: 'Décors, énergies, or et progression.', ob_look_sober: 'Sobre', ob_look_sober_p: 'Un minuteur et tes tâches, sans décor.',
+      ob_later: 'Plus tard', ob_step: 'Étape {n} sur 3', ob_dur_h: 'Combien de temps veux-tu travailler ?', ob_dur_p: 'Tu pourras changer à chaque session.', ob_dur_25: 'Pour se lancer', ob_dur_40: 'Le plus courant', ob_dur_other: 'Autre', ob_dur_pick: 'Choisir', ob_dur_min: 'Durée en minutes',
       ep_world: 'Monde', ep_clock: 'Suivre l’heure ({night} après 21 h)',
     },
     en: {
@@ -22,7 +23,8 @@
       ep_sort_drained: 'Quick wins first', ep_sort_steady: 'By priority', ep_sort_fired: 'Hardest task first', ep_sort_scattered: 'One task at a time',
       ob_intro: 'The timer, task order and look follow your energy.', ob_task_h: 'On what?', ob_task_p: 'One task is enough. You can leave it empty.',
       ob_sugg: 'Revise|Side project|Read 20 pages|Clear my inbox', ob_next: 'Next',
-      ob_later: 'Later', ob_step: 'Step {n} of 2', ob_dur_h: 'How long do you want to work?', ob_dur_p: 'You can change it for every session.', ob_dur_25: 'To get going', ob_dur_40: 'The most common', ob_dur_other: 'Other', ob_dur_pick: 'Choose', ob_dur_min: 'Length in minutes',
+      ob_look_h: 'Which style for the app?', ob_look_p: 'You can change it in Settings › Look.', ob_look_worlds: 'Worlds', ob_look_worlds_p: 'Scenery, energies, gold and progress.', ob_look_sober: 'Plain', ob_look_sober_p: 'A timer and your tasks, no scenery.',
+      ob_later: 'Later', ob_step: 'Step {n} of 3', ob_dur_h: 'How long do you want to work?', ob_dur_p: 'You can change it for every session.', ob_dur_25: 'To get going', ob_dur_40: 'The most common', ob_dur_other: 'Other', ob_dur_pick: 'Choose', ob_dur_min: 'Length in minutes',
       ep_world: 'World', ep_clock: 'Follow the hour ({night} after 9 pm)',
     },
   });
@@ -91,12 +93,21 @@
   const head = (title, sub) => `<header class="ep-top">
       ${st.cancellable ? `<button type="button" class="ghost icon-only ep-x" data-ep="close" aria-label="${esc(t('ep_close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>` : ''}
       <p class="ep-brand">Merlins<b>LockIN</b></p>
-      ${st.onboard ? `<div class="ep-steps" role="img" aria-label="${esc(t('ob_step', { n: st.step }))}">${[1, 2].map(n => `<i class="${n <= st.step ? 'on' : ''}"></i>`).join('')}</div>` : ''}
+      ${st.onboard ? `<div class="ep-steps" role="img" aria-label="${esc(t('ob_step', { n: st.step }))}">${[1, 2, 3].map(n => `<i class="${n <= st.step ? 'on' : ''}"></i>`).join('')}</div>` : ''}
       <h2 id="ep-h">${esc(title)}</h2>${sub ? `<p class="ep-sub">${esc(sub)}</p>` : ''}</header>`;
 
   // First launch (3.72, D1 A): two screens. 1) How long? 25 / 40 / Other. 2) On what? with the dial and Lock in.
   // The energy stays Steady for the first day, unexplained; it is offered the next morning with one line (S.epIntro).
   const OB_MINS = [25, 40];
+  function renderLook() {
+    const on = ML.sober();
+    el.innerHTML = `<div class="ep-in ep-form">
+      ${head(t('ob_look_h'), t('ob_look_p'))}
+      <div class="ep-durs" role="radiogroup" aria-label="${esc(t('ob_look_h'))}">
+        ${[['worlds', !on], ['sober', on]].map(([k, sel]) => `<button type="button" role="radio" class="ep-dur" aria-checked="${sel}" data-ep-look="${k}"><b>${esc(t('ob_look_' + k))}</b><small>${esc(t('ob_look_' + k + '_p'))}</small></button>`).join('')}
+      </div>
+      <div class="ep-foot"><button type="button" class="primary ep-go" data-ep="look-next">${esc(t('ob_next'))}</button></div></div>`;
+  }
   function renderDur() {
     const other = !OB_MINS.includes(st.mins);
     el.innerHTML = `<div class="ep-in ep-form">
@@ -144,7 +155,7 @@
       </div></div>`;
   }
 
-  const render = () => (st.onboard ? (st.step === 2 ? renderTaskGo() : renderDur()) : renderPick());
+  const render = () => (st.onboard ? (st.step === 3 ? renderTaskGo() : st.step === 2 ? renderDur() : renderLook()) : renderPick());
 
   function open(opts = {}) {
     if (st) return;
@@ -199,7 +210,7 @@
   function durNext() {
     const i = $('ep-mins'); if (i) st.mins = Math.max(5, Math.min(180, Math.round(+i.value || 40)));
     S.moodDay = today(); if (S.juice) S.juice.titleDay = today();
-    save(); st.step = 2; render();
+    save(); st.step = 3; render();
     setTimeout(() => { const f = $('ep-task'); if (f && !matchMedia('(pointer: coarse)').matches) f.focus(); }, 60);
   }
   function finish(go) {
@@ -219,14 +230,15 @@
     const m = e.target.closest('[data-ep-mood]'); if (m) return pick(m.dataset.epMood);
     const w = e.target.closest('[data-ep-world]'); if (w) return pickWorld(w.dataset.epWorld);
     const s = e.target.closest('[data-ep-sugg]'); if (s) { const i = $('ep-task'); if (i) { i.value = s.dataset.epSugg; i.focus(); setTitle(i.value); } return; }
+    const lk = e.target.closest('[data-ep-look]'); if (lk) { const on = lk.dataset.epLook === 'sober'; if (on !== ML.sober()) ML.setSober(on); return renderLook(); }
     const d = e.target.closest('[data-ep-dur]'); if (d) { st.mins = d.dataset.epDur === 'other' ? (OB_MINS.includes(st.mins) ? 30 : st.mins) : +d.dataset.epDur; renderDur(); if (d.dataset.epDur === 'other') { const i = $('ep-mins'); if (i) i.focus(); } return; }
     const a = e.target.closest('[data-ep]'); if (!a) return;
-    ({ close, prev: () => step(-1), next: () => step(1), choose, clock: () => pickWorld(null), 'dur-next': durNext, go: () => finish(true), later: () => finish(false) })[a.dataset.ep]?.();
+    ({ close, prev: () => step(-1), next: () => step(1), choose, clock: () => pickWorld(null), 'look-next': () => { st.step = 2; render(); }, 'dur-next': durNext, go: () => finish(true), later: () => finish(false) })[a.dataset.ep]?.();
   });
   // The task's name shows on the dial as it is typed
   const setTitle = v => { st.title = v.trim(); const f = el.querySelector('.ep-dial .focus-on'); if (f) f.textContent = st.title; };
   el.addEventListener('input', e => { if (!st) return; if (e.target.id === 'ep-task') setTitle(e.target.value); if (e.target.id === 'ep-mins') st.mins = Math.max(5, Math.min(180, Math.round(+e.target.value || 40))); });
-  el.addEventListener('submit', e => { e.preventDefault(); if (st && st.onboard && st.step === 2) finish(true); });
+  el.addEventListener('submit', e => { e.preventDefault(); if (st && st.onboard && st.step === 3) finish(true); });
   // Swipe left / right on the dial to browse
   let sx = null;
   el.addEventListener('pointerdown', e => { sx = st && !st.onboard && e.target.closest('[data-ep="swipe"], .ep-name') ? { x: e.clientX, y: e.clientY } : null; });
@@ -239,7 +251,7 @@
     if (ML.isTyping(e)) { if (e.key === 'Escape' && st.cancellable) { e.preventDefault(); close(); } else if (e.key === 'Enter' && e.target.id === 'ep-mins') { e.preventDefault(); durNext(); } return; } // the task field types freely
     const k = e.key, n = +k;
     if (k === 'Tab') return;
-    if (st.onboard) { if (k === 'Enter' && !(e.target && e.target.tagName === 'BUTTON')) { if (st.step === 1) durNext(); else finish(true); } else if (k === 'Enter' || k === ' ') return; }
+    if (st.onboard) { if (k === 'Enter' && !(e.target && e.target.tagName === 'BUTTON')) { if (st.step === 1) { st.step = 2; render(); } else if (st.step === 2) durNext(); else finish(true); } else if (k === 'Enter' || k === ' ') return; }
     else if (n >= 1 && n <= KEYS().length) pick(KEYS()[n - 1]);
     else if (k === 'ArrowRight' || k === 'ArrowLeft') step(k === 'ArrowRight' ? 1 : -1);
     else if (k === 'Enter' && !(e.target && e.target.tagName === 'BUTTON')) choose();
