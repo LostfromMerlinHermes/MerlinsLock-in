@@ -11,13 +11,13 @@
       tab_subjects: 'Matières', sj_new_exam: 'Nouvel examen', sj_new: 'Nouvelle matière', sj_close: 'Fermer',sj_h_exams: 'Examens', sj_h_subjects: 'Tes matières', sj_add_ph: 'Nouvelle matière (ex. Droit civil)', sj_add: 'Ajouter', sj_empty: 'Ajoute tes matières : tu verras le temps passé, tes notes et tes examens au même endroit.',
       sj_week: '{m} cette semaine', sj_total: '{m} en tout', sj_avg: 'Moyenne', sj_overall: 'Moyenne générale', sj_no_grade: 'Pas encore de note', sj_grades: 'Notes', sj_grade_label: 'Contrôle', sj_grade_value: 'Note', sj_grade_max: 'Sur', sj_coef: 'Coef', sj_add_grade: 'Ajouter la note',
       sj_target: 'Objectif', sj_next_coef: 'Coef du prochain contrôle', sj_need: 'Il te faut {n}/20 au prochain contrôle.', sj_need_done: 'Objectif déjà atteint, même avec 0 au prochain.', sj_need_no: 'Il faudrait {n}/20 : objectif hors de portée avec ce coef.',
-      sj_delete: 'Supprimer la matière', sj_deck: 'Paquet lié', sj_deck_none: 'Aucun', sj_task_field: 'Matière', sj_none: 'Aucune', sj_exam_name: 'Examen', sj_exam_ph: 'Partiel de droit', sj_exam_add: 'Ajouter l’examen', sj_exam_plan: 'Placer des révisions espacées dans mon Calendrier', sj_exam_hours: 'Heures de révision', sj_exam_prem: 'Avec Premium : des révisions espacées se placent seules dans ton Calendrier.', sj_exam_added: 'Examen ajouté au Calendrier.', sj_exam_none: 'Aucun examen à venir.', sj_countdown: '{name} · {left}', sj_today: 'aujourd’hui', sj_days: 'J-{n}',
+      sj_delete: 'Supprimer la matière', sj_deck: 'Paquet lié', sj_deck_none: 'Aucun', sj_task_field: 'Matière', sj_none: 'Aucune', sj_exam_name: 'Examen', sj_exam_ph: 'Partiel de droit', sj_exam_add: 'Ajouter l’examen', sj_exam_plan: 'Placer des révisions espacées dans mon Calendrier', sj_exam_hours: 'Heures de révision', sj_exam_ch: 'Chapitres', sj_exam_ch_ph: 'Facultatif', sj_exam_prem: 'Avec Premium : des révisions espacées se placent seules dans ton Calendrier.', sj_exam_added: 'Examen ajouté au Calendrier.', sj_exam_none: 'Aucun examen à venir.', sj_countdown: '{name} · {left}', sj_today: 'aujourd’hui', sj_days: 'J-{n}',
     },
     en: {
       tab_subjects: 'Subjects', sj_new_exam: 'New exam', sj_new: 'New subject', sj_close: 'Close',sj_h_exams: 'Exams', sj_h_subjects: 'Your subjects', sj_add_ph: 'New subject (e.g. Civil law)', sj_add: 'Add', sj_empty: 'Add your subjects: time spent, grades and exams in one place.',
       sj_week: '{m} this week', sj_total: '{m} in total', sj_avg: 'Average', sj_overall: 'Overall average', sj_no_grade: 'No grade yet', sj_grades: 'Grades', sj_grade_label: 'Test', sj_grade_value: 'Grade', sj_grade_max: 'Out of', sj_coef: 'Weight', sj_add_grade: 'Add the grade',
       sj_target: 'Target', sj_next_coef: 'Weight of the next test', sj_need: 'You need {n}/20 on the next test.', sj_need_done: 'Target already reached, even with 0 on the next test.', sj_need_no: 'You would need {n}/20: out of reach with this weight.',
-      sj_delete: 'Delete the subject', sj_deck: 'Linked deck', sj_deck_none: 'None', sj_task_field: 'Subject', sj_none: 'None', sj_exam_name: 'Exam', sj_exam_ph: 'Law midterm', sj_exam_add: 'Add the exam', sj_exam_plan: 'Place spaced revision in my Day', sj_exam_hours: 'Revision hours', sj_exam_prem: 'With Premium: spaced revision places itself in your Day.', sj_exam_added: 'Exam added to the Calendar.', sj_exam_none: 'No exam coming up.', sj_countdown: '{name} · {left}', sj_today: 'today', sj_days: 'D-{n}',
+      sj_delete: 'Delete the subject', sj_deck: 'Linked deck', sj_deck_none: 'None', sj_task_field: 'Subject', sj_none: 'None', sj_exam_name: 'Exam', sj_exam_ph: 'Law midterm', sj_exam_add: 'Add the exam', sj_exam_plan: 'Place spaced revision in my Day', sj_exam_hours: 'Revision hours', sj_exam_ch: 'Chapters', sj_exam_ch_ph: 'Optional', sj_exam_prem: 'With Premium: spaced revision places itself in your Day.', sj_exam_added: 'Exam added to the Calendar.', sj_exam_none: 'No exam coming up.', sj_countdown: '{name} · {left}', sj_today: 'today', sj_days: 'D-{n}',
     },
   });
   ML.defaults(() => ({ subjects: [], spaceTab: {}, firstSeen: null }));
@@ -123,7 +123,7 @@
           <label class="sj-gl"><span>${esc(t('sj_exam_name'))}</span><input type="text" name="name" maxlength="60" placeholder="${esc(t('sj_exam_ph'))}" required></label>
           <label><span>${esc(t('ex_date'))}</span><input type="date" name="date" min="${addDays(today(), 1)}" required></label>
           ${list().length ? `<label><span>${esc(t('sj_task_field'))}</span><select name="subject"><option value="">${esc(t('sj_none'))}</option>${list().map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></label>` : ''}
-          ${prem ? `<label><span>${esc(t('sj_exam_hours'))}</span><input type="number" name="hours" min="0" max="60" value="6" inputmode="numeric"></label>` : ''}
+          ${prem ? `<label><span>${esc(t('sj_exam_hours'))}</span><input type="number" name="hours" min="0" max="60" value="6" inputmode="numeric"></label><label><span>${esc(t('sj_exam_ch'))}</span><input type="number" name="chapters" min="0" max="60" placeholder="${esc(t('sj_exam_ch_ph'))}" inputmode="numeric"></label>` : ''}
           <button type="submit" class="primary small">${esc(t('sj_exam_add'))}</button>
           ${prem ? `<p class="hint">${esc(t('ex_intro'))}</p>` : `<p class="hint">${esc(t('sj_exam_prem'))}</p>`}
         </form>` : ''}
@@ -171,7 +171,7 @@
     if (f.id === 'sj-exam-form') {
       const name = f.name.value.trim(), date = f.date.value, hours = f.hours ? Math.max(0, Math.min(60, +f.hours.value || 0)) : 0, subject = f.subject ? f.subject.value : '';
       if (!name || !date) return;
-      const r = ML.planExam(name, date, hours, null, subject || null);
+      const r = ML.planExam(name, date, hours, null, subject || null, f.chapters ? +f.chapters.value || 0 : 0);
       toast(r.n ? t('ex_done', { n: r.n, m: ML.fmtMins(r.per) }) : t('sj_exam_added'), { ms: 5000 });
       adding.exam = false; render(); renderCount();
     }

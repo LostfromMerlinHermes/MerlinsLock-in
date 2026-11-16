@@ -36,7 +36,7 @@
       sr_ph: 'Chercher sur Wikipédia', sr_go: 'Chercher', sr_web: 'Recherche web complète', sr_read: 'Lire l’article', sr_to_note: 'Ajouter au Carnet', sr_noted: 'Ajouté à la page du jour du Carnet',
       sr_none: 'Aucun résultat sur Wikipédia.', sr_err: 'Recherche impossible. Vérifie ta connexion.', sr_more: 'Autres résultats', sr_hint: 'Les résumés viennent de Wikipédia. Le web complet s’ouvre dans un nouvel onglet.',
       tr_ph: 'Texte à traduire…', tr_go: 'Traduire', tr_swap: 'Inverser', tr_copy: 'Copier', tr_copied: 'Copié', tr_listen: 'Écouter', tr_to_card: 'En faire une flashcard', tr_card_ok: 'Flashcard ajoutée au paquet « {deck} »',
-      tr_err: 'Traduction impossible pour l’instant (limite quotidienne ou connexion).', tr_hint: 'Traduction fournie par MyMemory : le texte est envoyé à leur service. Évite d’y mettre des informations personnelles.',
+      tr_err: 'Traduction impossible pour l’instant (limite quotidienne ou connexion).', tr_hint_dev: 'Traduit par ton navigateur, sur cet appareil : rien n’est envoyé.', tr_hint: 'Traduction fournie par MyMemory : le texte est envoyé à leur service. Évite d’y mettre des informations personnelles.',
       lang_fr: 'Français', lang_en: 'Anglais', lang_es: 'Espagnol', lang_de: 'Allemand', lang_it: 'Italien', lang_pt: 'Portugais', lang_nl: 'Néerlandais', lang_ru: 'Russe', lang_ar: 'Arabe', lang_zh: 'Chinois', lang_ja: 'Japonais', lang_ko: 'Coréen',
     },
     en: {
@@ -69,7 +69,7 @@
       sr_ph: 'Search Wikipedia', sr_go: 'Search', sr_web: 'Full web search', sr_read: 'Read the article', sr_to_note: 'Add to Notebook', sr_noted: "Added to today's Notebook page",
       sr_none: 'No Wikipedia results.', sr_err: "Can't search right now. Check your connection.", sr_more: 'More results', sr_hint: 'Summaries come from Wikipedia. The full web opens in a new tab.',
       tr_ph: 'Text to translate…', tr_go: 'Translate', tr_swap: 'Swap', tr_copy: 'Copy', tr_copied: 'Copied', tr_listen: 'Listen', tr_to_card: 'Make it a flashcard', tr_card_ok: 'Flashcard added to the "{deck}" deck',
-      tr_err: "Can't translate right now (daily limit or connection).", tr_hint: 'Translation by MyMemory: the text is sent to their service. Avoid personal information.',
+      tr_err: "Can't translate right now (daily limit or connection).", tr_hint_dev: 'Translated by your browser, on this device: nothing is sent.', tr_hint: 'Translation by MyMemory: the text is sent to their service. Avoid personal information.',
       lang_fr: 'French', lang_en: 'English', lang_es: 'Spanish', lang_de: 'German', lang_it: 'Italian', lang_pt: 'Portuguese', lang_nl: 'Dutch', lang_ru: 'Russian', lang_ar: 'Arabic', lang_zh: 'Chinese', lang_ja: 'Japanese', lang_ko: 'Korean',
     },
   });
@@ -78,7 +78,7 @@
     fr: {
       tl_exams: 'Examens', ex_intro: 'Donne ta date d’examen et le temps de révision voulu : l’app place des séances espacées (J-21, J-14, J-7, J-3, J-1…) dans ta Journée, et l’examen dans l’Agenda.',
       ex_name_ph: 'Matière ou examen (ex. Partiel de droit)', ex_date: 'Date', ex_hours: 'Heures de révision', ex_deck: 'Paquet de flashcards', ex_plan: 'Planifier mes révisions',
-      ex_event: 'Examen : {name}', ex_block: 'Révision : {name}', ex_done: '{n} séance(s) de {m} ajoutée(s) dans ta Journée.', ex_none: 'Plus de place libre dans tes journées avant l’examen.', ex_sessions: '{d}/{n} séances faites', ex_deleted: 'Examen et séances supprimés',
+      ex_event: 'Examen : {name}', ex_block: 'Révision : {name}', ex_b_new: '{name} : {ch}', ex_b_back: '{name} : revoir {ch}', ex_b_all: '{name} : tout revoir', ex_ch_one: 'chap. {a}', ex_ch_two: 'chap. {a} et {b}', ex_ch_range: 'chap. {a} à {b}', ex_done: '{n} séance(s) de {m} ajoutée(s) dans ta Journée.', ex_none: 'Plus de place libre dans tes journées avant l’examen.', ex_sessions: '{d}/{n} séances faites', ex_deleted: 'Examen et séances supprimés',
       st_tools: 'Outils', tl_dict: 'Dictionnaire', tl_cite: 'Citations', tl_units: 'Convertisseur',
       dc_ph: 'Un mot à définir…', dc_go: 'Définir', dc_none: 'Aucune définition trouvée.', dc_err: 'Dictionnaire indisponible pour l’instant.', dc_syn: 'Synonymes', dc_card: '+ Flashcard', dc_src: 'Source : {src}',
       ct_ph: 'DOI, ISBN, titre d’article ou adresse web…', ct_go: 'Chercher', ct_pick: 'Choisis la bonne référence', ct_none: 'Rien trouvé. Remplis la fiche à la main.', ct_manual: 'Saisie manuelle',
@@ -92,7 +92,7 @@
     en: {
       tl_exams: 'Exams', ex_intro: 'Enter your exam date and how much revision you want: the app places spaced sessions (D-21, D-14, D-7, D-3, D-1…) in your Day view, and the exam in the Calendar.',
       ex_name_ph: 'Subject or exam (e.g. Law midterm)', ex_date: 'Date', ex_hours: 'Revision hours', ex_deck: 'Flashcard deck', ex_plan: 'Plan my revision',
-      ex_event: 'Exam: {name}', ex_block: 'Revision: {name}', ex_done: '{n} session(s) of {m} added to your Day view.', ex_none: 'No free time left in your days before the exam.', ex_sessions: '{d}/{n} sessions done', ex_deleted: 'Exam and sessions deleted',
+      ex_event: 'Exam: {name}', ex_block: 'Revision: {name}', ex_b_new: '{name}: {ch}', ex_b_back: '{name}: go back over {ch}', ex_b_all: '{name}: go over everything', ex_ch_one: 'ch. {a}', ex_ch_two: 'ch. {a} and {b}', ex_ch_range: 'ch. {a} to {b}', ex_done: '{n} session(s) of {m} added to your Day view.', ex_none: 'No free time left in your days before the exam.', ex_sessions: '{d}/{n} sessions done', ex_deleted: 'Exam and sessions deleted',
       st_tools: 'Tools', tl_dict: 'Dictionary', tl_cite: 'Citations', tl_units: 'Converter',
       dc_ph: 'A word to define…', dc_go: 'Define', dc_none: 'No definition found.', dc_err: 'Dictionary unavailable right now.', dc_syn: 'Synonyms', dc_card: '+ Flashcard', dc_src: 'Source: {src}',
       ct_ph: 'DOI, ISBN, article title or web address…', ct_go: 'Search', ct_pick: 'Pick the right reference', ct_none: 'Nothing found. Fill the form by hand.', ct_manual: 'Manual entry',
@@ -644,12 +644,16 @@
   const closeEnough = (given, want) => { const a = norm(given), b = norm(want); if (!a) return false; return a === b || lev(a, b) <= Math.max(1, Math.floor(b.length * 0.2)); };
   ML.answerMatches = closeEnough;
   const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+  const ansKind = s => (/\b(1\d|20)\d\d\b/.test(s) ? 'year' : /^[^\p{L}]*\d/u.test(s) ? 'num' : 'text');
   function startQuiz(id) {
     const cs = allCards(id); if (cs.length < 2) return;
     // Weak and due cards first, then the rest, 10 questions at most
     const pool = shuffle(cs.slice()).sort((a, b) => ((b.lapses || 0) + (isDue(b) ? 1 : 0)) - ((a.lapses || 0) + (isDue(a) ? 1 : 0))).slice(0, 10);
     const qs = pool.map(c => {
-      const others = shuffle(cs.filter(x => x.id !== c.id && norm(x.back) !== norm(c.back))).slice(0, 3).map(x => x.back);
+      // 3.95: wrong choices of the same kind as the right one (a year with years, a number with numbers, a close length), never twice the same
+      const seen = new Set([norm(c.back)]), cands = shuffle(cs.slice()).filter(x => { const k = norm(x.back); if (x.id === c.id || !k || seen.has(k)) return false; seen.add(k); return true; });
+      const far = x => (ansKind(x.back) !== ansKind(c.back) ? 10 : 0) + Math.abs(Math.log((x.back.length + 1) / (c.back.length + 1)));
+      const others = shuffle(cands.map(x => ({ x, f: far(x) })).sort((a, b) => a.f - b.f).slice(0, 5)).slice(0, 3).map(o => o.x.back);
       const mcq = others.length >= 2 && c.back.length <= 160 && Math.random() < 0.7;
       return { cardId: c.id, type: mcq ? 'mcq' : 'type', options: mcq ? shuffle([c.back, ...others]) : null };
     });
@@ -820,7 +824,27 @@
     if (cur.trim()) out.push(cur);
     return out.flatMap(c => (c.length > 450 ? c.match(/[\s\S]{1,450}/g) : [c]));
   }
+  // 3.95: the browser's own translator (Chrome, Edge on a computer) when the language pair is already on the device: nothing is sent.
+  // A pair the browser could download is fetched in the background for the next time; this time, and everywhere else, MyMemory.
+  // The text never goes to MyMemory after the screen said « on this device »: a failure there is shown as an error.
+  const trDev = {}; // 'fr|en' → 'available' | 'downloadable' | 'no'
+  const within = (p, ms, fallback) => Promise.race([p, new Promise(r => setTimeout(() => r(fallback), ms))]);
+  async function trProbe(from, to) {
+    const k = from + '|' + to; if (trDev[k]) return trDev[k];
+    let v = 'no';
+    try { if ('Translator' in self && from !== to) { const a = await within(self.Translator.availability({ sourceLanguage: from, targetLanguage: to }), 3000, 'no'); v = a === 'available' ? 'available' : a === 'downloadable' || a === 'downloading' ? 'downloadable' : 'no'; } } catch (e) {}
+    return (trDev[k] = v);
+  }
+  async function deviceTranslate(text, from, to) {
+    const tr = await self.Translator.create({ sourceLanguage: from, targetLanguage: to }), out = [];
+    try { for (const line of text.split('\n')) out.push(line.trim() ? await tr.translate(line) : ''); } finally { try { tr.destroy(); } catch (e) {} }
+    return out.join('\n').trim();
+  }
+  ML.translateOnDevice = (from, to) => trDev[from + '|' + to] === 'available';
   async function translateText(text, from, to) {
+    const dev = await trProbe(from, to);
+    if (dev === 'available') return deviceTranslate(text, from, to);
+    if (dev === 'downloadable') { const k = from + '|' + to; trDev[k] = 'no'; try { self.Translator.create({ sourceLanguage: from, targetLanguage: to }).then(x => { delete trDev[k]; try { x.destroy(); } catch (e) {} }, () => {}); } catch (e) {} }
     const res = [];
     for (const c of chunks(text)) {
       if (!c.trim()) { res.push(c); continue; }
@@ -840,7 +864,8 @@
     if (ST().tool === 'translate') renderTool();
   }
   function translateHtml() {
-    const { from, to } = ST().tr;
+    const { from, to } = ST().tr, pk = from + '|' + to;
+    if (!trDev[pk]) trProbe(from, to).then(v => { if (v === 'available' && ST().tool === 'translate' && ST().tr.from === from && ST().tr.to === to && !trBusy) { const r = $('tr-in'); if (r) ML.keepInputs(r.parentNode, renderTool); } });
     const sel = (id, cur) => `<select id="${id}">${LANGS.map(l => `<option value="${l}" ${l === cur ? 'selected' : ''}>${esc(t('lang_' + l))}</option>`).join('')}</select>`;
     return `<div class="tr-langs">${sel('tr-from', from)}<button type="button" class="ghost icon-only" id="tr-swap" aria-label="${esc(t('tr_swap'))}" title="${esc(t('tr_swap'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg></button>${sel('tr-to', to)}</div>
       <textarea id="tr-in" rows="4" maxlength="3000" placeholder="${esc(t('tr_ph'))}">${esc(trIn)}</textarea>
@@ -850,7 +875,7 @@
         <div class="tr-actions"><button type="button" class="small" id="tr-copy">${esc(t('tr_copy'))}</button>
         ${'speechSynthesis' in window ? `<button type="button" class="small" id="tr-say">🔊 ${esc(t('tr_listen'))}</button>` : ''}
         <button type="button" class="small" id="tr-card">+ ${esc(t('tr_to_card'))}</button></div>` : ''}
-      <p class="hint">${esc(t('tr_hint'))}</p>`;
+      <p class="hint">${esc(t(trDev[pk] === 'available' ? 'tr_hint_dev' : 'tr_hint'))}</p>`;
   }
 
   /* ---------- Toolbox: dictionary, citations, unit converter ---------- */
@@ -863,7 +888,20 @@
   // Exam planner: an exam date + hours of revision → spaced revision blocks in the Day planner and the exam in the calendar
   const OFFSETS = [21, 14, 10, 7, 5, 3, 2, 1];
   const daysTo = k => Math.round((ML.parseDay(k) - ML.parseDay(today())) / 864e5);
-  function planExam(name, date, hours, deckId, subject) {
+  // 3.95: with a number of chapters, each session says what to do: new chapters in the first two thirds, then going back over them,
+  // and everything the last time. n sessions from the farthest (i = 0) to the eve of the exam.
+  function examTitles(name, n, chapters) {
+    const C = Math.max(0, Math.min(60, Math.round(+chapters || 0)));
+    if (!C || n < 1) return Array(n).fill(t('ex_block', { name }));
+    const span = (a, b) => (a >= b ? t('ex_ch_one', { a }) : b === a + 1 ? t('ex_ch_two', { a, b }) : t('ex_ch_range', { a, b }));
+    if (n === 1) return [t('ex_b_all', { name })];
+    const learn = Math.min(C, Math.max(1, n - Math.max(1, Math.round(n / 3)))), rev = n - learn - 1, out = [];
+    for (let i = 0; i < learn; i++) out.push(t('ex_b_new', { name, ch: span(Math.floor(i * C / learn) + 1, Math.floor((i + 1) * C / learn)) }));
+    for (let i = 0; i < rev; i++) out.push(t('ex_b_back', { name, ch: span(Math.floor(i * C / rev) + 1, Math.floor((i + 1) * C / rev)) }));
+    out.push(t('ex_b_all', { name }));
+    return out;
+  }
+  function planExam(name, date, hours, deckId, subject, chapters) {
     const left = daysTo(date); if (left < 1) return { n: 0 };
     const id = uid(), ex = { id, name, date, hours, deckId: deckId || null, subject: subject || null, created: Date.now(), blocks: [], eventId: uid() };
     S.events.push({ id: ex.eventId, title: t('ex_event', { name }), date, start: '', mins: 60, cat: 'deadline', repeat: 'none', remind: 1440, notes: '' });
@@ -871,7 +909,8 @@
     const maxSessions = Math.max(1, Math.round(hours * 60 / 30));
     if (days.length > maxSessions) days = days.slice(days.length - maxSessions); // keep the ones closest to the exam
     const per = days.length ? Math.min(180, Math.max(30, Math.round(hours * 60 / days.length / 15) * 15)) : 0;
-    days.forEach(o => { const b = ML.planBlock ? ML.planBlock(addDays(date, -o), per, t('ex_block', { name }), { color: 8, exam: id }) : null; if (b) ex.blocks.push(b.id); });
+    const titles = examTitles(name, days.length, chapters); if (+chapters > 0) ex.chapters = Math.round(+chapters);
+    days.forEach((o, i) => { const b = ML.planBlock ? ML.planBlock(addDays(date, -o), per, titles[i], { color: 8, exam: id }) : null; if (b) ex.blocks.push(b.id); });
     ST().exams = ST().exams || []; ST().exams.push(ex);
     save(); emit('events'); if (ML.renderAll) ML.renderAll();
     return { n: ex.blocks.length, per };

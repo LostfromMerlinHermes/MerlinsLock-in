@@ -109,8 +109,8 @@
   ML.defaults(() => ({
     econ: {
       gold: 0,
-      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus', 'diver', 'spell', 'city', 'valley', 'worldtone', 'veil', 'incant'], tree: TREE_FREE.slice() },
-      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus', dialAbyss: 'diver', deepSorcerer: 'spell', bgNeon: 'city', arcadeSet: 'valley', arcadePal: 'worldtone', dialFog: 'veil', deepFog: 'incant', treeSkin: 'oak', treeLeaf: 'lf_season', treeBark: 'br_bark', treeFlower: 'fl_gold', treeHang: 'hg_none', treeGround: 'gd_grass', treeSky: 'sk_dusk' },
+      owned: { hat: ['wizard'], ring: ['default'], burst: ['theme'], familiar: ['owl'], skin: ['classic'], costume: [], dial: ['lotus', 'diver', 'spell', 'city', 'valley', 'worldtone', 'veil', 'incant', 'facade'], tree: TREE_FREE.slice() },
+      equip: { hat: 'wizard', ring: 'default', burst: 'theme', familiar: 'owl', skin: 'classic', costume: 'none', dial: 'lotus', dialAbyss: 'diver', deepSorcerer: 'spell', bgNeon: 'city', arcadeSet: 'valley', arcadePal: 'worldtone', dialFog: 'veil', deepFog: 'incant', deepNeon: 'facade', treeSkin: 'oak', treeLeaf: 'lf_season', treeBark: 'br_bark', treeFlower: 'fl_gold', treeHang: 'hg_none', treeGround: 'gd_grass', treeSky: 'sk_dusk' },
       potions: { seal: 0, elixir: 0, scroll: 0 }, elixir: false, frozen: [], lastCheck: null,
     },
   }));
@@ -124,15 +124,15 @@
     skin: { classic: 0, runic: 350, parchment: 300, gold: 450, ember: 300, holo: 600, astral: 800 },
     island: { orbit: 900, pavilion: 900, fragment: 900, void: 900, keep: 900, pier: 900, coupe: 600, navette: 600 }, // the mage island's shop islands and the Ville néon's flying cars (island.js, 3.81)
     world: { abyss: 1500, sanctuary: 1500 }, // 3.74: the old Drained energy's worlds, a fourth world for Steady / Drained (Premium)
-    dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300, spell: 0, circle: 400, city: 0, supercar: 600, valley: 0, pier: 1200, orbit: 900, worldtone: 0, redcream: 300, veil: 0, rose: 800, skeleton: 1200, incant: 0, door: 500 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43); the Cyber sorcier's two full screens (3.48); the Ville néon's two backgrounds (3.49); the Arcade's three sets (background + dial + palette) and a palette (3.51)
+    dial: { lotus: 0, moon: 300, diver: 0, nautilus: 300, jelly: 300, spell: 0, circle: 400, city: 0, supercar: 600, valley: 0, pier: 1200, orbit: 900, worldtone: 0, redcream: 300, veil: 0, rose: 800, skeleton: 1200, incant: 0, door: 500, facade: 0, pose: 500, dash: 600 }, // world dials: the Sanctuaire's two (3.42), the Abysses' three (3.43); the Cyber sorcier's two full screens (3.48); the Ville néon's two backgrounds (3.49); the Arcade's three sets (background + dial + palette) and a palette (3.51)
     tree: { lf_season: 0, lf_sakura: 250, lf_ember: 250, lf_jade: 250, lf_silver: 300, lf_violet: 300, lf_gold: 400, br_bark: 0, br_ash: 200, br_ebony: 200, br_ember: 250, br_verdigris: 250, br_gold: 400, fl_gold: 0, fl_plum: 200, fl_camellia: 250, fl_star: 350, hg_none: 0, hg_swing: 300, hg_birds: 350, hg_lanterns: 400, gd_grass: 0, gd_mush: 250, gd_stones: 300, gd_pond: 400, sk_dusk: 0, sk_night: 300, sk_dawn: 300, pine: 800, atlas: 800, coral: 800, crystal: 800, hanging: 800 }, // the year tree (tree.js): looks only, gold never buys growth. The last five are whole trees (3.63, 3.65). Premium gating comes with the Premium pass, not yet
   };
   const TREE_SLOT = { lf: 'treeLeaf', br: 'treeBark', fl: 'treeFlower', hg: 'treeHang', gd: 'treeGround', sk: 'treeSky' };
   const TREE_SKINS = ['pine', 'atlas', 'coral', 'crystal', 'hanging'];
   // Each world keeps its own equipped dial: the Sanctuaire's in equip.dial (as before 3.43), the Abysses' in equip.dialAbyss
-  const DIAL_WORLD = { lotus: 'sanctuary', moon: 'sanctuary', diver: 'abyss', nautilus: 'abyss', jelly: 'abyss', spell: 'sorcerer', circle: 'sorcerer', city: 'neoncity', supercar: 'neoncity', valley: 'arcade', pier: 'arcade', orbit: 'arcade', worldtone: 'arcade', redcream: 'arcade', veil: 'fog', rose: 'fog', skeleton: 'fog', incant: 'fog', door: 'fog' };
+  const DIAL_WORLD = { lotus: 'sanctuary', moon: 'sanctuary', diver: 'abyss', nautilus: 'abyss', jelly: 'abyss', spell: 'sorcerer', circle: 'sorcerer', city: 'neoncity', supercar: 'neoncity', valley: 'arcade', pier: 'arcade', orbit: 'arcade', worldtone: 'arcade', redcream: 'arcade', veil: 'fog', rose: 'fog', skeleton: 'fog', incant: 'fog', door: 'fog', facade: 'neoncity', pose: 'neoncity', dash: 'neoncity' };
   const SLOT = { abyss: 'dialAbyss', sorcerer: 'deepSorcerer', neoncity: 'bgNeon', arcade: 'arcadeSet', fog: 'dialFog' };
-  const ITEM_SLOT = { worldtone: 'arcadePal', redcream: 'arcadePal', incant: 'deepFog', door: 'deepFog' }; // the Arcade's palettes go over its set
+  const ITEM_SLOT = { worldtone: 'arcadePal', redcream: 'arcadePal', incant: 'deepFog', door: 'deepFog', facade: 'deepNeon', pose: 'deepNeon', dash: 'deepNeon' }; // the Arcade's palettes go over its set
   const WORLD_ORDER = ['arcade', 'fog', 'sanctuary', 'abyss', 'sorcerer', 'neoncity']; // the shop shows world items world by world
   const slotOf = (cat, k) => (cat === 'island' ? ML.islandSlot(k) : cat === 'tree' ? (TREE_SKINS.includes(k) ? 'treeSkin' : TREE_SLOT[k.slice(0, 2)]) : cat !== 'dial' ? cat : ITEM_SLOT[k] || SLOT[DIAL_WORLD[k]] || cat);
   const PREMIUM_ONLY = { skin: ['holo', 'astral'], dial: ['pier', 'skeleton'], world: ['abyss', 'sanctuary'] }; // need a Premium account to buy
@@ -150,6 +150,7 @@
     if (!E.equip.arcadeSet) E.equip.arcadeSet = 'valley'; if (!E.equip.arcadePal) E.equip.arcadePal = 'worldtone';
     if (!E.owned.dial.includes('veil')) E.owned.dial.push('veil'); if (!E.equip.dialFog) E.equip.dialFog = 'veil';
     if (!E.owned.dial.includes('incant')) E.owned.dial.push('incant'); if (!E.equip.deepFog) E.equip.deepFog = 'incant';
+    if (!E.owned.dial.includes('facade')) E.owned.dial.push('facade'); if (!E.equip.deepNeon) E.equip.deepNeon = 'facade';
     if (!Array.isArray(E.owned.tree)) E.owned.tree = []; for (const k of TREE_FREE) { if (!E.owned.tree.includes(k)) E.owned.tree.push(k); const sl = TREE_SLOT[k.slice(0, 2)]; if (!E.equip[sl]) E.equip[sl] = k; }
     if (!E.equip.treeSkin) E.equip.treeSkin = 'oak';
     if (!Array.isArray(E.owned.world)) E.owned.world = [];

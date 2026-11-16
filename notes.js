@@ -144,7 +144,7 @@
           <div class="nb-actions">
             <button type="button" class="small ghost" id="nb-sum">✦ ${esc(t('nb_summary'))}</button>
             ${ML.Rooms && ML.Rooms.active() ? `<button type="button" class="small ghost" data-room-note="${esc(p.id)}">${esc(t('rm_share_in'))}</button>` : ''}
-            ${ML.NoteHelp && ML.isPremium && ML.isPremium() ? `<button type="button" class="small ghost" id="nb-resume">≡ ${esc(t('nh_sum'))}</button><button type="button" class="small ghost" id="nb-quiz">? ${esc(t('nh_quiz'))}</button>` : ''}
+            ${ML.NoteHelp && ML.isPremium && ML.isPremium() ? `<button type="button" class="small ghost" id="nb-resume">≡ ${esc(t('nh_sum'))}</button><button type="button" class="small ghost" id="nb-quiz">? ${esc(t('nh_quiz'))}</button><button type="button" class="small ghost" id="nb-cards">+ ${esc(t('nh_cards_btn'))}</button>` : ''}
             <button type="button" class="small ghost" id="nb-pin">${esc(p.pinned ? t('nb_unpin') : t('nb_pin'))}</button>
             ${ML.CAN_DOWNLOAD ? `<button type="button" class="small ghost" id="nb-export">${esc(t('nb_export'))}</button>` : ''}
             <button type="button" class="small ghost danger" id="nb-del">${esc(t('nb_delete'))}</button>
@@ -234,6 +234,7 @@
     };
     if ($('nb-resume')) $('nb-resume').onclick = () => { flush(); ML.NoteHelp.summary(p, body, $('nb-fc-slot')); $('nb-fc-slot').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
     if ($('nb-quiz')) $('nb-quiz').onclick = () => { flush(); ML.NoteHelp.quiz(p, body, $('nb-fc-slot')); $('nb-fc-slot').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+    if ($('nb-cards')) $('nb-cards').onclick = () => { flush(); ML.NoteHelp.cards(p, body, $('nb-fc-slot')); $('nb-fc-slot').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
     $('nb-pin').onclick = () => { const cur = page(p.id) || p; cur.pinned = !cur.pinned; save(); render(); };
     $('nb-sum').onclick = () => { body.focus(); document.execCommand('insertHTML', false, summaryHtml()); persist(p); };
     if ($('nb-export')) $('nb-export').onclick = () => {
