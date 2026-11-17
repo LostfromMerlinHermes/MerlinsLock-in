@@ -1044,7 +1044,7 @@
     const dp = disp(view);
     const seg = (key, vals) => `<div class="seg-toggle" role="group">${vals.map(v => `<button type="button" data-dv="${key}:${v}" aria-pressed="${dp[key] === v}">${esc(t(`dg_${key}_${v}`))}</button>`).join('')}</div>`;
     const show = (view === 'day' ? ['strip', 'miss', 'tray'] : ['tray']).map(w => `<button type="button" data-showp="${w}" aria-pressed="${!hid(w)}">${esc(t('dg_show_' + w))}</button>`).join('');
-    return `<div class="dg-vmenu"><span class="label">${esc(t('dg_show'))}</span><div class="dg-showp">${show}</div><span class="label">${esc(t('dg_density'))}</span>${seg('d', ['compact', 'normal', 'large'])}
+    return `<div class="dg-vmenu"><span class="label">${esc(t('dg_show'))}</span><div class="dg-showp">${show}</div>${dp.l === 'lines' ? '' /* 3.99.2: density does nothing in the Lines layout */ : `<span class="label">${esc(t('dg_density'))}</span>${seg('d', ['compact', 'normal', 'large'])}`}
       <span class="label">${esc(t('dg_hours'))}</span>${seg('h', ['24', 'mine', 'auto'])}
       ${view === 'day' ? `<span class="label">${esc(t('dg_layout'))}</span>${seg('l', ['grid', 'lines'])}${tplMenuHtml()}` : ''}</div>`;
   }

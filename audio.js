@@ -150,9 +150,11 @@
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
   // Phones (iOS above all): Web Audio is muted by the silent switch and only starts from a tap.
-  // On a phone, the first taps (1) play a looping silent <audio> track, which switches iOS to
-  // "media playback" so Web Audio is heard even on silent, (2) set navigator.audioSession to
-  // 'playback' (iOS 17+), and (3) resume the AudioContext and play a 1-sample buffer inside the tap.
+  // Every tap resumes the AudioContext and plays a 1-sample buffer inside the tap, with navigator.audioSession
+  // 'ambient' (iOS 17+), so the user's own music (Spotify...) keeps playing under the app's clicks and chimes.
+  // Only when the app's own sound starts (ensure(true)) does it claim the phone's audio: the session goes to
+  // 'playback' and a looping silent <audio> track switches iOS to "media playback", heard even on silent.
+  // 3.99.2: before, every tap claimed it, which paused the user's music as soon as they touched the app.
   const MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   let out = null, silentEl = null, unlocked = false, silentErr = null;
   function silentWav() { // half a second of 8-bit silence, mono 8 kHz
@@ -168,11 +170,13 @@
     if (!silentEl) { silentEl = document.createElement('audio'); silentEl.src = silentWav(); silentEl.loop = true; silentEl.setAttribute('playsinline', ''); silentEl.setAttribute('x-webkit-airplay', 'deny'); }
     if (silentEl.paused) silentEl.play().then(() => { silentErr = null; }).catch(e => { silentErr = e && e.name; });
   }
-  function sleepMedia() { if (silentEl && !silentEl.paused && !playing && !ML.running()) silentEl.pause(); }
+  function setSession(type) { try { if (navigator.audioSession && navigator.audioSession.type !== type) navigator.audioSession.type = type; } catch (e) {} }
+  if (MOBILE) setSession('ambient'); // also covers the click and chime contexts of sfx.js, juice.js, game.js
+  function sleepMedia() { if (playing) return; if (silentEl && !silentEl.paused) silentEl.pause(); setSession('ambient'); }
   // Any tap on a phone re-arms audio (also after a call or Siri "interrupted" the context)
   ['touchend', 'click'].forEach(ev => document.addEventListener(ev, () => { if (MOBILE && (!ctx || ctx.state !== 'running')) ensure(); }, { capture: true, passive: true }));
-  function ensure() {
-    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  function ensure(claim) {
+    setSession(claim || playing ? 'playback' : 'ambient');
     try {
       if (!ctx) {
         ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -192,7 +196,7 @@
       }
       if (ctx.state !== 'running') { const p = ctx.resume(); if (p && p.catch) p.catch(() => {}); }
       if (!unlocked) { const s = ctx.createBufferSource(); s.buffer = ctx.createBuffer(1, 1, 22050); s.connect(ctx.destination); s.start(0); unlocked = true; }
-      wakeMedia();
+      if (claim || playing) wakeMedia();
     } catch (e) { ctx = null; }
     return ctx;
   }
@@ -1415,7 +1419,7 @@
   }
   let lastKey = '';
   function play() {
-    if (!ensure()) return;
+    if (!ensure(true)) return;
     playing = true;
     const cur = current(), key = cur.genre + '|' + cur.mode + '|' + cur.sub;
     if (!run || key !== lastKey) { lastKey = key; musicStart(cur.genre, cur); }
@@ -1522,7 +1526,7 @@
   }
   function stopSleep() { clearInterval(sleepTick); sleepTick = null; sleepEnd = null; renderDeck(); }
   function wakeChimes() {
-    if (!ensure()) return;
+    if (!ensure(true)) return;
     const scale = [72, 74, 76, 79, 81, 84];
     for (let i = 0; i < 24; i++) blip(out, { f: mtof(pick(scale) + (i > 12 ? 12 : 0)), t0: ctx.currentTime + i * 1.8, dur: 3, peak: 0.02 + i * 0.006, attack: 0.01 });
     toast(t('wake_up'), { ms: 8000 });
