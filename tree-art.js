@@ -870,20 +870,268 @@
     return out;
   }
 
+  /* ---------- The light worlds' trees (3.98, from proposals/you/arbres-clairs): Codex quay, Estampe plum (world) and inkpine (shop), Cartouche village and its islet background (shop) ---------- */
+  const roman = n => { let s = ''; [[50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']].forEach(([v, t]) => { while (n >= v) { s += t; n -= v; } }); return s; };
+  const leafP = (g, x, y, s, a) => { g.save(); g.translate(x, y); g.rotate(a); g.beginPath(); g.moveTo(-s, 0); g.quadraticCurveTo(0, -s * .62, s, 0); g.quadraticCurveTo(0, s * .62, -s, 0); g.restore(); };
+  const planeLeaf = (g, x, y, s, a) => { g.save(); g.translate(x, y); g.rotate(a); g.beginPath(); [[0, -1], [.2, -.42], [.78, -.64], [.5, -.08], [.96, .3], [.34, .26], [.2, .72], [0, .42], [-.2, .72], [-.34, .26], [-.96, .3], [-.5, -.08], [-.78, -.64], [-.2, -.42]].forEach(([u, v], i) => (i ? g.lineTo(u * s, v * s) : g.moveTo(u * s, v * s))); g.closePath(); g.restore(); };
+  const sidePath = (g, e) => { g.beginPath(); e.L.forEach((q, i) => (i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]))); e.R.forEach(q => g.lineTo(q[0], q[1])); g.closePath(); };
+  const inkRoots = (g, cx, gy, n, o, fill, W, H, tone, font) => {
+    if (!o.roots) return;
+    roots(g, cx, gy, n, o.roots, l => { taper(g, l.pts, fill); });
+    g.font = font || MONO; g.textAlign = 'center'; g.fillStyle = tone; o.rootNames.forEach((nm, i) => g.fillText(nm, W / 2 + (i - 1) * W * .3, H - 34)); g.textAlign = 'left';
+  };
+
+  /* ---------- Codex, world tree: the plane tree on the quay, ink line and watercolour on cream paper ---------- */
+  function quay(g, W, H, weeks, o) {
+    const gy = 548, cx = W / 2 - 20, n = weeks.length, R = rng(21), INK = '#4a3a2a';
+    g.fillStyle = '#efe6d0'; g.fillRect(0, 0, W, H);
+    g.fillStyle = vgrad(g, 30, gy, [[0, '#b9c6c688'], [.55, '#d9d7c544'], [1, '#efe6d000']]); g.fillRect(0, 0, W, gy);
+    // The far bank: roofs, chimneys and a spire in two washes, then the mist
+    const roofs = (y, c, seed, h0, h1, chim) => { const Rr = rng(seed); g.fillStyle = c; let x = -12; while (x < W) { const w = 34 + Rr() * 58, h = h0 + Rr() * (h1 - h0), gable = Rr() < .55; g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - h); if (gable) g.lineTo(x + w / 2, y - h - w * .34); g.lineTo(x + w, y - h); g.lineTo(x + w, y); g.fill(); if (chim && Rr() < .75) { const q = x + w * (.18 + Rr() * .6); g.fillRect(q, y - h - 22, 7, 24); g.fillRect(q - 1, y - h - 24, 9, 3); } x += w; } };
+    roofs(gy - 52, '#c2c8c0', 4, 40, 96, false);
+    g.fillStyle = '#c2c8c0'; g.beginPath(); g.moveTo(676, gy - 130); g.lineTo(690, gy - 236); g.lineTo(704, gy - 130); g.fill(); g.fillRect(672, gy - 132, 36, 80);
+    fogBank(g, R, W, gy - 170, gy - 80, '#efe6d0', .55, 10);
+    roofs(gy - 50, '#a9ada2', 9, 16, 52, true);
+    // Smoke from three chimneys
+    [[140, gy - 118], [420, gy - 108], [820, gy - 124]].forEach(([x, y]) => { g.strokeStyle = '#8e8d8466'; g.lineWidth = 5; g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x + 10, y - 26, x - 12, y - 44, x + 16, y - 74); g.stroke(); });
+    fogBank(g, R, W, gy - 96, gy - 44, '#efe6d0', .6, 14);
+    // The canal, with long ripples
+    g.fillStyle = vgrad(g, gy - 50, gy - 12, [[0, '#b7c2bd'], [1, '#a3b0ac']]); g.fillRect(0, gy - 50, W, 38);
+    g.strokeStyle = '#efe6d0aa'; g.lineWidth = 1; for (let i = 0; i < 46; i++) { const x = R() * W, y = gy - 46 + R() * 30, l = 14 + R() * 46; g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y); g.stroke(); }
+    g.strokeStyle = INK + '55'; for (let i = 0; i < 16; i++) { const x = R() * W, y = gy - 44 + R() * 28, l = 10 + R() * 26; g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y); g.stroke(); }
+    // A moored barge
+    g.fillStyle = '#5c4c3c'; g.beginPath(); g.moveTo(552, gy - 30); g.lineTo(710, gy - 30); g.lineTo(698, gy - 18); g.lineTo(564, gy - 18); g.fill(); g.fillStyle = '#8e7d60'; g.fillRect(600, gy - 42, 62, 12); g.fillStyle = '#4a3a2a'; g.fillRect(646, gy - 54, 4, 12);
+    // The quay: iron railing, stone edge, setts, then the ground seen in section
+    g.strokeStyle = INK; g.lineWidth = 1.4; for (let x = 16; x < W; x += 58) { g.beginPath(); g.moveTo(x, gy - 2); g.lineTo(x, gy - 58); g.stroke(); g.fillStyle = INK; g.beginPath(); g.arc(x, gy - 61, 3, 0, TAU); g.fill(); }
+    g.lineWidth = 1; [gy - 52, gy - 30].forEach(y => { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); });
+    g.strokeStyle = INK + '88'; g.lineWidth = .7; for (let x = 16; x < W; x += 58) for (let k = 1; k < 5; k++) { const q = x + k * 11.6; g.beginPath(); g.moveTo(q, gy - 30); g.lineTo(q, gy - 52); g.stroke(); }
+    g.fillStyle = '#ddd2b6'; g.fillRect(0, gy - 4, W, 26); g.strokeStyle = INK; g.lineWidth = 1.1; g.beginPath(); g.moveTo(0, gy - 4); g.lineTo(W, gy - 4); g.moveTo(0, gy + 22); g.lineTo(W, gy + 22); g.stroke();
+    g.lineWidth = .7; g.strokeStyle = INK + '99'; for (let r = 0; r < 2; r++) for (let x = (r ? 14 : 0); x < W; x += 28) { g.beginPath(); g.moveTo(x, gy - 4 + r * 13); g.lineTo(x, gy + 9 + r * 13); g.stroke(); }
+    g.beginPath(); g.moveTo(0, gy + 9); g.lineTo(W, gy + 9); g.stroke();
+    g.fillStyle = vgrad(g, gy + 22, H, [[0, '#e2d6b9'], [1, '#efe6d0']]); g.fillRect(0, gy + 22, W, H - gy - 22);
+    const Rh = rng(3); g.strokeStyle = INK + '44'; g.lineWidth = .8; for (let i = 0; i < 150; i++) { const x = 30 + Rh() * (W - 60), y = gy + 26 + Rh() * Rh() * 130, l = 8 + Rh() * 22; g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y + Rh() * 2); g.stroke(); }
+    // The gas lamp, lit, and a bench
+    const lx = 58; glow(g, lx, gy - 214, 86, '#f2c36a', .5); g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(lx, gy - 4); g.lineTo(lx, gy - 190); g.stroke(); g.lineWidth = 6; g.beginPath(); g.moveTo(lx, gy - 4); g.lineTo(lx, gy - 34); g.stroke();
+    g.lineWidth = 1.3; g.fillStyle = '#f6dc9a'; g.beginPath(); g.moveTo(lx - 8, gy - 190); g.lineTo(lx - 13, gy - 226); g.lineTo(lx + 13, gy - 226); g.lineTo(lx + 8, gy - 190); g.closePath(); g.fill(); g.stroke(); g.fillStyle = INK; g.beginPath(); g.moveTo(lx - 16, gy - 226); g.lineTo(lx, gy - 242); g.lineTo(lx + 16, gy - 226); g.fill(); g.beginPath(); g.moveTo(lx - 20, gy - 170); g.lineTo(lx + 20, gy - 170); g.stroke();
+    const bx = 744; g.strokeStyle = INK; g.lineWidth = 2.2; g.beginPath(); g.moveTo(bx, gy - 26); g.lineTo(bx + 96, gy - 26); g.moveTo(bx + 8, gy - 26); g.lineTo(bx + 8, gy - 4); g.moveTo(bx + 88, gy - 26); g.lineTo(bx + 88, gy - 4); g.stroke(); g.lineWidth = 1.4; [gy - 38, gy - 46].forEach(y => { g.beginPath(); g.moveTo(bx, y); g.lineTo(bx + 96, y); g.stroke(); }); g.beginPath(); g.moveTo(bx + 4, gy - 26); g.lineTo(bx + 4, gy - 50); g.moveTo(bx + 92, gy - 26); g.lineTo(bx + 92, gy - 50); g.stroke();
+    if (o.roots) { roots(g, cx, gy + 20, n, o.roots, (l, col) => { const e = taper(g, l.pts, '#e9dfc6'); g.strokeStyle = INK; g.lineWidth = .8; path(g, e.L); path(g, e.R); if (l.pts[0].w > 2.4) { g.strokeStyle = col; g.globalAlpha = .9; g.lineWidth = 1.4; g.beginPath(); l.pts.forEach((p, i) => (i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y))); g.stroke(); g.globalAlpha = 1; } }); g.font = 'italic 500 18px Georgia, serif'; g.textAlign = 'center'; g.fillStyle = INK; o.rootNames.forEach((nm, i) => g.fillText(nm, W / 2 + (i - 1) * W * .3, H - 34)); g.textAlign = 'left'; }
+    // The tree
+    const tr = yearTree(weeks, cx, gy, { max: 3 }), WASH = ['#c9a25a', '#a8795a', '#bccb9c', '#8fa184'];
+    const limb = l => { const e = taper(g, l.pts, l.order > 1 ? '#cdbf9e' : '#d6caa9'); g.strokeStyle = INK; g.lineWidth = l.order ? .8 : 1.1; path(g, e.L); path(g, e.R); };
+    const leaves = w => {
+      const { W: wk, out, R: Rw, sc } = w; if (wk.empty) return; const c = wk.pal ? wk.pal[2] : WASH[wk.season], N = wk.season === 1 && !wk.pal ? 6 : 11;
+      out.tips.forEach(t => {
+        // Plane leaves, drawn one by one as in a tinted engraving: ink outline, a pale wash, a midrib. No colour cloud behind them.
+        const rad = (15 + min(wk.s, 16) * 1) * sc, M = wk.season === 1 && !wk.pal ? 3 : 5 + floor(min(wk.s, 16) * .25);
+        for (let i = 0; i < M; i++) { const a = Rw() * TAU, r = sqrt(Rw()) * rad, x = t.x + cos(a) * r, y = t.y + sin(a) * r * .85, s = (6 + Rw() * 3.4) * sc, rot = (Rw() - .5) * 1.6 + Math.PI; planeLeaf(g, x, y, s, rot); g.fillStyle = '#efe6d0'; g.fill(); g.fillStyle = c + (Rw() < .35 ? '8c' : 'c8'); g.fill(); g.strokeStyle = INK + 'cc'; g.lineWidth = .7; g.stroke(); g.strokeStyle = INK + '66'; g.lineWidth = .5; g.beginPath(); g.moveTo(x + sin(rot) * s * .9, y - cos(rot) * s * .9); g.lineTo(x - sin(rot) * s * .6, y + cos(rot) * s * .6); g.stroke(); }
+      });
+    };
+    layers(tr, w => { byOrder(w).forEach(limb); leaves(w); }, () => {
+      tr.boughs.forEach(limb);
+      // Mottled bark: the plane tree sheds its bark in plates
+      const e = taper(g, tr.trunk, '#d9cfb2'), Rb = rng(6); g.save(); sidePath(g, e); g.clip();
+      tr.trunk.forEach((p, i) => { for (let k = 0; k < 2; k++) { if (Rb() < .3) continue; g.fillStyle = pickOf(Rb, ['#b9b08c', '#a9a585', '#f1e9d2', '#8f8a6a', '#c9bd98']); g.beginPath(); g.ellipse(p.x + (Rb() - .5) * p.w, p.y + (Rb() - .5) * 8, 2 + Rb() * p.w * .22, 3 + Rb() * 9, (Rb() - .5) * .6, 0, TAU); g.fill(); } });
+      g.fillStyle = INK + '2e'; g.beginPath(); tr.trunk.forEach((p, i) => (i ? g.lineTo(p.x + p.w * .5, p.y) : g.moveTo(p.x + p.w * .5, p.y))); tr.trunk.slice().reverse().forEach(p => g.lineTo(p.x + p.w * .2, p.y)); g.fill();
+      g.restore(); g.strokeStyle = INK; g.lineWidth = 1.4; path(g, e.L); path(g, e.R);
+    }, w => { byOrder(w).forEach(limb); leaves(w); });
+    tr.weeks.forEach(w => {
+      const { W: wk, out, R: Rw, sc } = w; if (wk.empty || !out.tips.length) return; const at = () => out.tips[floor(Rw() * out.tips.length)];
+      for (let i = 0; i < min(wk.f, 3); i++) { const p = at(), x = p.x + (Rw() - .5) * 16 * sc, y = p.y + 4 * sc, l = (9 + Rw() * 7) * sc; g.strokeStyle = INK; g.lineWidth = .8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 1, y + l); g.stroke(); g.fillStyle = '#b08d4a'; g.beginPath(); g.arc(x + 1, y + l + 3.2 * sc, 3.4 * sc, 0, TAU); g.fill(); g.stroke(); g.fillStyle = '#e6cc8a'; g.beginPath(); g.arc(x, y + l + 2.2 * sc, 1.2 * sc, 0, TAU); g.fill(); }
+      if (wk.back) { const p = at(); glow(g, p.x, p.y, 13 * sc, '#cfe6a2cc'); g.fillStyle = '#dcecb4'; g.strokeStyle = INK; g.lineWidth = .8; g.beginPath(); g.ellipse(p.x, p.y, 3.2 * sc, 6 * sc, .3, 0, TAU); g.fill(); g.stroke(); }
+      if (wk.rare) { const p = at(), s = 1.5 * sc, x = p.x, y = p.y - 6 * s; g.fillStyle = '#6b5a48'; g.beginPath(); g.ellipse(x, y, 8 * s, 5.4 * s, -.25, 0, TAU); g.fill(); g.beginPath(); g.arc(x + 6 * s, y - 4.4 * s, 3.6 * s, 0, TAU); g.fill(); g.fillStyle = '#c8603a'; g.beginPath(); g.ellipse(x + 3.4 * s, y + .6 * s, 4.4 * s, 3.6 * s, -.2, 0, TAU); g.fill(); g.fillStyle = INK; g.beginPath(); g.moveTo(x + 9.2 * s, y - 4.8 * s); g.lineTo(x + 13 * s, y - 4 * s); g.lineTo(x + 9.2 * s, y - 3.2 * s); g.fill(); g.beginPath(); g.moveTo(x - 7 * s, y + 1 * s); g.lineTo(x - 14 * s, y + 4 * s); g.lineTo(x - 6 * s, y + 3 * s); g.fill(); }
+    });
+    g.strokeStyle = '#8e7d60'; g.lineWidth = 1.2; g.strokeRect(20, 20, W - 40, H - 40);
+    g.fillStyle = INK; g.font = 'italic 500 19px Georgia, serif'; g.fillText('Pl. ' + roman(n), 40, 54);
+    return hitsOf(tr);
+  }
+  /* ---------- Estampe, shop: the printed pine. Flat black ink, four tints of grey, one red. ---------- */
+  const E_PAPER = '#efe6d2', E_INK = '#1d1b19', E_RED = '#c8372d';
+  function inkTree(g, tr, back, front) {
+    const limb = l => taper(g, l.pts, E_INK);
+    layers(tr, w => { byOrder(w).forEach(limb); back(w); }, () => {
+      tr.boughs.forEach(limb); taper(g, tr.trunk, E_INK);
+      // Lines cut into the block show the paper through the trunk
+      const Rc = rng(8); g.strokeStyle = E_PAPER + 'b0'; g.lineWidth = 1.1; for (let k = 0; k < 5; k++) { const u = -.3 + k * .15, from = floor(Rc() * 5), to = floor(tr.trunk.length * (.4 + Rc() * .5)); g.beginPath(); for (let i = from; i < to; i++) { const p = tr.trunk[i]; if (p.w < 8) break; const x = p.x + u * p.w + sin(i * .6 + k) * 1.2; i === from ? g.moveTo(x, p.y) : g.lineTo(x, p.y); } g.stroke(); }
+    }, w => { byOrder(w).forEach(limb); front(w); });
+  }
+  function pinEncre(g, W, H, weeks, o) {
+    const gy = 572, cx = W / 2 - 60, n = weeks.length, R = rng(31);
+    g.fillStyle = E_PAPER; g.fillRect(0, 0, W, H);
+    g.fillStyle = vgrad(g, 0, 190, [[0, '#6f7f8ae0'], [1, '#6f7f8a00']]); g.fillRect(0, 0, W, 190);
+    g.fillStyle = E_RED; g.beginPath(); g.arc(W * .74, 226, 96, 0, TAU); g.fill();
+    // The far mountain, printed with a fade towards its foot
+    const peak = (x0, y0, w, c) => { g.fillStyle = vgrad(g, y0, gy - 40, [[0, c], [.55, c + 'cc'], [1, c + '00']]); g.beginPath(); g.moveTo(x0 - w, gy - 40); g.bezierCurveTo(x0 - w * .5, gy - 60, x0 - w * .16, y0 + 30, x0 - 14, y0); g.lineTo(x0 + 12, y0 + 4); g.bezierCurveTo(x0 + w * .2, y0 + 40, x0 + w * .6, gy - 70, x0 + w, gy - 40); g.fill(); };
+    peak(250, 258, 330, '#8d8a80'); g.strokeStyle = E_PAPER; g.lineWidth = 2; [[-10, 14, -34, 70], [2, 12, 4, 62], [10, 16, 40, 78], [-4, 10, -16, 46]].forEach(([a, b, c, d]) => { g.beginPath(); g.moveTo(250 + a, 258 + b); g.lineTo(250 + c, 258 + d); g.stroke(); });
+    peak(640, 400, 260, '#a8a192');
+    // Mist bands with round ends, the way prints draw them
+    const band = (x, y, w, h) => { g.fillStyle = E_PAPER; g.beginPath(); g.moveTo(x + h / 2, y); g.lineTo(x + w - h / 2, y); g.arc(x + w - h / 2, y + h / 2, h / 2, -Math.PI / 2, Math.PI / 2); g.lineTo(x + h / 2, y + h); g.arc(x + h / 2, y + h / 2, h / 2, Math.PI / 2, -Math.PI / 2); g.fill(); };
+    band(-40, 330, 420, 22); band(120, 362, 520, 18); band(560, 290, 460, 20); band(480, 444, 420, 16); band(-30, 452, 300, 14);
+    // Water: short cut lines, then the bank in flat ink
+    g.strokeStyle = '#5d564c'; g.lineWidth = 1.2; for (let i = 0; i < 64; i++) { const y = gy - 76 + R() * 62, x = R() * W, l = 16 + R() * 60 * ((y - gy + 80) / 62); g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y); g.stroke(); }
+    g.fillStyle = E_INK; g.beginPath(); g.moveTo(0, gy + 26); for (let x = 0; x <= W; x += 10) g.lineTo(x, gy - 6 + 7 * sin(x * .008 + 1) + 3 * sin(x * .04)); g.lineTo(W, gy + 26); g.fill();
+    g.strokeStyle = E_INK; g.lineWidth = 1.6; for (let i = 0; i < 60; i++) { const x = R() * W, y = gy - 6 + 7 * sin(x * .008 + 1), h = 6 + R() * 14; if (abs(x - cx) < 60) continue; g.beginPath(); g.moveTo(x, y + 2); g.quadraticCurveTo(x + (R() - .5) * 6, y - h * .6, x + (R() - .5) * 12, y - h); g.stroke(); }
+    g.strokeStyle = E_PAPER + '99'; g.lineWidth = 1; for (let i = 0; i < 40; i++) { const x = R() * W, y = gy + 6 + R() * 14, l = 10 + R() * 30; g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y); g.stroke(); }
+    // Two birds near the sun
+    g.strokeStyle = E_INK; g.lineWidth = 2; [[W * .74 - 150, 150, 9], [W * .74 - 118, 128, 7]].forEach(([x, y, s]) => { g.beginPath(); g.moveTo(x - s, y - s * .4); g.quadraticCurveTo(x - s * .4, y - s * .7, x, y); g.quadraticCurveTo(x + s * .4, y - s * .7, x + s, y - s * .4); g.stroke(); });
+    inkRoots(g, cx, gy + 18, n, o, '#3a3733', W, H, E_INK, '600 17px Georgia, serif');
+    const tr = yearTree(weeks, cx, gy, { max: 3 }), TONE = ['#6b6156', '#b3ab9a', '#48544a', '#24221f'];
+    const pad = w => {
+      const { W: wk, out, R: Rw, sc } = w; if (wk.empty) return; const c = TONE[wk.season];
+      out.tips.forEach((t, ti) => {
+        if (ti % 2) return; const r = (19 + min(wk.s, 16) * 1.45) * sc, y = t.y + r * .12;
+        g.fillStyle = c; g.beginPath(); g.moveTo(t.x - r, y); [-.5, 0, .5].forEach(u => g.arc(t.x + u * r * 1.02, y - r * (u ? .1 : .2), r * .52, Math.PI, 0)); g.lineTo(t.x + r, y); g.quadraticCurveTo(t.x, y + r * .16, t.x - r, y); g.fill();
+        if (wk.season === 1) { g.strokeStyle = '#5d564c'; g.lineWidth = .9; g.stroke(); }
+        g.strokeStyle = wk.season === 1 ? '#5d564c' : E_PAPER + 'c0'; g.lineWidth = 1; for (let k = 0; k < 9; k++) { const a = -Math.PI * (.12 + k * .095), r0 = r * .5, r1 = r * .78; g.beginPath(); g.moveTo(t.x + cos(a) * r0 * 1.3, y + sin(a) * r0 * .7); g.lineTo(t.x + cos(a) * r1 * 1.3, y + sin(a) * r1 * .7); g.stroke(); }
+      });
+    };
+    inkTree(g, tr, pad, pad);
+    tr.weeks.forEach(w => {
+      const { W: wk, out, R: Rw, sc } = w; if (wk.empty || !out.tips.length) return; const at = () => out.tips[floor(Rw() * out.tips.length)];
+      for (let i = 0; i < min(wk.f, 3); i++) { const p = at(); g.fillStyle = E_RED; g.beginPath(); g.arc(p.x + (Rw() - .5) * 20 * sc, p.y - (4 + Rw() * 8) * sc, 3.6 * sc, 0, TAU); g.fill(); }
+      if (wk.back) { const p = at(); g.fillStyle = E_PAPER; g.strokeStyle = E_INK; g.lineWidth = 1.4; g.beginPath(); g.arc(p.x, p.y - 8 * sc, 4.6 * sc, 0, TAU); g.fill(); g.stroke(); }
+      if (wk.rare) { const p = at(), s = 11 * sc, x = p.x + 8 * sc, y = p.y - 30 * sc; g.fillStyle = E_RED; g.fillRect(x - s, y - s, s * 2, s * 2); g.strokeStyle = E_PAPER; g.lineWidth = 1.6; g.strokeRect(x - s * .62, y - s * .62, s * 1.24, s * 1.24); g.beginPath(); g.moveTo(x, y - s * .62); g.lineTo(x, y + s * .62); g.moveTo(x - s * .62, y); g.lineTo(x + s * .62, y); g.stroke(); }
+    });
+    g.strokeStyle = E_INK; g.lineWidth = 2.4; g.strokeRect(18, 18, W - 36, H - 36);
+    return hitsOf(tr);
+  }
+
+  /* ---------- Estampe, world tree: the plum tree in the rain. Each season prints differently: grey leaves, snow, white blossom, black leaves. ---------- */
+  function petals(g, x, y, r, fill, line) {
+    const P = []; for (let i = 0; i < 5; i++) { const a = i / 5 * TAU - Math.PI / 2 + x; P.push([x + cos(a) * r * .6, y + sin(a) * r * .6]); }
+    if (line) { g.strokeStyle = line; g.lineWidth = 1.5; P.forEach(p => { g.beginPath(); g.arc(p[0], p[1], r * .5, 0, TAU); g.stroke(); }); }
+    g.fillStyle = fill; P.forEach(p => { g.beginPath(); g.arc(p[0], p[1], r * .5, 0, TAU); g.fill(); }); g.beginPath(); g.arc(x, y, r * .4, 0, TAU); g.fill();
+  }
+  function prunier(g, W, H, weeks, o) {
+    const gy = 580, cx = W / 2 + 20, n = weeks.length, R = rng(47);
+    g.fillStyle = E_PAPER; g.fillRect(0, 0, W, H);
+    g.fillStyle = vgrad(g, 0, 240, [[0, '#3d4549e6'], [.5, '#3d454966'], [1, '#3d454900']]); g.fillRect(0, 0, W, 240);
+    g.fillStyle = '#f8f2e2'; g.beginPath(); g.arc(214, 206, 84, 0, TAU); g.fill(); g.strokeStyle = '#8d8a80'; g.lineWidth = 1.2; g.stroke();
+    // Far bank and a footbridge, in pale grey
+    g.fillStyle = vgrad(g, gy - 120, gy - 20, [[0, '#a8a192'], [1, '#a8a19200']]); g.beginPath(); g.moveTo(0, gy - 20); g.lineTo(0, gy - 84); for (let x = 0; x <= W; x += 12) g.lineTo(x, gy - 92 - 16 * sin(x * .006 + 2) - 5 * sin(x * .03)); g.lineTo(W, gy - 20); g.fill();
+    g.strokeStyle = '#6b6156'; g.lineWidth = 3; g.beginPath(); g.moveTo(650, gy - 34); g.quadraticCurveTo(770, gy - 96, 890, gy - 34); g.stroke(); g.lineWidth = 1.4; g.beginPath(); g.moveTo(650, gy - 48); g.quadraticCurveTo(770, gy - 110, 890, gy - 48); g.stroke(); for (let k = 0; k <= 8; k++) { const q = k / 8, x = lerp(650, 890, q), y = gy - 34 - 62 * 2 * q * (1 - q); g.beginPath(); g.moveTo(x, y + 6); g.lineTo(x, y - 14); g.stroke(); }
+    g.lineWidth = 3; [[672, gy - 40], [868, gy - 40]].forEach(([x, y]) => { g.beginPath(); g.moveTo(x, y); g.lineTo(x, gy - 8); g.stroke(); });
+    g.strokeStyle = '#5d564c'; g.lineWidth = 1.1; for (let i = 0; i < 50; i++) { const y = gy - 40 + R() * 30, x = R() * W, l = 14 + R() * 50; g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y); g.stroke(); }
+    // The near bank, printed with a fade downwards; reeds on the left
+    g.fillStyle = vgrad(g, gy - 10, gy + 150, [[0, '#57524a'], [.25, '#77736a'], [1, '#77736a00']]); g.beginPath(); g.moveTo(0, gy + 150); for (let x = 0; x <= W; x += 10) g.lineTo(x, gy - 4 + 8 * sin(x * .007 + 3) + 3 * sin(x * .045)); g.lineTo(W, gy + 150); g.fill();
+    g.strokeStyle = E_INK; g.lineWidth = 1.8; for (let i = 0; i < 26; i++) { const x = 40 + R() * 190, y = gy + 2, h = 30 + R() * 70, bend = (R() - .3) * 30; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + bend * .2, y - h * .6, x + bend, y - h); g.stroke(); }
+    inkRoots(g, cx, gy + 4, n, o, E_INK, W, H, E_INK, '600 17px Georgia, serif');
+    const tr = yearTree(weeks, cx, gy, { max: 3 });
+    const dress = w => {
+      const { W: wk, out, R: Rw, sc } = w; if (wk.empty) return; const s = min(wk.s, 16);
+      if (wk.season === 1) { // snow lies on the wood
+        g.strokeStyle = '#fbf7ea'; g.lineCap = 'round'; out.limbs.forEach(l => { if (l.order > 1) return; g.lineWidth = max(1.6, l.pts[0].w * .5); g.beginPath(); l.pts.forEach((p, i) => { const y = p.y - p.w * .5 - 1; i ? g.lineTo(p.x, y) : g.moveTo(p.x, y); }); g.stroke(); });
+        out.tips.forEach((t, ti) => { if (ti % 3) return; g.fillStyle = E_INK; g.beginPath(); g.arc(t.x, t.y, 1.8 * sc, 0, TAU); g.fill(); });
+        return;
+      }
+      out.tips.forEach(t => {
+        const rad = (12 + s * .8) * sc;
+        if (wk.season === 2) { const N = 1 + floor(s / 5); for (let i = 0; i < N; i++) { const a = Rw() * TAU, r = sqrt(Rw()) * rad; petals(g, t.x + cos(a) * r, t.y + sin(a) * r * .85, (5 + Rw() * 2) * sc, '#fbf7ea', E_INK); g.fillStyle = E_INK; g.beginPath(); g.arc(t.x + cos(a) * r, t.y + sin(a) * r * .85, 1.1 * sc, 0, TAU); g.fill(); } return; }
+        const N = wk.season === 0 ? 3 + floor(s * .3) : 6 + floor(s * .5), c = wk.season === 0 ? '#8d8477' : '#2b2926';
+        for (let i = 0; i < N; i++) { const a = Rw() * TAU, r = sqrt(Rw()) * rad, fall = wk.season === 0 && Rw() < .22 ? (20 + Rw() * 50) * sc : 0; leafP(g, t.x + cos(a) * r, t.y + sin(a) * r * .85 + fall, (3.4 + Rw() * 2.6) * sc, wk.season === 0 ? Rw() * TAU : a); g.fillStyle = c; g.fill(); }
+      });
+    };
+    inkTree(g, tr, dress, dress);
+    tr.weeks.forEach(w => {
+      const { W: wk, out, R: Rw, sc } = w; if (wk.empty || !out.tips.length) return; const at = () => out.tips[floor(Rw() * out.tips.length)];
+      for (let i = 0; i < min(wk.f, 3); i++) { const p = at(), x = p.x + (Rw() - .5) * 18 * sc, y = p.y + (Rw() - .5) * 18 * sc; petals(g, x, y, 5.6 * sc, E_RED); g.fillStyle = '#f8e7c8'; g.beginPath(); g.arc(x, y, 1.3 * sc, 0, TAU); g.fill(); }
+      if (wk.back) { const p = at(); g.fillStyle = '#fbf7ea'; g.strokeStyle = E_INK; g.lineWidth = 1.3; g.beginPath(); g.ellipse(p.x, p.y - 6 * sc, 3.4 * sc, 6 * sc, .3, 0, TAU); g.fill(); g.stroke(); }
+      if (wk.rare) { const p = at(); petals(g, p.x, p.y, 13 * sc, E_RED, E_INK); g.fillStyle = '#f8e7c8'; for (let k = 0; k < 6; k++) { const a = k / 6 * TAU; g.beginPath(); g.arc(p.x + cos(a) * 3.4 * sc, p.y + sin(a) * 3.4 * sc, 1 * sc, 0, TAU); g.fill(); } }
+    });
+    // Rain: long thin cuts across the whole print
+    const Rr = rng(5); g.strokeStyle = E_INK; g.lineWidth = 1; g.lineCap = 'butt'; for (let i = 0; i < 170; i++) { const x = Rr() * (W + 120), y = Rr() * H, l = 50 + Rr() * 110; g.globalAlpha = .1 + Rr() * .14; g.beginPath(); g.moveTo(x, y); g.lineTo(x - l * .2, y + l); g.stroke(); } g.globalAlpha = 1;
+    g.strokeStyle = E_INK; g.lineWidth = 2.4; g.strokeRect(18, 18, W - 36, H - 36);
+    return hitsOf(tr);
+  }
+
+  /* ---------- Cartouche: pixel trees in the world's own greens. 200 x 160, whole pixels only. ---------- */
+  const CP = { d: '#0F380F', g: '#306230', m: '#8BAC0F', l: '#C4D88A', p: '#E3EDC8', r: '#C8323C', y: '#E0A82E', w: '#F4F6E8', k: '#E07A8A' };
+  const C_PALS = [['#5a4a12', '#B8862A', '#E0A82E', '#F1D27A'], ['#306230', '#9DB59A', '#D5E3C8', '#F4F6E8'], ['#306230', '#6f9a1f', '#A9C94A', '#E3EDC8'], ['#0F380F', '#306230', '#8BAC0F', '#C4D88A']];
+  const C_VILLAGE = { RX: 74, RY: 41, pals: C_PALS, bark: ['#0F380F', '#3a4a1c', '#6a7a2c'], dark: CP.d, fruit: [CP.r, '#F4A8A0', '#7a1c24'] }; // the village tree, on both backgrounds
+  function pxTree(g, weeks, cx, gy, o, C) {
+    const n = weeks.length, room = max(n, 40), k01 = min(1, sqrt(n / 40)), hT = round(13 + 17 * k01), wT = 3 + round(k01 * 8), RX = C.RX, RY = C.RY, top = gy - hT - round(22 * k01), rMax = sqrt((n - .5) / room);
+    const cy = gy - hT - RY * rMax * .72, items = [], B = C.bark, palFor = W => (W.pal ? W.pal.slice() : C.pals[W.season]);
+    for (let i = 0; i < n; i++) { const W_ = weeks[i], R = rng(9100 + i * 37), ph = i * 2.399, rho = sqrt((i + .5) / room), s = min(W_.s, 16); items.push({ W: W_, x: cx + cos(ph) * rho * RX, y: cy + sin(ph) * rho * RY * (sin(ph) > 0 ? .72 : 1), r: W_.empty ? 0 : (C.r0 || 6) + s * .3, side: cos(ph) >= 0 ? 1 : -1, behind: i % 3 === 0, R, seed: i * 1.7 }); }
+    const limb = it => { const x0 = cx + it.side * round(wT * .25), y0 = gy - hT + 2, c = it.W.empty ? '#7f9a6a' : B[0], st = max(abs(it.x - x0), abs(it.y - y0)), th = it.W.empty ? 1 : 2; for (let k = 0; k <= st; k++) { const q = st ? k / st : 1; px(g, lerp(x0, it.x, q * q), lerp(y0, it.y, q), th, th, c); } };
+    items.forEach(it => { if (it.W.empty) return; const r = round(it.r + 2), x0 = round(it.x), y0 = round(it.y); for (let y = -r; y <= r; y++) { const hw = round(sqrt(max(0, r * r - y * y))); px(g, x0 - hw, y0 + y, hw * 2 + 1, 1, C.dark); } });
+    const clump = it => { if (!it.W.empty) pClump(g, it.x, it.y, it.r, palFor(it.W), it.seed); };
+    items.filter(i => !i.W.empty).forEach(limb);
+    items.filter(i => i.behind).sort((a, b) => a.y - b.y).forEach(clump);
+    for (let y = gy + 2; y >= top; y--) { const q = (gy - y) / (gy - top), w = max(2, round(lerp(wT, 2, q * q)) + (y > gy - 5 ? 6 - (gy - y) : 0)), x0 = round(cx - w / 2); px(g, x0, y, w, 1, B[1]); px(g, x0, y, max(1, round(w * .34)), 1, B[0]); px(g, x0 + w - max(1, round(w * .2)), y, max(1, round(w * .2)), 1, B[2]); if (w > 4 && (y + floor(cx)) % 7 === 0) px(g, x0 + round(w * .45), y, 2, 1, B[0]); }
+    items.filter(i => !i.behind).sort((a, b) => a.y - b.y).forEach(clump);
+    items.filter(i => i.W.empty).forEach(limb);
+    items.forEach(it => { if (it.W.empty) return; const R = it.R, rr = it.r * .8; for (let i = 0; i < min(it.W.f, 2); i++) FRUIT(g, it.x + (R() - .5) * 2 * rr, it.y + (R() - .5) * 2 * rr * .8, C.fruit); if (it.W.back) SPROUT(g, it.x, it.y - it.r); if (it.W.rare) RAREP(g, it.x + rr * .4, it.y - rr * .3); });
+    return items.map(it => ({ i: it.W.i, x: it.x, y: it.y }));
+  }
+  function cSky(g, W) {
+    let y = 0; [['#BCD38B', 16], ['#C6DA98', 16], ['#D0E1A6', 18], ['#D9E8B4', 20], ['#E1EDC1', 34]].forEach(([c, h]) => { px(g, 0, y, W, h, c); y += h; });
+    const cloud = (x, y0, w) => { px(g, x + 3, y0 - 2, w - 8, 2, '#EDF3D6'); px(g, x, y0, w, 3, '#EDF3D6'); px(g, x + 2, y0 + 3, w - 3, 1, '#BCD38B'); };
+    cloud(44, 12, 26); cloud(92, 30, 20); cloud(150, 12, 30);
+  }
+  const cRidge = (g, W, base, a, f, c, snow, to) => { for (let x = 0; x < W; x++) { const h = round(base + sin(x * f) * a + sin(x * f * 2.3 + 1) * a * .4); px(g, x, h, 1, to - h, c); if (snow && h < base - a * .5) px(g, x, h, 1, 2, '#EEF3DC'); } };
+  const cPine = (g, x, y, h) => { for (let k = 0; k < h; k++) { const w = 1 + floor(k / 2.2) % 5 + floor(k / 8); px(g, x - floor(w / 2), y - h + k, w, 1, CP.g); } px(g, x, y, 1, 2, CP.d); };
+  function cUnder(g, W, H, y0, cx, weeks, o) {
+    px(g, 0, y0, W, 6, '#3f7a3a'); px(g, 0, y0 + 6, W, H - y0 - 6, CP.g); px(g, 0, y0 + 18, W, H - y0 - 18, '#1f4d1f');
+    [[20, y0 + 6, 8], [160, y0 + 4, 9], [32, y0 + 22, 7], [138, y0 + 22, 10], [176, y0 + 14, 6], [60, y0 + 26, 6], [112, y0 + 26, 7]].forEach(([x, y, w]) => { px(g, x, y, w, 3, '#4f8a4a'); px(g, x + 1, y, w - 2, 1, '#8BAC0F'); });
+  }
+  function pxJour(g, W, H, weeks, o) {
+    const gy = 116, cx = 88; cSky(g, W);
+    for (let yy = -8; yy <= 8; yy++) { const hw = round(sqrt(64 - yy * yy)); px(g, 22 - hw, 40 + yy, hw * 2, 1, '#F4F6E8'); }
+    cRidge(g, W, 74, 10, .043, '#A9C27E', true, 104); cRidge(g, W, 86, 5, .08, '#98B66A', false, 104); cRidge(g, W, 95, 3, .06, '#93B160', false, 104);
+    [[6, 13], [15, 9], [24, 15], [34, 10], [190, 14], [198, 9]].forEach(([x, h]) => cPine(g, x, 100, h));
+    px(g, 0, 100, W, 40, '#9DBB62');
+    // The house, its smoke, and the road down to the pond
+    const hx = 160; px(g, hx, 90, 18, 11, '#E3EDC8'); px(g, hx, 100, 18, 1, '#C4D88A'); for (let k = 0; k < 6; k++) px(g, hx - 2 + k, 89 - k, 22 - k * 2, 1, CP.r); px(g, hx + 7, 95, 4, 6, CP.g); px(g, hx + 2, 93, 3, 3, CP.y); px(g, hx + 13, 93, 3, 3, CP.y); px(g, hx + 13, 81, 3, 5, CP.g);
+    [[hx + 14, 78], [hx + 15, 75], [hx + 17, 72], [hx + 16, 69]].forEach(([x, y]) => px(g, x, y, 2, 2, '#E9EFD6'));
+    [[hx + 6, 101, 6], [hx + 2, 103, 7], [hx - 6, 105, 9], [hx - 18, 107, 13], [hx - 32, 109, 16], [hx - 44, 111, 14]].forEach(([x, y, w]) => px(g, x, y, w, 2, '#E9EFCF'));
+    [[14, 106, 30], [10, 108, 38], [12, 110, 34], [18, 112, 22]].forEach(([x, y, w]) => px(g, x, y, w, 2, '#A9CBA8')); [[18, 108, 8], [30, 110, 6], [24, 107, 4]].forEach(([x, y, w]) => px(g, x, y, w, 1, '#E3EDC8'));
+    // A fence and flowers
+    for (let x = 176; x < 200; x += 5) { px(g, x, 104, 1, 4, CP.g); } px(g, 176, 105, 24, 1, CP.g);
+    [[52, 106, CP.w], [60, 110, CP.k], [118, 108, CP.y], [126, 112, CP.w], [140, 114, CP.k], [46, 114, CP.y], [70, 104, CP.w]].forEach(([x, y, c]) => { px(g, x, y, 1, 1, c); px(g, x, y + 1, 1, 1, CP.g); });
+    for (let x = 0; x < W; x++) { const d = abs(x - cx), top = gy + round(pow(d / 74, 2) * 9) - 2; if (top > 126) continue; px(g, x, top, 1, 3, CP.m); px(g, x, top + 3, 1, 3, '#6f9440'); }
+    px(g, cx - 34, gy + 1, 68, 1, '#6f9440');
+    cUnder(g, W, H, 128, cx, weeks, o);
+    if (o.roots) { pRoots(g, weeks.length, cx, 120, H, o.roots); o.rootNames.forEach((nm, i) => ptxt(g, nm, [8, 78, 150][i], H - 7, ROOT_COL[i])); }
+    return pxTree(g, weeks, cx, gy, o, C_VILLAGE);
+  }
+  function pxIle(g, W, H, weeks, o) { // the village tree on the pond islet: a second background, sold in the shop
+    const gy = 112, cx = 100; cSky(g, W);
+    cRidge(g, W, 78, 8, .05, '#A9C27E', true, 100); cRidge(g, W, 90, 4, .09, '#98B66A', false, 100);
+    [[8, 12], [18, 8], [182, 13], [192, 9]].forEach(([x, h]) => cPine(g, x, 97, h));
+    // The pond, with the crown's shade on it
+    px(g, 0, 96, W, 36, '#A9CBA8'); px(g, 0, 96, W, 2, '#8FB58F'); [[102, 6], [108, 4], [116, 3], [124, 2]].forEach(([y, a]) => { for (let x = (y * 7) % 13; x < W; x += 13 + a) px(g, x, y, 5 + a, 1, '#BFD9BC'); });
+    for (let y = 118; y < 130; y += 2) { const hw = 70 - (y - 118) * 4; px(g, cx - hw, y, hw * 2, 1, '#8FB58F'); }
+    [[20, 104], [150, 122], [172, 106], [44, 124]].forEach(([x, y]) => { px(g, x, y, 5, 2, CP.m); px(g, x + 1, y - 1, 3, 1, CP.m); px(g, x + 3, y, 1, 1, '#A9CBA8'); }); px(g, 22, 103, 1, 1, CP.k); px(g, 173, 105, 1, 1, CP.w);
+    // Two ducks
+    [[160, 112], [168, 115]].forEach(([x, y]) => { px(g, x, y, 4, 2, CP.w); px(g, x + 3, y - 1, 2, 2, CP.w); px(g, x + 5, y, 1, 1, CP.y); px(g, x, y + 2, 4, 1, '#8FB58F'); });
+    // The footbridge on the left
+    for (let x = 0; x < 52; x++) { const y = 113 - round(sin(x / 52 * Math.PI) * 4); px(g, x, y, 1, 2, CP.y); px(g, x, y + 2, 1, 1, '#9a6f1c'); if (x % 7 === 3) { px(g, x, y - 5, 1, 5, '#9a6f1c'); px(g, x, y + 3, 1, 6, CP.g); } px(g, x, y - 5, 1, 1, '#9a6f1c'); }
+    // The islet
+    for (let x = cx - 58; x <= cx + 58; x++) { const d = abs(x - cx), top = gy + round(pow(d / 58, 2) * 10) - 2; px(g, x, top, 1, 3, CP.m); px(g, x, top + 3, 1, 3, '#6f9440'); px(g, x, top + 6, 1, 132 - top - 6, '#3f7a3a'); }
+    px(g, cx - 30, gy + 1, 60, 1, '#6f9440'); [[cx - 44, gy + 4, CP.w], [cx + 40, gy + 3, CP.k], [cx + 30, gy + 1, CP.y], [cx - 28, gy + 2, CP.k]].forEach(([x, y, c]) => px(g, x, y, 1, 1, c));
+    // A lantern stone on the islet
+    px(g, cx + 44, gy - 2, 3, 6, '#D5E3C8'); px(g, cx + 43, gy - 5, 5, 3, '#F4F6E8'); px(g, cx + 44, gy - 4, 3, 1, CP.y); px(g, cx + 43, gy - 6, 5, 1, CP.g);
+    cUnder(g, W, H, 132, cx, weeks, o);
+    if (o.roots) { pRoots(g, weeks.length, cx, 118, H, o.roots); o.rootNames.forEach((nm, i) => ptxt(g, nm, [8, 78, 150][i], H - 7, ROOT_COL[i])); }
+    return pxTree(g, weeks, cx, gy, o, C_VILLAGE);
+  }
+
+  
   /* ---------- Public ---------- */
   // The world trees were drawn with round line ends
   const roundEnds = f => (g, ...a) => { g.lineCap = 'round'; g.lineJoin = 'round'; return f(g, ...a); };
-  const WORLD = { orrery, atlas, fan: gorgon, coral: coralJelly, crystal, pages: grimoire, wired, silver, hanging };
+  const WORLD = { orrery, atlas, fan: gorgon, coral: coralJelly, crystal, pages: grimoire, wired, silver, hanging, quay, plum: prunier, inkpine: pinEncre, village: pxJour, islet: pxIle };
   const SCENE = { oak, plate, willow, pine, holo, pixel };
   for (const k in WORLD) SCENE[k] = roundEnds(WORLD[k]);
   // In the Room's grove, a world tree stands as the oak dressed in that world's colours
-  const GROVE_LOOK = { orrery: ['lf_gold', 'br_verdigris'], atlas: ['lf_silver', 'br_ebony'], fan: ['lf_ember', 'br_ember'], coral: ['lf_jade', 'br_ebony'], crystal: ['lf_violet', 'br_ebony'], pages: ['lf_gold', 'br_ash'], wired: ['lf_violet', 'br_ebony'], silver: ['lf_silver', 'br_ash'], hanging: ['lf_gold', 'br_bark'] };
-  const SIZE = k => (k === 'pixel' ? [200, 160] : [960, 760]);
+  const GROVE_LOOK = { orrery: ['lf_gold', 'br_verdigris'], atlas: ['lf_silver', 'br_ebony'], fan: ['lf_ember', 'br_ember'], coral: ['lf_jade', 'br_ebony'], crystal: ['lf_violet', 'br_ebony'], pages: ['lf_gold', 'br_ash'], wired: ['lf_violet', 'br_ebony'], silver: ['lf_silver', 'br_ash'], hanging: ['lf_gold', 'br_bark'], quay: ['lf_gold', 'br_ash'], plum: ['lf_silver', 'br_ebony'], inkpine: ['lf_silver', 'br_ebony'] };
+  // Pixel skins: drawn at 200 x 160 and shown with whole-pixel scaling
+  const PX = ['pixel', 'village', 'islet'], isPx = k => PX.includes(k);
+  const SIZE = k => (isPx(k) ? [200, 160] : [960, 760]);
   const safe = k => (SCENE[k] ? k : 'oak');
   // Whole scene, at the skin's own size. opts: roots ([sleep, water, moved] 0-1, or null), rootNames, title, leaf, bark, flower, hang, ground, sky
   function paint(g, skin, weeks, opts = {}) {
     const k = safe(skin), [W, H] = SIZE(k);
-    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); g.imageSmoothingEnabled = k !== 'pixel';
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); g.imageSmoothingEnabled = !isPx(k);
     const hits = SCENE[k](g, W, H, weeks, opts); g.restore();
     return hits;
   }
@@ -891,9 +1139,9 @@
   function bare(g, skin, weeks, cx, gy, sc, opts = {}) {
     const k = safe(skin); if (!weeks.length) return;
     const o = Object.assign({}, opts, { roots: null, hang: null });
-    if (k === 'pixel') {
+    if (isPx(k)) {
       const off = document.createElement('canvas'); off.width = 200; off.height = 120; const c = off.getContext('2d');
-      pTree(c, weeks, 100, 116, o);
+      if (k === 'pixel') pTree(c, weeks, 100, 116, o); else pxTree(c, weeks, 100, 116, o, C_VILLAGE);
       const z = max(1, round(sc * 4.4)); g.save(); g.imageSmoothingEnabled = false; g.drawImage(off, round(cx - 100 * z), round(gy - 116 * z), 200 * z, 120 * z); g.restore();
       return;
     }
@@ -917,5 +1165,5 @@
     const d = g.createLinearGradient(0, gy, 0, H); d.addColorStop(0, '#2b1e13'); d.addColorStop(1, '#120c07'); g.fillStyle = d; g.fillRect(0, gy, W, H - gy);
     grass(g, W, gy);
   }
-  ML.TreeArt = { paint, bare, sample, groveScene, SIZE, SKINS: Object.keys(SCENE), LEAVES, BARKS, FLOWERS, ROOT_COL };
+  ML.TreeArt = { paint, bare, sample, groveScene, SIZE, isPx, SKINS: Object.keys(SCENE), LEAVES, BARKS, FLOWERS, ROOT_COL };
 })();

@@ -816,7 +816,7 @@
       let longBreak = false;
       if (elapsed > 0) {
         const task = S.tasks.find(x => x.id === S.activeId);
-        const session = { at: endedAt, start: endedAt - elapsed * 60000, mins: elapsed, title: activeTitle() || t('free_focus'), taskId: S.activeId, project: (task && task.project) || undefined, mood: S.mood, world: (ML.sessionWorld && ML.sessionWorld(S.mood)) || undefined, rating: null, full: !early, pauses: S.pauses || 0, distractions: S.curDistr || 0 };
+        const session = { at: endedAt, start: endedAt - elapsed * 60000, mins: elapsed, title: activeTitle() || t('free_focus'), taskId: S.activeId, project: (task && task.project) || undefined, mood: S.mood, world: (ML.sessionWorld && ML.sessionWorld(S.mood)) || undefined, light: (ML.sessionLight && ML.sessionLight(S.mood)) || undefined, rating: null, full: !early, pauses: S.pauses || 0, distractions: S.curDistr || 0 };
         S.sessions.push(session);
         if (task) task.spent = (task.spent || 0) + elapsed;
         let xp = early ? elapsed : Math.round(elapsed * 1.25);
