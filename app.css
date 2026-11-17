@@ -2106,18 +2106,18 @@ html.mnav-on #washi-incense { display: none; }
 #cx-scene { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; image-rendering: pixelated; }
 :root[data-light="1"][data-theme="arcade"][data-cart-level="plein"] body { background: #D9E8B4; }
 :root[data-light="1"][data-theme="arcade"][data-cart-level="plein"] body::after { display: none; }
-/* 3.49.1: the landscape at night (cartouche.js sets data-cart-sky): the header turns pale over the dark sky, its buttons get
+/* 3.49.1: the landscape at night (cartouche.js sets data-cart-sky; since 3.99.1 also « Mon île », lightplus.js): the header turns pale over the dark sky, its buttons get
    a pixel plate, and the panels go a soft sage instead of the bright day paper (text greens darkened to keep AA) */
-:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] {
+:root[data-light="1"][data-theme="arcade"]:is([data-cart-level="plein"], [data-cart-level="ile"])[data-cart-sky="night"] {
   --void: #A9BC8C; --panel: #B7C99C; --panel-2: #A6BA88; --line: #6F8E3E;
   --mist: #1E4A1E; --dim: #1E4A1E; --accent: #1E4A1E; --good: #1E4A1E; --r-common: #1E4A1E; --soft: rgba(15, 56, 15, .08);
 }
-:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] .brand h1 { color: #DCE8C0; }
-:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] .brand h1 span { color: #9BBC0F; text-shadow: 3px 3px 0 #0F380F; }
-:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] .brand .seq { color: #DCE8C0; }
-:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] .top-actions > *:not([hidden]) {
+:root[data-light="1"][data-theme="arcade"]:is([data-cart-level="plein"], [data-cart-level="ile"])[data-cart-sky="night"] .brand h1 { color: #DCE8C0; }
+:root[data-light="1"][data-theme="arcade"]:is([data-cart-level="plein"], [data-cart-level="ile"])[data-cart-sky="night"] .brand h1 span { color: #9BBC0F; text-shadow: 3px 3px 0 #0F380F; }
+:root[data-light="1"][data-theme="arcade"]:is([data-cart-level="plein"], [data-cart-level="ile"])[data-cart-sky="night"] .brand .seq { color: #DCE8C0; }
+:root[data-light="1"][data-theme="arcade"]:is([data-cart-level="plein"], [data-cart-level="ile"])[data-cart-sky="night"] .top-actions > *:not([hidden]) {
   background: var(--panel); color: var(--text); box-shadow: 0 0 0 2px #0F380F, 3px 3px 0 0 rgba(0, 0, 0, .35); }
-:root[data-light="1"][data-theme="arcade"][data-cart-level="plein"][data-cart-sky="night"] .top-actions > :not([hidden]) * { color: var(--text); }
+:root[data-light="1"][data-theme="arcade"]:is([data-cart-level="plein"], [data-cart-level="ile"])[data-cart-sky="night"] .top-actions > :not([hidden]) * { color: var(--text); }
 /* the pixel title and clock keep their own size (Press Start 2P is already wide) */
 :root[data-light="1"][data-theme="arcade"] h1, :root[data-light="1"][data-theme="arcade"] .clock, :root[data-light="1"][data-theme="arcade"] .cbar-clock,
 :root[data-light="1"][data-theme="arcade"] .lu-title, :root[data-light="1"][data-theme="arcade"] .deep-clock { font-size-adjust: none; }
