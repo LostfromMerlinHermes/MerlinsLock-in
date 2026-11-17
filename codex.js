@@ -508,6 +508,7 @@ function paintB(c0, W, H, o) {
   function birds(cx, x, y, s, now, ph) { cx.beginPath(); const f = Math.sin(now / 140 + ph) * s * .5; cx.moveTo(x - s, y - f); cx.quadraticCurveTo(x - s / 2, y - s * .6, x, y); cx.quadraticCurveTo(x + s / 2, y - s * .6, x + s, y - f); cx.stroke(); }
 
   ML.codexDraw = (cx, w, h, slow, still, now) => {
+    if (root.dataset.dark && ML.underDraw) return ML.underDraw(cx, w, h, slow, still, now); // 3.99: the dark version, the city below (lightplus.js)
     ensure(w, h);
     const dt = Math.min(100, last ? now - last : 16) * (still ? 0 : 1); last = now;
     const st = root.dataset.timer || 'idle', u = U, k = dt / 33 * (slow || .3), quai = L.v === 'quai', A = L.ay, f = L.f;
@@ -626,8 +627,8 @@ function paintB(c0, W, H, o) {
   vb.type = 'button'; vb.className = 'ghost icon-only'; vb.id = 'codex-view'; vb.hidden = true;
   vb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>';
   { const head = document.querySelector('#sigil-card .card-head'), deep = $('deep-btn'); if (head) head.insertBefore(vb, deep && deep.parentNode === head ? deep : null); }
-  const syncBtn = () => { vb.hidden = !isOn(); vb.title = t('cdx_view'); vb.setAttribute('aria-label', t('cdx_view')); };
-  new MutationObserver(syncBtn).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-light', 'lang'] }); syncBtn();
+  const syncBtn = () => { vb.hidden = !isOn() || !!root.dataset.dark; vb.title = t('cdx_view'); vb.setAttribute('aria-label', t('cdx_view')); };
+  new MutationObserver(syncBtn).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-light', 'data-dark', 'lang'] }); syncBtn();
   vb.addEventListener('click', () => { S.codexView = view() === 'canal' ? 'quai' : 'canal'; fog = root.dataset.timer === 'running' ? 1 : 0; if (ML.save) ML.save(); });
 
   /* ---------- The evening Gazette ---------- */

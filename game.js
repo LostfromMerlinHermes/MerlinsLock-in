@@ -352,7 +352,11 @@
   ML.worldSel = p => held(p) || (p.clock && nightByClock() ? 'night' : p.w === 'night' && p.clock ? 'day' : p.w);
   const LIGHT_NAME = { observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' }; // Washi (aube) set aside in 3.74, washi.js kept for later
   // The world a pick leads to: { th: data-theme, light }; light needs Premium (or the Shop trial of that energy)
+  // 3.99: Codex and Estampe have a dark version (lightplus.js), shown at night or always, per S.lightDark[light name]
+  const darkOf = th => { const v = (S.lightDark || {})[LIGHT_NAME[th]]; return v === 'night' || v === 'always' ? v : null; };
   function worldOf(m, p) {
+    const mk = ML.moodKey ? ML.moodKey(m) : m, dayTh = THEME_DAY[mk], dv = p.w === 'light' && S.theme === 'auto' && S.section !== 'sport' && canLight() ? darkOf(dayTh) : null;
+    if (dv && (dv === 'always' || nightByClock() || nightOf(p))) return { th: dayTh, light: true, dark: true };
     const night = nightOf(p), extra = p.w === 'extra' && !night && EXTRA[m] && ownsWorld(EXTRA[m]) ? EXTRA[m] : null;
     const th = S.theme !== 'auto' ? S.theme : extra || (night ? THEME_NIGHT : THEME_DAY)[ML.moodKey ? ML.moodKey(m) : m] || 'sorcerer';
     const trial = trying() && m === (previewMood || S.mood);
@@ -446,12 +450,14 @@
   function applyTheme() {
     const th = effectiveTheme(), root = document.documentElement, pal = th === 'sober' ? ML.soberPal() : '';
     const light = pal ? (pal === 'white' ? '1' : '') : isLight() && LIGHT_NAME[th] ? '1' : '';
-    if (root.dataset.theme === th && (root.dataset.light || '') === light && (root.dataset.sober || '') === pal) return;
+    const dark = light && !pal && worldOf(previewMood || S.mood, pickFor(previewMood || S.mood)).dark ? '1' : '';
+    if (root.dataset.theme === th && (root.dataset.light || '') === light && (root.dataset.sober || '') === pal && (root.dataset.dark || '') === dark) return;
     root.dataset.theme = th;
     if (pal) root.dataset.sober = pal; else delete root.dataset.sober;
     if (light) root.dataset.light = light; else delete root.dataset.light;
+    if (dark) root.dataset.dark = dark; else delete root.dataset.dark;
     const meta = document.querySelector('meta[name=theme-color]');
-    if (meta) meta.content = pal ? { black: '#0e0f10', white: '#fafaf7', green: '#0f1a15', slate: '#12161c' }[pal] : light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#F7F5EF', arcade: '#c6d29c' }[th]
+    if (meta) meta.content = pal ? { black: '#0e0f10', white: '#fafaf7', green: '#0f1a15', slate: '#12161c' }[pal] : dark ? { observatory: '#0c1210', netrunner: '#121211' }[th] : light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#F7F5EF', arcade: '#c6d29c' }[th]
       : { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#150d20', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
     if (themed && !pal) playTransition(light ? LIGHT_NAME[th] : th); // the light worlds have their own (3.38.2): aube, atelier, tokyo, cartouche
     themed = true;

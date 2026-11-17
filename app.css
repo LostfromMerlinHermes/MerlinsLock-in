@@ -4326,6 +4326,79 @@ html.mnav-on[data-mview="timer"] .sigil-card { animation: screen-in .22s ease-ou
 #fg-task { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } /* the task is drawn on the canvas; kept for screen readers */
 .shop-prev .fog-fs-prev { width: 100%; height: 70px; object-fit: cover; display: block; }
 
+/* =================== 3.99 light worlds (lightplus.js): dark versions, two shop dials, Cartouche's island =================== */
+/* Codex dark: the city below. Brass on soot, the same engraved corners. */
+:root[data-light="1"][data-dark][data-theme="observatory"] {
+  --void: #0D1311; --panel: #17140F; --panel-2: #211C15; --line: rgba(232, 214, 174, .14); --line-2: rgba(232, 214, 174, .3);
+  --text: #EEE3CC; --mist: #BBAB8C; --dim: #A39478;
+  --accent: #E2B25E; --accent-text: #E2B25E; --accent-2: #8FB3D9; --ink: #1A1209; --good: #9CC37A; --warn: #E8806B;
+  --gold: #C9A45C; --seal: #8E2A22; --soft: rgba(201, 164, 92, .13); --glow: transparent;
+  --r-common: #BBAB8C; --r-rare: #8FB3D9; --r-epic: #B9A0DA; --r-legendary: #E2B25E;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 26px -18px rgba(0, 0, 0, .8);
+  --ev-1: #E2B25E; --ev-2: #8FB3D9; --ev-3: #9CC37A; --ev-4: #D9C27A; --ev-5: #B9A0DA; --ev-6: #E8806B; --ev-7: #C9B98A; --ev-8: #7FA3D0;
+  --timer-ring: #C9A45C;
+}
+:root[data-light="1"][data-dark][data-theme="observatory"] body { background: var(--void); }
+:root[data-light="1"][data-dark][data-theme="observatory"] .sigil-card { background-color: rgba(23, 20, 15, .74); }
+:root[data-light="1"][data-dark][data-theme="observatory"] .ring-wrap::after { background: radial-gradient(circle, rgba(18, 16, 12, .9) 55%, rgba(18, 16, 12, .72) 100%); }
+:root[data-light="1"][data-dark][data-theme="observatory"] .segs-dim line { stroke: rgba(238, 227, 204, .2); }
+:root[data-light="1"][data-dark][data-theme="observatory"] .arc-track { stroke: rgba(238, 227, 204, .12); }
+:root[data-light="1"][data-dark][data-theme="observatory"] .primary { box-shadow: 0 3px 10px -6px rgba(0, 0, 0, .8); }
+/* Estampe dark: the print in negative. Its ink canvas is inverted (white ink on black paper, the red kept). */
+:root[data-light="1"][data-dark][data-theme="netrunner"] {
+  --void: #121211; --panel: #1A1A18; --panel-2: #222220; --line: rgba(237, 233, 224, .16); --line-2: #EDE9E0;
+  --text: #EDE9E0; --mist: #ABA79E; --dim: #ABA79E;
+  --accent: #FF5A5F; --accent-text: #FF5A5F; --hot: #E3001B; --accent-2: #EDE9E0; --ink: #121211; --good: #7FBF7F; --warn: #FF5A5F;
+  --soft: rgba(227, 0, 27, .14); --veil: #121211;
+  --r-common: #ABA79E; --r-rare: #C9C5BC; --r-epic: #EDE9E0; --r-legendary: #FF5A5F;
+  --ev-1: #E0533A; --ev-2: #6D9BD8; --ev-3: #6FB08A; --ev-4: #D9A441; --ev-5: #D97A9E; --ev-6: #8F95D9; --ev-7: #A98AD0; --ev-8: #CFC7B8;
+  --timer-ring: #EDE9E0;
+}
+:root[data-light="1"][data-dark][data-theme="netrunner"] body { background: var(--void); }
+:root[data-light="1"][data-dark][data-theme="netrunner"] #fx { filter: invert(1) hue-rotate(180deg); }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .pl-today { background: var(--panel); }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .tabs button[aria-selected=true],
+:root[data-light="1"][data-dark][data-theme="netrunner"] .seg-toggle button[aria-pressed=true],
+:root[data-light="1"][data-dark][data-theme="netrunner"] .presets button[aria-pressed=true],
+:root[data-light="1"][data-dark][data-theme="netrunner"] .rar-epic .chip.rar,
+:root[data-light="1"][data-dark][data-theme="netrunner"] .chip.next-chip,
+:root[data-light="1"][data-dark][data-theme="netrunner"] .task [data-act=focus].is-active,
+:root[data-light="1"][data-dark][data-theme="netrunner"] .netstrip { color: var(--void); }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .mood-chip[aria-pressed=true] svg { stroke: var(--void); }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .segs-dim line { stroke: rgba(237, 233, 224, .22); }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .arc-track { stroke: #2E2D2A; }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .tip { stroke: var(--void); }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .task { border-left-color: #2E2D2A; }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .task.rar-rare { border-left-color: #6E6B64; }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .task.rar-epic { border-left-color: var(--text); }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .task.rar-legendary { border-left-color: var(--hot); }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .task.active { background: #2A1617; }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .q-bar, :root[data-light="1"][data-dark][data-theme="netrunner"] .seq-bar { background: #2E2D2A; }
+:root[data-light="1"][data-dark][data-theme="netrunner"] .ring-wrap::before { box-shadow: 0 0 0 1px var(--line); border-radius: 50%; }
+/* the chronograph's white face (r 103.5 of 240 in its picture) turns to dark paper */
+:root[data-light="1"][data-dark][data-theme="netrunner"] .ring-wrap::after { content: ""; position: absolute; inset: 6.9%; z-index: -1; border-radius: 50%; pointer-events: none; background: #1A1A18; box-shadow: inset 0 0 0 1px rgba(237, 233, 224, .28); }
+/* the shop dials: the canvas draws the time and the state; the HTML clock stays for screen readers */
+:root[data-lx-dial] .ring-wrap > .ring, :root[data-lx-dial] .ring-wrap::before, :root[data-lx-dial] .ring-wrap::after { opacity: 0; }
+:root[data-lx-dial] .ring-center .clock, :root[data-lx-dial] .ring-center .state { opacity: 0; }
+:root[data-lx-dial] .ring-wrap { margin-bottom: 30px; }
+:root[data-lx-dial] .focus-on { position: absolute; left: 0; right: 0; top: calc(100% + 8px); text-align: center; -webkit-line-clamp: 1; }
+.lx-dial { position: absolute; left: -5%; top: -5%; width: 110%; height: 110%; pointer-events: none; }
+/* Cartouche « Mon île »: the island scene behind everything, and its editor */
+:root[data-light="1"][data-theme="arcade"][data-cart-level="ile"] body { background: #D9E8B4; }
+:root[data-light="1"][data-theme="arcade"][data-cart-level="ile"] body::after { display: none; }
+#cx-isle { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges; }
+.ci-ov { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background: rgba(15, 56, 15, .55); }
+.ci-box { width: min(560px, 100%); max-height: 100%; overflow: auto; display: grid; gap: 10px; padding: 14px; background: #F4F2DC; color: #0F380F; box-shadow: 0 0 0 3px #0F380F, 0 0 0 6px #F4F2DC; font-family: "VT323", monospace; }
+.ci-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; font: 400 14px/1.2 "Press Start 2P", monospace; }
+.ci-box .hint { margin: 0; font: 400 19px/1.1 "VT323", monospace; color: #306230; }
+.ci-stage { background: #C1D6A5; box-shadow: inset 0 0 0 2px #0F380F; }
+.ci-cv { display: block; width: 100%; height: auto; aspect-ratio: 120 / 96; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: manipulation; cursor: pointer; }
+.ci-tools { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.ci-tools button { min-height: 40px; padding: 4px; border: 0; border-radius: 0; background: #E3E8C8; color: #0F380F; box-shadow: inset 0 0 0 2px #0F380F; font: 400 20px/1 "VT323", monospace; cursor: pointer; }
+.ci-tools button[aria-pressed=true] { background: #0F380F; color: #F4F2DC; }
+.ci-tools button:focus-visible, .ci-head button:focus-visible, .ci-reset:focus-visible { outline: 3px solid #C93B2F; outline-offset: 2px; }
+.ci-reset { justify-self: start; font: 400 18px "VT323", monospace; color: #306230; }
+
 /* ---------- Plan order P1 (3.56): views on top, one menu, quests on one line, Inbox view ---------- */
 .pl-viewsrow { display: flex; align-items: flex-end; gap: 6px; border-bottom: 1px solid var(--line); }
 .pl-viewsrow .pl-views { flex: 1; min-width: 0; border-bottom: 0; margin-bottom: -1px; }

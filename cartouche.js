@@ -336,7 +336,7 @@
     set.hidden = !show; if (!show) return;
     const key = level() + '|' + S.lang; if (set.dataset.key === key) return; set.dataset.key = key;
     set.setAttribute('aria-label', t('cx_set'));
-    set.innerHTML = `<label class="ws-sel"><select id="cx-level" aria-label="${esc(t('cx_level'))}">${['plein', 'calme'].map(v => `<option value="${v}"${v === level() ? ' selected' : ''}>${esc(t('cx_' + v))}</option>`).join('')}</select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></label>`;
+    set.innerHTML = `<label class="ws-sel"><select id="cx-level" aria-label="${esc(t('cx_level'))}">${['plein', 'calme', 'ile'].map(v => `<option value="${v}"${v === level() ? ' selected' : ''}>${esc(t('cx_' + v))}</option>`).join('')}</select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></label>`;
   }
   set.addEventListener('change', e => { if (e.target.id !== 'cx-level') return; S.cartouche = Object.assign({}, S.cartouche, { level: e.target.value }); save(); sync(); });
 
