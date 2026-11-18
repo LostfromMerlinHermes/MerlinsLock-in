@@ -5505,3 +5505,16 @@ html.mnav-on .sh-counter { margin-inline: -14px; padding-inline: 14px; }
 .fam-cos button[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .fam-cos button:disabled > svg { filter: brightness(0) blur(1px) drop-shadow(0 0 2px var(--mist)); opacity: .55; }
 .fam-cos button small { position: absolute; right: 3px; bottom: 1px; font: 600 10px var(--f-mono, monospace); color: var(--mist); }
+
+/* ---------- 3.104: the next step under a task (app.js taskHtml .t-next), a round mark so it doesn't read as a second task box ---------- */
+.t-next { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px; align-items: center; width: 100%; min-height: 38px; margin-top: 6px; padding: 4px 10px 4px 8px; text-align: left; color: inherit; font-size: var(--t-1); background: color-mix(in srgb, var(--accent) 6%, transparent); border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line-2)); border-radius: 8px; }
+.t-next:hover { border-color: var(--accent); }
+.t-next > span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.t-next em { display: block; font-style: normal; font-size: 10.5px; letter-spacing: .04em; color: var(--mist); }
+.t-next small { font: 500 var(--t-1) var(--f-mono, monospace); color: var(--mist); }
+.nx-ring { position: relative; width: 16px; height: 16px; border: 1.5px solid var(--accent); border-radius: 50%; transition: background .25s, box-shadow .25s; }
+.nx-ring::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--accent); transform: scale(0); transition: transform .25s cubic-bezier(.2, 1.6, .4, 1); }
+.t-next:hover .nx-ring::after { transform: scale(.45); }
+.t-next.pop .nx-ring::after { transform: scale(1); } .t-next.pop .nx-ring { box-shadow: 0 0 10px var(--glow, var(--accent)); }
+.t-next.pop > span { text-decoration: line-through; color: var(--mist); }
+@media (prefers-reduced-motion: reduce) { .nx-ring, .nx-ring::after { transition: none; } }

@@ -190,6 +190,8 @@
           ${task.notes ? `<span class="chip" title="${esc(task.notes)}">✎</span>` : ''}
           ${task.sample ? `<span class="chip sample">${esc(t('example'))}</span>` : ''}</span>
         </div>
+        ${(() => { const nx = !task.done && !open && subs.find(s => !s.done); // 3.104: the next step under the title, ticked without opening the task (round mark, not the task's square box)
+          return nx ? `<button type="button" class="t-next" data-act="nextsub" data-sid="${nx.id}" aria-label="${esc(t('nx_tick', { s: nx.text }))}"><i class="nx-ring" aria-hidden="true"></i><span><em>${esc(t('nx_then'))}</em>${esc(nx.text)}</span><small>${subDone}/${subs.length}</small></button>` : ''; })()}
         ${subs.length ? `<div class="sub-prog" title="${subDone}/${subs.length}"><b style="width:${(subDone / subs.length * 100).toFixed(1)}%"></b></div>` : ''}
         ${open ? `<ul class="subs">${subs.map(s => `<li class="${s.done ? 'done' : ''}"><label><input type="checkbox" data-sub="${s.id}" ${s.done ? 'checked' : ''}><i class="sub-box" aria-hidden="true"></i><span>${esc(s.text)}</span>${!s.done && !s.xpGiven && !task.done && !task.sample ? `<small class="sub-xp">+${stepXp}</small>` : ''}</label></li>`).join('')}</ul>
           ${task.done ? '' : `<form class="sub-add" autocomplete="off"><input type="text" maxlength="100" placeholder="${esc(t('add_subtask_ph'))}" aria-label="${esc(t('add_subtask_ph'))}"><button type="submit" class="small">+</button></form>`}` : ''}
@@ -329,6 +331,12 @@
     if (act === 'focus') { lockIn({ taskId: id, mins: task.mins }); return; }
     if (act === 'edit') { editingId = id; renderTasks(); return; }
     if (act === 'subs') { expanded.has(id) ? expanded.delete(id) : expanded.add(id); renderTasks(); return; }
+    if (act === 'nextsub') {
+      const sub = (task.subs || []).find(s => s.id === btn.dataset.sid); if (!sub || btn.classList.contains('pop')) return;
+      btn.classList.add('pop'); // the ring fills, then the next step takes its place
+      setTimeout(() => { setSubDone(task, sub, true); renderAll(); }, ML.reducedMotion() ? 0 : 380);
+      return;
+    }
     if (act === 'cancel') { editingId = null; renderTasks(); return; }
     if (act === 'addsub') { addSubFromForm(btn.closest('form'), task); return; }
     save(); renderAll();
@@ -570,6 +578,7 @@
   const SPACE_FIRST = { plan: 'plan', study: 'notes', you: 'tree' }, HOME_OF = { shome: 'study', yhome: 'you' };
   const wideNow = () => !document.documentElement.classList.contains('mnav-on') && matchMedia('(min-width: 900px)').matches;
   ML.SPACE = SPACE;
+  ML.addStrings({ fr: { nx_then: 'Ensuite', nx_tick: 'Cocher l’étape : {s}' }, en: { nx_then: 'Next', nx_tick: 'Tick the step: {s}' } });
   ML.addStrings({ fr: { sp_study: 'Étude', sp_you: 'Toi', sp_world: 'Monde', tab_cards: 'Cartes' }, en: { sp_study: 'Study', sp_you: 'You', sp_world: 'World', tab_cards: 'Cards' } });
   // The Calendar is two tabs behind one entry: "day" (its Day view, the old Journée) and "cal" (Week and Month)
   const calTab = () => (S.tab === 'day' || S.tab === 'cal' ? S.tab : (S.spaceTab && S.spaceTab.calx) === 'cal' ? 'cal' : 'day');
