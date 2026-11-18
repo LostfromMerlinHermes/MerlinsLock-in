@@ -8,7 +8,7 @@
   ML.addStrings({
     fr: {
       tab_study: 'Étude', st_cards: 'Flashcards', st_search: 'Recherche', st_translate: 'Traduction',
-      st_locked_h: 'Laboratoire d’étude', st_locked_badge: 'Premium', st_locked_p: 'Des outils pour étudier sans quitter l’app. Cette section arrive bientôt en Premium.',
+      st_locked_h: 'Laboratoire d’étude', st_locked_badge: 'Premium', st_locked_p: 'Des outils pour étudier sans quitter l’app. Cette section arrive bientôt en Premium.', st_locked_p_sale: 'Des outils pour étudier sans quitter l’app, avec Premium.',
       st_f_cards: 'Flashcards à répétition espacée, comme Anki : l’app te repose chaque carte juste avant que tu l’oublies.',
       st_f_search: 'Recherche intégrée : résumés Wikipédia directement dans l’app, à envoyer dans ton Carnet.',
       st_f_translate: 'Traducteur : traduis un mot ou un paragraphe, écoute la prononciation, transforme-le en flashcard.',
@@ -28,7 +28,7 @@
       st_library: 'Bibliothèque', st_f_library: 'Bibliothèque : range tes PDF, photos et fiches, et travaille dessus sans quitter l’app.', fc_empty: 'Pas encore de cartes dans ce paquet.', fc_del_deck: 'Supprimer le paquet', fc_deck_deleted: 'Paquet supprimé',
       fc_show: 'Afficher la réponse', fc_again: 'À revoir', fc_hard: 'Difficile', fc_good: 'Bien', fc_easy: 'Facile', fc_left: '{n} restante(s)',
       fc_done_h: 'Session terminée', fc_done_p: '{n} carte(s) révisée(s). +{xp} XP', fc_nothing: 'Rien à réviser pour l’instant. Reviens plus tard ou ajoute des cartes.',
-      fc_keys: 'Espace : retourner · 1 à 4 : noter', fc_today: 'Aujourd’hui : {n} révision(s)', fc_new: 'nouvelle', fc_edit: 'Modifier', fc_delete: 'Supprimer', fc_save: 'Enregistrer',
+      fc_keys: 'Espace : retourner · 1 à 4 : noter', fc_todayn: 'Aujourd’hui : {n} révision(s)', fc_new: 'nouvelle', fc_edit: 'Modifier', fc_delete: 'Supprimer', fc_save: 'Enregistrer',
       fc_tr_deck: 'Traductions', fc_nb_deck: 'Carnet',
       fc_next: 'Je savais', fc_keys_s: 'Espace : retourner, puis je savais', fc_ans: 'Réponses', fc_ans_simple: 'Retourner', fc_ans_four: 'Quatre notes', fc_to_four: 'Noter en quatre', fc_to_simple: 'Retourner seulement',
       fc_sub_ph: 'Nom du sous-paquet', fc_sub_add: 'Sous-paquet', fc_subs: 'Sous-paquets', fc_in: 'Dans le paquet', fc_top: 'Aucun (premier niveau)', fc_here: '{n} ici', fc_del_hint: 'Ses sous-paquets remontent d’un niveau.',
@@ -41,7 +41,7 @@
     },
     en: {
       tab_study: 'Study', st_cards: 'Flashcards', st_search: 'Search', st_translate: 'Translate',
-      st_locked_h: 'Study lab', st_locked_badge: 'Premium', st_locked_p: 'Tools to study without leaving the app. This section is coming soon as Premium.',
+      st_locked_h: 'Study lab', st_locked_badge: 'Premium', st_locked_p: 'Tools to study without leaving the app. This section is coming soon as Premium.', st_locked_p_sale: 'Tools to study without leaving the app, with Premium.',
       st_f_cards: 'Spaced-repetition flashcards, like Anki: the app shows each card again just before you would forget it.',
       st_f_search: 'Built-in search: Wikipedia summaries right in the app, ready to send to your Notebook.',
       st_f_translate: 'Translator: translate a word or a paragraph, hear it spoken, turn it into a flashcard.',
@@ -61,7 +61,7 @@
       st_library: 'Library', st_f_library: 'Library: keep your PDFs, photos and study sheets in order and work on them without leaving the app.', fc_empty: 'No cards in this deck yet.', fc_del_deck: 'Delete deck', fc_deck_deleted: 'Deck deleted',
       fc_show: 'Show answer', fc_again: 'Again', fc_hard: 'Hard', fc_good: 'Good', fc_easy: 'Easy', fc_left: '{n} left',
       fc_done_h: 'Session complete', fc_done_p: '{n} card(s) reviewed. +{xp} XP', fc_nothing: 'Nothing to review right now. Come back later or add cards.',
-      fc_keys: 'Space: flip · 1 to 4: rate', fc_today: 'Today: {n} review(s)', fc_new: 'new', fc_edit: 'Edit', fc_delete: 'Delete', fc_save: 'Save',
+      fc_keys: 'Space: flip · 1 to 4: rate', fc_todayn: 'Today: {n} review(s)', fc_new: 'new', fc_edit: 'Edit', fc_delete: 'Delete', fc_save: 'Save',
       fc_tr_deck: 'Translations', fc_nb_deck: 'Notebook',
       fc_next: 'Got it', fc_keys_s: 'Space: flip, then got it', fc_ans: 'Answers', fc_ans_simple: 'Flip only', fc_ans_four: 'Four ratings', fc_to_four: 'Rate in four', fc_to_simple: 'Flip only',
       fc_sub_ph: 'Sub-deck name', fc_sub_add: 'Sub-deck', fc_subs: 'Sub-decks', fc_in: 'Inside the deck', fc_top: 'None (top level)', fc_here: '{n} here', fc_del_hint: 'Its sub-decks move up one level.',
@@ -191,9 +191,10 @@
     return `<div class="st-locked">
       <div class="st-lock-badge">${icon(ICONS.lock)}<span>${esc(t('st_locked_badge'))}</span></div>
       <h3>${esc(t('st_locked_h'))}</h3>
-      <p class="hint">${esc(t('st_locked_p'))}</p>
+      <p class="hint">${esc(t(ML.premiumSale && ML.premiumSale() ? 'st_locked_p_sale' : 'st_locked_p'))}</p>
       <ul class="st-feats">${FEATS.map(k => `<li>${icon(ICONS[k])}<div><b>${esc(t('st_' + k))}</b><span>${esc(t('st_f_' + k))}</span></div></li>`).join('')}</ul>
-      ${ML.auth && ML.auth.enabled && !ML.auth.user ? `<p class="hint">${esc(t('st_locked_how'))}</p>` : ''}
+      ${ML.premiumSale && ML.premiumSale() ? ML.premiumCta()
+        : ML.auth && ML.auth.enabled && !ML.auth.user ? `<p class="hint">${esc(t('st_locked_how'))}</p>` : ''}
     </div>`;
   }
 
@@ -294,7 +295,7 @@
   function decksHtml() {
     const D = ST(), todayN = D.day === today() ? D.reviewed : 0, tops = dKids(''), q = queueAllCards();
     const nDecks = new Set(q.map(c => c.deck)).size, mins = Math.max(1, Math.round(q.length * 20 / 60)); // about 20 s a card
-    const head = `<div class="fc-head"><h3>${esc(t('tab_cards'))}</h3>${todayN ? `<span class="chip">${esc(t('fc_today', { n: todayN }))}</span>` : ''}
+    const head = `<div class="fc-head"><h3>${esc(t('tab_cards'))}</h3>${todayN ? `<span class="chip">${esc(t('fc_todayn', { n: todayN }))}</span>` : ''}
       <button type="button" class="small" data-fc-new aria-expanded="${!!view.newOpen}">${esc(t('fc_newdeck_btn'))}</button><button type="button" class="small" data-fi-open>${esc(t('fi_btn'))}</button>
       <button type="button" class="small ghost fc-optsbtn" data-fc-opts aria-expanded="${!!view.opts}" aria-label="${esc(t('fc_opts'))}" title="${esc(t('fc_opts'))}">···</button></div>`;
     const opts = view.opts ? `<div class="fc-opts">${narrow() ? '' : `<div class="fc-viewpick"><span>${esc(t('fc_where'))}</span><div class="seg-toggle">${['panel', 'full'].map(m => `<button type="button" data-fc-where="${m}" aria-pressed="${reviewMode() === m}">${esc(t(m === 'full' ? 'fc_in_full' : 'fc_in_panel'))}</button>`).join('')}</div></div>`}

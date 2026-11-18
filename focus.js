@@ -345,7 +345,7 @@
 
   // Period, goal and display: settings, not stats (3.66, moved out of the Progress page)
   ML.settingsSection({
-    order: 32,
+    order: 32, cat: 'planning',
     render: () => {
       const pd = period(), x = nextExam();
       return `<h3>${esc(t('pg_set_h'))}</h3>

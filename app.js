@@ -970,14 +970,27 @@
   // and a tap shows that page's sections. A section's page is its `cat`, else `group`, else found from its order.
   const sections = [];
   ML.settingsSection = s => sections.push(s);
-  const CATS = ['account', 'general', 'look', 'timer', 'sound', 'planning', 'advanced', 'about'];
+  // 3.101: ten pages. Focus (staying in the app, session mode, away message, blocking) and Accessibility left Timer and
+  // Sound; goals moved to Planning; sound switches left Look. A search on the list page finds a setting on any page.
+  const CATS = ['account', 'general', 'look', 'a11y', 'sound', 'timer', 'focus', 'planning', 'advanced', 'about'];
   ML.addStrings({
-    fr: { set_c_account: 'Compte', set_c_account_d: 'Connexion et synchro', set_c_general: 'Général', set_c_general_d: 'Langue, énergie, raccourcis, modules', set_c_look: 'Apparence', set_c_look_d: 'Monde, effets, lumière du soir', set_c_timer: 'Minuteur', set_c_timer_d: 'Repos, notifications, mode séance, objectif', set_c_sound: 'Son', set_c_sound_d: 'Volumes, ambiance, animations', set_c_planning: 'Planning', set_c_planning_d: 'Journée, agenda en direct', set_c_advanced: 'Avancé', set_c_advanced_d: 'Sauvegardes, récupération, suppression', set_c_about: 'À propos', set_c_about_d: 'Version, confidentialité, conditions', set_back: 'Réglages' },
-    en: { set_c_account: 'Account', set_c_account_d: 'Sign-in and sync', set_c_general: 'General', set_c_general_d: 'Language, energy, shortcuts, modules', set_c_look: 'Look', set_c_look_d: 'World, effects, evening light', set_c_timer: 'Timer', set_c_timer_d: 'Breaks, notifications, session mode, goal', set_c_sound: 'Sound', set_c_sound_d: 'Volumes, ambience, motion', set_c_planning: 'Planning', set_c_planning_d: 'Day, live calendar', set_c_advanced: 'Advanced', set_c_advanced_d: 'Backups, recovery, deletion', set_c_about: 'About', set_c_about_d: 'Version, privacy, terms', set_back: 'Settings' },
+    fr: { set_c_account: 'Compte', set_c_account_d: 'Connexion, synchro, Premium', set_c_general: 'Général', set_c_general_d: 'Langue, énergie, raccourcis, modules, visite guidée', set_c_look: 'Apparence', set_c_look_d: 'Mondes ou Sobre, thème, lumière, objet', set_c_a11y: 'Accessibilité', set_c_a11y_d: 'Taille du texte, contraste, animations', set_c_timer: 'Minuteur', set_c_timer_d: 'Repos, fin de session, yeux', set_c_focus: 'Concentration', set_c_focus_d: 'Rester dans l’app, mode séance, message d’absence', set_c_sound: 'Son', set_c_sound_d: 'Volumes, ambiance, effets sonores', set_c_planning: 'Planning', set_c_planning_d: 'Objectif, période, journée, agenda en direct', set_c_advanced: 'Avancé', set_c_advanced_d: 'Sauvegardes, récupération, suppression', set_c_about: 'À propos', set_c_about_d: 'Version, confidentialité, conditions', set_back: 'Réglages',
+      set_find: 'Chercher un réglage', set_find_none: 'Aucun réglage ne correspond.', a11y_text: 'Taille du texte', a11y_t1: 'Normale', a11y_t2: 'Grande', a11y_t3: 'Très grande', a11y_contrast: 'Texte secondaire plus contrasté', a11y_hint: 'Ces trois réglages valent pour cet appareil seulement.' },
+    en: { set_c_account: 'Account', set_c_account_d: 'Sign-in, sync, Premium', set_c_general: 'General', set_c_general_d: 'Language, energy, shortcuts, modules, guided tour', set_c_look: 'Look', set_c_look_d: 'Worlds or Plain, theme, light, object', set_c_a11y: 'Accessibility', set_c_a11y_d: 'Text size, contrast, motion', set_c_timer: 'Timer', set_c_timer_d: 'Breaks, end of session, eyes', set_c_focus: 'Focus', set_c_focus_d: 'Staying in the app, session mode, away message', set_c_sound: 'Sound', set_c_sound_d: 'Volumes, ambience, sound effects', set_c_planning: 'Planning', set_c_planning_d: 'Goal, period, day, live calendar', set_c_advanced: 'Advanced', set_c_advanced_d: 'Backups, recovery, deletion', set_c_about: 'About', set_c_about_d: 'Version, privacy, terms', set_back: 'Settings',
+      set_find: 'Find a setting', set_find_none: 'No setting matches.', a11y_text: 'Text size', a11y_t1: 'Normal', a11y_t2: 'Large', a11y_t3: 'Larger', a11y_contrast: 'Higher-contrast secondary text', a11y_hint: 'These three settings apply to this device only.' },
   });
   const catOf = s => s.cat || (s.group === 'info' ? 'about' : s.group)
-    || (s.order < 10 ? 'account' : s.order < 15 ? 'general' : s.order < 20 ? 'look' : s.order < 23 ? 'timer' : s.order < 26 ? 'sound' : s.order < 27 ? 'timer' : s.order < 30 ? 'planning' : 'timer');
-  let page = null; // null = the list of pages
+    || (s.order < 10 ? 'account' : s.order < 15 ? 'general' : s.order < 20 ? 'look' : s.order < 23 ? 'timer' : s.order < 26 ? 'sound' : s.order < 27 ? 'timer' : 'planning');
+  // Accessibility, per device (like reduced motion): text size and contrast live on <html> as data-ts / data-hc
+  const devGet = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+  const devSet = (k, v) => { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) {} };
+  const applyA11y = () => {
+    const r = document.documentElement, ts = devGet('mli-text'), hc = devGet('mli-contrast');
+    if (ts) r.dataset.ts = ts; else delete r.dataset.ts;
+    if (hc) r.dataset.hc = '1'; else delete r.dataset.hc;
+  };
+  applyA11y();
+  let page = null, find = ''; // page null = the list of pages; find = the search on that list
   function renderSettings() {
     const body = $('settings-body'), sorted = sections.sort((a, b) => a.order - b.order), sheet = body.closest('.sheet');
     if (page && !CATS.includes(page)) page = null;
@@ -993,8 +1006,17 @@
     if (!page) {
       // a page shows only if one of its sections has something to say
       const live = CATS.filter(c => sorted.some(s => catOf(s) === c && s.render()));
-      body.innerHTML = `<ul class="set-cats">${live.map(c => `<li><button type="button" class="set-cat" data-set-cat="${c}"><span><b>${esc(t('set_c_' + c))}</b><small>${esc(t('set_c_' + c + '_d'))}</small></span></button></li>`).join('')}</ul>`;
+      const norm = x => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      const q = norm(find.trim());
+      const textOf = h => { const d = document.createElement('div'); d.innerHTML = h; return norm(d.textContent); };
+      const hits = q ? sorted.filter(s => CATS.includes(catOf(s))).map(s => [s, s.render()]).filter(([s, h]) => h && (textOf(h).includes(q) || norm(t('set_c_' + catOf(s))).includes(q))) : [];
+      body.innerHTML = `<label class="set-find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input type="search" id="set-find" placeholder="${esc(t('set_find'))}" aria-label="${esc(t('set_find'))}" value="${esc(find)}" autocomplete="off"></label>`
+        + (q ? (hits.length ? hits.map(([s, h]) => `<section class="set-sec"><p class="set-from">${esc(t('set_c_' + catOf(s)))}</p>${h}</section>`).join('') : `<p class="hint">${esc(t('set_find_none'))}</p>`)
+          : `<ul class="set-cats">${live.map(c => `<li><button type="button" class="set-cat" data-set-cat="${c}"><span><b>${esc(t('set_c_' + c))}</b><small>${esc(t('set_c_' + c + '_d'))}</small></span></button></li>`).join('')}</ul>`);
       body.querySelectorAll('[data-set-cat]').forEach(b => { b.onclick = () => { page = b.dataset.setCat; renderSettings(); sheet.scrollTop = 0; const f = body.querySelector('input, select, button, textarea'); if (f && !matchMedia('(pointer: coarse)').matches) f.focus({ preventScroll: true }); }; });
+      hits.forEach(([s]) => s.bind && s.bind(body));
+      const fi = body.querySelector('#set-find');
+      fi.oninput = () => { find = fi.value; const at = fi.selectionStart; renderSettings(); const n = body.querySelector('#set-find'); n.focus(); try { n.setSelectionRange(at, at); } catch (e) {} };
       return;
     }
     const shown = sorted.filter(s => catOf(s) === page).map(s => [s, s.render()]).filter(([, h]) => h);
@@ -1003,7 +1025,20 @@
     shown.forEach(([s]) => s.bind && s.bind(body));
   }
   ML.renderSettings = renderSettings;
-  ML.openSettings = cat => { page = cat || null; renderSettings(); openOverlay('settings'); };
+  ML.openSettings = cat => { page = cat || null; find = ''; renderSettings(); openOverlay('settings'); };
+  ML.settingsSection({
+    order: 19, cat: 'a11y',
+    render: () => `<h3>${esc(t('set_c_a11y'))}</h3>
+      <div class="field"><span id="a11y-ts-l">${esc(t('a11y_text'))}</span><div class="seg-toggle" role="group" aria-labelledby="a11y-ts-l">${['', '2', '3'].map((v, i) => `<button type="button" data-ts="${v}" aria-pressed="${devGet('mli-text') === v}">${esc(t('a11y_t' + (i + 1)))}</button>`).join('')}</div></div>
+      ${chk('set-hc', t('a11y_contrast'), !!devGet('mli-contrast'))}
+      ${chk('set-reduce', t('opt_reduce'), ML.motionPref())}
+      <p class="hint">${esc(t('a11y_hint'))}</p>`,
+    bind: root => {
+      root.querySelectorAll('[data-ts]').forEach(b => { b.onclick = () => { devSet('mli-text', b.dataset.ts); applyA11y(); renderSettings(); }; });
+      root.querySelector('#set-hc').onchange = e => { devSet('mli-contrast', e.target.checked ? '1' : ''); applyA11y(); };
+      root.querySelector('#set-reduce').onchange = e => ML.setReducedMotion(e.target.checked);
+    },
+  });
   // Sport is set aside (3.25): a device that was left on it reopens on Work
   on('loaded', () => { if (S.section === 'sport') S.section = 'work'; });
   $('settings-btn').onclick = () => ML.openSettings();
@@ -1062,7 +1097,7 @@
     },
   });
   ML.settingsSection({
-    order: 40,
+    order: 40, get cat() { return IS_EXT ? 'focus' : 'timer'; },
     // the web app with Web Push already has its own end-notification section (push.js): no second one
     render: () => !IS_EXT && ML.push && ML.push.supported ? '' : IS_EXT
       ? `<h3>${esc(t('set_block'))}</h3>

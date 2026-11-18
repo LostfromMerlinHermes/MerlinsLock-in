@@ -9,6 +9,10 @@ window.MLI_CONFIG = {
   appUrl: 'https://lostfrommerlinhermes.github.io/MerlinsLock-in/',
   // Shown in the privacy policy, terms and legal notice (legal.js)
   contactEmail: 'merlinslockin@gmail.com',
+  // Premium sale (premium.js, supabase/PAYMENT-SETUP.md). sale: false = « coming soon » everywhere;
+  // 'local' = the buy buttons only on localhost, to test with Lemon Squeezy's test mode; true = on sale for everyone.
+  // The prices shown here must match the Lemon Squeezy variants (the checkout shows the real one).
+  premium: { sale: false, month: '2,99 €', year: '19,99 €' },
   // Supabase project region: eu-central-1
   dataRegion: { fr: 'l’Union européenne (Francfort, Allemagne)', en: 'the European Union (Frankfurt, Germany)' },
 };

@@ -399,7 +399,7 @@
     emit('left', { secs: away, strict: !!S.strict });
   });
   ML.settingsSection({
-    order: 22,
+    order: 22, cat: 'focus',
     render: () => `<h3>${esc(t('set_leave'))}</h3>
       ${ML.ui.chk('set-leave', t('opt_leave'), S.leaveDetect)}
       ${ML.ui.chk('set-strict', t('opt_strict'), S.strict)}

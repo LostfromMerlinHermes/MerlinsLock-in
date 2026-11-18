@@ -9,6 +9,28 @@
   const EMAIL = () => CFG().contactEmail || '—';
   const REGION = () => { const r = CFG().dataRegion; if (r && typeof r === 'object') return r[S.lang === 'en' ? 'en' : 'fr']; return r || (S.lang === 'en' ? 'the region chosen for the project' : 'la région choisie pour le projet'); };
   const SITE = 'https://lostfrommerlinhermes.github.io/MerlinsLock-in/';
+  // Premium on sale (config.js premium.sale, premium.js): the payment lines below only show then.
+  // The day the sale opens for everyone, bump LEGAL_VERSION and fill the publisher identity (supabase/PAYMENT-SETUP.md).
+  const SALE = () => !!(ML.premiumSale && ML.premiumSale());
+  const PRICE = () => { const p = CFG().premium || {}; return { m: esc(p.month || ''), y: esc(p.year || '') }; };
+  const SALE_PRIV = {
+    fr: () => `<li><b>Lemon Squeezy LLC</b> (si tu prends Premium) vend l’abonnement en tant que revendeur officiel : il encaisse le paiement, gère la TVA, les factures et les remboursements. Il reçoit ton e-mail, tes données de paiement (que nous ne voyons jamais) et ton pays. Nous recevons de lui l’état de ton abonnement (actif, résilié, dates) pour activer Premium sur ton compte. Lemon Squeezy a sa propre politique de confidentialité.</li>`,
+    en: () => `<li><b>Lemon Squeezy LLC</b> (if you take Premium) sells the subscription as merchant of record: it takes the payment and handles VAT, invoices and refunds. It receives your email, your payment details (which we never see) and your country. We receive your subscription state from it (active, cancelled, dates) to turn Premium on for your account. Lemon Squeezy has its own privacy policy.</li>`,
+  };
+  const SALE_TERMS = {
+    fr: () => { const p = PRICE(); return `
+        <h4>10. Premium (abonnement payant)</h4>
+        <p>Premium débloque des fonctions en plus (outils d’étude, mondes et objets réservés). Il coûte ${p.m} par mois ou ${p.y} par an, TTC. L’abonnement est vendu par Lemon Squeezy, revendeur officiel, dont les conditions de vente s’appliquent aussi au paiement.</p>
+        <p><b>Renouvellement :</b> l’abonnement se renouvelle automatiquement à la fin de chaque période. <b>Résiliation :</b> à tout moment dans Réglages → Compte → Gérer l’abonnement ; Premium reste actif jusqu’à la fin de la période payée, sans remboursement de la période en cours.</p>
+        <p><b>Rétractation :</b> Premium donne accès tout de suite à un contenu numérique. En cochant la case avant le paiement, tu demandes cet accès immédiat et tu reconnais perdre ton droit de rétractation de 14 jours (article L221-28 du Code de la consommation).</p>
+        <p>Supprimer ton compte n’arrête pas l’abonnement : résilie-le d’abord. Si Premium s’arrête un jour pour tous, les abonnements en cours sont arrêtés et la période restante remboursée.</p>`; },
+    en: () => { const p = PRICE(); return `
+        <h4>10. Premium (paid subscription)</h4>
+        <p>Premium unlocks extra features (study tools, reserved worlds and items). It costs ${p.m} a month or ${p.y} a year, taxes included. The subscription is sold by Lemon Squeezy, merchant of record, whose terms of sale also apply to the payment.</p>
+        <p><b>Renewal:</b> the subscription renews automatically at the end of each period. <b>Cancellation:</b> anytime in Settings → Account → Manage subscription; Premium stays on until the end of the paid period, with no refund for the current period.</p>
+        <p><b>Withdrawal:</b> Premium gives immediate access to digital content. By ticking the box before paying, you ask for that immediate access and acknowledge that you lose your 14-day right of withdrawal.</p>
+        <p>Deleting your account does not stop the subscription: cancel it first. If Premium ever ends for everyone, running subscriptions are stopped and the remaining period refunded.</p>`; },
+  };
 
   ML.addStrings({
     fr: {
@@ -32,7 +54,7 @@
         <h4>Responsable du traitement</h4>
         <p>L’éditeur de MerlinsLockIN (pseudonyme « LostfromMerlinHermes »), joignable à <b>${esc(EMAIL())}</b>.</p>
         <h4>Sans compte</h4>
-        <p>Tout reste sur ton appareil, dans le stockage local du navigateur : tâches, sessions, agenda, journal, réglages et progression. Rien n’est envoyé à l’éditeur.</p>
+        <p>Tout reste sur ton appareil, dans le stockage local du navigateur : tâches, sessions, agenda, journal, réglages et progression. Rien n’est envoyé à l’éditeur, sauf les statistiques d’usage anonymes décrites plus bas, que tu peux couper.</p>
         <h4>Avec un compte</h4>
         <ul>
           <li><b>Données :</b> ton adresse e-mail, ton mot de passe (stocké chiffré par notre prestataire, jamais lisible par l’éditeur), le contenu de l’app que tu y mets (tâches, notes, sessions, agenda, journal, réglages, progression) et des données techniques de connexion (dates de connexion, adresse IP dans les journaux du prestataire).</li>
@@ -44,6 +66,7 @@
         <ul>
           <li><b>Supabase Inc.</b> héberge les comptes et les données synchronisées, dans ${esc(REGION())}. Les échanges sont chiffrés (HTTPS) et des règles de sécurité empêchent chaque utilisateur de lire les données des autres, sauf ce que tu mets toi-même dans une salle d’étude.</li>
           <li><b>GitHub Inc.</b> héberge le site. Comme tout hébergeur, il peut enregistrer l’adresse IP des visiteurs dans ses journaux techniques.</li>
+          ${SALE() ? SALE_PRIV.fr() : ''}
           <li><b>Salles d’étude</b> (si tu en rejoins une) : les membres de la salle voient ton pseudo, ton état (concentré, en pause), tes messages, ce que tu y partages (liens, paquets, notes, note commune, tâches), ta ligne de récap et ton arbre si tu le partages. Seuls les membres peuvent lire une salle. Une salle garde ses 200 derniers messages ; tout disparaît quand l’hôte la ferme ou après une longue inactivité. Tes messages restent après ton départ, sauf si toi ou l’hôte les retirez. Un élément signalé est copié pour la modération, lisible par l’éditeur seul, et effacé après 180 jours.</li>
           <li><b>Appels</b> : le bouton Lancer un appel ouvre le service Jitsi Meet (meet.jit.si) dans un nouvel onglet. Meet, Zoom et les liens épinglés mènent aussi à des services tiers, avec leurs propres conditions. Nous n’y envoyons rien d’autre que l’ouverture de la page.</li>
           <li><b>Santé et temps d’écran</b> (si tu les actives) : ton check du jour, le temps par site (le nom du site seulement), tes plans si-alors et le temps d’écran que tu notes restent dans un stockage séparé sur l’appareil. Ils ne sont ni synchronisés ni envoyés à personne, et tu peux tout effacer depuis ces pages. Ce n’est pas un service médical.</li>
@@ -51,7 +74,9 @@
           <li><b>Outils d’étude</b> (seulement quand tu t’en sers) : le mot ou la phrase que tu cherches part directement depuis ton appareil vers Wikipédia et Wiktionnaire (Wikimedia, définitions et résumés), MyMemory (traduction : le texte à traduire quitte l’appareil, sauf quand ton navigateur sait traduire lui-même, ce que l’outil indique) ou Crossref et Open Library (références de livres et d’articles). Nous ne recevons rien de ces échanges ; chaque service a ses propres conditions.</li>
           <li><b>Transcription des cours</b> (seulement si tu l’actives pendant un enregistrement) : la reconnaissance vocale de ton navigateur écrit ce qui se dit. Le son part vers son service de reconnaissance (Google sur Chrome et Edge, Apple sur Safari), qui a ses propres conditions. Le son enregistré reste sur l’appareil ; le texte transcrit est gardé avec le cours et se synchronise avec ton compte.</li>
         </ul>
-        <p>Les polices sont hébergées avec l’app : aucune requête n’est faite à Google. Le stockage local utilisé est strictement nécessaire au fonctionnement ; il n’y a pas de cookie publicitaire ni de mesure d’audience.</p>
+        <h4>Statistiques d’usage</h4>
+        <p>Pour savoir quelles parties de l’app servent et quoi améliorer, l’app compte, par jour : les pages que tu ouvres, le nombre et la durée de tes sessions, leur énergie et leur monde, les tâches terminées, l’usage de quelques boutons, ta langue et le type d’app (extension, web). Ces nombres partent vers Supabase sous un numéro tiré au hasard, sans ton e-mail, et jamais le contenu (tâches, notes, cartes, titres). Seul l’éditeur les lit, pour des totaux. Base légale : l’intérêt légitime de l’éditeur à améliorer le service (article 6.1.f du RGPD). Durée : 25 mois au plus. Tu peux les couper à tout moment : Réglages → À propos → Statistiques d’usage.</p>
+        <p>Les polices sont hébergées avec l’app : aucune requête n’est faite à Google. Le stockage local utilisé est strictement nécessaire au fonctionnement ; il n’y a pas de cookie publicitaire.</p>
         <h4>Tes droits</h4>
         <p>Tu peux accéder à tes données, les corriger, les exporter (Réglages → Sauvegarde → Télécharger un fichier), t’opposer à leur traitement ou les effacer (Réglages → Compte → Supprimer mon compte). Pour toute demande : <b>${esc(EMAIL())}</b>. Tu peux aussi adresser une réclamation à la CNIL (cnil.fr).</p>
         <h4>Mineurs</h4>
@@ -76,7 +101,7 @@
         <h4>8. Propriété intellectuelle</h4>
         <p>Le code, les visuels et les textes de MerlinsLockIN appartiennent à leur éditeur. Les sons sont générés par l’app. Polices sous licence SIL Open Font License 1.1 : Atkinson Hyperlegible, Chakra Petch, Cinzel, Cormorant Garamond, IBM Plex Sans, JetBrains Mono, Ma Shan Zheng, Press Start 2P, Schibsted Grotesk, VT323 (texte de la licence : openfontlicense.org). Lecteur PDF : PDF.js de Mozilla, sous licence Apache 2.0.</p>
         <h4>9. Droit applicable</h4>
-        <p>Ces conditions sont soumises au droit français. Contact : <b>${esc(EMAIL())}</b>.</p>`,
+        <p>Ces conditions sont soumises au droit français. Contact : <b>${esc(EMAIL())}</b>.</p>${SALE() ? SALE_TERMS.fr() : ''}`,
       notice: () => `
         <h4>Éditeur</h4>
         <p>MerlinsLockIN est édité à titre personnel et non commercial par « LostfromMerlinHermes ». Contact : <b>${esc(EMAIL())}</b>.</p>
@@ -91,7 +116,7 @@
         <h4>Data controller</h4>
         <p>The publisher of MerlinsLockIN (pseudonym "LostfromMerlinHermes"), reachable at <b>${esc(EMAIL())}</b>.</p>
         <h4>Without an account</h4>
-        <p>Everything stays on your device, in the browser’s local storage: tasks, sessions, calendar, journal, settings and progress. Nothing is sent to the publisher.</p>
+        <p>Everything stays on your device, in the browser’s local storage: tasks, sessions, calendar, journal, settings and progress. Nothing is sent to the publisher, except the anonymous usage statistics described below, which you can turn off.</p>
         <h4>With an account</h4>
         <ul>
           <li><b>Data:</b> your email address, your password (stored encrypted by our provider, never readable by the publisher), the app content you put in it (tasks, notes, sessions, calendar, journal, settings, progress) and technical sign-in data (sign-in times, IP address in the provider’s logs).</li>
@@ -103,6 +128,7 @@
         <ul>
           <li><b>Supabase Inc.</b> hosts accounts and synced data, in ${esc(REGION())}. Traffic is encrypted (HTTPS) and security rules stop each user from reading anyone else’s data, except what you put in a study room yourself.</li>
           <li><b>GitHub Inc.</b> hosts the website. Like any host, it may log visitors’ IP addresses.</li>
+          ${SALE() ? SALE_PRIV.en() : ''}
           <li><b>Study rooms</b> (if you join one): the room’s members see your name in the room, your status (focusing, on a break), your messages, what you share there (links, decks, notes, the shared note, tasks), your recap line and your tree if you share it. Only members can read a room. A room keeps its last 200 messages; everything goes when the host closes it or after a long time without activity. Your messages stay after you leave, unless you or the host remove them. A reported item is copied for moderation, readable by the publisher only, and erased after 180 days.</li>
           <li><b>Calls</b>: the Start a call button opens the Jitsi Meet service (meet.jit.si) in a new tab. Meet, Zoom and pinned links also lead to third-party services with their own terms. We send them nothing beyond opening the page.</li>
           <li><b>Health and screen time</b> (if you turn them on): your daily check, time per site (the site’s name only), your if-then plans and the screen time you type stay in separate storage on your device. They are neither synced nor sent to anyone, and you can clear them from those pages. This is not a medical service.</li>
@@ -110,7 +136,9 @@
           <li><b>Study tools</b> (only when you use them): the word or phrase you look up goes straight from your device to Wikipedia and Wiktionary (Wikimedia, definitions and summaries), MyMemory (translation: the text to translate leaves your device, except when your browser can translate by itself, which the tool says) or Crossref and Open Library (book and article references). We receive nothing from these requests; each service has its own terms.</li>
           <li><b>Lecture transcription</b> (only if you turn it on while recording): your browser’s speech recognition writes down what is said. The sound goes to its recognition service (Google on Chrome and Edge, Apple on Safari), which has its own terms. The recorded sound stays on the device; the transcribed text is kept with the lecture and syncs with your account.</li>
         </ul>
-        <p>Fonts are hosted with the app: no requests go to Google. The local storage used is strictly necessary for the app to work; there are no advertising cookies and no analytics.</p>
+        <h4>Usage statistics</h4>
+        <p>To know which parts of the app are used and what to improve, the app counts, per day: the pages you open, the number and length of your sessions, their energy and world, the tasks you finish, the use of a few buttons, your language and the kind of app (extension, web). These numbers go to Supabase under a random number, without your email, and never the content (tasks, notes, cards, titles). Only the publisher reads them, as totals. Legal basis: the publisher’s legitimate interest in improving the service (GDPR article 6(1)(f)). Kept for 25 months at most. You can turn them off at any time: Settings → About → Usage statistics.</p>
+        <p>Fonts are hosted with the app: no requests go to Google. The local storage used is strictly necessary for the app to work; there are no advertising cookies.</p>
         <h4>Your rights</h4>
         <p>You can access, correct, export (Settings → Backup → Download a file), object to or erase your data (Settings → Account → Delete my account). For any request: <b>${esc(EMAIL())}</b>. You can also complain to your data protection authority (in France, the CNIL: cnil.fr).</p>
         <h4>Minors</h4>
@@ -135,7 +163,7 @@
         <h4>8. Intellectual property</h4>
         <p>MerlinsLockIN’s code, visuals and texts belong to its publisher. Sounds are generated by the app. Fonts under the SIL Open Font License 1.1: Atkinson Hyperlegible, Chakra Petch, Cinzel, Cormorant Garamond, IBM Plex Sans, JetBrains Mono, Ma Shan Zheng, Press Start 2P, Schibsted Grotesk, VT323 (license text: openfontlicense.org). PDF reader: Mozilla’s PDF.js, under the Apache 2.0 license.</p>
         <h4>9. Governing law</h4>
-        <p>These terms are governed by French law. Contact: <b>${esc(EMAIL())}</b>.</p>`,
+        <p>These terms are governed by French law. Contact: <b>${esc(EMAIL())}</b>.</p>${SALE() ? SALE_TERMS.en() : ''}`,
       notice: () => `
         <h4>Publisher</h4>
         <p>MerlinsLockIN is published on a personal, non-commercial basis by "LostfromMerlinHermes". Contact: <b>${esc(EMAIL())}</b>.</p>

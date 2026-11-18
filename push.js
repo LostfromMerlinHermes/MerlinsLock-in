@@ -110,7 +110,7 @@
     if (test) test.onclick = () => { if (!ML.running()) { schedule(Date.now() + 15000, 'focus', t('push_end_focus')); toast(t('push_test_ok'), { ms: 6000 }); } };
   }
   // The extension already notifies through its background alarms, and the artifact can't: show it only in the web app
-  if (!ML.IS_EXT && FN) ML.settingsSection({ order: 22, render: () => `<div id="push-sec">${sectionHtml()}</div>`, bind: r => { const el = r.querySelector('#push-sec'); if (el) bind(el); } });
+  if (!ML.IS_EXT && FN) ML.settingsSection({ order: 22, render: () => !SUPPORTED && !iOS ? "" : `<div id="push-sec">${sectionHtml()}</div>`, bind: r => { const el = r.querySelector('#push-sec'); if (el) bind(el); } });
   // Other one-off notifications (the evening reminder, health.js): returns the job id, or null
   async function job(at, title, body, tag) {
     if (!isOn()) return null;

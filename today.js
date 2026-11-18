@@ -205,7 +205,7 @@
   on('timer', syncSession); on('render', syncSession); on('started', () => { renderSessTools(); syncSession(); });
   on('lang', renderSessTools); on('timer', renderSessTools); on('lib:groups', renderSessTools);
   ML.settingsSection({
-    order: 31,
+    order: 31, cat: 'focus',
     render: () => `<h3>${esc(t('ss_title'))}</h3>${ML.ui.chk('set-sessmode', t('ss_opt'), S.sessMode !== false)}`,
     bind: r => { r.querySelector('#set-sessmode').onchange = e => { S.sessMode = e.target.checked; save(); syncSession(); }; },
   });

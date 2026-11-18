@@ -8,14 +8,14 @@
   ML.addStrings({
     fr: {
       mute_all: 'Couper tous les sons', unmute_all: 'Rétablir les sons', muted_t: 'Sons coupés', unmuted_t: 'Sons rétablis',
-      set_sound2: 'Volumes et animations', fx_vol: 'Volume des effets', amb_vol: 'Volume de l’ambiance',
+      set_sound2: 'Volumes et effets', fx_vol: 'Volume des effets', amb_vol: 'Volume de l’ambiance',
       theme_amb: 'Ambiance du thème (pluie, vent, bougie… dans le mixeur)', amb_noise: 'Bruit de fond en plus', noise_none: 'Aucun', noise_white: 'Bruit blanc', noise_brown: 'Bruit brun',
       opt_reduce: 'Animations réduites sur cet appareil (en plus du réglage du système)',
       sound_rules: 'Pendant un focus, seuls la fin de session et tes propres actions (cocher, parquer) font un son. Rien pendant les 10 dernières secondes. En Deep focus, seule la fin de session sonne.',
     },
     en: {
       mute_all: 'Mute all sounds', unmute_all: 'Unmute sounds', muted_t: 'Sounds off', unmuted_t: 'Sounds on',
-      set_sound2: 'Volumes and motion', fx_vol: 'Effects volume', amb_vol: 'Ambience volume',
+      set_sound2: 'Volumes and effects', fx_vol: 'Effects volume', amb_vol: 'Ambience volume',
       theme_amb: 'Theme ambience (rain, wind, candle… in the mixer)', amb_noise: 'Extra background noise', noise_none: 'None', noise_white: 'White noise', noise_brown: 'Brown noise',
       opt_reduce: 'Reduced animations on this device (on top of the system setting)',
       sound_rules: 'During focus only the end of the session and your own actions (ticking, parking) make a sound. Nothing in the last 10 seconds. In Deep focus only the session end sounds.',
@@ -305,7 +305,8 @@
       <label class="d-slider"><span>${esc(t('amb_vol'))}</span><input type="range" id="sx-amb" min="0" max="1" step="0.05" value="${S.audio ? S.audio.master : 0.7}"></label>
       ${ML.ui.chk('sx-theme', t('theme_amb'), S.soundfx.themeAmb)}
       <label class="field"><span>${esc(t('amb_noise'))}</span>${ML.ui.sel('sx-noise', ['none', 'white', 'brown'].map(v => [v, t('noise_' + v)]), S.soundfx.noise)}</label>
-      ${ML.ui.chk('sx-reduce', t('opt_reduce'), ML.motionPref())}
+      ${ML.ui.chk('sx-sfx', t('opt_sfx'), S.game.sfx)}
+      ${ML.ui.chk('sx-clicks', t('opt_clicks'), S.juice.clicks)}
       <p class="hint">${esc(t('sound_rules'))}</p>`,
     bind: r => {
       const fx = r.querySelector('#sx-fx');
@@ -314,7 +315,8 @@
       r.querySelector('#sx-amb').oninput = e => { if (S.audio) { S.audio.master = +e.target.value; save(); if (ML.Audio && ML.Audio.refresh) ML.Audio.refresh(); } };
       r.querySelector('#sx-theme').onchange = e => setThemeAmb(e.target.checked);
       r.querySelector('#sx-noise').onchange = e => { S.soundfx.noise = e.target.value; save(); applyAmb(); };
-      r.querySelector('#sx-reduce').onchange = e => ML.setReducedMotion(e.target.checked);
+      r.querySelector('#sx-sfx').onchange = e => { S.game.sfx = e.target.checked; save(); };
+      r.querySelector('#sx-clicks').onchange = e => { S.juice.clicks = e.target.checked; save(); };
     },
   });
 })();

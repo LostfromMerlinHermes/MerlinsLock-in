@@ -72,7 +72,7 @@
     setTimeout(() => ML.toast(msg, { ms: 6000, key: 'away', action: { label: t('aw_copy').split(' ')[0], fn: () => ML.copyText ? ML.copyText(msg) : navigator.clipboard.writeText(msg) } }), 900);
   });
   ML.settingsSection({
-    order: 26,
+    order: 26, cat: 'focus',
     render: () => `<h3>${esc(t('aw_title'))}</h3>
       ${ML.ui.chk('set-away', t('aw_on'), S.away.on)}
       <label class="field"><span>${esc(t('aw_text'))}</span><input type="text" id="set-away-text" maxlength="160" placeholder="${esc(t('aw_default'))}" value="${esc(S.away.text || '')}"></label>

@@ -326,11 +326,11 @@
   ML.addStrings({
     fr: { sh_shelves: 'Rayons', sh_back: 'Rayons', sh_all: 'Tout', sh_tobuy: 'À acheter', sh_owned: 'Possédés', sh_count: '{a} sur {b}', sh_your_tree: 'Ton arbre', sh_your_tree_d: 'Essaie des feuilles, des branches, des fleurs, un sol et un ciel sur ton chêne avant d’acheter.', sh_try: 'Essayer',
       sh_other_trees: 'Autres arbres', sh_world_trees: 'Les arbres des mondes ne s’achètent pas : ils se gagnent après 25 h dans leur monde. Bonsaï, Cerisier et Ginkgo sont inclus dans Premium.', sh_tree_page: 'Voir mes arbres ›', sh_trying: 'À l’essai', sh_free: 'Rien n’est dépensé.', sh_try_hint: 'Touche une option pour l’essayer sur ton arbre.', sh_cancel: 'Annuler', sh_buy_n: 'Acheter', sh_use: 'Utiliser',
-      sh_none: 'Rien ici avec ce filtre.', sh_prev: 'Article précédent', sh_next: 'Article suivant', sh_play: 'Voir l’effet', sh_with: 'Avec ton costume', sh_oak_only: 'Le chêne porte tout ; les autres arbres de base prennent les feuilles, les branches et les fleurs.', sh_bought_n: '{n} articles achetés', sh_xp: '{n} XP',
+      shop_none: 'Rien ici avec ce filtre.', sh_prev: 'Article précédent', sh_next: 'Article suivant', sh_play: 'Voir l’effet', sh_with: 'Avec ton costume', sh_oak_only: 'Le chêne porte tout ; les autres arbres de base prennent les feuilles, les branches et les fleurs.', sh_bought_n: '{n} articles achetés', sh_xp: '{n} XP',
       ft_leaf: 'Feuilles', ft_bark: 'Branches', ft_flower: 'Fleurs', ft_hang: 'Dans l’arbre', ft_ground: 'Sol', ft_sky: 'Ciel' },
     en: { sh_shelves: 'Shelves', sh_back: 'Shelves', sh_all: 'All', sh_tobuy: 'To buy', sh_owned: 'Owned', sh_count: '{a} of {b}', sh_your_tree: 'Your tree', sh_your_tree_d: 'Try leaves, branches, flowers, a ground and a sky on your oak before buying.', sh_try: 'Try on',
       sh_other_trees: 'Other trees', sh_world_trees: 'World trees aren’t sold: you earn them after 25 h in their world. Bonsai, Cherry tree and Ginkgo are included in Premium.', sh_tree_page: 'See my trees ›', sh_trying: 'Trying on', sh_free: 'Nothing is spent.', sh_try_hint: 'Tap an option to try it on your tree.', sh_cancel: 'Cancel', sh_buy_n: 'Buy', sh_use: 'Use',
-      sh_none: 'Nothing here with this filter.', sh_prev: 'Previous item', sh_next: 'Next item', sh_play: 'See the effect', sh_with: 'With your costume', sh_oak_only: 'The oak wears everything; the other base trees take leaves, branches and flowers.', sh_bought_n: '{n} items bought', sh_xp: '{n} XP',
+      shop_none: 'Nothing here with this filter.', sh_prev: 'Previous item', sh_next: 'Next item', sh_play: 'See the effect', sh_with: 'With your costume', sh_oak_only: 'The oak wears everything; the other base trees take leaves, branches and flowers.', sh_bought_n: '{n} items bought', sh_xp: '{n} XP',
       ft_leaf: 'Leaves', ft_bark: 'Branches', ft_flower: 'Flowers', ft_hang: 'In the tree', ft_ground: 'Ground', ft_sky: 'Sky' },
   });
   // Light skins (Premium, not bought with gold): one per mood, switched on from here or the sun / moon button
@@ -457,7 +457,7 @@
     if (c === 'worlds') return bar(t('cat_worlds')) + buySection() + lightSection();
     const list = shelfList(c), tiles = l => `<div class="shop-tiles">${l.map(([a, k]) => tile(a, k)).join('')}</div>`;
     let grid = c === 'dial' || c === 'island' ? (c === 'island' ? ['observatory', 'sanctuary', 'netrunner', 'sorcerer', 'neoncity', 'arcade'] : WORLD_ORDER).map(w => { const l = list.filter(([, k]) => (c === 'island' ? ML.ISLAND_WORLD[k] : DIAL_WORLD[k]) === w); return l.length ? `<h4 class="shop-world">${esc(t('th_' + w))}</h4>${tiles(l)}` : ''; }).join('') : tiles(list);
-    if (!list.length) grid = `<p class="hint">${esc(t('sh_none'))}</p>`;
+    if (!list.length) grid = `<p class="hint">${esc(t('shop_none'))}</p>`;
     const hint = c === 'dial' ? t('dial_hint') : c === 'seq' ? t('seq_hint') : '';
     const hero = c === 'tree' ? `<button type="button" class="shop-hero" data-fit><span class="shop-prev"><img class="tree-prev" data-tp="skin:oak" alt=""></span><span><b>${esc(t('sh_your_tree'))}</b><small>${esc(t('sh_your_tree_d'))}</small><i>${esc(t('sh_try'))}</i></span></button><h4 class="shop-world">${esc(t('sh_other_trees'))}</h4>` : '';
     return bar(t(SHELF_NAME[c])) + (FILTERED.includes(c) ? filters() : '') + (hint ? `<p class="hint">${esc(hint)}</p>` : '') + hero + grid + (c === 'tree' ? `<p class="hint">${esc(t('sh_world_trees'))} <button type="button" class="link" data-go-tree>${esc(t('sh_tree_page'))}</button></p>` : '');

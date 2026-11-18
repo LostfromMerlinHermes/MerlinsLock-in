@@ -241,8 +241,27 @@
     syncUi.render();
     return syncing;
   }
+  // Light check (3.100): the regular syncs (every 90 s, coming back to the app) first ask only for the cloud row's
+  // _savedAt. When neither side changed since the last sync, nothing else is downloaded. Any doubt (no row, other
+  // version, local change, error) takes the full path below, unchanged.
+  async function unchanged() {
+    if (!ready || freshLocal || remoteAt == null) return false;
+    ML.flushSave && ML.flushSave();
+    const base = getBase();
+    if (!base || base._savedAt !== remoteAt || S._savedAt !== remoteAt) return false;
+    try {
+      const rows = await api('/rest/v1/lockin_data?select=saved:data->>_savedAt&user_id=eq.' + user.id, { token: await token() });
+      return !!(rows && rows[0] && rows[0].saved != null && String(rows[0].saved) === String(remoteAt));
+    } catch (e) { return false; }
+  }
   async function doSync(initial) {
     try {
+      if (!initial && await unchanged()) {
+        lastSync = Date.now();
+        try { localStorage.setItem('mli-sync-ok:' + user.id, String(Date.now())); } catch (e) {}
+        renderStatus(); syncUi.done(null);
+        return true;
+      }
       const remote = await pull();
       ready = true;
       if (!remote) {
@@ -503,7 +522,10 @@
     return true;
   }
   const cloudCopy = async () => { if (!user) return null; const r = await pull(); return r ? r.data : null; };
-  ML.auth = { boot, afterLoad, get user() { return user; }, enabled: ENABLED, syncNow, merge3, rest, forcePush, cloudCopy };
+  // Payments (premium.js): call an Edge Function as the signed-in user, and re-read app_metadata after a purchase
+  const fn = async (name, body) => api('/functions/v1/' + name, { method: 'POST', body: body || {}, token: await token() });
+  const refresh = async () => { if (!sess) return null; await token(true); return user; };
+  ML.auth = { boot, afterLoad, get user() { return user; }, enabled: ENABLED, syncNow, merge3, rest, forcePush, cloudCopy, fn, refresh, errText };
 
   /* ---------- Sync indicator: a cloud in the header (signed in only) ----------
      ok (check) / run (syncing) / off (no network) / err (server); a tap shows the last sync time and "Sync now".

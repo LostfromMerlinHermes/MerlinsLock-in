@@ -24,7 +24,7 @@
       a_seq7: 'Troisième cercle', a_seq7_d: 'Atteins le cercle 3', a_seq5: 'Cinquième cercle', a_seq5_d: 'Atteins le cercle 5', a_seq0: 'Grand Enchanteur', a_seq0_d: 'Atteins le cercle 7',
       a_moods4: 'Toutes les humeurs', a_moods4_d: 'Une session dans chaque humeur', a_tasks50: 'Abatteur', a_tasks50_d: 'Termine 50 tâches', a_sound5: 'Mélomane', a_sound5_d: 'Écoute 5 genres différents',
       new_seq: 'Nouveau cercle', boss_defeated: 'Boss vaincu',
-      set_look: 'Apparence et jeu', theme: 'Thème',
+      set_look: 'Thème', theme: 'Thème',
       opt_sfx: 'Effets sonores (tâche finie, quête, succès)',
     },
     en: {
@@ -46,7 +46,7 @@
       a_seq7: 'Third Circle', a_seq7_d: 'Reach Circle 3', a_seq5: 'Fifth Circle', a_seq5_d: 'Reach Circle 5', a_seq0: 'Grand Enchanter', a_seq0_d: 'Reach Circle 7',
       a_moods4: 'Every mood', a_moods4_d: 'A session in each mood', a_tasks50: 'Task slayer', a_tasks50_d: 'Finish 50 tasks', a_sound5: 'Music lover', a_sound5_d: 'Listen to 5 different genres',
       new_seq: 'New Circle', boss_defeated: 'Boss defeated',
-      set_look: 'Look and game', theme: 'Theme',
+      set_look: 'Theme', theme: 'Theme',
       opt_sfx: 'Sound effects (task done, quest, achievement)',
     },
   });
@@ -276,7 +276,7 @@
       dn_light: 'Toujours clair', dn_autolight: 'Auto clair (clair le jour, nuit de 21h à 6h)',
       wb_btn: 'Monde : {w}. Changer', wb_h: 'Monde · {mood}', wb_always: 'Toujours ce monde', wb_clock: 'Suivre l’heure : {day} le jour, {night} après 21 h',
       wb_kept: 'Retenu pour {mood}. Les autres énergies gardent leur choix.', wb_toast: 'Monde : {w}', wb_locked: '{w} fait partie de Premium.', wb_try: 'Essayer 1 min', wb_premium: 'Premium', wb_now: 'Maintenant',
-      light_premium_hint: 'Premium : un troisième univers, clair, pour chaque humeur (Washi, Codex, Estampe, Cartouche).',
+      light_premium_hint: 'Premium : un troisième univers, clair, pour chaque énergie (Codex, Estampe, Cartouche).',
       th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Estampe', th_light_cartouche: 'Cartouche',
       ink_focus: 'Focus auj. {t}', ink_streak: 'Série {n} j', ink_quests: 'Quêtes {n}/{m}', ink_next: 'Prochain bloc {t}',
     },
@@ -296,7 +296,7 @@
       dn_light: 'Always light', dn_autolight: 'Auto light (light by day, night from 9pm to 6am)',
       wb_btn: 'World: {w}. Change', wb_h: 'World · {mood}', wb_always: 'Always this world', wb_clock: 'Follow the hour: {day} by day, {night} after 9 pm',
       wb_kept: 'Saved for {mood}. Other energies keep their own.', wb_toast: 'World: {w}', wb_locked: '{w} is part of Premium.', wb_try: 'Try 1 min', wb_premium: 'Premium', wb_now: 'Now',
-      light_premium_hint: 'Premium: a third, light world for every mood (Washi, Codex, Estampe, Cartridge).',
+      light_premium_hint: 'Premium: a third, light world for every energy (Codex, Estampe, Cartouche).',
       th_light_aube: 'Washi', th_light_atelier: 'Codex', th_light_tokyo: 'Estampe', th_light_cartouche: 'Cartridge',
       ink_focus: 'Focus today {t}', ink_streak: 'Streak {n} d', ink_quests: 'Quests {n}/{m}', ink_next: 'Next block {t}',
     },
@@ -496,11 +496,9 @@
     render: () => `<h3>${esc(t('set_look'))}</h3>
       <label class="field"><span>${esc(t('theme'))}</span>${ML.ui.sel('set-theme', ['auto', 'observatory', 'sorcerer', 'sanctuary', 'abyss', 'netrunner', 'neoncity', 'arcade', 'fog'].filter(v => !(v === 'sanctuary' || v === 'abyss') || ownsWorld(v) || S.theme === v).map(v => [v, t('th_' + v)]), S.theme)}</label>
       <p class="hint">${esc(t('th_hint'))}</p>
-      ${canLight() ? '' : `<p class="hint">${esc(t('light_premium_hint'))}</p>`}
-      ${ML.ui.chk('set-sfx', t('opt_sfx'), S.game.sfx)}`,
+      ${canLight() ? '' : `<p class="hint">${esc(t('light_premium_hint'))}</p>`}`,
     bind: r => {
       r.querySelector('#set-theme').onchange = e => { S.theme = e.target.value; save(); applyTheme(); ML.emit('world'); };
-      r.querySelector('#set-sfx').onchange = e => { S.game.sfx = e.target.checked; save(); };
     },
   });
 

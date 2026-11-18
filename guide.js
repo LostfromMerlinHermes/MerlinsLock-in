@@ -19,7 +19,7 @@
     fr: {
       g_tree: 'Arbre', g_tree_d: 'Une branche par semaine, une fleur par session Flow, des racines si le check Santé est actif. D’autres arbres se débloquent en travaillant dans un monde.', g_fc: 'Focus', g_fc_d: 'Les sessions Flow, leur bonus, ta durée de concentration et les retours après un trou. Choisis Calm ou Lively en bas de la page.', g_stuck: 'Je n’arrive pas à commencer', g_stuck_d: 'Sous le Lock in : écris le plus petit geste, 2 minutes de minuteur, et tu peux t’arrêter après.', g_pd: 'Périodes', g_pd_d: 'Term, Exams, Light, Holidays règlent l’objectif du jour et le blocage. Exams s’active seule avant un examen. En Holidays, la série est gelée.', g_scr: 'Temps d’écran', g_scr_d: 'Temps par site et blocage selon des horaires dans l’extension, écran de pause, plans si-alors et urge timer. Sur téléphone, un chiffre à noter et une pause à régler dans Raccourcis.', g_hl: 'Santé', g_hl_d: 'Un check de 20 secondes, à activer toi-même. Il compare tes journées et reste sur l’appareil.',
       g_ksearch: 'Recherche', g_ksearch_d: 'Ctrl K sur ordinateur, la loupe sur téléphone. Trouve une section, une tâche, une note ou un paquet, et lance des actions : « 25 min », « ajouter réviser droit demain ».', g_sess: 'Mode séance', g_sess_d: 'Pendant un Lock in, l’écran garde le temps, la tâche et les outils du cours. Tout revient à la fin. Se désactive dans les réglages.', g_gest: 'Gestes', g_gest_d: 'Sur téléphone : glisse une tâche à droite pour la terminer, à gauche pour lancer un Lock in, appuie longuement pour la déplacer. Depuis le bord de l’écran, glisse pour changer d’espace. Tire le cadran vers le bas pour le fermer.',
-      tab_guide: 'Guide', gd_search: 'Chercher une fonction', gd_new_h: 'Nouveau depuis ta dernière visite', gd_seen: 'Compris', gd_show: 'Montre-moi', gd_new: 'Nouveau', gd_none: 'Rien ne correspond à cette recherche.', gd_all: 'Tout', gd_g_timer: 'Minuteur', gd_g_work: 'Organisation', gd_g_study: 'Étude', gd_g_you: 'Toi',
+      tab_guide: 'Guide', gd_search: 'Chercher une fonction', gd_new_h: 'Nouveau depuis ta dernière visite', gd_seen: 'Compris', gd_show: 'Montre-moi', gd_new: 'Nouveau', gd_nomatch: 'Rien ne correspond à cette recherche.', gd_all: 'Tout', gd_g_timer: 'Minuteur', gd_g_work: 'Organisation', gd_g_study: 'Étude', gd_g_you: 'Toi',
       tip_ok: 'Compris', tip_guide: 'Ouvrir le guide',
       g_energy: 'Énergie', g_energy_d: 'Chaque jour, choisis ton énergie : elle change le monde, la durée des sessions et l’ordre des tâches.',
       g_timer: 'Minuteur', g_timer_d: 'Choisis une durée, appuie sur Lock in. À la fin : de l’XP, de l’or et un étage de plus à ta tour.',
@@ -43,7 +43,7 @@
       g_season: 'Saison', g_season_d: 'Chaque semestre a sa tour. Chaque examen passé y ajoute une aile, et tu peux en faire une image de bilan.',
       g_learn: 'Apprendre', g_learn_d: 'Des méthodes courtes, classées par situation, avec leur niveau de preuve.',
       g_grim: 'Grimoire', g_grim_d: 'Tes statistiques, ta série, tes succès et ta progression de Séquence.',
-      g_tower: 'Tour', g_tower_d: 'Chaque session d’au moins 15 min ajoute un étage. Abandonner avant la moitié en fait tomber un.',
+      g_tower: 'La tour', g_tower_d: 'Chaque session d’au moins 15 min ajoute un étage. Abandonner avant la moitié en fait tomber un.',
       g_boss: 'Boss de la semaine', g_boss_d: 'Marque ta plus grosse tâche comme boss dans sa fiche. Une barre de vie apparaît sous le minuteur.',
       g_room: 'Salle', g_room_d: 'Étudie à plusieurs avec un code : minuteur commun, tâches communes et lien d’appel. Avec un compte.',
       g_roomchat: 'Chat et documents de salle', g_roomchat_d: 'Un chat qui peut attendre la pause, des liens épinglés, un paquet ou une note à copier en un tap, une note commune et un récap en fin de session.',
@@ -55,7 +55,7 @@
     en: {
       g_tree: 'Tree', g_tree_d: 'A branch per week, a flower per Flow session, roots if the Health check is on. Other trees unlock as you work in a world.', g_fc: 'Focus', g_fc_d: 'Flow sessions and their bonus, your focus span, and comebacks after a gap. Pick Calm or Lively at the bottom of the page.', g_stuck: 'I can’t start', g_stuck_d: 'Under Lock in: write the smallest step, take a 2-minute timer, and you can stop afterwards.', g_pd: 'Periods', g_pd_d: 'Term, Exams, Light and Holidays set the day’s goal and the blocking. Exams turns on by itself before an exam. On Holidays your streak is frozen.', g_scr: 'Screen time', g_scr_d: 'Time per site and scheduled blocking in the extension, pause screen, if-then plans and urge timer. On a phone, a number to type and a pause to set up in Shortcuts.', g_hl: 'Health', g_hl_d: 'A 20-second check you turn on yourself. It compares your days and stays on the device.',
       g_ksearch: 'Search', g_ksearch_d: 'Ctrl K on a computer, the magnifier on a phone. Finds a section, a task, a note or a deck, and runs actions: "25 min", "add revise law tomorrow".', g_sess: 'Session mode', g_sess_d: 'During a Lock in, the screen keeps the time, the task and the course tools. Everything comes back at the end. Turn it off in Settings.', g_gest: 'Gestures', g_gest_d: 'On a phone: swipe a task right to complete it, left to Lock in, press and hold to move it. From the edge of the screen, swipe to change space. Pull the dial down to close it.',
-      tab_guide: 'Guide', gd_search: 'Search for a feature', gd_new_h: 'New since your last visit', gd_seen: 'Got it', gd_show: 'Show me', gd_new: 'New', gd_none: 'Nothing matches this search.', gd_all: 'All', gd_g_timer: 'Timer', gd_g_work: 'Planning', gd_g_study: 'Study', gd_g_you: 'You',
+      tab_guide: 'Guide', gd_search: 'Search for a feature', gd_new_h: 'New since your last visit', gd_seen: 'Got it', gd_show: 'Show me', gd_new: 'New', gd_nomatch: 'Nothing matches this search.', gd_all: 'All', gd_g_timer: 'Timer', gd_g_work: 'Planning', gd_g_study: 'Study', gd_g_you: 'You',
       tip_ok: 'Got it', tip_guide: 'Open the guide',
       g_energy: 'Energy', g_energy_d: 'Each day, pick your energy: it changes the world, the session length and the task order.',
       g_timer: 'Timer', g_timer_d: 'Pick a length and press Lock in. At the end: XP, gold and a new floor on your tower.',
@@ -79,7 +79,7 @@
       g_season: 'Season', g_season_d: 'Each semester has its own tower. Each exam passed adds a wing, and you can make a recap picture of it.',
       g_learn: 'Learn', g_learn_d: 'Short methods by situation, with how strong the evidence is.',
       g_grim: 'Grimoire', g_grim_d: 'Your stats, streak, achievements and Sequence progress.',
-      g_tower: 'Tower', g_tower_d: 'Each session of at least 15 min adds a floor. Quitting before halfway knocks one down.',
+      g_tower: 'The tower', g_tower_d: 'Each session of at least 15 min adds a floor. Quitting before halfway knocks one down.',
       g_boss: 'Weekly boss', g_boss_d: 'Mark your biggest task as the boss in its details. A health bar shows under the timer.',
       g_room: 'Room', g_room_d: 'Study together with a code: shared timer, shared tasks and a call link. With an account.',
       g_roomchat: 'Room chat and documents', g_roomchat_d: 'A chat that can wait for the break, pinned links, a deck or a note to copy in one tap, one shared note and a recap at the end of a session.',
@@ -112,7 +112,7 @@
   const itemHtml = x => `<li class="gd-item"><div><b>${esc(t('g_' + x.id))}</b>${isNew(x) ? `<span class="gd-new">${esc(t('gd_new'))}</span>` : ''}<p>${esc(t('g_' + x.id + '_d'))}</p></div><button type="button" class="small" data-gd-go="${x.go}">${esc(t('gd_show'))}</button></li>`;
   function listHtml() {
     const n = q.trim().toLowerCase(), rows = GUIDE.filter(x => (!group || x.group === group) && (!n || (t('g_' + x.id) + ' ' + t('g_' + x.id + '_d')).toLowerCase().includes(n)));
-    return rows.length ? `<ul class="gd-list">${rows.map(itemHtml).join('')}</ul>` : `<p class="hint">${esc(t('gd_none'))}</p>`;
+    return rows.length ? `<ul class="gd-list">${rows.map(itemHtml).join('')}</ul>` : `<p class="hint">${esc(t('gd_nomatch'))}</p>`;
   }
   function render() {
     const root = $('guide'); if (!root) return;

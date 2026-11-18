@@ -6,13 +6,13 @@
 
   ML.addStrings({
     fr: {
-      set_juice: 'Effets', opt_title: 'Écran titre au premier lancement du jour', opt_clicks: 'Petits sons sur les boutons', opt_tod: 'Lumière qui suit l’heure (aube, jour, crépuscule, nuit)',
+      set_juice: 'Effets visuels', opt_title: 'Écran titre au premier lancement du jour', opt_clicks: 'Petits sons sur les boutons', opt_tod: 'Lumière qui suit l’heure (aube, jour, crépuscule, nuit)',
       press_start: 'Appuie sur une touche pour commencer', press_start_touch: 'Touche l’écran pour commencer',
       ts_streak: 'Série : {n} j', ts_quests: 'Quêtes : {n}/3', ts_events: 'Calendrier : {n} aujourd’hui', ts_back: 'Bon retour,',
       boss_fight: 'Combat de boss',
     },
     en: {
-      set_juice: 'Effects', opt_title: 'Title screen on the first launch of the day', opt_clicks: 'Small sounds on buttons', opt_tod: 'Light that follows the time of day',
+      set_juice: 'Visual effects', opt_title: 'Title screen on the first launch of the day', opt_clicks: 'Small sounds on buttons', opt_tod: 'Light that follows the time of day',
       press_start: 'Press any key to start', press_start_touch: 'Tap to start',
       ts_streak: 'Streak: {n}d', ts_quests: 'Quests: {n}/3', ts_events: 'Calendar: {n} today', ts_back: 'Welcome back,',
       boss_fight: 'Boss fight',
@@ -442,11 +442,9 @@
     order: 16,
     render: () => `<h3>${esc(t('set_juice'))}</h3>
       ${ML.ui.chk('set-title', t('opt_title'), S.juice.title)}
-      ${ML.ui.chk('set-clicks', t('opt_clicks'), S.juice.clicks)}
       ${ML.ui.chk('set-tod', t('opt_tod'), S.juice.tod)}`,
     bind: r => {
       r.querySelector('#set-title').onchange = e => { S.juice.title = e.target.checked; save(); };
-      r.querySelector('#set-clicks').onchange = e => { S.juice.clicks = e.target.checked; save(); };
       r.querySelector('#set-tod').onchange = e => { S.juice.tod = e.target.checked; save(); applyTod(); };
     },
   });

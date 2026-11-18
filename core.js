@@ -77,7 +77,9 @@ window.ML = (() => {
 
   /* ---------- Translations ---------- */
   const STR = { fr: {}, en: {} };
-  function addStrings(dict) { for (const l in dict) Object.assign(STR[l] || (STR[l] = {}), dict[l]); }
+  // on localhost, a key defined twice with another text is reported: two modules sharing a key show each other's text (3.101)
+  const DEV = /^(localhost|127.0.0.1)$/.test(location.hostname); const CLASH = [];
+  function addStrings(dict) { for (const l in dict) { const to = STR[l] || (STR[l] = {}); if (DEV) for (const k in dict[l]) if (k in to && JSON.stringify(to[k]) !== JSON.stringify(dict[l][k])) CLASH.push(l + ':' + k); Object.assign(to, dict[l]); } if (DEV && window.ML) window.ML.strClash = CLASH; }
   function t(key, vars) {
     // Before the state loads (login screen) fall back to the browser language
     const lang = S.lang || ((navigator.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en');
