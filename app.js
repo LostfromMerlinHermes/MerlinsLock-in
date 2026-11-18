@@ -539,6 +539,11 @@
       mood_line_steady: 'Work down the list by priority.', mood_line_scattered: 'One task at a time, short sessions.',
       yh_prog: '{n}-day streak', yh_prog0: 'Hours, streaks and records' },
   });
+  // The header logo (3.106): the hooded figure or « ML » in letters, in any look
+  ML.defaults(() => ({ logo: 'figure' }));
+  const logoStyle = () => (S.logo === 'letters' ? 'letters' : 'figure');
+  const applyLogo = () => document.documentElement.classList.toggle('logo-letters', logoStyle() === 'letters');
+  on('loaded', applyLogo); on('remote', applyLogo); on('started', applyLogo);
   const syncLayer = () => ML.useLayer(soberOn() ? 'sober' : null);
   syncLayer(); on('loaded', syncLayer); on('remote', syncLayer); on('started', syncLayer);
   {
@@ -1075,19 +1080,21 @@
   ML.ui = { sel, chk };
 
   ML.addStrings({
-    fr: { look_h: 'Apparence', look_worlds: 'Mondes', look_sober: 'Sobre', look_sober_d: 'Sans Monde, sans jeu, sans animations. Tout revient tel quel si tu repasses sur Mondes.', look_pal: 'Couleurs', look_bg: 'Fond', look_acc: 'Accent', pal_black: 'Noir', pal_white: 'Blanc', pal_green: 'Vert', pal_slate: 'Ardoise', acc_green: 'Vert', acc_blue: 'Bleu', acc_amber: 'Ambre', acc_coral: 'Corail', acc_lilac: 'Lilas', acc_grey: 'Gris', mod_sober_off: 'Coupé par l’apparence Sobre.', qt_sober: 'Apparence Sobre' },
-    en: { look_h: 'Look', look_worlds: 'Worlds', look_sober: 'Plain', look_sober_d: 'No World, no game, no animations. Everything comes back as it was when you return to Worlds.', look_pal: 'Colours', look_bg: 'Background', look_acc: 'Accent', pal_black: 'Black', pal_white: 'White', pal_green: 'Green', pal_slate: 'Slate', acc_green: 'Green', acc_blue: 'Blue', acc_amber: 'Amber', acc_coral: 'Coral', acc_lilac: 'Lilac', acc_grey: 'Grey', mod_sober_off: 'Off while the Plain look is on.', qt_sober: 'Plain look' },
+    fr: { look_h: 'Apparence', look_worlds: 'Mondes', look_sober: 'Sobre', look_sober_d: 'Sans Monde, sans jeu, sans animations. Tout revient tel quel si tu repasses sur Mondes.', look_pal: 'Couleurs', look_bg: 'Fond', look_acc: 'Accent', pal_black: 'Noir', pal_white: 'Blanc', pal_green: 'Vert', pal_slate: 'Ardoise', acc_green: 'Vert', acc_blue: 'Bleu', acc_amber: 'Ambre', acc_coral: 'Corail', acc_lilac: 'Lilas', acc_grey: 'Gris', mod_sober_off: 'Coupé par l’apparence Sobre.', qt_sober: 'Apparence Sobre', look_logo: 'Logo', logo_figure: 'Personnage', logo_letters: 'Lettres' },
+    en: { look_h: 'Look', look_worlds: 'Worlds', look_sober: 'Plain', look_sober_d: 'No World, no game, no animations. Everything comes back as it was when you return to Worlds.', look_pal: 'Colours', look_bg: 'Background', look_acc: 'Accent', pal_black: 'Black', pal_white: 'White', pal_green: 'Green', pal_slate: 'Slate', acc_green: 'Green', acc_blue: 'Blue', acc_amber: 'Amber', acc_coral: 'Coral', acc_lilac: 'Lilac', acc_grey: 'Grey', mod_sober_off: 'Off while the Plain look is on.', qt_sober: 'Plain look', look_logo: 'Logo', logo_figure: 'Character', logo_letters: 'Letters' },
   });
   ML.settingsSection({
     order: 1, cat: 'look',
     render: () => `<h3>${esc(t('look_h'))}</h3>
       <div class="seg-toggle look-seg" role="group" aria-label="${esc(t('look_h'))}">${[false, true].map(v => `<button type="button" data-look="${v ? 1 : 0}" aria-pressed="${soberOn() === v}">${esc(t(v ? 'look_sober' : 'look_worlds'))}</button>`).join('')}</div>
       <p class="hint">${esc(t('look_sober_d'))}</p>
+      <p class="label">${esc(t('look_logo'))}</p><div class="seg-toggle look-seg" role="group" aria-label="${esc(t('look_logo'))}">${['figure', 'letters'].map(v => `<button type="button" data-logo="${v}" aria-pressed="${logoStyle() === v}">${esc(t('logo_' + v))}</button>`).join('')}</div>
       ${soberOn() ? `<p class="label">${esc(t('look_bg'))}</p><div class="look-pals" role="group" aria-label="${esc(t('look_bg'))}">${SOBER_PALS.map(p => `<button type="button" class="look-pal" data-pal="${p}" aria-pressed="${ML.soberPal() === p}"><i class="look-sw look-${p}"></i>${esc(t('pal_' + p))}</button>`).join('')}</div>
       <p class="label">${esc(t('look_acc'))}</p><div class="look-accs" role="group" aria-label="${esc(t('look_acc'))}">${SOBER_ACCS.map(a => `<button type="button" class="look-acc acc-${a}" data-acc="${a}" aria-pressed="${ML.soberAcc() === a}" aria-label="${esc(t('acc_' + a))}" title="${esc(t('acc_' + a))}"></button>`).join('')}</div>` : ''}`,
     bind: root => {
       root.querySelectorAll('[data-look]').forEach(b => { b.onclick = () => { ML.setSober(b.dataset.look === '1'); renderSettings(); }; });
       root.querySelectorAll('[data-pal]').forEach(b => { b.onclick = () => { ML.setSober(true, b.dataset.pal); renderSettings(); }; });
+      root.querySelectorAll('[data-logo]').forEach(b => { b.onclick = () => { S.logo = b.dataset.logo; save(); applyLogo(); renderSettings(); }; });
       root.querySelectorAll('[data-acc]').forEach(b => { b.onclick = () => { ML.setSober(true, null, b.dataset.acc); renderSettings(); }; });
     },
   });

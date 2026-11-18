@@ -59,21 +59,33 @@
       nt_log: '// JOURNAL', nt_today: '// AUJOURD’HUI', nt_next: 'SUIVANTE >', nt_min: '{n} / {m} MIN', nt_none: '(aucune tâche)',
       lg_start: 'début', lg_q: 'quart {n}/4 ok', lg_park: 'pensée parquée', lg_distr: 'décroché ({n})', lg_pause: 'pause', lg_resume: 'reprise', lg_done: 'session terminée', lg_break: 'repos en cours',
       pf_focus: 'FOCUS · N° {n}', pf_paused: 'EN PAUSE', pf_done: 'SESSION IMPRIMÉE', pf_stamp: 'PAUSE', pf_streak: 'SÉRIE {n} J', pf_proof: 'ÉPREUVE N° {n} · {d}', pf_next: 'ensuite : {t}',
-      dp_folio: 'Folio', fo_folio: 'FOLIO {n}', fo_paused: 'EN PAUSE', fo_streak: 'SÉRIE · {n} JOURS', fo_tower: 'TOUR · {n} ÉTAGES', fo_mins: '{n} MINUTES', fo_next: 'Ensuite : {t}',
+      dp_plain: 'Simple', dpl_done: 'Session terminée', dp_folio: 'Folio', fo_folio: 'FOLIO {n}', fo_paused: 'EN PAUSE', fo_streak: 'SÉRIE · {n} JOURS', fo_tower: 'TOUR · {n} ÉTAGES', fo_mins: '{n} MINUTES', fo_next: 'Ensuite : {t}',
     },
     en: {
       dp_style: 'Full-screen style', dp_classic: 'Classic', dp_terminal: 'Terminal', dp_proof: 'Proof',
       nt_log: '// LOG', nt_today: '// TODAY', nt_next: 'NEXT >', nt_min: '{n} / {m} MIN', nt_none: '(no task)',
       lg_start: 'start', lg_q: 'quarter {n}/4 ok', lg_park: 'thought parked', lg_distr: 'distracted ({n})', lg_pause: 'paused', lg_resume: 'resumed', lg_done: 'session complete', lg_break: 'break running',
       pf_focus: 'FOCUS · NO. {n}', pf_paused: 'PAUSED', pf_done: 'SESSION PRINTED', pf_stamp: 'PAUSE', pf_streak: 'STREAK {n} D', pf_proof: 'PROOF NO. {n} · {d}', pf_next: 'next: {t}',
-      dp_folio: 'Folio', fo_folio: 'FOLIO {n}', fo_paused: 'PAUSED', fo_streak: 'STREAK · {n} DAYS', fo_tower: 'TOWER · {n} FLOORS', fo_mins: '{n} MINUTES', fo_next: 'Next: {t}',
+      dp_plain: 'Plain', dpl_done: 'Session complete', dp_folio: 'Folio', fo_folio: 'FOLIO {n}', fo_paused: 'PAUSED', fo_streak: 'STREAK · {n} DAYS', fo_tower: 'TOWER · {n} FLOORS', fo_mins: '{n} MINUTES', fo_next: 'Next: {t}',
     },
   });
   ML.defaults(() => ({ deepStyle: {} }));
   // Cartouche's "quest" (3.37) lives in cartouche.js, registered in ML.deepStyles: { html(top, dock), built(), render(ctx), doneMs(), over() }
-  const WORLD_STYLE = { netrunner: 'terminal', tokyo: 'proof', atelier: 'folio', cartouche: 'quest', abyss: 'log', observatory: 'chart', sorcerer: 'spell' }; // Abysses' dive log (3.44) lives in abyss.js, the Observatoire's star chart (3.46) in observatory.js
+  const WORLD_STYLE = { sober: 'plain', netrunner: 'terminal', tokyo: 'proof', atelier: 'folio', cartouche: 'quest', abyss: 'log', observatory: 'chart', sorcerer: 'spell' }; // Abysses' dive log (3.44) lives in abyss.js, the Observatoire's star chart (3.46) in observatory.js
   const ext = s => (ML.deepStyles || {})[s];
-  const worldKey = () => { const r = document.documentElement, th = r.dataset.theme; return r.dataset.light ? { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' }[th] : th; };
+  // The Plain look's own full screen (3.106): the time very large and the task, nothing else; Classic stays one tap away
+  ML.deepStyles = Object.assign(ML.deepStyles || {}, {
+    plain: {
+      html: (top, dock) => `${top}<div class="dpl"><div class="dpl-time" id="dpl-time" role="timer"></div><p class="dpl-task" id="dpl-task"></p></div>${dock}`,
+      render: c => {
+        const el = $('dpl-time'), txt = MiniView.fmtClock(c.done ? 0 : Math.max(0, c.rem)); if (!el) return;
+        if (el.textContent !== txt) { el.textContent = txt; el.style.setProperty('--n', txt.length); }
+        $('dpl-task').textContent = c.done ? t('dpl_done') : c.title;
+      },
+      doneMs: () => 1600,
+    },
+  });
+  const worldKey = () => { const r = document.documentElement, th = r.dataset.theme; if (th === 'sober') return 'sober'; return r.dataset.light ? { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' }[th] : th; };
   // a world can sell another full screen in the shop (Cyber sorcier's circle, 3.48): ML.deepWorldStyle(world) returns it when equipped
   const spOf = k => (ML.deepWorldStyle && ML.deepWorldStyle(k)) || WORLD_STYLE[k];
   const styleNow = () => { const k = worldKey(), sp = spOf(k); return sp && (S.deepStyle || {})[k] !== 'classic' ? sp : 'classic'; };

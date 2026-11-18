@@ -50,6 +50,7 @@
   // Move the ring and bead of a drawn figure to p
   function setP(root, p) {
     const arc = root.querySelector('.hm-arc'), dot = root.querySelector('.hm-bead');
+    root.style.setProperty('--hp', p.toFixed(3)); // the letters logo fills a line instead (3.106)
     if (!arc) return;
     arc.setAttribute('stroke-dasharray', p + ' 1');
     arc.setAttribute('visibility', p > 0 ? 'visible' : 'hidden');
@@ -108,6 +109,9 @@
   B.type = 'button'; B.className = 'hood-b'; B.id = 'hood-b';
   brand.insertBefore(B, brand.querySelector('.brand-text'));
   live(B); B.removeAttribute('role');
+  // Logo in letters (3.106, Settings › Look, S.logo = 'letters' → html.logo-letters): the same button, menu and drag,
+  // drawn as « MerlinsLockIN » with a line under it that fills with the session
+  B.insertAdjacentHTML('beforeend', '<span class="hood-ml" aria-hidden="true"><b>Merlins<em>LockIN</em></b><i></i></span>');
   const label = () => B.setAttribute('aria-label', t('hood_btn') + (B.dataset.p && B.classList.contains('on') ? ' · ' + t('hood_label', { p: B.dataset.p }) : ''));
   document.documentElement.classList.add('hood-icon');
 

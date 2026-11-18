@@ -5576,3 +5576,23 @@ html.mnav-on .sh-counter { margin-inline: -14px; padding-inline: 14px; }
 :root[data-theme="sober"] .ep-ico, :root[data-theme="sober"] .ep-seg button { --mood-c: var(--mist) !important; }
 /* Plain look: the Look page keeps only what still acts (the evening filter); the world settings come back with Worlds */
 :root[data-theme="sober"] .set-sec:has(#set-theme), :root[data-theme="sober"] .set-sec:has(#set-tod), :root[data-theme="sober"] .set-sec:has(#set-wobj), :root[data-theme="sober"] .set-sec:has(#set-ld-atelier) { display: none; }
+
+/* ---------- 3.106: Plain full screen, letters logo ---------- */
+/* The Plain look's full screen: the time very large and the task, nothing else (Classic stays in the top switch) */
+#deep[data-style="plain"] { background: var(--void); }
+.dpl { display: grid; place-content: center; gap: 2.4vh; min-height: 0; min-width: 0; text-align: center; }
+.dpl-time { font: 600 min(34vh, calc(150vw / var(--n, 5)))/.9 var(--f-body); font-variant-numeric: tabular-nums; letter-spacing: -.03em; color: var(--text); transition: opacity .3s; }
+.dpl-task { margin: 0 auto; max-width: 36ch; font-size: clamp(16px, 2.4vw, 24px); color: var(--mist); overflow-wrap: anywhere; }
+#deep.paused .dpl-time { opacity: .5; }
+#deep.done .dpl-time { color: var(--accent); }
+/* The logo in letters: same button, « ML » with a line that fills with the session */
+.hood-ml { display: none; }
+html.logo-letters .hood-b > svg { display: none; }
+html.logo-letters .hood-b { filter: none; width: auto; height: 36px; border-radius: 8px; }
+html.logo-letters .hood-b.free { width: auto; height: 40px; }
+html.logo-letters .hood-ml { position: relative; display: flex; align-items: center; height: 100%; padding: 0 11px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--panel-2); color: var(--text); white-space: nowrap; overflow: hidden; }
+html.logo-letters .hood-ml b { font: 700 14px/1 var(--f-display); letter-spacing: .02em; }
+html.logo-letters .hood-ml em { font-style: normal; color: var(--accent); }
+html.logo-letters .hood-ml i { position: absolute; left: 11px; right: 11px; bottom: 5px; height: 2px; border-radius: 2px; background: var(--line); }
+html.logo-letters .hood-ml i::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--accent); transform-origin: left; transform: scaleX(var(--hp, 0)); }
+html.logo-letters .hood-b:not(.on) .hood-ml i { visibility: hidden; }
