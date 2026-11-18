@@ -485,10 +485,14 @@
   function renderWorld() {
     const el = $('world'); if (!el || S.tab !== 'world') return;
     const fixed = ML.worldsFixed && ML.worldsFixed();
-    const html = `<div class="wd"><div class="wd-head"><div class="wd-tx"><h2>${esc(ML.worldName ? ML.worldName(S.mood) : t('sp_world'))}</h2><p>${esc(t('wd_energy', { e: t('mood_' + S.mood) }))}</p></div>
+    // 3.107: two views, the world's island and My island (buildisle.js), the one you build yourself
+    const MI = ML.myIsland, mine = !!MI && MI.view() === 'mine';
+    const tog = MI ? `<div class="seg-toggle wd-view" role="group"><button type="button" data-wd="isle" aria-pressed="${!mine}">${esc(t('mi_isle'))}</button><button type="button" data-wd="mine" aria-pressed="${mine}">${esc(t('mi_mine'))}</button></div>` : '';
+    const html = `<div class="wd"><div class="wd-head"><div class="wd-tx"><h2>${esc(ML.worldName ? ML.worldName(S.mood) : t('sp_world'))}</h2><p>${esc(t(mine ? 'mi_sub' : 'wd_energy', { e: t('mood_' + S.mood) }))}</p></div>
       <div class="wd-acts">${fixed ? '' : `<button type="button" class="small" data-wd="worlds">${esc(t('wd_change'))}</button>`}<button type="button" class="ghost small" data-wd="shop">${esc(t('shop'))}</button></div></div>
-      <div id="wd-isl"></div></div>`;
+      ${tog}${mine ? '<div id="wd-mine"></div>' : '<div id="wd-isl"></div>'}</div>`;
     if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
+    if (mine) { MI.mount(el.querySelector('#wd-mine')); return; }
     if (blk && el.contains(blk) && pageKey(view()) === blkKey) return;
     mount(el.querySelector('#wd-isl') || (blk && el.contains(blk) ? blk : null));
   }
@@ -496,6 +500,7 @@
   on('tab', wake); on('motion', wake); document.addEventListener('visibilitychange', wake);
   $('world').addEventListener('click', e => {
     const b = e.target.closest('[data-wd]'); if (!b) return;
+    if (b.dataset.wd === 'isle' || b.dataset.wd === 'mine') { if (ML.myIsland) { ML.myIsland.setView(b.dataset.wd); renderWorld(); } return; }
     if (b.dataset.wd === 'worlds') ML.openWorlds && ML.openWorlds(); else ML.openShop && ML.openShop();
   });
   ['tab', 'mood', 'world', 'theme', 'render', 'lang', 'session', 'cosmetics', 'started', 'remote'].forEach(ev => on(ev, renderWorld));
