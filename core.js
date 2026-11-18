@@ -80,10 +80,15 @@ window.ML = (() => {
   // on localhost, a key defined twice with another text is reported: two modules sharing a key show each other's text (3.101)
   const DEV = /^(localhost|127.0.0.1)$/.test(location.hostname); const CLASH = [];
   function addStrings(dict) { for (const l in dict) { const to = STR[l] || (STR[l] = {}); if (DEV) for (const k in dict[l]) if (k in to && JSON.stringify(to[k]) !== JSON.stringify(dict[l][k])) CLASH.push(l + ':' + k); Object.assign(to, dict[l]); } if (DEV && window.ML) window.ML.strClash = CLASH; }
+  // A layer (3.105) overrides some keys while it is on: the Plain look renames the energies (« Forme : Bonne ») this way
+  const LAYERS = {}; let layer = null;
+  const stringLayer = (name, dict) => { LAYERS[name] = dict; };
+  const useLayer = name => { layer = name || null; };
   function t(key, vars) {
     // Before the state loads (login screen) fall back to the browser language
     const lang = S.lang || ((navigator.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en');
-    let s = (STR[lang] && STR[lang][key]);
+    let s = layer && LAYERS[layer] && LAYERS[layer][lang] ? LAYERS[layer][lang][key] : null;
+    if (s == null) s = (STR[lang] && STR[lang][key]);
     if (s == null) s = STR.en[key];
     if (s == null) s = key;
     if (vars) s = s.replace(/\{(\w+)\}/g, (_, k) => (vars[k] == null ? '' : vars[k]));
@@ -259,7 +264,7 @@ window.ML = (() => {
 
   return {
     $, IS_EXT, CAN_DOWNLOAD, GUEST_KEY, reducedMotion, setReducedMotion, motionPref, S, storageKey: () => KEY, setStorageKey, pad2, dayKey, today, parseDay, addDays, hm, toMins, uid, esc, fmtMins, clamp, svgIcon, isTyping, keepInputs,
-    addStrings, t, tn, locale, applyI18n,
+    addStrings, stringLayer, useLayer, t, tn, locale, applyI18n,
     defaults: fn => defaultFns.push(fn), load, loadState: () => loadState, replaceState, save, saveNow, flushSave, markStored, savePending: () => !!saveT,
     on, emit, toast, armedButton, bgSend,
   };

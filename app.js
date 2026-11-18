@@ -519,20 +519,38 @@
   /* Plain look (3.85, the « pro mode », option A): one switch. While it is on the game and the World read as off, motion
      reads as reduced and the theme is a bare palette (game.js applies it). Nothing else is written: S.modules and the
      worlds keep their values, so switching back restores everything as it was. */
-  const SOBER_PALS = ['black', 'white', 'green', 'slate'];
-  ML.defaults(() => ({ sober: { on: false, pal: 'black' } }));
+  // 3.105 (F3): a background (black, slate, white) and an accent among six. The old « green » palette reads as black
+  // with the green accent; a save without an accent keeps the one its palette had (slate was blue).
+  const SOBER_PALS = ['black', 'slate', 'white'], SOBER_ACCS = ['green', 'blue', 'amber', 'coral', 'lilac', 'grey'];
+  ML.SOBER_PALS = SOBER_PALS; ML.SOBER_ACCS = SOBER_ACCS;
+  ML.defaults(() => ({ sober: { on: false, pal: 'black', acc: 'green' } }));
   const soberOn = () => !!(S.sober && S.sober.on);
   ML.sober = soberOn;
   ML.soberPal = () => (S.sober && SOBER_PALS.includes(S.sober.pal) ? S.sober.pal : 'black');
+  ML.soberAcc = () => (S.sober && SOBER_ACCS.includes(S.sober.acc) ? S.sober.acc : S.sober && S.sober.pal === 'slate' ? 'blue' : 'green');
+  // E2: while Plain is on the energies are a plain « Forme » (good / medium / low), still used to pick the next task
+  ML.stringLayer('sober', {
+    fr: { mood_fired: 'Bonne', mood_steady: 'Moyenne', mood_scattered: 'Basse', ep_label: 'Forme', ep_title: 'Ta forme aujourd’hui', mood_set: 'Forme : {mood}.',
+      td_next_e: 'Prochaine', sorted_for: 'Trié pour une forme {mood} : {sort}.', mood_line_fired: 'La plus grosse tâche d’abord, longs blocs.',
+      mood_line_steady: 'On avance dans la liste par priorité.', mood_line_scattered: 'Une tâche à la fois, sessions courtes.',
+      yh_prog: 'Série de {n} jours', yh_prog0: 'Heures, séries et records' },
+    en: { mood_fired: 'High', mood_steady: 'Medium', mood_scattered: 'Low', ep_label: 'Energy', ep_title: 'Your energy today', mood_set: 'Energy: {mood}.',
+      td_next_e: 'Next', sorted_for: 'Sorted for {mood} energy: {sort}.', mood_line_fired: 'Biggest task first, long blocks.',
+      mood_line_steady: 'Work down the list by priority.', mood_line_scattered: 'One task at a time, short sessions.',
+      yh_prog: '{n}-day streak', yh_prog0: 'Hours, streaks and records' },
+  });
+  const syncLayer = () => ML.useLayer(soberOn() ? 'sober' : null);
+  syncLayer(); on('loaded', syncLayer); on('remote', syncLayer); on('started', syncLayer);
   {
     const base = ML.reducedMotion;
     ML.reducedMotion = () => base() || soberOn();
     const syncSober = () => { if (soberOn()) document.documentElement.classList.add('reduce-motion'); };
     on('motion', syncSober); on('sober', syncSober); on('started', syncSober); on('loaded', syncSober); on('remote', syncSober);
   }
-  ML.setSober = (onNow, pal) => {
+  ML.setSober = (onNow, pal, acc) => {
     const was = soberOn();
-    S.sober = { on: !!onNow, pal: SOBER_PALS.includes(pal) ? pal : ML.soberPal() }; save();
+    S.sober = { on: !!onNow, pal: SOBER_PALS.includes(pal) ? pal : ML.soberPal(), acc: SOBER_ACCS.includes(acc) ? acc : ML.soberAcc() }; save();
+    syncLayer();
     if (was && !onNow) ML.setReducedMotion(ML.motionPref()); // puts html.reduce-motion back to what the device asks
     applyMods(); emit('sober'); emit('motion', ML.reducedMotion()); emit('modules', 'world');
     if (onNow && (S.tab === 'world' || S.tab === 'grim')) setTab('today');
@@ -1057,18 +1075,20 @@
   ML.ui = { sel, chk };
 
   ML.addStrings({
-    fr: { look_h: 'Apparence', look_worlds: 'Mondes', look_sober: 'Sobre', look_sober_d: 'Sans Monde, sans jeu, sans animations. Tout revient tel quel si tu repasses sur Mondes.', look_pal: 'Couleurs', pal_black: 'Noir', pal_white: 'Blanc', pal_green: 'Vert', pal_slate: 'Ardoise', mod_sober_off: 'Coupé par l’apparence Sobre.' },
-    en: { look_h: 'Look', look_worlds: 'Worlds', look_sober: 'Plain', look_sober_d: 'No World, no game, no animations. Everything comes back as it was when you return to Worlds.', look_pal: 'Colours', pal_black: 'Black', pal_white: 'White', pal_green: 'Green', pal_slate: 'Slate', mod_sober_off: 'Off while the Plain look is on.' },
+    fr: { look_h: 'Apparence', look_worlds: 'Mondes', look_sober: 'Sobre', look_sober_d: 'Sans Monde, sans jeu, sans animations. Tout revient tel quel si tu repasses sur Mondes.', look_pal: 'Couleurs', look_bg: 'Fond', look_acc: 'Accent', pal_black: 'Noir', pal_white: 'Blanc', pal_green: 'Vert', pal_slate: 'Ardoise', acc_green: 'Vert', acc_blue: 'Bleu', acc_amber: 'Ambre', acc_coral: 'Corail', acc_lilac: 'Lilas', acc_grey: 'Gris', mod_sober_off: 'Coupé par l’apparence Sobre.', qt_sober: 'Apparence Sobre' },
+    en: { look_h: 'Look', look_worlds: 'Worlds', look_sober: 'Plain', look_sober_d: 'No World, no game, no animations. Everything comes back as it was when you return to Worlds.', look_pal: 'Colours', look_bg: 'Background', look_acc: 'Accent', pal_black: 'Black', pal_white: 'White', pal_green: 'Green', pal_slate: 'Slate', acc_green: 'Green', acc_blue: 'Blue', acc_amber: 'Amber', acc_coral: 'Coral', acc_lilac: 'Lilac', acc_grey: 'Grey', mod_sober_off: 'Off while the Plain look is on.', qt_sober: 'Plain look' },
   });
   ML.settingsSection({
     order: 1, cat: 'look',
     render: () => `<h3>${esc(t('look_h'))}</h3>
       <div class="seg-toggle look-seg" role="group" aria-label="${esc(t('look_h'))}">${[false, true].map(v => `<button type="button" data-look="${v ? 1 : 0}" aria-pressed="${soberOn() === v}">${esc(t(v ? 'look_sober' : 'look_worlds'))}</button>`).join('')}</div>
       <p class="hint">${esc(t('look_sober_d'))}</p>
-      ${soberOn() ? `<div class="look-pals" role="group" aria-label="${esc(t('look_pal'))}">${SOBER_PALS.map(p => `<button type="button" class="look-pal" data-pal="${p}" aria-pressed="${ML.soberPal() === p}"><i class="look-sw look-${p}"></i>${esc(t('pal_' + p))}</button>`).join('')}</div>` : ''}`,
+      ${soberOn() ? `<p class="label">${esc(t('look_bg'))}</p><div class="look-pals" role="group" aria-label="${esc(t('look_bg'))}">${SOBER_PALS.map(p => `<button type="button" class="look-pal" data-pal="${p}" aria-pressed="${ML.soberPal() === p}"><i class="look-sw look-${p}"></i>${esc(t('pal_' + p))}</button>`).join('')}</div>
+      <p class="label">${esc(t('look_acc'))}</p><div class="look-accs" role="group" aria-label="${esc(t('look_acc'))}">${SOBER_ACCS.map(a => `<button type="button" class="look-acc acc-${a}" data-acc="${a}" aria-pressed="${ML.soberAcc() === a}" aria-label="${esc(t('acc_' + a))}" title="${esc(t('acc_' + a))}"></button>`).join('')}</div>` : ''}`,
     bind: root => {
       root.querySelectorAll('[data-look]').forEach(b => { b.onclick = () => { ML.setSober(b.dataset.look === '1'); renderSettings(); }; });
       root.querySelectorAll('[data-pal]').forEach(b => { b.onclick = () => { ML.setSober(true, b.dataset.pal); renderSettings(); }; });
+      root.querySelectorAll('[data-acc]').forEach(b => { b.onclick = () => { ML.setSober(true, null, b.dataset.acc); renderSettings(); }; });
     },
   });
   ML.settingsSection({

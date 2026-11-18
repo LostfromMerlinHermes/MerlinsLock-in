@@ -248,7 +248,7 @@
       S.comebacks ? line(t('fc_returns'), String(S.comebacks)) : '',
       line(t('pg_flow_wk'), t('pg_of', { a: wk.f, b: wk.s })),
       line(t('pg_span'), sp.now ? fmtDur(sp.now) + (sp.then && sp.then !== sp.now ? ' ' + t('pg_span_was', { m: fmtDur(sp.then) }) : '') : t('pg_span_none')),
-      line(t('pg_bonus'), n ? '× ' + dec(multOf(n), 2) : t('pg_bonus_0')),
+      ML.modOn('game') ? line(t('pg_bonus'), n ? '× ' + dec(multOf(n), 2) : t('pg_bonus_0')) : '', // the XP bonus: gone with the game (Plain look)
     ].join('');
     const det = (k, title, body) => `<details class="g-card y-det" data-det="${k}" ${openDet.has(k) ? 'open' : ''}><summary>${esc(title)}</summary>${openDet.has(k) ? body() : ''}</details>`;
     const ach = ML.achInfo ? ML.achInfo() : null;
@@ -258,7 +258,7 @@
       <p class="insight">${esc(t('fc_rule'))}</p>
       <div class="y-btns">${tryM ? `<button type="button" class="primary" data-span="${tryM}">${esc(t('fc_span_try', { m: fmtDur(tryM) }))}</button>` : ''}<button type="button" class="ghost" data-stuck>${esc(t('st_btn'))}</button></div>
       ${projHtml()}
-      <div class="yl-level"><p><span>${esc(t('pg_level'))}</span> <b>${esc(lv.name)}</b></p><span class="y-track"><b style="width:${(lv.frac * 100).toFixed(1)}%"></b></span>
+      <div class="yl-level" data-mod="game"><p><span>${esc(t('pg_level'))}</span> <b>${esc(lv.name)}</b></p><span class="y-track"><b style="width:${(lv.frac * 100).toFixed(1)}%"></b></span>
         <p class="insight">${esc(lv.next ? t('pg_xp_left', { n: (lv.next - S.xp).toLocaleString(ML.locale()), name: lv.nextName }) + ' ' : '')}${esc(t('xp_rules'))}</p></div>
       ${ach ? det('ach', t('pg_ach', { a: ach.got, b: ach.total }), () => ach.html()) : ''}
       ${S.sessions.length ? det('trend', t('pj_trend'), trendHtml) : ''}

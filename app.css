@@ -5518,3 +5518,61 @@ html.mnav-on .sh-counter { margin-inline: -14px; padding-inline: 14px; }
 .t-next.pop .nx-ring::after { transform: scale(1); } .t-next.pop .nx-ring { box-shadow: 0 0 10px var(--glow, var(--accent)); }
 .t-next.pop > span { text-decoration: line-through; color: var(--mist); }
 @media (prefers-reduced-motion: reduce) { .nx-ring, .nx-ring::after { transition: none; } }
+
+/* ---------- 3.105: Plain look, access and finish (proposals/sobre: A1 E2 T1 F1 F2 F3) ---------- */
+/* F3: background (black, slate, white) + one accent among six; the old green palette reads as black + green */
+:root[data-theme="sober"] { --soft: color-mix(in srgb, var(--accent) 14%, transparent); }
+:root[data-theme="sober"][data-sober-acc="green"] { --accent: #4fb286; --accent-2: #4fb286; --ink: #07130d; }
+:root[data-theme="sober"][data-sober-acc="blue"] { --accent: #8fb4e0; --accent-2: #8fb4e0; --ink: #0b1220; }
+:root[data-theme="sober"][data-sober-acc="amber"] { --accent: #e0b062; --accent-2: #e0b062; --ink: #1c1407; }
+:root[data-theme="sober"][data-sober-acc="coral"] { --accent: #e8907f; --accent-2: #e8907f; --ink: #1f0c0c; }
+:root[data-theme="sober"][data-sober-acc="lilac"] { --accent: #b5a2e6; --accent-2: #b5a2e6; --ink: #140f22; }
+:root[data-theme="sober"][data-sober-acc="grey"] { --accent: #d0d0cc; --accent-2: #d0d0cc; --ink: #111213; }
+:root[data-theme="sober"][data-sober="white"][data-sober-acc] { --ink: #ffffff; }
+:root[data-theme="sober"][data-sober="white"][data-sober-acc="green"] { --accent: #1f7a55; --accent-2: #1f7a55; }
+:root[data-theme="sober"][data-sober="white"][data-sober-acc="blue"] { --accent: #2f5f9e; --accent-2: #2f5f9e; }
+:root[data-theme="sober"][data-sober="white"][data-sober-acc="amber"] { --accent: #8a5a00; --accent-2: #8a5a00; }
+:root[data-theme="sober"][data-sober="white"][data-sober-acc="coral"] { --accent: #b3402e; --accent-2: #b3402e; }
+:root[data-theme="sober"][data-sober="white"][data-sober-acc="lilac"] { --accent: #6a4fb3; --accent-2: #6a4fb3; }
+:root[data-theme="sober"][data-sober="white"][data-sober-acc="grey"] { --accent: #3f423e; --accent-2: #3f423e; }
+.look-accs { display: flex; flex-wrap: wrap; gap: 8px; }
+.look-acc { width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 2px solid var(--line-2); background: var(--c); }
+.look-acc[aria-pressed="true"] { border-color: var(--text); box-shadow: 0 0 0 2px var(--void) inset; }
+.acc-green { --c: #4fb286; } .acc-blue { --c: #8fb4e0; } .acc-amber { --c: #e0b062; } .acc-coral { --c: #e8907f; } .acc-lilac { --c: #b5a2e6; } .acc-grey { --c: #d0d0cc; }
+:root[data-sober="white"] .acc-green { --c: #1f7a55; } :root[data-sober="white"] .acc-blue { --c: #2f5f9e; } :root[data-sober="white"] .acc-amber { --c: #8a5a00; }
+:root[data-sober="white"] .acc-coral { --c: #b3402e; } :root[data-sober="white"] .acc-lilac { --c: #6a4fb3; } :root[data-sober="white"] .acc-grey { --c: #3f423e; }
+.set-sec .look-accs + .hint, .set-sec .label + .look-pals, .set-sec .label + .look-accs { margin-top: 6px; }
+/* A1: the switch in the quick sheet */
+.qt-sober { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; padding: 6px 12px; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); color: var(--text); font: 400 var(--t-2) var(--f-body); }
+.qt-sw { flex: none; position: relative; width: 36px; height: 21px; border-radius: 99px; background: var(--line-2); transition: background .15s; }
+.qt-sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 15px; height: 15px; border-radius: 50%; background: var(--text); transition: transform .15s; }
+.qt-sober[aria-checked="true"] .qt-sw { background: var(--accent); } .qt-sober[aria-checked="true"] .qt-sw::after { transform: translateX(15px); background: var(--ink); }
+/* E2: « Forme » on Today */
+.td-forme { display: grid; gap: 6px; }
+.td-forme .seg-toggle button { min-height: 38px; font-family: var(--f-body); font-size: var(--t-2); }
+.td-forme .seg-toggle button[aria-pressed="true"] { background: var(--panel-2); color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
+/* T1: the week in bars at the top of You */
+.yh-bars { display: grid; gap: 10px; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.yb-btn { display: grid; gap: 6px; width: 100%; padding: 0; border: 0; background: none; color: inherit; text-align: center; cursor: pointer; }
+.yb-plot { position: relative; display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 110px; border-bottom: 1px solid var(--line-2); }
+.yb-col { display: flex; align-items: flex-end; height: 100%; } .yb-col i { display: block; width: 100%; border-radius: 3px 3px 0 0; background: var(--line-2); }
+.yb-col.now i { background: var(--accent); }
+.yb-goal { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--dim); pointer-events: none; }
+.yb-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; font-size: var(--t-1); color: var(--dim); } .yb-days .now { color: var(--text); font-weight: 600; }
+/* F1: a thin ring and the text's digits (the body face's figures), no ticks */
+:root[data-theme="sober"] { --f-clock: var(--f-body); }
+:root[data-theme="sober"] .segs-dim, :root[data-theme="sober"] .segs-lit, :root[data-theme="sober"] .ring .tip { display: none; }
+:root[data-theme="sober"] .arc-track { stroke: var(--line); stroke-width: 3; }
+:root[data-theme="sober"] .arc { stroke-width: 3; opacity: 1; }
+:root[data-theme="sober"] .clock { letter-spacing: -.01em; text-shadow: none; }
+/* F2: tasks on hairlines instead of a box each */
+:root[data-theme="sober"] .tasks:not(.single-card) { gap: 0; }
+:root[data-theme="sober"] .tasks:not(.single-card) .task { background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; padding-left: 4px; padding-right: 4px; }
+:root[data-theme="sober"] .tasks:not(.single-card) .task.active { box-shadow: inset 2px 0 0 var(--accent); padding-left: 10px; }
+:root[data-theme="sober"] .tasks:not(.single-card) .task.editing, :root[data-theme="sober"] .tasks:not(.single-card) .task.m-open { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding-left: 10px; padding-right: 10px; }
+.look-pals .look-sw { background: var(--x); }
+/* Plain look: no rarity gem on the one-task card, no viewfinder corners on the timer card, energy icons in grey */
+:root[data-theme="sober"] .task.card::before, :root[data-theme="sober"] .sigil-card::before, :root[data-theme="sober"] .sigil-card::after { display: none; }
+:root[data-theme="sober"] .ep-ico, :root[data-theme="sober"] .ep-seg button { --mood-c: var(--mist) !important; }
+/* Plain look: the Look page keeps only what still acts (the evening filter); the world settings come back with Worlds */
+:root[data-theme="sober"] .set-sec:has(#set-theme), :root[data-theme="sober"] .set-sec:has(#set-tod), :root[data-theme="sober"] .set-sec:has(#set-wobj), :root[data-theme="sober"] .set-sec:has(#set-ld-atelier) { display: none; }

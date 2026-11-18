@@ -30,7 +30,8 @@
   });
   ML.defaults(() => ({ onboarded: false }));
 
-  const KEYS = () => ML.MOOD_KEYS || Object.keys(ML.MOODS);
+  // Plain look (3.105): good, medium, low, in that order
+  const KEYS = () => (ML.sober && ML.sober() ? ['fired', 'steady', 'scattered'] : ML.MOOD_KEYS || Object.keys(ML.MOODS));
   const focusOf = m => ((S.moodTimers || {})[m] || {}).focus || ML.MOODS[m].focus;
   const clockOf = mins => { const s = mins * 60, h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return (h ? h + ':' + ML.pad2(m) : ML.pad2(m)) + ':00'; };
   const ARROW = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg>`;
@@ -145,7 +146,7 @@
           </div>
           <button type="button" class="ghost icon-only ep-arr" data-ep="next" aria-label="${esc(t('ep_next'))}">${ARROW(1)}</button>
         </div>
-        <div class="ep-chips"><span>${esc(t('ep_mins', { m: focusOf(k) }))}</span><span>${esc(t('ep_sort_' + k))}</span><span>${esc(t('ep_buff', { b: t('buff_' + k) }))}</span></div>
+        <div class="ep-chips"><span>${esc(t('ep_mins', { m: focusOf(k) }))}</span><span>${esc(t('ep_sort_' + k))}</span><span data-mod="game">${esc(t('ep_buff', { b: t('buff_' + k) }))}</span></div>
         <div class="ep-seg" role="radiogroup" aria-label="${esc(t('ep_label'))}">${KEYS().map((m, i) =>
           `<button type="button" role="radio" aria-checked="${m === k}" data-ep-mood="${m}" style="--mood-c:${ML.MOODS[m].color}">${svgIcon(ML.MOODS[m].icon)}<span>${esc(t('mood_' + m))}</span><kbd>${i + 1}</kbd></button>`).join('')}</div>
         ${ML.worldTiles && !ML.worldsFixed() && ML.hasWorld() ? `<div class="ep-worlds"><span class="label">${esc(t('ep_world'))}</span>

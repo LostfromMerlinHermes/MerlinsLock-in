@@ -451,13 +451,15 @@
     const th = effectiveTheme(), root = document.documentElement, pal = th === 'sober' ? ML.soberPal() : '';
     const light = pal ? (pal === 'white' ? '1' : '') : isLight() && LIGHT_NAME[th] ? '1' : '';
     const dark = light && !pal && worldOf(previewMood || S.mood, pickFor(previewMood || S.mood)).dark ? '1' : '';
-    if (root.dataset.theme === th && (root.dataset.light || '') === light && (root.dataset.sober || '') === pal && (root.dataset.dark || '') === dark) return;
+    const acc = pal ? ML.soberAcc() : '';
+    if (root.dataset.theme === th && (root.dataset.light || '') === light && (root.dataset.sober || '') === pal && (root.dataset.soberAcc || '') === acc && (root.dataset.dark || '') === dark) return;
     root.dataset.theme = th;
     if (pal) root.dataset.sober = pal; else delete root.dataset.sober;
+    if (acc) root.dataset.soberAcc = acc; else delete root.dataset.soberAcc;
     if (light) root.dataset.light = light; else delete root.dataset.light;
     if (dark) root.dataset.dark = dark; else delete root.dataset.dark;
     const meta = document.querySelector('meta[name=theme-color]');
-    if (meta) meta.content = pal ? { black: '#0e0f10', white: '#fafaf7', green: '#0f1a15', slate: '#12161c' }[pal] : dark ? { observatory: '#0c1210', netrunner: '#121211' }[th] : light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#F7F5EF', arcade: '#c6d29c' }[th]
+    if (meta) meta.content = pal ? { black: '#0e0f10', white: '#fafaf7', slate: '#12161c' }[pal] : dark ? { observatory: '#0c1210', netrunner: '#121211' }[th] : light ? { sanctuary: '#ECEEF3', observatory: '#E6D9BC', netrunner: '#F7F5EF', arcade: '#c6d29c' }[th]
       : { sorcerer: '#07060d', fog: '#0d0d10', netrunner: '#04040a', sanctuary: '#09111b', arcade: '#150d20', arena: '#0c0706', observatory: '#17120c', abyss: '#020b12', neoncity: '#0b0418' }[th];
     if (themed && !pal) playTransition(light ? LIGHT_NAME[th] : th); // the light worlds have their own (3.38.2): aube, atelier, tokyo, cartouche
     themed = true;
