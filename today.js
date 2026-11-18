@@ -66,6 +66,7 @@
     const forme = ML.sober && ML.sober() ? `<div class="td-forme"><span class="label">${esc(t('ep_label'))}</span><div class="seg-toggle" role="group" aria-label="${esc(t('ep_label'))}">${['fired', 'steady', 'scattered'].map(k => `<button type="button" data-forme="${k}" aria-pressed="${S.mood === k}">${esc(t('mood_' + k))}</button>`).join('')}</div></div>` : '';
     const html = `<div class="td">
       ${forme || `<button type="button" class="td-energy" data-go="energy"><span class="ep-ico" style="--mood-c:${M.color}">${ML.svgIcon ? ML.svgIcon(M.icon) : ''}</span><span class="td-en-tx"><b>${esc(t('mood_' + S.mood))}</b>${ML.hasWorld() ? `<small>${esc(ML.worldName(S.mood))}</small>` : ''}</span><span class="td-chg">${esc(t('td_change'))}</span></button>`}
+      <div id="today-postits"></div>
       ${ML.eveCard ? ML.eveCard() : ''}
       ${card}
       <h2 class="td-h">${esc(t('td_hours'))}</h2><div class="td-list">${hoursHtml()}</div>
@@ -75,9 +76,10 @@
     const q = $('quest-strip');
     if (el.dataset.h !== html) {
       if (q && el.contains(q)) restoreQuests(); // kept out of the redraw
+      const pz = ML.postitZone; if (pz && el.contains(pz)) pz.remove(); // the sticky notes too (lists.js)
       el.innerHTML = html; el.dataset.h = html;
     }
-    placeQuests();
+    placeQuests(); if (ML.placePostits) ML.placePostits();
   }
   // The quests sit on Today on a phone, in the Plan on a computer (same element)
   function restoreQuests() { const q = $('quest-strip'), w = document.querySelector('.qa-wrap'); if (q && w) w.after(q); }

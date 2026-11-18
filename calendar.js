@@ -246,14 +246,17 @@
         out.push({ key, when, startAt: base.getTime(), title: ev.title, body: o.start == null ? t('reminder_day', { title: ev.title }) : t('reminder', { title: ev.title, time: hm(o.start) }) });
       });
     }
+    // other modules add theirs (lists.js: one reminder per list), same shape plus an optional open()
+    (ML.remSources || []).forEach(f => { try { out.push(...f(days)); } catch (e) {} });
     return out;
   }
+  ML.remSources = ML.remSources || [];
   function checkReminders() {
     const now = Date.now();
     upcomingReminders(2).forEach(r => {
       if (now >= r.when && now < r.startAt + 5 * 60000 && !S.notified[r.key]) {
         S.notified[r.key] = now;
-        toast(r.body, { ms: 7000 }); emit('chime');
+        toast(r.body, r.open ? { ms: 9000, action: { label: t('ls_open'), fn: r.open } } : { ms: 7000 }); emit('chime');
         ML.notify(t('ev_remind'), r.body);
       }
     });

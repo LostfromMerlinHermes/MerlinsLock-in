@@ -71,7 +71,7 @@
       // One name per place (3.82): the Plan is "Plan" whatever its view; List / Calendar is the switch under the title
       const name = !onx || view !== 'tab' || !S.tab ? '' : tabName(S.tab);
       title.textContent = name; // the project filter shows on its own line under the title (plan.js, 3.70)
-      const menu = onx && view === 'tab' && S.tab === 'plan'; // projects and display options of the List
+      const menu = onx && view === 'tab' && S.tab === 'plan' && !(ML.listsOn && ML.listsOn()); // projects and display options of the List
       title.classList.toggle('has-menu', menu);
       title.disabled = !menu;
     }
@@ -79,7 +79,8 @@
     if (seg) {
       seg.hidden = !inPlan;
       if (inPlan) {
-        const html = [['plan', 'nav_list', S.tab === 'plan'], ['calx', 'tab_cal', S.tab !== 'plan']].map(([k, s, on]) => `<button type="button" data-seg="${k}" aria-pressed="${on}">${esc(t(s))}</button>`).join('');
+        // 3.108: Lists sit between the tasks and the calendar (lists.js); the tasks' button says Tasks so it can't be read as Lists
+        const lm = !!(ML.listsOn && ML.listsOn()), html = [['plan', ML.listsOn ? 'ls_tasks' : 'nav_list', S.tab === 'plan' && !lm], ...(ML.listsOn ? [['lists', 'ls_lists', S.tab === 'plan' && lm]] : []), ['calx', 'tab_cal', S.tab !== 'plan']].map(([k, s, on]) => `<button type="button" data-seg="${k}" aria-pressed="${on}">${esc(t(s))}</button>`).join('');
         if (seg.dataset.h !== html) { seg.innerHTML = html; seg.dataset.h = html; }
       }
     }
@@ -150,7 +151,8 @@
   });
   $('m-close').onclick = closeTimer;
   $('m-back').onclick = () => setView(ML.SPACE[S.tab] === 'you' ? 'yhome' : 'shome');
-  $('m-seg').addEventListener('click', e => { const b = e.target.closest('[data-seg]'); if (b) setView(b.dataset.seg === 'calx' ? ML.calTab() : 'plan'); });
+  $('m-seg').addEventListener('click', e => { const b = e.target.closest('[data-seg]'); if (!b) return; const k = b.dataset.seg; if (k !== 'calx' && ML.setListsMode) ML.setListsMode(k === 'lists' ? 'lists' : 'tasks'); setView(k === 'calx' ? ML.calTab() : 'plan'); });
+  on('lists:mode', () => { if (active()) renderHead(true); });
   // The profile: You's home page on a phone, its last section on a computer
   $('you-btn').onclick = () => { emit('gesture'); setView(active() ? 'yhome' : ML.spaceTab('you')); };
   $('m-title').onclick = () => { if (ML.planMenu) ML.planMenu($('m-title')); };
