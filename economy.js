@@ -156,6 +156,7 @@
     if (!E.equip.treeSkin) E.equip.treeSkin = 'oak';
     if (!Array.isArray(E.owned.world)) E.owned.world = [];
     if (!Array.isArray(E.owned.island)) E.owned.island = [];
+    if (!E.seen || typeof E.seen !== 'object') E.seen = {};
     if (S.legacyDrained && !E.legacyWorlds) { for (const k of Object.keys(CATALOG.world)) if (!E.owned.world.includes(k)) E.owned.world.push(k); E.legacyWorlds = true; } // they had them free before 3.74
   }
 
@@ -196,8 +197,8 @@
   // The shop opens on its window of shelves, or straight on a shelf (ML.openShop('tree')) or the tree's fitting room (ML.openShop('tree', 'fit'))
   function openShop(cat, view) {
     migrate(); ownerGifts(); grantCostumes(false);
-    shelf = SHELVES.includes(cat) ? cat : null; fitting = shelf === 'tree' && view === 'fit'; filter = 'all'; tried = null; justBought = null;
-    renderShop(); ML.openOverlay('shop'); $('shop-body').parentElement.scrollTop = 0;
+    shelf = [...HOME_SHELVES, 'seq', 'potion'].includes(cat) ? cat : null; wsel = cat === 'worlds' && view ? view : null; fitting = shelf === 'tree' && view === 'fit'; filter = 'all'; tried = null; justBought = null;
+    renderShop(); ML.openOverlay('shop'); $('shop-body').parentElement.scrollTop = 0; stripInSight();
   }
   $('gold-chip').onclick = () => openShop();
   ML.openShop = openShop;
@@ -324,11 +325,13 @@
   const SHELVES = ['tree', 'worlds', 'island', 'dial', 'familiar', 'seq', 'hat', 'ring', 'burst', 'potion']; // (character skins went with the Sport section, set aside in 3.25)
   const SHELF_NAME = { tree: 'cat_tree', worlds: 'cat_worlds', island: 'cat_islands', dial: 'cat_dials', familiar: 'cat_familiars', seq: 'cat_seq', hat: 'cat_hats', ring: 'cat_rings', burst: 'cat_bursts', potion: 'cat_potions' };
   ML.addStrings({
-    fr: { sh_shelves: 'Rayons', sh_back: 'Rayons', sh_all: 'Tout', sh_tobuy: 'À acheter', sh_owned: 'Possédés', sh_count: '{a} sur {b}', sh_your_tree: 'Ton arbre', sh_your_tree_d: 'Essaie des feuilles, des branches, des fleurs, un sol et un ciel sur ton chêne avant d’acheter.', sh_try: 'Essayer',
+    fr: { sh_here: 'Tu es ici', sh_use_world: 'Mettre ce monde', sh_everywhere: 'Dans tous les mondes', sh_wnone: 'Rien à vendre pour ce monde pour l’instant.', sh_wtree: 'L’arbre de ce monde ne s’achète pas : il se gagne après 25 h passées ici.', sh_need_w: 'Monde à acheter', sh_need_world: 'Achète d’abord ce monde', sh_new: 'Nouveau', sh_prem_p: 'Mondes clairs, Abysses et Sanctuaire, quatre cadrans, trois arbres en volume.', sh_prem_go: 'Voir', sh_cos: 'Costumes de cercle : {a} sur {b}. Ils se gagnent avec les cercles et se mettent sur la page de ton familier.', sh_cos2: 'Costumes de cercle : {a} sur {b}. Ils se gagnent avec les cercles, ils ne s’achètent pas.', sk_dial: 'Cadrans', sk_bg: 'Fonds', sk_fs: 'Pleins écrans', sk_set: 'Décors', sk_pal: 'Palettes', sk_isl: 'Îles', sk_car: 'Voitures volantes', sk_tree: 'Arbres',
+      sh_shelves: 'Rayons', sh_back: 'Rayons', sh_all: 'Tout', sh_tobuy: 'À acheter', sh_owned: 'Possédés', sh_count: '{a} sur {b}', sh_your_tree: 'Ton arbre', sh_your_tree_d: 'Essaie des feuilles, des branches, des fleurs, un sol et un ciel sur ton chêne avant d’acheter.', sh_try: 'Essayer',
       sh_other_trees: 'Autres arbres', sh_world_trees: 'Les arbres des mondes ne s’achètent pas : ils se gagnent après 25 h dans leur monde. Bonsaï, Cerisier et Ginkgo sont inclus dans Premium.', sh_tree_page: 'Voir mes arbres ›', sh_trying: 'À l’essai', sh_free: 'Rien n’est dépensé.', sh_try_hint: 'Touche une option pour l’essayer sur ton arbre.', sh_cancel: 'Annuler', sh_buy_n: 'Acheter', sh_use: 'Utiliser',
       shop_none: 'Rien ici avec ce filtre.', sh_prev: 'Article précédent', sh_next: 'Article suivant', sh_play: 'Voir l’effet', sh_with: 'Avec ton costume', sh_oak_only: 'Le chêne porte tout ; les autres arbres de base prennent les feuilles, les branches et les fleurs.', sh_bought_n: '{n} articles achetés', sh_xp: '{n} XP',
       ft_leaf: 'Feuilles', ft_bark: 'Branches', ft_flower: 'Fleurs', ft_hang: 'Dans l’arbre', ft_ground: 'Sol', ft_sky: 'Ciel' },
-    en: { sh_shelves: 'Shelves', sh_back: 'Shelves', sh_all: 'All', sh_tobuy: 'To buy', sh_owned: 'Owned', sh_count: '{a} of {b}', sh_your_tree: 'Your tree', sh_your_tree_d: 'Try leaves, branches, flowers, a ground and a sky on your oak before buying.', sh_try: 'Try on',
+    en: { sh_here: 'You are here', sh_use_world: 'Use this world', sh_everywhere: 'In every world', sh_wnone: 'Nothing on sale for this world yet.', sh_wtree: 'This world’s tree isn’t sold: you earn it after 25 h spent here.', sh_need_w: 'Buy the world first', sh_need_world: 'Buy this world first', sh_new: 'New', sh_prem_p: 'Light worlds, Abyss and Sanctuary, four dials, three trees in volume.', sh_prem_go: 'See', sh_cos: 'Circle costumes: {a} of {b}. You earn them with the Circles and wear them from your familiar’s page.', sh_cos2: 'Circle costumes: {a} of {b}. You earn them with the Circles; they aren’t sold.', sk_dial: 'Dials', sk_bg: 'Backgrounds', sk_fs: 'Full screens', sk_set: 'Sets', sk_pal: 'Palettes', sk_isl: 'Islands', sk_car: 'Flying cars', sk_tree: 'Trees',
+      sh_shelves: 'Shelves', sh_back: 'Shelves', sh_all: 'All', sh_tobuy: 'To buy', sh_owned: 'Owned', sh_count: '{a} of {b}', sh_your_tree: 'Your tree', sh_your_tree_d: 'Try leaves, branches, flowers, a ground and a sky on your oak before buying.', sh_try: 'Try on',
       sh_other_trees: 'Other trees', sh_world_trees: 'World trees aren’t sold: you earn them after 25 h in their world. Bonsai, Cherry tree and Ginkgo are included in Premium.', sh_tree_page: 'See my trees ›', sh_trying: 'Trying on', sh_free: 'Nothing is spent.', sh_try_hint: 'Tap an option to try it on your tree.', sh_cancel: 'Cancel', sh_buy_n: 'Buy', sh_use: 'Use',
       shop_none: 'Nothing here with this filter.', sh_prev: 'Previous item', sh_next: 'Next item', sh_play: 'See the effect', sh_with: 'With your costume', sh_oak_only: 'The oak wears everything; the other base trees take leaves, branches and flowers.', sh_bought_n: '{n} items bought', sh_xp: '{n} XP',
       ft_leaf: 'Leaves', ft_bark: 'Branches', ft_flower: 'Flowers', ft_hang: 'In the tree', ft_ground: 'Ground', ft_sky: 'Sky' },
@@ -421,7 +424,9 @@
     if (cat === 'potion') return { own: false, eq: false, price };
     const own = (E.owned[cat] || []).includes(k);
     if (cat === 'world') return { own, eq: own && worldOn(k), price, locked: !own && !isPrem() };
-    return { own, eq: own && E.equip[slotOf(cat, k)] === k, price, locked: !own && premOnly(cat, k) && !isPrem() };
+    // a dial or an island of a fourth world (Abysses, Sanctuaire) waits until that world is bought
+    const w = cat === 'dial' ? DIAL_WORLD[k] : cat === 'island' ? (ML.ISLAND_WORLD || {})[k] : null, need = !own && !!CATALOG.world[w] && !(E.owned.world || []).includes(w);
+    return { own, eq: own && E.equip[slotOf(cat, k)] === k, price, need, locked: need || (!own && premOnly(cat, k) && !isPrem()) };
   }
   const passes = (cat, k) => { if (filter === 'all') return true; const st = stateOf(cat, k); return filter === 'own' ? st.own : !st.own; };
   const shelfList = c => itemsOf(c).filter(([a, k]) => !FILTERED.includes(c) || passes(a, k));
@@ -438,8 +443,62 @@
     if (c === 'potion') return String(list.length);
     return t('sh_count', { a: list.filter(([a, k]) => stateOf(a, k).own).length, b: list.length });
   }
+  /* 3.103 (S1 of proposals/shop/v2): the shop opens on the world you are in. A strip of the eleven worlds, then everything
+     sold for the picked world, by kind; then the shelves that go in every world; Premium in one band (X1), the potions
+     in a counter at the bottom (X3), the costumes on the familiar's page (X2), « New » on recent items (X5). */
+  const TREE_WORLD = { pine: 'sanctuary', atlas: 'observatory', coral: 'abyss', crystal: 'sorcerer', hanging: 'fog', inkpine: 'tokyo', islet: 'cartouche' };
+  const CAR = ['coupe', 'navette'];
+  const KINDS = ['dial', 'bg', 'fs', 'set', 'pal', 'isl', 'car', 'tree'];
+  const kindOf = (cat, k) => { if (cat === 'tree') return 'tree'; if (cat === 'island') return CAR.includes(k) ? 'car' : 'isl'; const s = slotOf('dial', k); return s === 'arcadePal' ? 'pal' : s === 'arcadeSet' ? 'set' : s === 'bgNeon' ? 'bg' : /^deep/.test(s) ? 'fs' : 'dial'; };
+  const worldItems = w => [...Object.keys(CATALOG.dial).filter(k => DIAL_WORLD[k] === w).map(k => ['dial', k]),
+    ...Object.keys(CATALOG.island).filter(k => (ML.ISLAND_WORLD || {})[k] === w).map(k => ['island', k]), ...TREE_SKINS.filter(k => TREE_WORLD[k] === w).map(k => ['tree', k])];
+  const HOME_SHELVES = ['tree', 'familiar', 'hat', 'ring', 'burst'];
+  const LIGHT_KEY = { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' };
+  const keyNow = () => { const w = ML.worldNow ? ML.worldNow(S.mood) : { th: '' }; return w.light ? LIGHT_KEY[w.th] : w.th; };
+  const allWorlds = () => (ML.worldsFor ? ['steady', 'fired', 'scattered'].flatMap(m => ML.worldsFor(m).map(x => Object.assign({ m }, x))) : []);
+  let wsel = null; // the world shown at the top of the shop; null = the one on screen
+  const JPG = ['observatory', 'netrunner', 'arcade', 'atelier', 'tokyo', 'cartouche', 'sanctuary'];
+  const FACE = { neoncity: ['dial', 'city'], sorcerer: ['dial', 'spell'], fog: ['dial', 'incant'], abyss: ['dial', 'diver'] };
+  const heroPic = key => (JPG.includes(key) ? `<img src="world-${key}.jpg" alt="" loading="lazy">` : FACE[key] ? preview(...FACE[key]) : (ML.worldArt ? ML.worldArt(key) : ''));
+  // X5: « New » on items added lately, until their sheet is opened (or two weeks after it was first shown)
+  const NEW_ITEMS = ['dial:enamel', 'dial:register', 'tree:inkpine', 'tree:islet'];
+  function isNew(cat, k) {
+    const id = cat + ':' + k, E = S.econ; if (!NEW_ITEMS.includes(id) || stateOf(cat, k).own) return false;
+    if (!E.seen) E.seen = {};
+    if (E.seen[id] == null) { E.seen[id] = Date.now(); save(); }
+    return E.seen[id] > 0 && Date.now() - E.seen[id] < 14 * 864e5;
+  }
+  function premBand() {
+    if (isPrem()) return '';
+    return `<div class="sh-prem"><span><b>Premium</b><small>${esc(t('sh_prem_p'))}</small></span><button type="button" class="small" data-prem>${esc(t('sh_prem_go'))}</button></div>`;
+  }
+  function counter() {
+    const E = S.econ;
+    return `<div class="sh-counter" role="group" aria-label="${esc(t('cat_potions'))}"><small>${esc(t('cat_potions'))}</small>${Object.keys(CATALOG.potion).map(k => `<button type="button" class="sh-pot" data-item="potion:${k}"><i>${preview('potion', k)}</i><span>${esc(label('potion', k))}${E.potions[k] ? ` <b>×${E.potions[k]}</b>` : ''}</span>${coin(CATALOG.potion[k], E.gold < CATALOG.potion[k])}</button>`).join('')}</div>`;
+  }
+  function worldBlock() {
+    const list = allWorlds(), now = keyNow(), sel = list.find(x => x.key === (wsel || now)) || list.find(x => x.key === now) || list[0];
+    if (!sel) return '';
+    const items = worldItems(sel.key), own = items.filter(([a, k]) => stateOf(a, k).own).length, here = sel.key === now;
+    const strip = `<div class="sh-wstrip" role="group" aria-label="${esc(t('cat_worlds'))}">${list.map(x => `<button type="button" class="sh-wchip ${x.locked ? 'locked' : ''}" data-wsel="${x.key}" aria-pressed="${x.key === sel.key}" aria-label="${esc(x.name + (x.key === now ? ' · ' + t('sh_here') : '') + (x.locked ? ' · Premium' : ''))}">${x.key === now ? `<i class="here">${esc(t('sh_here'))}</i>` : ''}${x.locked ? '<i class="lk"></i>' : ''}<span class="ph">${ML.worldArt ? ML.worldArt(x.key) : ''}</span><small>${esc(x.name)}</small></button>`).join('')}</div>`;
+    const btn = here ? '' : sel.locked ? (sel.light ? `<button type="button" class="small" data-world="${sel.key}">${esc(t('w_preview'))}</button>` : `<button type="button" class="small" data-item="world:${sel.key}">${esc(t('w_preview'))}</button>`)
+      : `<button type="button" class="small" data-wuse="${sel.m}:${sel.w}">${esc(t('sh_use_world'))}</button>`;
+    const hero = `<div class="sh-whero"><span class="bgp">${heroPic(sel.key)}</span><div><span><b>${esc(sel.name)}</b><small>${esc(t('mood_' + sel.m))}${items.length ? ' · ' + esc(t('sh_count', { a: own, b: items.length })) : ''}${sel.locked ? ' · Premium' : ''}${here ? ' · ' + esc(t('sh_here')) : ''}</small></span>${btn}</div></div>`;
+    const kinds = KINDS.map(kd => { const l = items.filter(([a, k]) => kindOf(a, k) === kd); if (!l.length) return ''; const o = l.filter(([a, k]) => stateOf(a, k).own).length;
+      return `<h4 class="shop-world">${esc(t('sk_' + kd))}<small>${esc(t('sh_count', { a: o, b: l.length }))}</small></h4><div class="shop-tiles">${l.map(([a, k]) => tile(a, k)).join('')}</div>`; }).join('');
+    return strip + hero + (kinds || `<p class="hint">${esc(t('sh_wnone'))}</p>`) + `<p class="hint">${esc(t('sh_wtree'))}</p>`;
+  }
+  function costumeLine() {
+    const all = ML.COSTUMES || [], have = all.filter(k => S.econ.owned.costume.includes(k)).length;
+    if (!all.length) return '';
+    const page = ML.modOn && ML.modOn('game'); // the familiar's page is in the game module; without it, the costumes keep their shelf here
+    return `<button type="button" class="sh-cos" ${page ? 'data-cos' : 'data-shelf="seq"'}><span class="ph">${ML.costumeSvg ? ML.costumeSvg(S.econ.equip.costume !== 'none' ? S.econ.equip.costume : all[0]) : ''}</span><span>${esc(t(page ? 'sh_cos' : 'sh_cos2', { a: have, b: all.length }))}</span><b>›</b></button>`;
+  }
   const home = () => `<div class="shop-top"><div class="shop-gold"><span>◈</span><b>${goldNow()}</b></div><p class="hint">${esc(t('shop_hint'))}</p></div>
-    <div class="shop-shelves">${SHELVES.map(c => `<button type="button" class="shop-shelf" data-shelf="${c}"><span class="pic">${shelfPic(c)}</span><span class="nm"><b>${esc(t(SHELF_NAME[c]))}</b><small>${esc(countOf(c))}</small></span></button>`).join('')}</div>`;
+    ${worldBlock()}${premBand()}
+    <h3 class="shop-sub">${esc(t('sh_everywhere'))}</h3>
+    <div class="shop-shelves">${HOME_SHELVES.map(c => `<button type="button" class="shop-shelf" data-shelf="${c}"><span class="pic">${shelfPic(c)}</span><span class="nm"><b>${esc(t(SHELF_NAME[c]))}</b><small>${esc(countOf(c))}</small></span></button>`).join('')}</div>
+    ${costumeLine()}`;
   const bar = (title, back) => `<div class="shop-bar"><button type="button" class="shop-back" data-back>‹ ${esc(back || t('sh_back'))}</button><b>${esc(title)}</b><span class="gold"><span>◈</span><b>${goldNow()}</b></span></div>`;
   const filters = () => `<div class="chips shop-filter" role="group">${[['all', 'sh_all'], ['buy', 'sh_tobuy'], ['own', 'sh_owned']].map(([f, l]) => `<button type="button" class="chip-btn" data-filter="${f}" aria-pressed="${filter === f}">${esc(t(l))}</button>`).join('')}</div>`;
 
@@ -450,8 +509,9 @@
       : st.eq ? `<span class="eq-tag">${esc(t('equipped'))}</span>`
       : st.own ? `<small class="own-tag">${esc(t('owned'))}</small>`
       : cat === 'costume' ? `<small>${esc(t('sh_xp', { n: (ML.SEQUENCES[st.seq] || [0])[0].toLocaleString(ML.locale()) }))}</small>`
-      : st.locked ? `<small>${esc(t('premium_only'))}</small>` : coin(st.price, short);
-    return `<button type="button" class="shop-tile t-${tr} ${st.eq ? 'is-eq' : ''} ${cat === 'costume' && !st.own ? 'locked' : ''} ${cat !== 'potion' && short ? 'poor' : ''} ${justBought === cat + ':' + k ? 'just' : ''}" data-item="${cat}:${k}"><span class="shop-prev">${picOf(cat, k)}</span><b>${esc(nameOf(cat, k))}</b>${tag}</button>`;
+      : st.need ? `<small>${esc(t('sh_need_w'))}</small>` : st.locked ? `<small class="pm-tag">${esc(t('premium_only'))}</small>` : coin(st.price, short);
+    const nw = cat !== 'costume' && cat !== 'potion' && isNew(cat, k) ? `<i class="sh-new">${esc(t('sh_new'))}</i>` : '';
+    return `<button type="button" class="shop-tile t-${tr} ${st.eq ? 'is-eq' : ''} ${cat === 'costume' && !st.own ? 'locked' : ''} ${cat !== 'potion' && short ? 'poor' : ''} ${justBought === cat + ':' + k ? 'just' : ''}" data-item="${cat}:${k}"><span class="shop-prev">${picOf(cat, k)}</span>${nw}<b>${esc(nameOf(cat, k))}</b>${tag}</button>`;
   }
   function shelfView(c) {
     if (c === 'worlds') return bar(t('cat_worlds')) + buySection() + lightSection();
@@ -494,12 +554,18 @@
 
   function renderShop() {
     const body = $('shop-body');
-    body.innerHTML = fitting ? fitView() : shelf ? shelfView(shelf) : home();
+    body.innerHTML = (fitting ? fitView() : shelf ? shelfView(shelf) : home()) + (fitting || shelf === 'potion' ? '' : counter());
+    body.classList.toggle('sh-home', !fitting && !shelf);
+    stripInSight();
     body.querySelectorAll('.world-pic img, .world-free img, .shop-shelf img:not(.tree-prev)').forEach(i => i.addEventListener('error', () => i.remove()));
     if (fitting) mountFit();
     if (ML.treePrevs) ML.treePrevs(body);
     if (ML.islandPrevs) ML.islandPrevs(body);
     if (itemOpen && !ish.hidden) renderItem();
+  }
+  function stripInSight() { // keep the picked world in sight in the strip
+    const ws = $('shop-body').querySelector('.sh-wstrip'), wp = ws && ws.querySelector('[aria-pressed="true"]');
+    if (wp) { const x = wp.getBoundingClientRect().left - ws.getBoundingClientRect().left + ws.scrollLeft; if (x < ws.scrollLeft || x + wp.offsetWidth > ws.scrollLeft + ws.clientWidth) ws.scrollLeft = x - 8; }
   }
 
   /* D1 + X3: the item's sheet. The picture is the item as you'd wear it (a familiar keeps your costume), the arrows go through the shelf */
@@ -512,7 +578,8 @@
     if (cat === 'potion') cta = `<button type="button" class="primary" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(st.price, short)}</button>` + (k === 'elixir' && E.potions.elixir > 0 && !E.elixir ? `<button type="button" data-use="elixir">${esc(t('use'))}</button>` : '') + (k === 'midas' && E.potions.midas > 0 && !(E.midas > 0) ? `<button type="button" data-use="midas">${esc(t('use'))}</button>` : '');
     else if (st.eq) cta = `<button type="button" disabled>${esc(t('equipped'))}</button>`;
     else if (st.own) cta = `<button type="button" class="primary" data-equip="${cat}:${k}">${esc(t('equip'))}</button>`;
-    else if (cat === 'costume') cta = `<button type="button" disabled>${esc(t('seq_reach', { n: 9 - st.seq }))}</button>`;
+    else if (cat === 'costume') cta = `<button type="button" disabled>${esc(t('seq_reach', { n: st.seq + 1 }))}</button>`;
+    else if (st.need) cta = `<button type="button" disabled>${esc(t('sh_need_world'))}</button>`;
     else if (st.locked) cta = `<button type="button" disabled>${esc(t('premium_only'))}</button>`;
     else cta = `<button type="button" class="primary" data-buy="${cat}:${k}">${esc(t('buy'))} ${coin(st.price, short)}</button>`;
     if (cat === 'burst') cta = `<button type="button" data-play="${k}">${esc(t('sh_play'))}</button>` + cta;
@@ -526,7 +593,10 @@
     if (ML.treePrevs) ML.treePrevs(ish);
     if (ML.islandPrevs) ML.islandPrevs(ish);
   }
-  function openItem(cat, k) { itemOpen = [cat, k]; ish.hidden = false; renderItem(); ML.openOverlay('shopitem'); }
+  function openItem(cat, k) {
+    const id = cat + ':' + k; if (NEW_ITEMS.includes(id)) { if (!S.econ.seen) S.econ.seen = {}; if (S.econ.seen[id] !== 0) { S.econ.seen[id] = 0; save(); } }
+    itemOpen = [cat, k]; ish.hidden = false; renderItem(); ML.openOverlay('shopitem');
+  }
 
   // Buying, equipping and using, from a sheet
   function act(b) {
@@ -569,6 +639,10 @@
     if (b.dataset.light) { if (isPrem() && ML.setDayNight) { ML.setDayNight(b.dataset.light); renderShop(); } return; }
     if (b.dataset.world) { openWorld(b.dataset.world); return; }
     const top = () => { $('shop-body').parentElement.scrollTop = 0; };
+    if (b.dataset.wsel) { wsel = b.dataset.wsel; renderShop(); return; }
+    if (b.dataset.wuse) { const [m, w] = b.dataset.wuse.split(':'); if (ML.setWorld && ML.setWorld(m, { w, clock: (ML.worldPick(m) || {}).clock }, m !== S.mood) && m !== S.mood) toast(t('w_buy_set', { w: (allWorlds().find(x => x.m === m && x.w === w) || {}).name || '', mood: t('mood_' + m) }), { ms: 4000 }); renderShop(); return; }
+    if (b.hasAttribute('data-prem')) { ML.closeOverlay('shop'); ML.openSettings && ML.openSettings('account'); return; }
+    if (b.hasAttribute('data-cos')) { ML.closeOverlay('shop'); ML.setTab('grim'); setTimeout(() => { const c = $('fam-cos'), f = c && c.closest('.folded'), h = f && f.querySelector('[aria-expanded="false"]'); if (h) h.click(); if (c) c.scrollIntoView({ block: 'center', behavior: ML.reducedMotion() ? 'auto' : 'smooth' }); }, 120); return; }
     if (b.dataset.shelf) { shelf = b.dataset.shelf; filter = 'all'; fitting = false; justBought = null; renderShop(); top(); return; }
     if (b.hasAttribute('data-back')) { if (fitting) fitting = false; else shelf = null; justBought = null; renderShop(); top(); return; }
     if (b.dataset.filter) { filter = b.dataset.filter; renderShop(); return; }

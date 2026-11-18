@@ -324,6 +324,7 @@
             <label class="field"><span>${esc(t('rename'))}</span><input type="text" id="fam-name" maxlength="20" value="${esc(famName())}"></label>
             <small>${esc(t('fam_' + species()))} · ${esc(t('stage_' + stage()))}</small>
             <button type="button" class="small ghost" id="fam-shop">${esc(t('shop'))} ◈</button>
+            ${cosRow()}
           </div>
         </div>
       </div>`;
@@ -331,5 +332,20 @@
     if ($('isl-go')) $('isl-go').onclick = () => ML.setTab('world');
     $('fam-name').onchange = e => { S.companion.name = e.target.value.trim() || null; save(); renderPerch(); };
     $('fam-shop').onclick = () => ML.openShop();
+    $('fam-cos').onclick = e => {
+      const b = e.target.closest('button[data-cos]'); if (!b || b.disabled || !S.econ) return;
+      S.econ.equip.costume = b.dataset.cos; save(); ML.applyCosmetics();
+      $('fam-cos').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      const big = card.querySelector('.fam-card > svg.fam'); if (big) big.outerHTML = familiarSvg(species(), 'idle', stage());
+    };
   });
+  // 3.103: the Circle costumes moved here from the shop (they are earned, never bought): worn with a tap, the next ones say which Circle
+  function cosRow() {
+    const all = ['none', ...(ML.COSTUMES || [])], E = S.econ; if (!E || all.length < 2) return '';
+    const have = k => k === 'none' || (E.owned.costume || []).includes(k), on = E.equip.costume || 'none';
+    return `<div class="fam-cos" id="fam-cos" role="group" aria-label="${esc(t('cat_seq'))}"><b>${esc(t('cat_seq'))}</b><div>${all.map((k, i) => {
+      const nm = k === 'none' ? t('cs_none') : t('cs_' + k), ok = have(k);
+      return `<button type="button" data-cos="${k}" aria-pressed="${on === k}" ${ok ? '' : 'disabled'} title="${esc(ok ? nm : nm + ' · ' + t('seq_reach', { n: i }))}" aria-label="${esc(ok ? nm : nm + ' · ' + t('seq_reach', { n: i }))}">${ML.costumeSvg ? ML.costumeSvg(k === 'none' ? null : k) : ''}${ok ? '' : `<small>${i}</small>`}</button>`;
+    }).join('')}</div></div>`;
+  }
 })();

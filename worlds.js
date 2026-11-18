@@ -42,7 +42,7 @@
   ML.worldLocked = (m, w) => {
     if (w === 'extra') { // a world sold in the Shop (3.74)
       const x = ML.worldsFor(m).find(y => y.w === 'extra');
-      ML.toast(t('wb_shop', { w: x.name }), { key: 'daynight', ms: 5000, action: { label: t('wb_see'), fn: () => { ML.closeOverlay('worlds'); ML.closeOverlay && ML.energyPicker && ML.energyPicker.close && ML.energyPicker.close(); ML.openShop && ML.openShop('worlds'); } } });
+      ML.toast(t('wb_shop', { w: x.name }), { key: 'daynight', ms: 5000, action: { label: t('wb_see'), fn: () => { ML.closeOverlay('worlds'); ML.closeOverlay && ML.energyPicker && ML.energyPicker.close && ML.energyPicker.close(); ML.openShop && ML.openShop('worlds', x.key); } } });
       return;
     }
     const x = ML.worldsFor(m).find(y => y.w === 'light');

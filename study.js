@@ -210,7 +210,7 @@
     for (let x = deckById(d.parent); x; x = x.parent && deckById(x.parent)) { if (seen.has(x.id)) return ''; seen.add(x.id); }
     return d.parent;
   };
-  const dKids = pid => ST().decks.filter(d => dParent(d) === (pid || ''));
+  const dKids = pid => ST().decks.filter(d => dParent(d) === (pid || '')).sort((a, b) => (a.order ?? 1e9) - (b.order ?? 1e9));
   const dTree = (pid = '', depth = 0) => (depth > 20 ? [] : dKids(pid).flatMap(d => [{ d, depth }, ...dTree(d.id, depth + 1)]));
   const dUnder = id => new Set([id, ...dTree(id).map(x => x.d.id)]);
   const allCards = id => { const u = dUnder(id); return u.size === 1 ? deckCards(id) : ST().cards.filter(c => u.has(c.deck)); };
@@ -290,7 +290,7 @@
   function rowHtml(d) {
     const all = allCards(d.id), due = queueFor(d.id).length, kids = dKids(d.id).length;
     const line = [all.length ? (due ? tn('fc_due', due) : t('fc_uptodate')) : '', tn('fc_cards_n', all.length), kids ? tn('fc_subs_n', kids) : '', seenTxt(seenOf(d.id))].filter(Boolean).join(' · ');
-    return `<li class="fc-row"><button type="button" class="fc-deck-name" data-fc-open="${d.id}"><b>${esc(d.name)}</b><small>${esc(line)}</small></button>${due ? `<button type="button" class="small primary" data-fc-review="${d.id}">${esc(t('fc_review'))}</button>` : ''}</li>`;
+    return `<li class="fc-row${d.color ? ' og-c' : ''}" data-og-id="k:${d.id}"${d.color ? ` style="--pc:${ML.colorVar(d.color)}"` : ''}><button type="button" class="fc-deck-name" data-fc-open="${d.id}"><b>${esc(d.name)}</b><small>${esc(line)}</small></button>${due ? `<button type="button" class="small primary" data-fc-review="${d.id}">${esc(t('fc_review'))}</button>` : ''}</li>`;
   }
   function decksHtml() {
     const D = ST(), todayN = D.day === today() ? D.reviewed : 0, tops = dKids(''), q = queueAllCards();
@@ -306,7 +306,7 @@
       ? `<div class="fc-todaybox"><span><b>${esc(t('fc_today_h'))}</b><small>${esc(tn('fc_cards_n', q.length) + ', ' + tn('fc_n_decks', nDecks) + ' · ' + t('fc_about', { m: mins }))}</small></span><button type="button" class="primary" data-fc-review="*">${esc(t('fc_all_due'))}</button></div>`
       : `<p class="hint fc-alldone">${esc(t('fc_alldone'))}</p>`;
     const dueOf = new Map(tops.map(d => [d.id, queueFor(d.id).length]));
-    const sorted = arr => arr.slice().sort((a, b) => (dueOf.get(b.id) > 0) - (dueOf.get(a.id) > 0) || a.name.localeCompare(b.name, S.lang === 'fr' ? 'fr' : 'en'));
+    const sorted = arr => arr.slice().sort((a, b) => (a.order ?? 1e9) - (b.order ?? 1e9) || (dueOf.get(b.id) > 0) - (dueOf.get(a.id) > 0) || a.name.localeCompare(b.name, S.lang === 'fr' ? 'fr' : 'en'));
     const ul = arr => `<ul class="fc-decks">${sorted(arr).map(rowHtml).join('')}</ul>`;
     const by = new Map();
     tops.forEach(d => { const s = subjOf(d), k = s ? s.id : ''; if (!by.has(k)) by.set(k, []); by.get(k).push(d); });
@@ -318,17 +318,17 @@
       list = groups.map(g => `<h4 class="fc-grp" style="--pc:${safeCol(g.s.color)}"><i></i><span>${esc(g.s.name)}</span>${g.ex ? `<span class="chip">${esc(examTxt(g.ex))}</span>` : ''}</h4>${ul(g.ds)}`).join('')
         + (by.has('') ? `<h4 class="fc-grp fc-grp-none"><i></i><span>${esc(t('fc_nosubj'))}</span></h4>${ul(by.get(''))}` : '');
     }
-    return `${head}${opts}${form}${box}${list}`;
+    return `${head}${opts}${form}${box}${tops.length > 1 ? `<p class="og-hint">${esc(t('og_drag_hint'))}</p>` : ''}${list}`;
   }
   function deckHtml(id) {
     const d = ST().decks.find(x => x.id === id), cs = deckCards(id), due = queueFor(id).length, up = deckById(dParent(d)), kids = dKids(id), mine = dUnder(id);
     const dest = dTree().filter(x => !mine.has(x.d.id)), total = allCards(id).length;
-    return `<div class="fc-head"><button type="button" class="ghost small" data-fc-back>${up ? '← ' + esc(up.name) : esc(t('fc_back'))}</button><h3>${esc(d.name)}</h3>
+    return `<div class="fc-head"><button type="button" class="ghost small" data-fc-back>${up ? '← ' + esc(up.name) : esc(t('fc_back'))}</button>${view.ren ? `<form id="fc-ren" class="fc-renform" autocomplete="off"><input type="text" maxlength="60" value="${esc(d.name)}" aria-label="${esc(t('fc_c_ren'))}" required><button type="submit" class="small primary">OK</button></form>` : `<h3>${d.color ? `<i class="og-dot" style="--pc:${ML.colorVar(d.color)}"></i> ` : ''}${esc(d.name)}</h3>`}
         <button type="button" class="small ${due ? 'primary' : ''}" data-fc-review="${id}" ${due ? '' : 'disabled'}>${esc(t('fc_review'))}${due ? ' · ' + due : ''}</button>
         <button type="button" class="small" data-qzstart="${id}" ${total >= 2 ? '' : 'disabled'}>${esc(t('qz_start'))}</button>
         <button type="button" class="small" data-fi-open="${id}">${esc(t('fi_btn'))}</button></div>
       ${cs.some(c => !c.reps) ? `<label class="fc-newper"><span>${esc(t('fc_new_per'))}</span><select id="fc-newper">${NEW_PER_CHOICES.map(n => `<option value="${n}" ${n === newPerOf(id) ? 'selected' : ''}>${n ? n : esc(t('fc_all'))}</option>`).join('')}</select></label>` : ''}
-      ${kids.length ? `<h4 class="fc-h">${esc(t('fc_subs'))}</h4><ul class="fc-decks">${kids.map(k => { const n = allCards(k.id).length, kd = queueFor(k.id).length; return `<li><button type="button" class="fc-deck-name" data-fc-open="${k.id}"><b>${esc(k.name)}</b><small>${esc(tn('fc_cards_n', n))}</small></button>${kd ? `<span class="chip due-chip">${esc(tn('fc_due', kd))}</span>` : ''}</li>`; }).join('')}</ul>` : ''}
+      ${kids.length ? `<h4 class="fc-h">${esc(t('fc_subs'))}</h4><ul class="fc-decks">${kids.map(k => { const n = allCards(k.id).length, kd = queueFor(k.id).length; return `<li data-og-id="k:${k.id}"${k.color ? ` class="og-c" style="--pc:${ML.colorVar(k.color)}"` : ''}><button type="button" class="fc-deck-name" data-fc-open="${k.id}"><b>${esc(k.name)}</b><small>${esc(tn('fc_cards_n', n))}</small></button>${kd ? `<span class="chip due-chip">${esc(tn('fc_due', kd))}</span>` : ''}</li>`; }).join('')}</ul>` : ''}
       <form class="fc-newdeck fc-subform" id="fc-subdeck" autocomplete="off"><input type="text" maxlength="60" placeholder="${esc(t('fc_sub_ph'))}" aria-label="${esc(t('fc_sub_ph'))}" required><button type="submit" class="small">+ ${esc(t('fc_sub_add'))}</button></form>
       ${kids.length ? `<h4 class="fc-h">${esc(d.name)} · ${esc(t('fc_here', { n: cs.length }))}</h4>` : ''}
       <form class="fc-add" id="fc-add" autocomplete="off">
@@ -1384,4 +1384,59 @@
   on('started', () => { const l = $('study-lock'); if (l) l.style.display = ML.isPremium() ? 'none' : ''; if (S.tab === 'study') render(); });
   ML.renderStudy = render;
   ML.studyLockedHtml = lockedHtml;
+
+  /* ---------- Arranging decks (3.101, organize.js): right-click / long press menu, rename, colour, drag ---------- */
+  ML.addStrings({
+    fr: { fc_c_open: 'Ouvrir', fc_c_ren: 'Renommer', fc_c_sub: 'Nouveau sous-paquet', fc_c_top: 'Mettre au premier niveau', fc_c_imp: 'Importer des cartes ici' },
+    en: { fc_c_open: 'Open', fc_c_ren: 'Rename', fc_c_sub: 'New sub-deck', fc_c_top: 'Move to the top level', fc_c_imp: 'Import cards here' },
+  });
+  function delDeck(id) { // sub-decks move up one level, with their cards
+    const gone = deckById(id), up = gone ? dParent(gone) : '';
+    ST().decks.forEach(d => { if (d.parent === id) { if (up) d.parent = up; else delete d.parent; } });
+    ST().decks = ST().decks.filter(d => d.id !== id); ST().cards = ST().cards.filter(c => c.deck !== id);
+    if (view.id === id || view.kind !== 'deck') view = up && view.id === id ? { kind: 'deck', id: up } : view.id === id ? { kind: 'decks' } : view;
+    save(); renderTool(); toast(t('fc_deck_deleted'));
+  }
+  const openDeck = (id, extra) => { ST().tool = 'cards'; view = Object.assign({ kind: 'deck', id }, extra || {}); save(); render(); };
+  const kId = el => (el.dataset.ogId || '').replace(/^k:/, '');
+  ML.ctx.add('#study [data-og-id]', el => {
+    const id = kId(el), d = deckById(id); if (!d) return [];
+    const due = queueFor(id).length;
+    return [
+      due ? { label: `${t('fc_review')} · ${due}`, fn: () => { ST().tool = 'cards'; save(); render(); startReview(id); } } : null,
+      { label: t('fc_c_open'), fn: () => openDeck(id) },
+      { label: t('fc_c_ren'), fn: () => { openDeck(id, { ren: true }); const i = document.querySelector('#fc-ren input'); if (i) { i.focus(); i.select(); } } },
+      { label: t('og_color'), colors: { value: d.color, pick: c => { if (c) d.color = c; else delete d.color; save(); renderTool(); } } },
+      { label: t('fc_c_sub'), fn: () => { openDeck(id); const i = document.querySelector('#fc-subdeck input'); if (i) i.focus(); } },
+      dParent(d) ? { label: t('fc_c_top'), fn: () => { delete d.parent; d.order = 1e6; save(); renderTool(); } } : null,
+      { sep: true },
+      { label: t('fc_del_deck'), danger: true, armed: true, fn: () => delDeck(id) },
+    ];
+  }, el => { const d = deckById(kId(el)); return d ? d.name : ''; });
+  listen('submit', e => {
+    if (e.target.id !== 'fc-ren') return;
+    e.preventDefault(); e.stopPropagation();
+    const d = deckById(view.id), v = e.target.querySelector('input').value.trim().slice(0, 60);
+    if (d && v) d.name = v;
+    view.ren = false; save(); renderTool();
+  }, true);
+  listen('keydown', e => { if (e.key === 'Escape' && e.target.closest && e.target.closest('#fc-ren')) { e.stopPropagation(); view.ren = false; renderTool(); } }, true);
+  // before / after another deck (it takes that deck's level and, at the top, its subject), or into it as a sub-deck
+  ML.dragSort({
+    root: () => (view.kind === 'deck' || view.kind === 'decks' ? root : null), item: '[data-og-id^="k:"]', id: el => el.dataset.ogId,
+    into: (dragId, tid) => { const a = dragId.slice(2), b = tid.replace(/^k:/, ''); return a !== b && !dUnder(a).has(b) && !!deckById(b); },
+    order: (dragId, tid) => { const a = dragId.slice(2), b = tid.replace(/^k:/, ''); return !dUnder(a).has(b); },
+    drop: (dragId, tid, where) => {
+      const id = dragId.slice(2), target = tid.replace(/^k:/, ''), d = deckById(id), td = deckById(target);
+      if (!d || !td || dUnder(id).has(target)) return;
+      if (where === 'into') { d.parent = target; d.order = 1e6; }
+      else {
+        const pid = dParent(td);
+        if (pid) d.parent = pid; else { delete d.parent; if (td.subject) d.subject = td.subject; else delete d.subject; }
+        ML.reorder(dKids(pid).map(x => x.id), id, target, where).forEach((x, i) => { deckById(x).order = i; });
+      }
+      save(); renderTool();
+    },
+  });
+  ML.renderStudy = render;
 })();
