@@ -5236,6 +5236,20 @@ html.no-world .tabs .tab-world { display: none; }
 .isl-steps li[aria-current] { font-weight: 600; }
 .isl-steps li span:last-child { font-variant-numeric: tabular-nums; }
 @media (max-width: 899px) { .wd .isl-frame { aspect-ratio: 1 / 1; max-height: 58vh; width: 100%; } }
+/* 3.110: on a phone the island goes edge to edge and taller; the place chips sit on the painting's foot */
+@media (max-width: 899px) {
+  .wd .isl-frame { aspect-ratio: 3 / 4; max-height: 66vh; width: calc(100% + 32px); margin: 0 -16px; border-radius: 0; }
+  .wd .isl-frame::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: linear-gradient(transparent, rgba(6, 7, 12, .78)); pointer-events: none; }
+  .wd .isl > .isl-places { margin: -52px 0 0; position: relative; z-index: 1; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .wd .isl > .isl-places::-webkit-scrollbar { display: none; }
+  .wd .isl > .isl-places .chip-btn { flex: none; background: rgba(12, 13, 20, .72); }
+}
+.isl-was { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; transition: opacity 2.6s ease; }
+.isl .isl-sky { transition: transform .5s cubic-bezier(.3, .7, .2, 1), filter 2.6s ease; }
+.isl.pale .isl-sky { filter: saturate(.22) brightness(.72); }
+.isl-pin.off i { border-style: dashed; background: rgba(8, 10, 16, .35); }
+.isl-pin.off span { color: rgba(255, 255, 255, .78); }
+@media (prefers-reduced-motion: reduce) { .isl-was, .isl .isl-sky { transition: none; } }
 /* World part 2 (3.84): the sky on its own layer behind the island, a thin layer of life behind and in front of it.
    Both shift a little with the view (--px / --py, half the way at most); a drag moves the view itself. */
 .isl-cam .isl-cv { position: relative; }
@@ -5727,3 +5741,21 @@ html.mnav-on .pi-editor { bottom: calc(76px + env(safe-area-inset-bottom, 0px));
 .mi-pc.poor canvas, .mi-pc.poor span { opacity: .5; }
 .mi-card { margin: 0; min-height: 3em; padding: 10px 12px; background: var(--void); border: 1px solid var(--line); border-radius: var(--radius); color: var(--mist); font-size: var(--t-2); }
 .mi-rule { margin: 0; color: var(--dim); font-size: var(--t-1); }
+/* The refuge (3.110, refuge.js): the island full screen. Nothing shows but the hour until a touch opens the drawer. */
+.rf { position: fixed; inset: 0; z-index: 90; background: #05060a; overflow: hidden; outline: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.rf-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.rf-clock { position: absolute; left: 0; right: 0; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); margin: 0; text-align: center; font: 500 var(--t-2) var(--f-body, inherit); letter-spacing: .04em; color: rgba(255, 255, 255, .55); font-variant-numeric: tabular-nums; pointer-events: none; transition: opacity .4s; }
+.rf-breath { position: absolute; left: 0; right: 0; top: 16%; margin: 0; text-align: center; font: 500 var(--t-3) var(--f-body, inherit); color: rgba(255, 255, 255, .72); pointer-events: none; }
+.rf-hint { position: absolute; left: 0; right: 0; top: calc(16px + env(safe-area-inset-top, 0px)); margin: 0; text-align: center; font-size: var(--t-1); color: rgba(255, 255, 255, .6); pointer-events: none; transition: opacity 1.2s; }
+.rf-hint.gone { opacity: 0; }
+.rf-x { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); opacity: 0; pointer-events: none; transition: opacity .3s; background: rgba(12, 13, 20, .78); color: #fff; border-color: rgba(255, 255, 255, .25); }
+.rf-drawer { position: absolute; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); width: min(520px, calc(100% - 20px)); translate: -50% 16px; display: grid; gap: 6px; padding: 10px 12px; border-radius: 16px; background: rgba(12, 13, 20, .84); border: 1px solid rgba(255, 255, 255, .12); backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity .3s, translate .3s; cursor: default; color: #fff; }
+.rf.ui .rf-x, .rf.ui .rf-drawer { opacity: 1; pointer-events: auto; }
+.rf.ui .rf-drawer { translate: -50% 0; }
+.rf.ui .rf-clock { opacity: 0; }
+.rf-row { display: grid; gap: 3px; }
+.rf-row > span { font-size: var(--t-1); color: rgba(255, 255, 255, .62); }
+.rf-row .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rf-row .chip-btn { min-height: 30px; padding-block: 2px; font-size: var(--t-1); background: rgba(255, 255, 255, .06); color: #fff; border-color: rgba(255, 255, 255, .18); }
+.rf-row .chip-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: rgba(255, 255, 255, .1); }
+@media (prefers-reduced-motion: reduce) { .rf-drawer, .rf-x, .rf-hint, .rf-clock { transition: none; } }
