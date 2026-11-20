@@ -417,25 +417,59 @@
   /* ---------- Pictures for the shop and the tree tiles: painted on demand, one at a time, kept in memory ---------- */
   const SAMPLE = A.sample(18), thumbCache = {}, queue = [];
   let thumbT = 0;
-  function thumbFor(tp) {
-    const [kind, k] = tp.split(':'), o = kind === 'skin' ? { roots: null } : { roots: null, [{ lf: 'leaf', br: 'bark', fl: 'flower', hg: 'hang', gd: 'ground', sk: 'sky' }[k.slice(0, 2)] || 'x']: k };
-    const skin = kind === 'skin' || A.SKINS.includes(k) ? k : 'oak', [W, H] = A.SIZE(skin), big = document.createElement('canvas'); big.width = W; big.height = H;
-    A.paint(big.getContext('2d'), skin, SAMPLE, o);
-    const small = document.createElement('canvas'); small.width = 240; small.height = 190; const g = small.getContext('2d'); g.imageSmoothingEnabled = !A.isPx(skin); g.imageSmoothingQuality = 'high'; g.drawImage(big, 0, 0, 240, 190);
-    return small.toDataURL('image/jpeg', .82);
+  /* 3.109 (C1 of proposals/boutique-v3): painted at the picture's real size on screen (it used to be 240 × 190, then
+     stretched), and « mine » is the user's own tree: equipped skin and look, this year's weeks (the sample while short).
+     A wide picture (data-wide) shows the whole scene by its height over a blurred copy, so the trunk and ground show. */
+  function scene(tp) {
+    const [kind, k] = tp.split(':');
+    let skin, o, weeks = SAMPLE;
+    if (kind === 'mine') { skin = skinNow(); o = Object.assign(dress(), { roots: null, title: null }); const w = weeksOf(yearOf(Date.now())); if (w.length >= 8) weeks = w; }
+    else { o = kind === 'skin' ? { roots: null } : { roots: null, [{ lf: 'leaf', br: 'bark', fl: 'flower', hg: 'hang', gd: 'ground', sk: 'sky' }[k.slice(0, 2)] || 'x']: k }; skin = kind === 'skin' || A.SKINS.includes(k) ? k : 'oak'; }
+    const [W, H] = A.SIZE(skin), big = document.createElement('canvas'); big.width = W; big.height = H;
+    A.paint(big.getContext('2d'), skin, weeks, o);
+    return { big, px: A.isPx(skin) };
   }
-  function thumbs(root) {
-    root.querySelectorAll('img[data-tp]').forEach(img => { const tp = img.dataset.tp; if (thumbCache[tp]) img.src = thumbCache[tp]; else if (!queue.includes(tp)) queue.push(tp); });
+  function thumbFor(tp, w, h, wide) {
+    const { big, px } = scene(tp), small = document.createElement('canvas'); small.width = w; small.height = h;
+    const g = small.getContext('2d'); g.imageSmoothingEnabled = !px; g.imageSmoothingQuality = 'high';
+    const cover = Math.max(w / big.width, h / big.height);
+    if (wide) {
+      g.filter = 'blur(' + Math.round(h / 14) + 'px) brightness(.75)'; g.drawImage(big, (w - big.width * cover) / 2, (h - big.height * cover) / 2, big.width * cover, big.height * cover); g.filter = 'none';
+      const k = h / big.height, dw = big.width * k, x = (w - dw) / 2;
+      g.drawImage(big, x, 0, dw, h);
+      // soften the two side edges into the blurred copy
+      const fade = Math.min(dw * .12, 60);
+      [[x, x + fade], [x + dw, x + dw - fade]].forEach(([a, b]) => { const gr = g.createLinearGradient(a, 0, b, 0); gr.addColorStop(0, 'rgba(0,0,0,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(Math.min(a, b), 0, fade, h); });
+    } else g.drawImage(big, (w - big.width * cover) / 2, (h - big.height * cover) / 2, big.width * cover, big.height * cover);
+    return small.toDataURL('image/jpeg', .86);
+  }
+  // Size from the picture's box on screen × the pixel ratio (at least 240 × 190), rounded so similar boxes share a picture
+  const sizeOf = img => {
+    const r = img.getBoundingClientRect(), d = Math.min(3, devicePixelRatio || 1), wide = img.hasAttribute('data-wide');
+    const w = Math.max(240, Math.ceil(r.width * d / 40) * 40 || 480), h = wide && r.height ? Math.max(100, Math.ceil(r.height * d / 20) * 20) : Math.round(w * 190 / 240);
+    return { w: Math.min(w, 1400), h: Math.min(h, 1100), wide };
+  };
+  function thumbs(root, again) {
+    let later = false;
+    root.querySelectorAll('img[data-tp]').forEach(img => {
+      if (!img.getBoundingClientRect().width && !again) { later = true; return; } // still hidden (an overlay not open yet): measured on the next frame
+      const s = sizeOf(img), id = img.dataset.tp + '@' + s.w + 'x' + s.h + (s.wide ? 'w' : '') + (img.dataset.tp === 'mine' ? '|' + mineKey() : '');
+      img.dataset.tpk = id;
+      if (thumbCache[id]) img.src = thumbCache[id]; else if (!queue.some(q => q.id === id)) queue.push(Object.assign({ id, tp: img.dataset.tp }, s));
+    });
+    if (later) requestAnimationFrame(() => setTimeout(() => thumbs(root, true), 30));
     if (!queue.length) return;
     clearTimeout(thumbT);
     const step = () => {
-      const tp = queue.shift(); if (!tp) return;
-      try { thumbCache[tp] = thumbFor(tp); } catch (e) { thumbCache[tp] = ''; }
-      document.querySelectorAll(`img[data-tp="${tp}"]`).forEach(i => { if (thumbCache[tp]) i.src = thumbCache[tp]; });
+      const q = queue.shift(); if (!q) return;
+      try { thumbCache[q.id] = thumbFor(q.tp, q.w, q.h, q.wide); } catch (e) { thumbCache[q.id] = ''; }
+      document.querySelectorAll('img[data-tpk]').forEach(i => { if (i.dataset.tpk === q.id && thumbCache[q.id]) i.src = thumbCache[q.id]; });
       if (queue.length) thumbT = setTimeout(step, 16);
     };
     thumbT = setTimeout(step, 60);
   }
+  // « mine » is painted again when the tree changes (a new week, another skin or look)
+  const mineKey = () => { const w = weeksOf(yearOf(Date.now())); return [skinNow(), JSON.stringify(dress()), w.length, w.reduce((a, x) => a + x.s, 0)].join(','); };
   ML.treePrevs = thumbs;
   ML.treePrev = k => `<img class="tree-prev" data-tp="item:${k}" alt="">`;
   // The shop's fitting room: the oak with the options being tried, drawn on the user's own year (or the sample year while it is still short)

@@ -4873,7 +4873,7 @@ html.mnav-on .shop-bar { margin-inline: -14px; padding-inline: 14px; }
 .shop-tile .shop-prev > svg { max-width: 78%; max-height: 78%; }
 .shop-tile .shop-prev .mini-logo, .shop-tile .shop-prev .fam { width: 66%; height: 66%; }
 .shop-tile .shop-prev .tree-prev, .shop-tile .shop-prev > img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: auto; border-radius: 0; }
-.shop-tile > b { max-width: 100%; overflow: hidden; font-size: var(--t-1); font-weight: 500; white-space: nowrap; text-overflow: ellipsis; }
+.shop-tile > b { max-width: 100%; overflow: hidden; font-size: var(--t-1); font-weight: 500; line-height: 1.25; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; } /* X4: full names on two lines */
 .shop-tile small, .shop-tile .coin-pill, .shop-tile .eq-tag { font-size: var(--t-1); } .shop-tile small { color: var(--mist); }
 .shop-tile.is-eq { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .shop-tile.poor .shop-prev { opacity: .6; filter: saturate(.6); }
@@ -5463,34 +5463,50 @@ html.og-dragging, html.og-dragging * { user-select: none; -webkit-user-select: n
 @media (pointer: fine) { .og-hint-touch { display: none; } }
 
 /* ---------- Shop 3.103: your world first (economy.js worldBlock), Premium band, potion counter, New tag ---------- */
-.sh-wstrip { display: grid; grid-auto-flow: column; grid-auto-columns: 76px; gap: 6px; margin: 12px -2px 0; padding: 4px 2px 4px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
-.sh-wstrip::-webkit-scrollbar { display: none; }
+/* 3.109 (A1): the worlds in three rows, one per energy (label, then up to four tiles), all in sight */
+.sh-wrows { display: grid; gap: 8px; margin-top: 12px; }
+.sh-wrow { display: grid; grid-template-columns: 50px repeat(4, minmax(0, 1fr)); gap: 6px; align-items: center; }
+.sh-wmood { font: 500 var(--t-1)/1.2 var(--f-body); color: var(--mist); }
 .sh-wchip { position: relative; display: grid; gap: 3px; min-width: 0; padding: 3px 3px 5px; text-align: center; background: var(--panel); border: 1px solid var(--line-2); border-radius: 10px; }
-.sh-wchip .ph { position: relative; display: block; aspect-ratio: .92; overflow: hidden; border-radius: 7px; }
+.sh-wchip .ph { position: relative; display: block; aspect-ratio: 1.15; overflow: hidden; border-radius: 7px; }
 .sh-wchip .ph > svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; stroke: none; }
-.sh-wchip small { overflow: hidden; font-size: var(--t-1); white-space: nowrap; text-overflow: ellipsis; color: var(--mist); }
+.sh-wchip small { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; min-height: 2.3em; font-size: 10.5px; line-height: 1.15; color: var(--mist); hyphens: auto; -webkit-hyphens: auto; }
 .sh-wchip[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--panel-2); }
-.sh-wchip[aria-pressed="true"] small { color: var(--ink, var(--text)); }
+.sh-wchip[aria-pressed="true"] small { color: var(--text); font-weight: 600; } /* X3: was --ink, white on the light worlds' beige */
 .sh-wchip .here { position: absolute; z-index: 1; left: 50%; top: -1px; transform: translateX(-50%); padding: 0 6px; font: 600 10px var(--f-mono, monospace); font-style: normal; white-space: nowrap; color: var(--void, #000); background: var(--accent); border-radius: 0 0 5px 5px; }
 .sh-wchip .lk { position: absolute; z-index: 1; right: 6px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 2px var(--panel); }
-.sh-whero { position: relative; display: grid; align-content: end; min-height: 150px; margin-top: 8px; padding: 12px; overflow: hidden; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--void); }
+.sh-whero { position: relative; display: grid; align-content: end; aspect-ratio: 16 / 7; max-height: 220px; width: 100%; margin-top: 10px; padding: 10px 12px; overflow: hidden; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--void); }
 .sh-whero .bgp { position: absolute; inset: 0; display: grid; place-items: center; }
 .sh-whero .bgp > img, .sh-whero .bgp > svg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; stroke: none; }
 .sh-whero .bgp > span, .sh-whero .bgp > canvas { width: 100%; height: 100%; }
+.sh-whero[data-k="observatory"] .bgp > img { transform: scale(1.9); transform-origin: 6% 88%; } /* its background is mostly sky: closer on the astrolabe */
 .sh-whero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, color-mix(in srgb, var(--void, #000) 92%, transparent) 94%); }
 .sh-whero > div { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: end; gap: 10px; }
 .sh-whero b { display: block; font-size: var(--t-4); line-height: 1.15; } .sh-whero small { color: var(--mist); font-size: var(--t-1); }
 .sh-whero button { flex: none; }
 .sh-home .shop-world small { margin-left: 8px; font-weight: 500; color: var(--dim, var(--mist)); }
-.sh-home .shop-shelves { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* X5: the tree on its own line, then familiars, seal ring and end effect on one row of three */
+.sh-home .shop-shelves { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .sh-home .shop-shelves > :first-child { grid-column: 1 / -1; aspect-ratio: 2.9; }
+.sh-home .shop-shelves > :not(:first-child) { aspect-ratio: auto; min-height: 112px; padding: 6px 8px; }
+.sh-home .shop-shelves > :not(:first-child) .nm { display: grid; gap: 1px; }
+.sh-home .shop-shelves > :not(:first-child) .nm b { font-size: var(--t-1); line-height: 1.2; }
+.sh-home .shop-shelves > :not(:first-child) .pic { padding-bottom: 34px; }
+/* X1: the gold on one line, how it is earned behind « ? » */
+details.shop-top { display: block; }
+details.shop-top > summary { list-style: none; cursor: pointer; }
+details.shop-top > summary::-webkit-details-marker { display: none; }
+.shop-gold small { flex: 1; min-width: 0; font: 500 var(--t-1) var(--f-body); color: var(--mist); }
+.shop-gold i { flex: none; display: grid; place-items: center; width: 26px; height: 26px; font: 600 var(--t-1) var(--f-body); font-style: normal; color: var(--mist); border: 1px solid var(--line-2); border-radius: 50%; }
+details.shop-top[open] .shop-gold i { color: var(--text); border-color: var(--accent); }
+details.shop-top > .hint { margin-top: 6px; }
 .sh-prem { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-top: 14px; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--accent-2) 55%, var(--line-2)); border-radius: var(--radius); background: color-mix(in srgb, var(--accent-2) 12%, var(--panel)); }
 .sh-prem b { display: block; color: var(--accent-2); font-size: var(--t-2); } .sh-prem small { display: block; color: var(--mist); font-size: var(--t-1); }
 .shop-tile .pm-tag { color: var(--accent-2); }
 .sh-new { position: absolute; top: 9px; right: 9px; padding: 0 6px; font: 600 10px var(--f-mono, monospace); font-style: normal; color: var(--void, #000); background: #f2c35a; border-radius: 4px; }
 .sh-cos { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; margin-top: 10px; padding: 7px 10px; text-align: left; color: var(--mist); font-size: var(--t-1); background: none; border: 1px dashed var(--line-2); border-radius: var(--radius); }
 .sh-cos .ph > svg { display: block; width: 44px; height: 44px; }
-.sh-counter { position: sticky; bottom: 0; z-index: 3; display: flex; align-items: center; gap: 6px; margin: 16px -20px 0; padding: 8px 20px calc(8px + env(safe-area-inset-bottom, 0px)); overflow-x: auto; scrollbar-width: none; background: var(--panel-2); border-top: 1px solid var(--line); }
+.sh-counter { position: relative; /* X2: no longer sticky over the shelves */ display: flex; align-items: center; gap: 6px; margin: 16px -20px 0; padding: 8px 20px calc(8px + env(safe-area-inset-bottom, 0px)); overflow-x: auto; scrollbar-width: none; background: var(--panel-2); border-top: 1px solid var(--line); }
 .sh-counter::-webkit-scrollbar { display: none; }
 html.mnav-on .sh-counter { margin-inline: -14px; padding-inline: 14px; }
 .sh-counter > small { flex: none; font: 500 var(--t-1) var(--f-mono, monospace); color: var(--mist); }

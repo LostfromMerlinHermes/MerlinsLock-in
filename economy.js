@@ -180,9 +180,22 @@
   function ownerGifts() {
     if (!S.econ || !(ML.isOwner && ML.isOwner())) return;
     migrate(); let changed = false;
-    for (const [cat, items] of Object.entries(CATALOG)) if (cat !== 'potion' && S.econ.owned[cat]) Object.keys(items).forEach(k => { if (!S.econ.owned[cat].includes(k)) { S.econ.owned[cat].push(k); changed = true; } });
+    for (const [cat, items] of Object.entries(CATALOG)) if (cat !== 'potion' && cat !== 'hat' && S.econ.owned[cat]) Object.keys(items).forEach(k => { if (!S.econ.owned[cat].includes(k)) { S.econ.owned[cat].push(k); changed = true; } });
     if (changed) save();
   }
+
+  /* 3.109 (H1): hats left the shop (they dressed the old logo, hidden since the hooded student). Each one bought is paid
+     back once at its price; the owner got them free, so nothing is paid back to the owner. E.hatRefund (synced) marks it done. */
+  function refundHats() {
+    const E = S.econ; if (!E || E.hatRefund || !E.owned || !Array.isArray(E.owned.hat)) return;
+    if (ML.isOwner && ML.isOwner()) { E.hatRefund = 1; save(); return; }
+    const n = E.owned.hat.reduce((a, k) => a + (CATALOG.hat[k] || 0), 0);
+    E.owned.hat = ['wizard']; E.equip.hat = 'wizard'; E.hatRefund = 1;
+    if (n) { E.gold += n; renderGold(); toast(t('hat_refund', { n: n.toLocaleString(ML.locale()) }), { ms: 9000, key: 'hats' }); }
+    save();
+  }
+  // after the account and its first pull had time to load (so the owner is known and the synced flag has arrived)
+  setTimeout(refundHats, 6000);
 
   /* ---------- Gold ---------- */
   on('xp', n => {
@@ -198,7 +211,7 @@
   function openShop(cat, view) {
     migrate(); ownerGifts(); grantCostumes(false);
     shelf = [...HOME_SHELVES, 'seq', 'potion'].includes(cat) ? cat : null; wsel = cat === 'worlds' && view ? view : null; fitting = shelf === 'tree' && view === 'fit'; filter = 'all'; tried = null; justBought = null;
-    renderShop(); ML.openOverlay('shop'); $('shop-body').parentElement.scrollTop = 0; stripInSight();
+    renderShop(); ML.openOverlay('shop'); $('shop-body').parentElement.scrollTop = 0;
   }
   $('gold-chip').onclick = () => openShop();
   ML.openShop = openShop;
@@ -206,7 +219,7 @@
   ML.addStrings({ fr: { end_gold: '+{g} ◈', end_shop_near: 'Plus que {n} ◈ pour {name}', end_shop_can: 'Tu peux acheter {name}', end_shop_go: 'Voir la boutique' }, en: { end_gold: '+{g} ◈', end_shop_near: '{n} ◈ left for {name}', end_shop_can: 'You can buy {name}', end_shop_go: 'See the shop' } });
   function nextItem() {
     migrate();
-    const PFX = { hat: 'hat_', ring: 'ring_', burst: 'burst_', familiar: 'fam_' }, all = [];
+    const PFX = { ring: 'ring_', burst: 'burst_', familiar: 'fam_' }, all = [];
     for (const [cat, pfx] of Object.entries(PFX)) for (const [k, price] of Object.entries(CATALOG[cat])) if (price && k !== 'hippo' && !(S.econ.owned[cat] || []).includes(k)) all.push({ name: t(pfx + k), price });
     return all.sort((a, b) => a.price - b.price)[0];
   }
@@ -322,15 +335,15 @@
   const coin = (n, short) => `<span class="coin-pill ${short ? 'short' : ''}"><i>◈</i>${n.toLocaleString(ML.locale())}</span>`;
   // The shop's state: which shelf is open (null = the window of shelves), the filter, the tree's fitting room and what is being tried on it
   let justBought = null, shelf = null, filter = 'all', fitting = false, tried = null, fitTab = 'leaf';
-  const SHELVES = ['tree', 'worlds', 'island', 'dial', 'familiar', 'seq', 'hat', 'ring', 'burst', 'potion']; // (character skins went with the Sport section, set aside in 3.25)
+  const SHELVES = ['tree', 'worlds', 'island', 'dial', 'familiar', 'seq', 'ring', 'burst', 'potion']; // (character skins went with the Sport section, set aside in 3.25)
   const SHELF_NAME = { tree: 'cat_tree', worlds: 'cat_worlds', island: 'cat_islands', dial: 'cat_dials', familiar: 'cat_familiars', seq: 'cat_seq', hat: 'cat_hats', ring: 'cat_rings', burst: 'cat_bursts', potion: 'cat_potions' };
   ML.addStrings({
-    fr: { sh_here: 'Tu es ici', sh_use_world: 'Mettre ce monde', sh_everywhere: 'Dans tous les mondes', sh_wnone: 'Rien à vendre pour ce monde pour l’instant.', sh_wtree: 'L’arbre de ce monde ne s’achète pas : il se gagne après 25 h passées ici.', sh_need_w: 'Monde à acheter', sh_need_world: 'Achète d’abord ce monde', sh_new: 'Nouveau', sh_prem_p: 'Mondes clairs, Abysses et Sanctuaire, quatre cadrans, trois arbres en volume.', sh_prem_go: 'Voir', sh_cos: 'Costumes de cercle : {a} sur {b}. Ils se gagnent avec les cercles et se mettent sur la page de ton familier.', sh_cos2: 'Costumes de cercle : {a} sur {b}. Ils se gagnent avec les cercles, ils ne s’achètent pas.', sk_dial: 'Cadrans', sk_bg: 'Fonds', sk_fs: 'Pleins écrans', sk_set: 'Décors', sk_pal: 'Palettes', sk_isl: 'Îles', sk_car: 'Voitures volantes', sk_tree: 'Arbres',
+    fr: { sh_rate: '1 pièce pour 4 XP', sh_how: 'Comment gagner de l’or', hat_refund: 'Les chapeaux ont été retirés de la boutique : {n} pièces t’ont été rendues.', sh_here: 'Tu es ici', sh_use_world: 'Mettre ce monde', sh_everywhere: 'Dans tous les mondes', sh_wnone: 'Rien à vendre pour ce monde pour l’instant.', sh_wtree: 'L’arbre de ce monde ne s’achète pas : il se gagne après 25 h passées ici.', sh_need_w: 'Monde à acheter', sh_need_world: 'Achète d’abord ce monde', sh_new: 'Nouveau', sh_prem_p: 'Mondes clairs, Abysses et Sanctuaire, quatre cadrans, trois arbres en volume.', sh_prem_go: 'Voir', sh_cos: 'Costumes de cercle : {a} sur {b}. Ils se gagnent avec les cercles et se mettent sur la page de ton familier.', sh_cos2: 'Costumes de cercle : {a} sur {b}. Ils se gagnent avec les cercles, ils ne s’achètent pas.', sk_dial: 'Cadrans', sk_bg: 'Fonds', sk_fs: 'Pleins écrans', sk_set: 'Décors', sk_pal: 'Palettes', sk_isl: 'Îles', sk_car: 'Voitures volantes', sk_tree: 'Arbres',
       sh_shelves: 'Rayons', sh_back: 'Rayons', sh_all: 'Tout', sh_tobuy: 'À acheter', sh_owned: 'Possédés', sh_count: '{a} sur {b}', sh_your_tree: 'Ton arbre', sh_your_tree_d: 'Essaie des feuilles, des branches, des fleurs, un sol et un ciel sur ton chêne avant d’acheter.', sh_try: 'Essayer',
       sh_other_trees: 'Autres arbres', sh_world_trees: 'Les arbres des mondes ne s’achètent pas : ils se gagnent après 25 h dans leur monde. Bonsaï, Cerisier et Ginkgo sont inclus dans Premium.', sh_tree_page: 'Voir mes arbres ›', sh_trying: 'À l’essai', sh_free: 'Rien n’est dépensé.', sh_try_hint: 'Touche une option pour l’essayer sur ton arbre.', sh_cancel: 'Annuler', sh_buy_n: 'Acheter', sh_use: 'Utiliser',
       shop_none: 'Rien ici avec ce filtre.', sh_prev: 'Article précédent', sh_next: 'Article suivant', sh_play: 'Voir l’effet', sh_with: 'Avec ton costume', sh_oak_only: 'Le chêne porte tout ; les autres arbres de base prennent les feuilles, les branches et les fleurs.', sh_bought_n: '{n} articles achetés', sh_xp: '{n} XP',
       ft_leaf: 'Feuilles', ft_bark: 'Branches', ft_flower: 'Fleurs', ft_hang: 'Dans l’arbre', ft_ground: 'Sol', ft_sky: 'Ciel' },
-    en: { sh_here: 'You are here', sh_use_world: 'Use this world', sh_everywhere: 'In every world', sh_wnone: 'Nothing on sale for this world yet.', sh_wtree: 'This world’s tree isn’t sold: you earn it after 25 h spent here.', sh_need_w: 'Buy the world first', sh_need_world: 'Buy this world first', sh_new: 'New', sh_prem_p: 'Light worlds, Abyss and Sanctuary, four dials, three trees in volume.', sh_prem_go: 'See', sh_cos: 'Circle costumes: {a} of {b}. You earn them with the Circles and wear them from your familiar’s page.', sh_cos2: 'Circle costumes: {a} of {b}. You earn them with the Circles; they aren’t sold.', sk_dial: 'Dials', sk_bg: 'Backgrounds', sk_fs: 'Full screens', sk_set: 'Sets', sk_pal: 'Palettes', sk_isl: 'Islands', sk_car: 'Flying cars', sk_tree: 'Trees',
+    en: { sh_rate: '1 gold per 4 XP', sh_how: 'How to earn gold', hat_refund: 'Hats were removed from the shop: {n} gold was given back to you.', sh_here: 'You are here', sh_use_world: 'Use this world', sh_everywhere: 'In every world', sh_wnone: 'Nothing on sale for this world yet.', sh_wtree: 'This world’s tree isn’t sold: you earn it after 25 h spent here.', sh_need_w: 'Buy the world first', sh_need_world: 'Buy this world first', sh_new: 'New', sh_prem_p: 'Light worlds, Abyss and Sanctuary, four dials, three trees in volume.', sh_prem_go: 'See', sh_cos: 'Circle costumes: {a} of {b}. You earn them with the Circles and wear them from your familiar’s page.', sh_cos2: 'Circle costumes: {a} of {b}. You earn them with the Circles; they aren’t sold.', sk_dial: 'Dials', sk_bg: 'Backgrounds', sk_fs: 'Full screens', sk_set: 'Sets', sk_pal: 'Palettes', sk_isl: 'Islands', sk_car: 'Flying cars', sk_tree: 'Trees',
       sh_shelves: 'Shelves', sh_back: 'Shelves', sh_all: 'All', sh_tobuy: 'To buy', sh_owned: 'Owned', sh_count: '{a} of {b}', sh_your_tree: 'Your tree', sh_your_tree_d: 'Try leaves, branches, flowers, a ground and a sky on your oak before buying.', sh_try: 'Try on',
       sh_other_trees: 'Other trees', sh_world_trees: 'World trees aren’t sold: you earn them after 25 h in their world. Bonsai, Cherry tree and Ginkgo are included in Premium.', sh_tree_page: 'See my trees ›', sh_trying: 'Trying on', sh_free: 'Nothing is spent.', sh_try_hint: 'Tap an option to try it on your tree.', sh_cancel: 'Cancel', sh_buy_n: 'Buy', sh_use: 'Use',
       shop_none: 'Nothing here with this filter.', sh_prev: 'Previous item', sh_next: 'Next item', sh_play: 'See the effect', sh_with: 'With your costume', sh_oak_only: 'The oak wears everything; the other base trees take leaves, branches and flowers.', sh_bought_n: '{n} items bought', sh_xp: '{n} XP',
@@ -408,7 +421,7 @@
   /* ---------- Shop UI (3.65): a window of shelves (R2), short tiles that open a sheet (D1), the tree's fitting room (T1),
      a filter (X1), and the sheet as a try-on: the item worn with what you have, arrows to go through the shelf (X3). Nothing is spent before Buy. ---------- */
   const isPrem = () => !!(ML.isPremium && ML.isPremium());
-  const FILTERED = ['tree', 'island', 'dial', 'familiar', 'hat', 'ring', 'burst'];
+  const FILTERED = ['tree', 'island', 'dial', 'familiar', 'ring', 'burst'];
   // Every shelf as a list of [cat, key]. Costumes are earned with the Sequences, never bought
   function itemsOf(c) {
     if (c === 'seq') return ['none', ...(ML.COSTUMES || [])].map(k => ['costume', k]);
@@ -436,7 +449,7 @@
   const goldNow = () => S.econ.gold.toLocaleString(ML.locale());
 
   /* The window: one big picture per shelf */
-  const shelfPic = c => ({ tree: '<img class="tree-prev" data-tp="skin:oak" alt="">', worlds: '<img src="world-atelier.jpg" alt="" loading="lazy">', island: preview('island', 'orbit'), dial: preview('dial', 'nautilus'), familiar: preview('familiar', 'fox'), seq: picOf('costume', (ML.COSTUMES || [])[2] || 'none'), hat: hatSvg('crown'), ring: ringPreview('aurora'), burst: '<span class="burst-swatch">★</span>', potion: '<span class="burst-swatch">⚗</span>' }[c] || '');
+  const shelfPic = c => ({ tree: '<img class="tree-prev" data-tp="mine" data-wide alt="">', worlds: '<img src="world-atelier.jpg" alt="" loading="lazy">', island: preview('island', 'orbit'), dial: preview('dial', 'nautilus'), familiar: preview('familiar', 'fox'), seq: picOf('costume', (ML.COSTUMES || [])[2] || 'none'), hat: hatSvg('crown'), ring: ringPreview('aurora'), burst: '<span class="burst-swatch">★</span>', potion: '<span class="burst-swatch">⚗</span>' }[c] || '');
   function countOf(c) {
     if (c === 'worlds') return String(LIGHTS.length + FREE.length + Object.keys(CATALOG.world).length);
     const list = c === 'tree' ? Object.keys(CATALOG.tree).map(k => ['tree', k]) : itemsOf(c);
@@ -452,14 +465,14 @@
   const kindOf = (cat, k) => { if (cat === 'tree') return 'tree'; if (cat === 'island') return CAR.includes(k) ? 'car' : 'isl'; const s = slotOf('dial', k); return s === 'arcadePal' ? 'pal' : s === 'arcadeSet' ? 'set' : s === 'bgNeon' ? 'bg' : /^deep/.test(s) ? 'fs' : 'dial'; };
   const worldItems = w => [...Object.keys(CATALOG.dial).filter(k => DIAL_WORLD[k] === w).map(k => ['dial', k]),
     ...Object.keys(CATALOG.island).filter(k => (ML.ISLAND_WORLD || {})[k] === w).map(k => ['island', k]), ...TREE_SKINS.filter(k => TREE_WORLD[k] === w).map(k => ['tree', k])];
-  const HOME_SHELVES = ['tree', 'familiar', 'hat', 'ring', 'burst'];
+  const HOME_SHELVES = ['tree', 'familiar', 'ring', 'burst']; // 3.109 (H1): no more hats, they only dressed the old logo
   const LIGHT_KEY = { sanctuary: 'aube', observatory: 'atelier', netrunner: 'tokyo', arcade: 'cartouche' };
   const keyNow = () => { const w = ML.worldNow ? ML.worldNow(S.mood) : { th: '' }; return w.light ? LIGHT_KEY[w.th] : w.th; };
   const allWorlds = () => (ML.worldsFor ? ['steady', 'fired', 'scattered'].flatMap(m => ML.worldsFor(m).map(x => Object.assign({ m }, x))) : []);
   let wsel = null; // the world shown at the top of the shop; null = the one on screen
-  const JPG = ['observatory', 'netrunner', 'arcade', 'atelier', 'tokyo', 'cartouche', 'sanctuary'];
-  const FACE = { neoncity: ['dial', 'city'], sorcerer: ['dial', 'spell'], fog: ['dial', 'incant'], abyss: ['dial', 'diver'] };
-  const heroPic = key => (JPG.includes(key) ? `<img src="world-${key}.jpg" alt="" loading="lazy">` : FACE[key] ? preview(...FACE[key]) : (ML.worldArt ? ML.worldArt(key) : ''));
+  // 3.109 (B1): each world's own background, captured at 1120 × 490 (shop-<key>.jpg, made with tools/recv.ps1), shown in a low band
+  const SHOT = ['observatory', 'sorcerer', 'atelier', 'abyss', 'netrunner', 'neoncity', 'tokyo', 'arcade', 'fog', 'cartouche', 'sanctuary'];
+  const heroPic = key => (SHOT.includes(key) ? `<img src="shop-${key}.jpg" alt="" decoding="async">` : (ML.worldArt ? ML.worldArt(key) : ''));
   // X5: « New » on items added lately, until their sheet is opened (or two weeks after it was first shown)
   const NEW_ITEMS = ['dial:enamel', 'dial:register', 'tree:inkpine', 'tree:islet'];
   function isNew(cat, k) {
@@ -480,10 +493,12 @@
     const list = allWorlds(), now = keyNow(), sel = list.find(x => x.key === (wsel || now)) || list.find(x => x.key === now) || list[0];
     if (!sel) return '';
     const items = worldItems(sel.key), own = items.filter(([a, k]) => stateOf(a, k).own).length, here = sel.key === now;
-    const strip = `<div class="sh-wstrip" role="group" aria-label="${esc(t('cat_worlds'))}">${list.map(x => `<button type="button" class="sh-wchip ${x.locked ? 'locked' : ''}" data-wsel="${x.key}" aria-pressed="${x.key === sel.key}" aria-label="${esc(x.name + (x.key === now ? ' · ' + t('sh_here') : '') + (x.locked ? ' · Premium' : ''))}">${x.key === now ? `<i class="here">${esc(t('sh_here'))}</i>` : ''}${x.locked ? '<i class="lk"></i>' : ''}<span class="ph">${ML.worldArt ? ML.worldArt(x.key) : ''}</span><small>${esc(x.name)}</small></button>`).join('')}</div>`;
+    // 3.109 (A1 of proposals/boutique-v3): the eleven worlds in three rows, one per energy, all in sight without scrolling
+    const chip = x => `<button type="button" class="sh-wchip ${x.locked ? 'locked' : ''}" data-wsel="${x.key}" aria-pressed="${x.key === sel.key}" aria-label="${esc(x.name + (x.key === now ? ' · ' + t('sh_here') : '') + (x.locked ? ' · Premium' : ''))}">${x.key === now ? `<i class="here">${esc(t('sh_here'))}</i>` : ''}${x.locked ? '<i class="lk"></i>' : ''}<span class="ph">${ML.worldArt ? ML.worldArt(x.key) : ''}</span><small>${esc(x.name)}</small></button>`;
+    const strip = `<div class="sh-wrows" role="group" aria-label="${esc(t('cat_worlds'))}">${['fired', 'steady', 'scattered'].map(m => { const l = list.filter(x => x.m === m); return l.length ? `<div class="sh-wrow"><span class="sh-wmood">${esc(t('mood_' + m))}</span>${l.map(chip).join('')}</div>` : ''; }).join('')}</div>`;
     const btn = here ? '' : sel.locked ? (sel.light ? `<button type="button" class="small" data-world="${sel.key}">${esc(t('w_preview'))}</button>` : `<button type="button" class="small" data-item="world:${sel.key}">${esc(t('w_preview'))}</button>`)
       : `<button type="button" class="small" data-wuse="${sel.m}:${sel.w}">${esc(t('sh_use_world'))}</button>`;
-    const hero = `<div class="sh-whero"><span class="bgp">${heroPic(sel.key)}</span><div><span><b>${esc(sel.name)}</b><small>${esc(t('mood_' + sel.m))}${items.length ? ' · ' + esc(t('sh_count', { a: own, b: items.length })) : ''}${sel.locked ? ' · Premium' : ''}${here ? ' · ' + esc(t('sh_here')) : ''}</small></span>${btn}</div></div>`;
+    const hero = `<div class="sh-whero" data-k="${sel.key}"><span class="bgp">${heroPic(sel.key)}</span><div><span><b>${esc(sel.name)}</b><small>${esc(t('mood_' + sel.m))}${items.length ? ' · ' + esc(t('sh_count', { a: own, b: items.length })) : ''}${sel.locked ? ' · Premium' : ''}${here ? ' · ' + esc(t('sh_here')) : ''}</small></span>${btn}</div></div>`;
     const kinds = KINDS.map(kd => { const l = items.filter(([a, k]) => kindOf(a, k) === kd); if (!l.length) return ''; const o = l.filter(([a, k]) => stateOf(a, k).own).length;
       return `<h4 class="shop-world">${esc(t('sk_' + kd))}<small>${esc(t('sh_count', { a: o, b: l.length }))}</small></h4><div class="shop-tiles">${l.map(([a, k]) => tile(a, k)).join('')}</div>`; }).join('');
     return strip + hero + (kinds || `<p class="hint">${esc(t('sh_wnone'))}</p>`) + `<p class="hint">${esc(t('sh_wtree'))}</p>`;
@@ -494,7 +509,8 @@
     const page = ML.modOn && ML.modOn('game'); // the familiar's page is in the game module; without it, the costumes keep their shelf here
     return `<button type="button" class="sh-cos" ${page ? 'data-cos' : 'data-shelf="seq"'}><span class="ph">${ML.costumeSvg ? ML.costumeSvg(S.econ.equip.costume !== 'none' ? S.econ.equip.costume : all[0]) : ''}</span><span>${esc(t(page ? 'sh_cos' : 'sh_cos2', { a: have, b: all.length }))}</span><b>›</b></button>`;
   }
-  const home = () => `<div class="shop-top"><div class="shop-gold"><span>◈</span><b>${goldNow()}</b></div><p class="hint">${esc(t('shop_hint'))}</p></div>
+  // X1: the gold on one line; how it is earned behind a « ? »
+  const home = () => `<details class="shop-top"><summary class="shop-gold"><span>◈</span><b>${goldNow()}</b><small>${esc(t('sh_rate'))}</small><i aria-label="${esc(t('sh_how'))}">?</i></summary><p class="hint">${esc(t('shop_hint'))}</p></details>
     ${worldBlock()}${premBand()}
     <h3 class="shop-sub">${esc(t('sh_everywhere'))}</h3>
     <div class="shop-shelves">${HOME_SHELVES.map(c => `<button type="button" class="shop-shelf" data-shelf="${c}"><span class="pic">${shelfPic(c)}</span><span class="nm"><b>${esc(t(SHELF_NAME[c]))}</b><small>${esc(countOf(c))}</small></span></button>`).join('')}</div>
@@ -556,16 +572,11 @@
     const body = $('shop-body');
     body.innerHTML = (fitting ? fitView() : shelf ? shelfView(shelf) : home()) + (fitting || shelf === 'potion' ? '' : counter());
     body.classList.toggle('sh-home', !fitting && !shelf);
-    stripInSight();
-    body.querySelectorAll('.world-pic img, .world-free img, .shop-shelf img:not(.tree-prev)').forEach(i => i.addEventListener('error', () => i.remove()));
+    body.querySelectorAll('.world-pic img, .world-free img, .sh-whero img, .shop-shelf img:not(.tree-prev)').forEach(i => i.addEventListener('error', () => i.remove()));
     if (fitting) mountFit();
     if (ML.treePrevs) ML.treePrevs(body);
     if (ML.islandPrevs) ML.islandPrevs(body);
     if (itemOpen && !ish.hidden) renderItem();
-  }
-  function stripInSight() { // keep the picked world in sight in the strip
-    const ws = $('shop-body').querySelector('.sh-wstrip'), wp = ws && ws.querySelector('[aria-pressed="true"]');
-    if (wp) { const x = wp.getBoundingClientRect().left - ws.getBoundingClientRect().left + ws.scrollLeft; if (x < ws.scrollLeft || x + wp.offsetWidth > ws.scrollLeft + ws.clientWidth) ws.scrollLeft = x - 8; }
   }
 
   /* D1 + X3: the item's sheet. The picture is the item as you'd wear it (a familiar keeps your costume), the arrows go through the shelf */
