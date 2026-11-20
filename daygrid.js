@@ -438,7 +438,7 @@
     changed(tn('dg_tpl_added', n), snap);
   }
 
-  ML.dg = { nextFree, busy, addBlock, ripple, placeTask, blockName, freeMins, itemsOn };
+  ML.dg = { nextFree, busy, addBlock, ripple, placeTask, blockName, freeMins, itemsOn, toggleDone, myHours };
 
   /* ---------- Layout: at most `cap` side by side; events stay visible first, then blocks not done ---------- */
   function layout(list, cap) {

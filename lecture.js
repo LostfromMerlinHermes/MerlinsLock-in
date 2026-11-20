@@ -227,6 +227,7 @@
     else if (b.dataset.lcSeek !== undefined && audio) { audio.currentTime = +b.dataset.lcSeek; audio.play().catch(() => {}); }
     else if (b.dataset.lcNdel) { const lec = byId(rec ? rec.id : openId); if (lec) { lec.notes = lec.notes.filter(n => n.id !== b.dataset.lcNdel); save(); render(); } }
   });
+  ML.lectureOpen = id => { if (!byId(id)) return; openId = id; ML.setTab('lectures'); render(); }; // the subject page (subjects.js, 3.111)
   root.addEventListener('change', e => { if (e.target.id === 'lc-rename') { const lec = byId(openId); if (lec && e.target.value.trim()) { lec.title = e.target.value.trim(); save(); } } });
 
   on('tab', n => { renderPill(); if (n === 'lectures') render(); });

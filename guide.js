@@ -5,12 +5,12 @@
   'use strict';
   const { $, S, t, esc, on, save } = ML;
 
-  const VERSION = '3.64'; // bump with the features you add below
+  const VERSION = '3.111'; // bump with the features you add below
   // id, group, since, go: a tab name, or 'timer' / 'shop' / 'settings' / 'worlds' / 'energy' / 'quick'
   const GUIDE = [
     ['energy', 'timer', '3.0', 'energy'], ['timer', 'timer', '3.0', 'timer'], ['deep', 'timer', '3.0', 'timer'], ['sound', 'timer', '3.30', 'sound'], ['quick', 'timer', '3.58', 'quick'], ['ksearch', 'timer', '3.60', 'search'], ['sess', 'timer', '3.60', 'settings'], ['gest', 'work', '3.60', 'plan'],
-    ['plan', 'work', '3.0', 'plan'], ['inbox', 'work', '3.56', 'plan'], ['day', 'work', '3.0', 'day'], ['cal', 'work', '3.0', 'cal'], ['mail', 'work', '3.50', 'plan'],
-    ['notes', 'study', '3.0', 'notes'], ['lib', 'study', '3.54', 'lib'], ['cards', 'study', '3.8', 'study'], ['subjects', 'study', '3.58', 'subjects'], ['exams', 'study', '3.58', 'subjects'], ['grades', 'study', '3.58', 'subjects'], ['lectures', 'study', '3.59', 'lectures'], ['mock', 'study', '3.59', 'subjects'], ['learn', 'study', '3.56', 'learn'],
+    ['plan', 'work', '3.0', 'plan'], ['inbox', 'work', '3.56', 'plan'], ['day', 'work', '3.0', 'day'], ['cal', 'work', '3.0', 'cal'], ['mail', 'work', '3.50', 'plan'], ['placer', 'work', '3.111', 'plan'],
+    ['notes', 'study', '3.0', 'notes'], ['lib', 'study', '3.54', 'lib'], ['cards', 'study', '3.8', 'study'], ['subjects', 'study', '3.58', 'subjects'], ['sjpage', 'study', '3.111', 'subjects'], ['sjshare', 'study', '3.111', 'subjects'], ['exams', 'study', '3.58', 'subjects'], ['grades', 'study', '3.58', 'subjects'], ['lectures', 'study', '3.59', 'lectures'], ['mock', 'study', '3.59', 'subjects'], ['learn', 'study', '3.56', 'learn'],
     ['fc', 'you', '3.62', 'focus'], ['tree', 'you', '3.63', 'tree'], ['stuck', 'you', '3.62', 'focus'], ['pd', 'you', '3.62', 'focus'], ['scr', 'you', '3.62', 'screen'], ['hl', 'you', '3.62', 'health'], ['grim', 'you', '3.0', 'grim'], ['tower', 'you', '3.0', 'grim'], ['exped', 'you', '3.59', 'grim'], ['season', 'you', '3.59', 'grim'], ['boss', 'you', '3.0', 'plan'], ['room', 'you', '3.58', 'room'], ['roomchat', 'you', '3.64', 'room'], ['shop', 'you', '3.0', 'shop'], ['worlds', 'you', '3.29', 'worlds'], ['sync', 'you', '3.0', 'settings'],
   ].map(([id, group, since, go]) => ({ id, group, since, go }));
   const TIPS = ['plan', 'day', 'cal', 'notes', 'lib', 'study', 'subjects', 'lectures', 'learn', 'grim', 'room'];
@@ -30,6 +30,7 @@
       g_inbox: 'Inbox', g_inbox_d: 'Une pensée parasite pendant une session ? Garde-la ici et trie-la plus tard : tâche, note, ou à oublier.',
       g_day: 'Calendrier, vue Jour', g_day_d: 'Place tes tâches sur la journée, ou laisse Auto-planifier trouver les créneaux libres.',
       g_cal: 'Calendrier', g_cal_d: 'Tes événements et échéances, avec un calendrier externe si tu veux.',
+      g_placer: 'Placer une tâche', g_placer_d: 'Donne une heure à une tâche en la créant (puce Heure, ou « à 14h ») ou plus tard avec Placer : elle entre dans le calendrier, sur un créneau libre.', g_sjpage: 'Page d’une matière', g_sjpage_d: 'Ouvre une matière pour voir ses tâches, ses documents, ses cartes et ses examens au même endroit, et lancer un Lock in.', g_sjshare: 'Matière partagée', g_sjshare_d: 'Partage une matière avec un code : chacun y met des paquets, des notes et des liens, et le groupe se partage les chapitres.',
       g_mail: 'Mails', g_mail_d: 'Une tâche peut porter un mail écrit à l’avance. Il s’ouvre prêt à partir dans ta messagerie.',
       g_notes: 'Carnet', g_notes_d: 'Une page par jour et tes pages libres, avec des formules de maths.',
       g_lib: 'Bibliothèque', g_lib_d: 'Importe tes PDF, lis-les, surligne et fais-en des cartes. Premium.',
@@ -66,6 +67,7 @@
       g_inbox: 'Inbox', g_inbox_d: 'A stray thought during a session? Keep it here and sort it later: task, note or let go.',
       g_day: 'Day', g_day_d: 'Place your tasks on the day, or let Auto-plan find the free slots.',
       g_cal: 'Calendar', g_cal_d: 'Your events and deadlines, with an outside calendar if you want.',
+      g_placer: 'Place a task', g_placer_d: 'Give a task a time when you add it (Time chip, or “at 2pm”) or later with Place: it goes into the calendar, on a free slot.', g_sjpage: 'Subject page', g_sjpage_d: 'Open a subject to see its tasks, documents, cards and exams in one place, and start a Lock in.', g_sjshare: 'Shared subject', g_sjshare_d: 'Share a subject with a code: each one adds decks, notes and links, and the group splits the chapters.',
       g_mail: 'Emails', g_mail_d: 'A task can carry an email written in advance. It opens ready to send in your mail app.',
       g_notes: 'Notes', g_notes_d: 'One page per day and your free pages, with math formulas.',
       g_lib: 'Library', g_lib_d: 'Import your PDFs, read, highlight and turn them into cards. Premium.',

@@ -18,6 +18,10 @@
       ss_title: 'Session mode', ss_tools: 'Tools', ss_docs: 'Documents · {g}', ss_opt: 'Session mode: during a Lock in, take XP, quests, shop and energies off the screen',
     },
   });
+  ML.addStrings({
+    fr: { td_day: 'Ma journée', td_planned: '{m} prévues', td_untimed: 'Sans heure', td_more: '{n} de plus dans Plan', td_at: 'À {h}', td_notes: '{n} pense-bêtes', td_notes_one: '1 pense-bête', td_add_s: '+ Tâche' },
+    en: { td_day: 'My day', td_planned: '{m} planned', td_untimed: 'No time', td_more: '{n} more in Plan', td_at: 'At {h}', td_notes: '{n} sticky notes', td_notes_one: '1 sticky note', td_add_s: '+ Task' },
+  });
   ML.defaults(() => ({ sessMode: true }));
 
   const root = document.documentElement;
@@ -32,46 +36,79 @@
   const dueLine = n => (n === 1 ? t('td_due_one') : t('td_due', { n }));
 
   /* ---------- Today ---------- */
-  function hoursHtml() {
-    const k = today(), now = nowMins(), rows = [];
-    (ML.eventsOn ? ML.eventsOn(k) : []).forEach(x => { if (x.start != null) rows.push({ at: x.start, end: x.end, title: x.ev.title, sub: x.ev.notes || '', kind: 'ev', go: 'cal' }); });
-    (S.blocks || []).filter(b => b.date === k && !b.done).forEach(b => {
+  // A1 of proposals/matieres-today (3.111): the day as one list. The calendar's timed rows (events, blocks) by hour,
+  // tickable here, then the tasks for today (or late, or pinned) that have no time yet, each with « Placer ».
+  const CK = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.5 L5 9 L10 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  function dayRows() {
+    const k = today(), rows = [];
+    (ML.eventsOn ? ML.eventsOn(k) : []).forEach(x => { if (x.start != null) rows.push({ at: x.start, end: Math.min(x.end, 1440), title: x.ev.title, kind: 'ev' }); });
+    (S.blocks || []).filter(b => b.date === k && !b.skipped).forEach(b => {
       const task = b.taskId && S.tasks.find(x => x.id === b.taskId);
-      rows.push({ at: b.start, end: b.start + b.mins, title: task ? ML.titleOf(task) : b.title || '', sub: fmtMins(b.mins), kind: 'bl', go: 'day' });
+      rows.push({ at: b.start, end: b.start + b.mins, title: task ? ML.titleOf(task) : ML.dg ? ML.dg.blockName(b) : b.title || '', kind: 'bl', b, task, done: ML.blockDone ? ML.blockDone(b) : !!b.done, check: b.check !== false });
     });
-    rows.sort((a, b) => a.at - b.at);
-    const shown = rows.filter(r => r.end > now).slice(0, 5);
-    if (!shown.length) return `<button type="button" class="td-empty" data-go="day"><span>${esc(t('td_empty_h'))}</span><b>${esc(t('td_plan'))}</b></button>`;
-    return shown.map(r => `<button type="button" class="td-hour ${r.kind} ${r.at <= now ? 'now' : ''}" data-go="${r.go}"><span class="td-at">${esc(r.at <= now ? t('td_now') : hm(r.at))}</span><span class="td-bl"><b>${esc(r.title)}</b>${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</span></button>`).join('');
+    return rows.sort((a, b) => a.at - b.at);
+  }
+  function dayHtml(rows) {
+    const now = nowMins();
+    return rows.map(r => {
+      const cur = r.at <= now && r.end > now, past = r.end <= now;
+      const box = r.kind === 'bl' && r.check ? `<button type="button" class="td-ck ${r.done ? 'on' : ''}" data-bck="${r.b.id}" aria-pressed="${r.done}" aria-label="${esc(t(r.done ? 'mark_undone' : 'mark_done') + ' : ' + r.title)}">${CK}</button>` : `<span class="td-dot ${r.kind}" aria-hidden="true"></span>`;
+      return `<div class="td-dr ${r.kind}${cur ? ' now' : ''}${past && !r.done ? ' past' : ''}${r.done ? ' done' : ''}"><span class="td-at">${esc(hm(r.at))}</span>${box}<button type="button" class="td-dt" data-go="${r.kind === 'ev' ? 'cal' : 'day'}">${esc(r.title)}</button><small>${esc(fmtMins(r.end - r.at))}</small></div>`;
+    }).join('');
+  }
+  function untimed(rows) {
+    const td = today(), placed = new Set(rows.filter(r => r.b && r.b.taskId).map(r => r.b.taskId));
+    return ML.orderedOpen().filter(x => !x.sample && !placed.has(x.id) && ((x.due && x.due <= td) || x.pin));
+  }
+  function untimedHtml(list) {
+    const td = today();
+    return list.slice(0, 6).map(x => `<div class="td-dr nt"><button type="button" class="td-ck" data-tck="${x.id}" aria-label="${esc(t('mark_done') + ' : ' + ML.titleOf(x))}">${CK}</button><button type="button" class="td-dt" data-tedit="${x.id}">${esc(ML.titleOf(x))}${x.due && x.due < td ? `<em class="td-late">${esc(t('late'))}</em>` : ''}</button><small>${esc(fmtMins(x.mins))}</small>${ML.placeSheet ? `<button type="button" class="chip td-place" data-place="${x.id}">${esc(t('pc_place'))}</button>` : ''}</div>`).join('')
+      + (list.length > 6 ? `<button type="button" class="td-more" data-go="plan">${esc(t('td_more', { n: list.length - 6 }))}</button>` : '');
+  }
+  // The card on top: the session in progress, else the block happening now or next today, else the next task
+  function nowPick(rows) {
+    const now = nowMins(), open = r => r.kind === 'bl' && r.task && !r.task.done && !r.done;
+    const cur = rows.find(r => open(r) && r.at <= now && r.end > now); if (cur) return { x: cur.task, label: t('td_now') };
+    const nx = rows.find(r => open(r) && r.at > now); if (nx) return { x: nx.task, label: t('td_at', { h: hm(nx.at) }) };
+    const x = ML.orderedOpen()[0]; return x ? { x, label: t('td_next_e') } : null;
   }
   function comingHtml() {
-    const td = today(), rows = [], x = nextExam(), due = cardsDue(), late = S.tasks.filter(y => !y.done && y.due && y.due < td).length, inbox = (S.parked || []).length;
+    const rows = [], x = nextExam(), due = cardsDue(), inbox = (S.parked || []).length;
     if (x) rows.push(['subjects', x.name, leftTxt(daysTo(x.date)), daysTo(x.date) <= 3]);
     if (due && isPrem()) rows.push(['cards', dueLine(due), t('tab_cards')]);
-    if (late) rows.push(['late', t('td_late', { n: late }), t('tab_plan'), true]);
     if (inbox) rows.push(['inbox', t('td_inbox', { n: inbox }), t('pl_v_inbox')]);
     return rows.map(([go, a, b, hot]) => `<button type="button" class="td-row ${hot ? 'hot' : ''}" data-go="${go}"><b>${esc(a)}</b><small>${esc(b)}</small></button>`).join('');
   }
   const clock = () => MiniView.fmtClock(Math.max(0, Math.ceil(ML.remainingNow())));
   function renderToday() {
     const el = $('today'); if (!el || S.tab !== 'today') return;
-    const x = ML.orderedOpen()[0], M = ML.MOODS[S.mood], coming = comingHtml();
+    const M = ML.MOODS[S.mood], coming = comingHtml(), rows = dayRows(), free = untimed(rows), pk = nowPick(rows), x = pk && pk.x;
     // A focus session in progress (running or paused) replaces the next task: its time, Open timer, Pause / Resume
     const live = S.mode === 'focus' && (ML.running() || ML.remainingNow() < S.total);
-    const bits = x ? [fmtMins(x.mins), x.due && ML.planDayLabel(x.due), x.project].filter(Boolean).map(esc).join(' · ') : '';
+    const bits = x ? [x.due && ML.planDayLabel(x.due), x.project].filter(Boolean).map(esc).join(' · ') : '';
     const card = live ? `<div class="td-next td-live"><small>${esc(t(ML.running() ? 'focusing' : 'td_paused'))}</small><b>${esc(ML.activeTitle() || t('free_focus'))}</b><p class="td-left">${esc(clock())}</p><div class="td-btns"><button type="button" class="primary" data-go="timer">${esc(t('td_open_timer'))}</button><button type="button" class="ghost" data-go="pause">${esc(t(ML.running() ? 'pause' : 'resume'))}</button></div></div>`
-      : x ? `<div class="td-next"><small>${esc(t('td_next_e'))}</small><b>${esc(ML.titleOf(x))}</b><p>${bits}</p><div class="td-btns"><button type="button" class="primary" data-lock="${x.id}">${esc(t('lock_in'))}</button><button type="button" class="ghost" data-done="${x.id}">${esc(t('td_done'))}</button></div></div>`
+      : x ? `<div class="td-next"><small>${esc(pk.label)}</small><b>${esc(ML.titleOf(x))}</b>${bits ? `<p>${bits}</p>` : ''}<div class="td-btns"><button type="button" class="primary" data-lock="${x.id}">${esc(t('lock_in') + ' ' + fmtMins(x.mins))}</button><button type="button" class="ghost" data-done="${x.id}">${esc(t('td_done'))}</button></div></div>`
       : `<div class="td-next"><b>${esc(t('td_nothing'))}</b><div class="td-btns"><button type="button" class="primary" data-go="add">${esc(t('td_add'))}</button></div></div>`;
+    const planned = rows.reduce((a, r) => a + (r.kind === 'bl' && !r.done ? r.end - r.at : 0), 0) + free.reduce((a, y) => a + (y.mins || 0), 0);
+    const day = rows.length || free.length ? `<div class="td-dayh"><h2 class="td-h">${esc(t('td_day'))}${planned ? ` <small>${esc(t('td_planned', { m: fmtMins(planned) }))}</small>` : ''}</h2><button type="button" class="ghost small td-addt" data-go="add">${esc(t('td_add_s'))}</button></div>
+      ${rows.length ? `<div class="td-day">${dayHtml(rows)}</div>` : ''}
+      ${free.length ? `<h3 class="td-h3">${esc(t('td_untimed'))}</h3><div class="td-day">${untimedHtml(free)}</div>` : ''}`
+      : `<button type="button" class="td-empty" data-go="day"><span>${esc(t('td_empty_h'))}</span><b>${esc(t('td_plan'))}</b></button>`;
     // Plain look (3.105, E2): the energy is three words in one row, a tap sets it (no picker, no icon, no world)
     const forme = ML.sober && ML.sober() ? `<div class="td-forme"><span class="label">${esc(t('ep_label'))}</span><div class="seg-toggle" role="group" aria-label="${esc(t('ep_label'))}">${['fired', 'steady', 'scattered'].map(k => `<button type="button" data-forme="${k}" aria-pressed="${S.mood === k}">${esc(t('mood_' + k))}</button>`).join('')}</div></div>` : '';
+    // The energy and the sticky notes fold into one line at the bottom (A1); the notes open with a tap
+    const nNotes = (Array.isArray(S.postits) ? S.postits : []).filter(n => (n.place || 'today') === 'today').length, notesOpen = !!S.tdNotes;
     const html = `<div class="td">
-      ${forme || `<button type="button" class="td-energy" data-go="energy"><span class="ep-ico" style="--mood-c:${M.color}">${ML.svgIcon ? ML.svgIcon(M.icon) : ''}</span><span class="td-en-tx"><b>${esc(t('mood_' + S.mood))}</b>${ML.hasWorld() ? `<small>${esc(ML.worldName(S.mood))}</small>` : ''}</span><span class="td-chg">${esc(t('td_change'))}</span></button>`}
-      <div id="today-postits"></div>
       ${ML.eveCard ? ML.eveCard() : ''}
       ${card}
-      <h2 class="td-h">${esc(t('td_hours'))}</h2><div class="td-list">${hoursHtml()}</div>
+      ${day}
       ${coming ? `<h2 class="td-h">${esc(t('td_coming'))}</h2><div class="td-list">${coming}</div>` : ''}
       <div id="today-quests"></div>
+      <div class="td-foot">
+        ${forme || `<button type="button" class="td-energy td-en-s" data-go="energy"><span class="ep-ico" style="--mood-c:${M.color}">${ML.svgIcon ? ML.svgIcon(M.icon) : ''}</span><span class="td-en-tx"><b>${esc(t('mood_' + S.mood))}</b>${ML.hasWorld() ? `<small>${esc(ML.worldName(S.mood))}</small>` : ''}</span><span class="td-chg">${esc(t('td_change'))}</span></button>`}
+        <button type="button" class="ghost small td-notes-b" data-go="tdnotes" aria-expanded="${notesOpen}">${esc(nNotes ? ML.tn('td_notes', nNotes) : t('pi_add'))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${notesOpen ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'}"/></svg></button>
+      </div>
+      <div id="today-postits"${notesOpen ? '' : ' hidden'}></div>
     </div>`;
     const q = $('quest-strip');
     if (el.dataset.h !== html) {
@@ -110,7 +147,7 @@
     const prem = isPrem(), x = nextExam(), due = prem ? cardsDue() : 0, subs = (S.subjects || []).length, pages = ((S.notes && S.notes.pages) || []).length, docs = ML.libCount ? ML.libCount() : 0, lect = (S.lectures || []).length;
     const exLine = x ? t('hb_exam', { name: x.name, left: leftTxt(daysTo(x.date)) }) : '';
     const head = x || due ? `<div class="td-next"><small>${esc(due ? (x ? exLine : t('td_coming')) : t('hb_next_exam'))}</small><b>${esc(due ? dueLine(due) : exLine)}</b><div class="td-btns"><button type="button" class="primary" data-go="${due ? 'review' : 'subjects'}">${esc(t(due ? 'hb_review' : 'hb_open_subj'))}</button></div></div>` : '';
-    const html = `<div class="td">${head}<div class="td-list hb-list">
+    const html = `<div class="td">${head}${ML.subjectTiles ? ML.subjectTiles() : ""}<div class="td-list hb-list">
       ${hbRow('subjects', t('tab_subjects'), subs ? t('hb_subjects', { n: subs }) : t('hb_nosubj'))}
       ${hbRow('notes', t('tab_notes'), pages ? t('hb_pages', { n: pages }) : t('hb_nopage'))}
       ${hbRow('study', t('tab_cards'), prem ? (due ? dueLine(due) : t('hb_nocards')) : t('hb_cards_free'), { hot: due > 0, locked: !prem })}
@@ -172,7 +209,14 @@
     const lock = e.target.closest('[data-lock]'), done = e.target.closest('[data-done]'), b = e.target.closest('[data-go]');
     if (lock) { const x = S.tasks.find(y => y.id === lock.dataset.lock); if (x) ML.lockIn({ taskId: x.id, mins: x.mins }); return; }
     if (done) { const x = S.tasks.find(y => y.id === done.dataset.done); if (x) { ML.completeTask(x); save(); ML.renderAll(); } return; }
+    // the day list (A1): tick a block or a task, place a task, open a task's form
+    const bck = e.target.closest('[data-bck]'), tck = e.target.closest('[data-tck]'), place = e.target.closest('[data-place]'), ted = e.target.closest('[data-tedit]');
+    if (bck) { if (ML.dg && ML.dg.toggleDone) ML.dg.toggleDone(bck.dataset.bck); return; }
+    if (tck) { const x = S.tasks.find(y => y.id === tck.dataset.tck); if (x) { tck.classList.add('on'); setTimeout(() => { ML.completeTask(x); save(); ML.renderAll(); }, ML.reducedMotion() ? 0 : 260); } return; }
+    if (place) { if (ML.placeSheet) ML.placeSheet(place.dataset.place); return; }
+    if (ted) { ML.setTab('plan'); if (ML.editTask) ML.editTask(ted.dataset.tedit); return; }
     if (ML.youCardsClick && e.currentTarget.id === 'yhome' && ML.youCardsClick(e)) return;
+    const sjt = e.target.closest('[data-sjt]'); if (sjt) { if (ML.openSubject) ML.openSubject(sjt.dataset.sjt); return; }
     const fm = e.target.closest('[data-forme]');
     if (fm) { if (fm.dataset.forme !== S.mood) ML.setMood(fm.dataset.forme); return; }
     if (!b) return;
@@ -180,6 +224,7 @@
     const go = b.dataset.go;
     if (go === 'energy') return ML.energyPicker.open({ cancellable: true });
     if (go === 'pause') return ML.toggleTimer();
+    if (go === 'tdnotes') { S.tdNotes = !S.tdNotes; save(); renderToday(); return; }
     if (go === 'evecheck') return ML.openCheck && ML.openCheck();
     if (go === 'evenot') return ML.eveNot && ML.eveNot();
     if (go === 'timer') { if (document.documentElement.classList.contains('mnav-on') && ML.setMobileView) ML.setMobileView('timer'); else $('start').focus(); return; }

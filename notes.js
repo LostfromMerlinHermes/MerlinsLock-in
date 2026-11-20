@@ -80,6 +80,9 @@
     setTimeout(() => { const ti = $('nb-title'); if (ti) ti.focus(); }, 30);
   }
   ML.openDailyNote = () => { ML.setTab('notes'); openDaily(); };
+  ML.notesSetPage = (id, title, html) => { const p = page(id); if (!p) return false; if (title) p.title = String(title).slice(0, 120); p.html = sanitize(html); p.updated = Date.now(); save(); if (S.tab === 'notes') render(); return true; }; // a shared subject's note changed upstream (share.js)
+  ML.notesOpen = id => { if (!page(id)) return; flush(); N().current = id; save(); ML.setTab('notes'); render(); }; // the subject page (subjects.js, 3.111)
+  ML.notesNew = (title, subject) => { const p = { id: uid(), date: null, title: String(title || '').slice(0, 120), html: '', created: Date.now(), updated: Date.now(), pinned: false, mood: S.mood }; if (subject) p.subject = subject; N().pages.unshift(p); save(); ML.notesOpen(p.id); return p; };
   // Other modules (Study search, translator) can drop a snippet at the end of today's page
   ML.notesAppend = html => {
     flush();

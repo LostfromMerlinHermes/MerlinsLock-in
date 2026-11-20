@@ -113,7 +113,7 @@
     if (k === ' ') { stop(); if (x.done) x.done = false; else ML.completeTask(x); save(); ML.renderAll(); }
     else if (lk === 'e' || k === 'Enter') { stop(); if (S.plan.view === 'table' && ML.planRename) ML.planRename(cur); else ML.editTask(cur); }
     else if (lk === 'p') { stop(); ML.planPin(cur); }
-    else if ('123'.includes(k)) { stop(); x.pri = ['high', 'med', 'low'][+k - 1]; x.sample = false; save(); ML.renderAll(); }
+    else if ('123'.includes(k)) { stop(); x.pri = +k === 1 ? 'high' : 'med'; x.sample = false; save(); ML.renderAll(); }
     else if (lk === 'd' || lk === 'm') { stop(); ML.planEditCell(lk === 'd' ? 'due' : 'project', r, [cur]); }
     else if (lk === 'l') { stop(); if (!x.done) ML.lockIn({ taskId: x.id, mins: x.mins }); }
     else if (k === 'Escape') { stop(); mark(null); }

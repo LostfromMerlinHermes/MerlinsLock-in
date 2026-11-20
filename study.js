@@ -755,6 +755,19 @@
     ST().decks.push(deck); cards.forEach(c => addCard(deck.id, String(c.front), String(c.back))); save();
     return deck;
   };
+  // A shared subject's deck changed upstream (share.js, 3.111): the copy takes the new list of cards. A card whose front
+  // is unchanged keeps its review progress; removed cards go, new ones are added as new.
+  ML.studySyncDeck = (deckId, name, cards) => {
+    const d = ST().decks.find(x => x.id === deckId); if (!d) return null;
+    if (name) d.name = String(name).slice(0, 60);
+    const old = deckCards(deckId), byFront = new Map(old.map(c => [c.front, c])), keep = new Set();
+    cards.slice(0, 2000).forEach(c => {
+      const f = String(c.front).trim().slice(0, FRONT_MAX), b = String(c.back).trim().slice(0, BACK_MAX), was = byFront.get(f);
+      if (was && !keep.has(was.id)) { was.back = b; keep.add(was.id); } else keep.add(addCard(deckId, f, b).id);
+    });
+    ST().cards = ST().cards.filter(c => c.deck !== deckId || keep.has(c.id));
+    save(); return d;
+  };
   // Used by the Notebook ("highlight → flashcard") and the translator
   ML.studyDecks = () => ST().decks.map(d => ({ id: d.id, name: d.name }));
   ML.studyDeckInfo = id => ({ cards: deckCards(id).slice().reverse(), due: queueFor(id).length, exists: ST().decks.some(d => d.id === id) });

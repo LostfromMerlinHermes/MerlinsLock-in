@@ -529,6 +529,17 @@
   ML.libCount = () => (docs ? docs.length : 0);
   ML.libDocs = () => load().then(() => docs || []); // the search bar (search.js)
   ML.libOpen = id => { ML.setTab('lib'); openReader(id); };
+  // Subjects (3.111, D1): a document's subject is its own (d.subject, on this device like the rest of its record), else
+  // the subject named like its folder or one of the folders above it
+  const subjectOfDoc = d => {
+    if (d.subject) return d.subject;
+    const subs = S.subjects || []; if (!subs.length) return null;
+    for (let g = groupOf(d), n = 0; g && n < 20; g = g.parent && groupById(g.parent), n++) { const s = subs.find(x => x.name.trim().toLowerCase() === String(g.name || '').trim().toLowerCase()); if (s) return s.id; }
+    return null;
+  };
+  ML.libSubjectOf = subjectOfDoc;
+  ML.libDocsOf = subj => load().then(() => (docs || []).filter(d => subjectOfDoc(d) === subj));
+  ML.libSetSubject = (id, subj) => load().then(() => { const d = (docs || []).find(x => x.id === id); if (!d) return; if (subj) d.subject = subj; else delete d.subject; putDoc(d).catch(() => {}); emit('lib:subject'); });
   async function openReader(id, page) {
     const d = (docs || []).find(x => x.id === id); if (!d) return;
     if (cur) closeReader(true);
@@ -874,6 +885,7 @@
       { label: t('lb_c_open'), fn: () => openReader(id, 0) },
       { label: t('lb_c_edit'), fn: () => { editing = id; armed = null; refresh(); focusIn(`[data-lb-name="${id}"]`); } },
       d.group ? { label: t('lb_c_out'), fn: () => { moveDoc(d, ''); refresh(); emit('lib:groups'); } } : null,
+      (S.subjects || []).length && ML.subjectPick ? { label: t('sj_task_field') + ((s => (s ? ' : ' + s.name : ''))((S.subjects || []).find(x => x.id === subjectOfDoc(d)))), fn: () => ML.subjectPick(el, subjectOfDoc(d), v => ML.libSetSubject(d.id, v)) } : null,
       ML.CAN_DOWNLOAD ? { label: t('lb_download'), fn: () => downloadDoc(d) } : null,
       { sep: true },
       { label: t('lb_delete'), danger: true, armed: true, fn: () => removeDoc(id) },

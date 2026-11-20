@@ -117,6 +117,10 @@
     const out = {}, td = today();
     let s = ' ' + raw.replace(/!+/g, ' ! ') + ' ';
     s = s.replace(/\s#([\p{L}\p{N}_-]{1,40})(?=\s)/u, (m, p) => { out.project = p.replace(/[_]/g, ' '); return ' '; });
+    // a time of day (3.111): « à 14h », « à 14h30 », « at 9 », « 14:30 » (a bare « 14h » stays a length)
+    const atOk = (h, mm) => (+h < 24 && +mm < 60 ? +h * 60 + +mm : null);
+    s = s.replace(/\s(?:à|a|at|@)\s?(\d{1,2})(?:\s?[h:]\s?(\d{2})?)?(?=\s)/i, (m, h, mm) => { const v = atOk(h, mm || 0); if (v == null) return m; out.at = v; return ' '; });
+    if (out.at == null) s = s.replace(/\s(\d{1,2}):(\d{2})(?=\s)/, (m, h, mm) => { const v = atOk(h, mm); if (v == null) return m; out.at = v; return ' '; });
     s = s.replace(/\s(\d{1,2})\s?h\s?(\d{2})?(?=\s)/i, (m, h, mm) => { out.mins = +h * 60 + (+mm || 0); return ' '; });
     if (out.mins == null) s = s.replace(/\s(\d{1,3})\s?(?:m|mn|min|mins|minutes?)(?=\s)/i, (m, n) => { out.mins = +n; return ' '; });
     if (!(out.mins > 0 && out.mins <= 600)) delete out.mins;
@@ -208,7 +212,7 @@
     },
     mins: cur => [15, 25, 30, 40, 45, 60, 90, 120, 180].map(m => item(m, esc(fmtMins(m)), cur === m)).join('')
       + `<form class="pp-form" data-pk="mins"><input type="text" inputmode="text" maxlength="8" placeholder="${esc(t('pl_m_custom'))}" aria-label="${esc(t('pl_m_custom'))}"><button type="submit" class="small">${esc(t('pl_ok'))}</button></form>`,
-    pri: cur => ['high', 'med', 'low'].map(p => item(p, esc(t('pri_' + p)), cur === p, '', `<i class="pp-pri p-${p}"></i>`)).join(''),
+    pri: cur => ['high', 'med'].map(p => item(p, esc(t('pri_' + p)), (cur === 'high' ? 'high' : 'med') === p, '', `<i class="pp-pri p-${p}"></i>`)).join(''),
     // cur: { repeat, days }. The day buttons stay open and toggle; picking one switches to "chosen days"
     repeat: cur => ['', 'daily', 'weekdays', 'weekly'].map(r => item({ r }, esc(r ? t('repeat_' + r) : t('repeat_none')), (cur.repeat || '') === r)).join('')
       + `<div class="pp-days" role="group" aria-label="${esc(t('repeat_days'))}"><span>${esc(t('repeat_days'))}</span><div>${ML.WD_ORDER.map(d => { const onx = cur.repeat === 'days' && (cur.days || []).includes(d); return `<button type="button" class="pp-day ${onx ? 'on' : ''}" data-pv="${pv({ day: d })}" data-keep="1" aria-pressed="${onx}" aria-label="${esc(ML.wdName(d, 'long'))}">${esc(ML.wdName(d, 'narrow'))}</button>`; }).join('')}</div></div>`,
@@ -270,7 +274,8 @@
       // 3.91: a task added from the List is for today unless typed or picked otherwise (« Sans date » stays one tap away in the chip); Upcoming adds for tomorrow, the Inbox adds undated
       due: has('due') ? draft.due : q.due || (P().pview === 'inbox' ? null : P().pview === 'upcoming' ? ML.addDays(ML.today(), 1) : ML.today()),
       mins: draft.mins || q.mins || +$('new-mins').value,
-      pri: draft.pri || q.pri || $('new-pri').value,
+      pri: (draft.pri || q.pri || $('new-pri').value) === 'high' ? 'high' : 'med',
+      at: has('at') ? draft.at : q.at != null ? q.at : null, // a time of day (3.111, B1): the task is also placed in the calendar
       repeat: { repeat: draft.repeat || '', days: draft.days || [] },
       pin: !!draft.pin, q,
     };
@@ -282,17 +287,26 @@
     chips.hidden = single || !isWriting();
     if (chips.hidden) return;
     const chip = (k, html, onx, extra = '') => `<button type="button" class="chip qa-chip ${onx ? 'on' : ''}" data-qa="${k}" ${extra}>${html}</button>`;
-    chips.innerHTML = chip('project', e.project ? projDot(e.project) + esc(e.project) : esc(t('pl_project')), !!e.project, 'aria-haspopup="true" aria-expanded="false"')
-      + chip('due', esc(e.due ? cap(dayLabel(e.due)) : t('pl_c_date')), !!e.due, 'aria-haspopup="true" aria-expanded="false"')
-      + chip('mins', esc(fmtMins(e.mins)), !!(draft.mins || e.q.mins), 'aria-haspopup="true" aria-expanded="false"')
-      + chip('pri', `<i class="pp-pri p-${e.pri}"></i>${esc(t('pri_' + e.pri))}`, e.pri !== 'med', 'aria-haspopup="true" aria-expanded="false"')
-      + chip('repeat', '↻ ' + esc(e.repeat.repeat ? ML.repeatLabel(e.repeat) : t('repeat')), !!e.repeat.repeat, 'aria-haspopup="true" aria-expanded="false"')
+    // 3.111 (B1): when first, then the length; the time chip offers the day's next free slots for that length
+    const pop1 = 'aria-haspopup="true" aria-expanded="false"';
+    chips.innerHTML = chip('due', esc(e.due ? cap(dayLabel(e.due)) : t('pl_c_date')), !!e.due, pop1)
+      + chip('at', esc(e.at != null && ML.hm ? ML.hm(e.at) : t('te_time')), e.at != null, pop1)
+      + chip('mins', esc(fmtMins(e.mins)), !!(draft.mins || e.q.mins), pop1)
+      + chip('pri', esc(t('pri_high')), e.pri === 'high', `aria-pressed="${e.pri === 'high'}"`)
+      + chip('repeat', '↻ ' + esc(e.repeat.repeat ? ML.repeatLabel(e.repeat) : t('repeat')), !!e.repeat.repeat, pop1)
+      + chip('project', e.project ? projDot(e.project) + esc(e.project) : esc(t('pl_project')), !!e.project, pop1)
       + chip('pin', PIN_SVG + esc(t('pl_c_pin')), e.pin, `aria-pressed="${e.pin}"`);
   }
   chips.addEventListener('click', ev => {
     const b = ev.target.closest('[data-qa]'); if (!b) return;
     const k = b.dataset.qa, e = eff();
     if (k === 'pin') { draft.pin = !draft.pin; renderChips(); return; }
+    if (k === 'pri') { draft.pri = e.pri === 'high' ? 'med' : 'high'; renderChips(); return; }
+    if (k === 'at') {
+      if (!ML.timePop) return;
+      ML.timePop(b, e.due || today(), e.mins, e.at, undefined, v => { draft.at = v; if (v != null && !e.due) draft.due = today(); renderChips(); const nb = chips.querySelector('[data-qa="at"]'); if (nb && document.activeElement === document.body) nb.focus(); });
+      return;
+    }
     if (k === 'repeat') {
       openPicker(k, b, e.repeat, (v, btn) => {
         if (v.day == null) { draft.repeat = v.r; delete draft.days; renderChips(); return; }
@@ -311,16 +325,19 @@
   function renderPreview() { prev.innerHTML = !field.value.trim() && document.activeElement === field ? `<span class="qa-tip">${esc(t('pl_qa_tip'))}</span>` : ''; }
   field.addEventListener('input', () => {
     const q = field.value.trim() ? parseQuick(field.value) : {};
-    ['project', 'due', 'mins', 'pri'].forEach(k => { if (q[k] !== undefined && lastQ[k] === undefined) delete draft[k]; }); // typing a token takes over that chip
+    ['project', 'due', 'mins', 'pri', 'at'].forEach(k => { if (q[k] !== undefined && lastQ[k] === undefined) delete draft[k]; }); // typing a token takes over that chip
     lastQ = q; renderChips(); renderPreview();
   });
   field.addEventListener('focus', () => { writing = true; renderChips(); renderPreview(); });
   field.addEventListener('blur', () => setTimeout(renderPreview, 150));
   on('quick:clear', () => { draft = {}; lastQ = {}; renderChips(); renderPreview(); });
   // app.js's add form calls this on the new task before saving it
+  let pendingAt = null; // the time picked for the task being added: placed once it is in S.tasks (task:added below)
   ML.qaApply = task => {
     const e = eff();
     task.mins = e.mins; task.pri = e.pri;
+    pendingAt = e.at != null ? { id: task.id, at: e.at } : null;
+    if (e.at != null && !e.due) e.due = today();
     if (e.due) task.due = e.due; else delete task.due;
     if (e.project) task.project = e.project; else delete task.project;
     if (e.pin) setPin(task, true);
@@ -332,6 +349,7 @@
   };
   // A new task the current view doesn't show (no date in Today, a filter…): say where it went, offer today
   on('task:added', task => {
+    if (task && pendingAt && pendingAt.id === task.id && ML.placeTaskAt) { const a = pendingAt.at; pendingAt = null; ML.placeTaskAt(task, task.due || today(), a); return; }
     if (!task || S.tab !== 'plan' || task.pin) return;
     const p = P(), hidden = (p.proj && task.project !== p.proj) || !inView(task) || p.pview === 'inbox';
     if (!hidden) return;
@@ -657,14 +675,14 @@
     const due = dueOf(x);
     if (gm === 'today') return due && due < td ? 'late' : 'today';
     if (gm === 'days') return !due || due <= td ? td : due <= addDays(td, 6) ? due : 'later';
-    return gm === 'moment' ? momentOf(x) : gm === 'project' ? (x.project || '') : gm === 'pri' ? x.pri : 'all';
+    return gm === 'moment' ? momentOf(x) : gm === 'project' ? (x.project || '') : gm === 'pri' ? (x.pri === 'high' ? 'high' : 'med') : 'all';
   }
   function orderOf(gm, items) {
     const td = today();
     if (gm === 'today') return ['late', 'today'];
     if (gm === 'days') return [...Array(7)].map((_, i) => addDays(td, i)).concat('later');
     if (gm === 'moment') return ['today', 'week', 'nodate', 'later'];
-    if (gm === 'pri') return ['high', 'med', 'low'];
+    if (gm === 'pri') return ['high', 'med'];
     if (gm === 'project') return [...new Set([...items.map(x => x.project).filter(Boolean), ...(P().pview === 'projects' && !P().proj ? (P().plist || []) : [])])].sort(byName).concat('');
     return ['all'];
   }
@@ -880,7 +898,7 @@
     if (tr) { startRename(tr.dataset.tren); return; }
     if (tc) {
       const id = tc.closest('.task').dataset.id, x = S.tasks.find(y => y.id === id), k = tc.dataset.tcell;
-      if (k === 'pri' && x) { x.pri = { high: 'med', med: 'low', low: 'high' }[x.pri] || 'med'; x.sample = false; save(); ML.renderAll(); return; }
+      if (k === 'pri' && x) { x.pri = x.pri === 'high' ? 'med' : 'high'; x.sample = false; save(); ML.renderAll(); return; }
       editCell(k, tc, [id]); return;
     }
     if (cols) { openDisplay(cols); return; }

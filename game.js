@@ -12,7 +12,7 @@
       q_rate2: 'Note ta concentration 2 fois', q_high: 'Termine une tâche haute priorité', q_tasks3: 'Termine 3 tâches', q_park: 'Traite une pensée parquée',
       q_early: 'Fais une session avant 10h', q_block: 'Suis un bloc de ton planning', q_full: 'Va au bout d’une session',
       boss: 'Boss de la semaine', boss_hp: 'PV', boss_set: '⚔ Boss de la semaine (gros XP si vaincu)', boss_new: 'Nouveau boss : {title}', boss_down: 'Boss vaincu : {title}. +{xp} XP',
-      boss_none: 'Pas de boss cette semaine. Marque ta plus grosse tâche comme boss dans sa fiche (clique sur son titre).',
+      boss_none: 'Pas de boss cette semaine. Le boss est ta plus grosse tâche d’au moins 45 min, choisie seule.',
       achievements: 'Succès', ach_unlocked: 'Succès débloqué : {name}. +{xp} XP', locked: 'verrouillé',
       a_first_session: 'Premier sort', a_first_session_d: 'Termine ta première session',
       a_streak3: 'Rituel', a_streak3_d: '3 jours de suite', a_streak7: 'Discipline', a_streak7_d: '7 jours de suite', a_streak30: 'Inarrêtable', a_streak30_d: '30 jours de suite',
@@ -34,7 +34,7 @@
       q_rate2: 'Rate your focus twice', q_high: 'Finish a high-priority task', q_tasks3: 'Finish 3 tasks', q_park: 'Process a parked thought',
       q_early: 'Do a session before 10am', q_block: 'Follow a block from your plan', q_full: 'Finish a full session',
       boss: 'Weekly boss', boss_hp: 'HP', boss_set: '⚔ Weekly boss (big XP when defeated)', boss_new: 'New boss: {title}', boss_down: 'Boss defeated: {title}. +{xp} XP',
-      boss_none: 'No boss this week. Mark your biggest task as the boss in its details (click its title).',
+      boss_none: 'No boss this week. The boss is your biggest task of at least 45 min, picked for you.',
       achievements: 'Achievements', ach_unlocked: 'Achievement unlocked: {name}. +{xp} XP', locked: 'locked',
       a_first_session: 'First spell', a_first_session_d: 'Finish your first session',
       a_streak3: 'Ritual', a_streak3_d: '3 days in a row', a_streak7: 'Discipline', a_streak7_d: '7 days in a row', a_streak30: 'Unstoppable', a_streak30_d: '30 days in a row',
@@ -69,14 +69,22 @@
     const r = rarity(task);
     return { cls: 'rar-' + r + (isBoss(task) ? ' boss' : ''), html: `${isBoss(task) ? '<span class="chip boss-chip">⚔ Boss</span>' : ''}<span class="chip rar"><b class="rar-n">${esc(t('r_' + r))}</b><i class="rar-sep"> · </i><b class="rar-xp">${RXP[r]} XP</b></span>` };
   };
-  ML.taskEditExtras = task => `<label class="opt boss-opt"><input type="checkbox" name="boss" ${isBoss(task) ? 'checked' : ''}> ${esc(t('boss_set'))}</label>`;
-  on('task:edit-save', ({ task, form }) => {
-    const want = form.querySelector('[name=boss]') && form.querySelector('[name=boss]').checked;
-    if (want && !isBoss(task)) {
-      S.game.boss = { taskId: task.id, title: task.title, week: weekKey(), max: Math.max(30, task.mins), dmg: task.spent || 0, done: false };
-      toast(t('boss_new', { title: task.title }));
-    } else if (!want && isBoss(task)) S.game.boss = null;
-  });
+  // 3.111 (C3): the weekly boss is picked by the app, no more box in the task form: the biggest open task of at least
+  // 45 min (Important first, then due this week, then length). Once a week; a boss deleted before it falls is replaced.
+  function autoBoss() {
+    if (!S.game || !S.tasks) return;
+    const B = S.game.boss, wk = weekKey();
+    if (B && B.week === wk && (B.done || S.tasks.some(x => x.id === B.taskId && !x.done))) return;
+    const end = ML.addDays(ML.today(), 7 - ((new Date().getDay() + 6) % 7) - 1);
+    const score = x => (x.pri === 'high' ? 1000 : 0) + (x.due && x.due <= end ? 500 : 0) + (x.mins || 0);
+    const pick = S.tasks.filter(x => !x.done && !x.sample && (x.mins || 0) >= 45).sort((a, b) => score(b) - score(a))[0];
+    if (!pick) { if (B && B.week !== wk) S.game.boss = null; return; }
+    S.game.boss = { taskId: pick.id, title: pick.title, week: wk, max: Math.max(30, pick.mins), dmg: pick.spent || 0, done: false, auto: true };
+    ML.save();
+  }
+  ML.autoBoss = autoBoss;
+  on('newday', autoBoss); on('task:added', () => setTimeout(autoBoss, 0)); on('task:deleted', () => setTimeout(autoBoss, 0));
+  on('started', autoBoss);
 
   /* ---------- Daily counters ---------- */
   function daily() {

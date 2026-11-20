@@ -35,7 +35,7 @@
     v: 3, lang: (navigator.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en',
     tasks: [
       { id: uid(), title: 'Example 1', sampleN: 1, mins: 60, pri: 'high', done: false, sample: true },
-      { id: uid(), title: 'Example 2', sampleN: 2, mins: 15, pri: 'low', done: false, sample: true },
+      { id: uid(), title: 'Example 2', sampleN: 2, mins: 15, pri: 'med', done: false, sample: true },
       { id: uid(), title: 'Example 3', sampleN: 3, mins: 120, pri: 'med', done: false, sample: true },
     ],
     parked: [], sessions: [], xp: 0, moodTimers: {},
@@ -183,7 +183,8 @@
           ${isNext && !active ? `<span class="chip next-chip">${esc(t('next_up'))}</span>` : ''}
           ${extra.html || ''}
           <span class="chip t-dur">${task.spent ? fmtMins(task.spent) + ' / ' : ''}${fmtMins(task.mins)}</span>
-          <span class="chip p-${task.pri}">${esc(t('pri_' + task.pri))}</span>
+          ${task.pri === 'high' ? `<span class="chip p-high">${esc(t('pri_high'))}</span>` : ''}
+          ${(() => { const b = !task.done && ML.taskBlock && ML.taskBlock(task); return b && ML.hm ? `<span class="chip t-at" title="${esc(t('te_time'))}">${esc((b.date !== (task.due || today()) && ML.planDayLabel ? ML.planDayLabel(b.date) + ' ' : '') + ML.hm(b.start))}</span>` : ''; })()}
           <span class="t-extra">${task.project && ML.projChip ? ML.projChip(task.project) : ''}${dueChip(task)}
           ${task.repeat ? `<span class="chip">↻ ${esc(ML.repeatLabel(task))}</span>` : ''}
           ${subs.length ? `<button type="button" class="chip subs-chip" data-act="subs" aria-expanded="${open}">☰ ${subDone}/${subs.length}</button>` : task.done ? '' : `<button type="button" class="chip subs-chip ghosty" data-act="subs" aria-expanded="${open}">+ ${esc(t('step'))}</button>`}
@@ -197,38 +198,99 @@
           ${task.done ? '' : `<form class="sub-add" autocomplete="off"><input type="text" maxlength="100" placeholder="${esc(t('add_subtask_ph'))}" aria-label="${esc(t('add_subtask_ph'))}"><button type="submit" class="small">+</button></form>`}` : ''}
       </div>
       <div class="t-actions">
+        ${task.done || !ML.placeSheet ? '' : `<button type="button" class="icon-btn t-place" data-act="place" aria-label="${esc(t('pc_place'))}" title="${esc(t('pc_place'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M12 13v4M10 15h4"/></svg></button>`}
         ${task.done ? '' : `<button type="button" class="icon-btn t-pin ${pinned ? 'on' : ''}" data-act="pin" aria-pressed="${pinned}" aria-label="${esc(t(pinned ? 'pl_unpin' : 'pl_pin'))}" title="${esc(t(pinned ? 'pl_unpin' : 'pl_pin'))}">${ML.PIN_SVG || ''}</button>
         <button type="button" class="${active ? 'is-active' : ''}" data-act="focus">${esc(active ? t('focusing') : t('lock_in'))}</button>`}
         <button type="button" class="icon-btn" data-act="del" aria-label="${esc(t('delete'))}">✕</button>
       </div>
     </li>`;
   }
+  // 3.111 (C2 + C3 of proposals/matieres-today): the task form is the title, one chip per setting showing its value (a tap
+  // opens only that choice; empty settings wait behind dashed chips), the steps, and « Note, liens » folded. The values live
+  // in hidden fields until Save, so Cancel still drops everything. Priority is one « Important » switch.
+  const teOpen = new Set(); // forms whose « Note, liens » part is open
+  const teDraft = new Map(); // the chips' values while a form is open, so a redraw of the list keeps them
   function editHtml(task) {
-    const minsOpts = [10, 15, 20, 25, 30, 35, 40, 45, 60, 75, 90, 120, 150, 180, 240];
-    if (!minsOpts.includes(task.mins)) minsOpts.push(task.mins), minsOpts.sort((a, b) => a - b);
-    return `<li class="task editing" data-id="${task.id}"><form class="t-edit" data-id="${task.id}">
+    const b = ML.taskBlock ? ML.taskBlock(task) : null;
+    const more = teOpen.has(task.id) || !!(task.notes || (task.links && task.links.length));
+    const hid = (n, v, extra = '') => `<input type="hidden" name="${n}" value="${esc(v == null ? '' : String(v))}"${extra}>`;
+    return `<li class="task editing" data-id="${task.id}"><form class="t-edit te2" data-id="${task.id}">
       <input type="text" name="title" value="${esc(titleOf(task))}" maxlength="120" required aria-label="${esc(t('task'))}">
-      <div class="t-edit-row">
-        <label><span>${esc(t('duration'))}</span><select name="mins">${minsOpts.map(m => `<option value="${m}" ${m === task.mins ? 'selected' : ''}>${fmtMins(m)}</option>`).join('')}</select></label>
-        <label><span>${esc(t('priority'))}</span><select name="pri">${['high', 'med', 'low'].map(p => `<option value="${p}" ${p === task.pri ? 'selected' : ''}>${esc(t('pri_' + p))}</option>`).join('')}</select></label>
-        <label><span>${esc(t('due'))}</span><input type="date" name="due" value="${esc(task.due || '')}"></label>
-        <label><span>${esc(t('pl_project'))}</span><input type="text" name="project" maxlength="40" list="pl-projects" value="${esc(task.project || '')}"><datalist id="pl-projects">${(ML.planProjects ? ML.planProjects() : []).map(p => `<option value="${esc(p)}">`).join('')}</datalist></label>
-        <label><span>${esc(t('repeat'))}</span><select name="repeat">${['', 'daily', 'weekdays', 'weekly', 'days'].map(r => `<option value="${r}" ${r === (task.repeat || '') ? 'selected' : ''}>${esc(r ? t('repeat_' + r) : t('repeat_none'))}</option>`).join('')}</select></label>
-      </div>
-      <fieldset class="t-days"><legend>${esc(t('repeat_days'))}</legend>${ML.WD_ORDER.map(d => `<label><input type="checkbox" name="rday" value="${d}" ${(task.days || []).includes(d) ? 'checked' : ''}><span>${esc(ML.wdName(d))}</span></label>`).join('')}</fieldset>
+      ${(() => { const d = teDraft.get(task.id) || teVal(null, task); return ['mins', 'pri', 'due', 'project', 'repeat', 'rdays', 'subject'].map(n => hid(n, d[n])).join(''); })()}
+      ${hid('at', teDraft.has(task.id) ? teDraft.get(task.id).at : b ? b.start : '', ` data-was="${b ? b.date + '|' + b.start : ''}" data-blk="${b ? b.id : ''}"`)}
+      <div class="te-chips">${teChipsHtml(task, null, teDraft.get(task.id))}</div>
       <div class="t-edit-subs">
         <span class="label">${esc(t('subtasks'))}</span>
         <ul>${(task.subs || []).map(s => `<li><input type="checkbox" data-esub-done="${s.id}" ${s.done ? 'checked' : ''} aria-label="done"><input type="text" data-esub="${s.id}" value="${esc(s.text)}" maxlength="100"><button type="button" class="icon-btn" data-esub-del="${s.id}" aria-label="${esc(t('delete'))}">✕</button></li>`).join('')}</ul>
         <div class="t-edit-addsub"><input type="text" name="newsub" maxlength="100" placeholder="${esc(t('add_subtask_ph'))}"><button type="button" class="small" data-act="addsub">+</button></div>
       </div>
-      <textarea name="notes" rows="2" placeholder="${esc(t('notes_ph'))}">${esc(task.notes || '')}</textarea>
-      ${ML.taskEditExtras ? ML.taskEditExtras(task) : ''}
+      <div class="te-more" ${more ? '' : 'hidden'}>
+        <textarea name="notes" rows="2" placeholder="${esc(t('notes_ph'))}">${esc(task.notes || '')}</textarea>
+        ${ML.taskEditExtras ? ML.taskEditExtras(task) : ''}
+      </div>
       <div class="t-edit-btns">
         <button type="button" class="small ghost" data-act="cancel">${esc(t('cancel'))}</button>
         <button type="submit" class="small primary">${esc(t('save'))}</button>
       </div>
     </form></li>`;
   }
+  // The form's current values: from its hidden fields, or from the task before the form exists
+  function teVal(form, task) {
+    if (!form) { const b = ML.taskBlock ? ML.taskBlock(task) : null; return { mins: task.mins, pri: task.pri === 'high' ? 'high' : 'med', due: task.due || '', project: task.project || '', repeat: task.repeat || '', rdays: (task.days || []).join(','), subject: task.subject || '', at: b ? String(b.start) : '' }; }
+    const g = n => (form.querySelector(`[name=${n}]`) || {}).value || '';
+    return { mins: +g('mins'), pri: g('pri'), due: g('due'), project: g('project'), repeat: g('repeat'), rdays: g('rdays'), subject: g('subject'), at: g('at') };
+  }
+  function teChipsHtml(task, form, dv) {
+    const v = dv || teVal(form, task), cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+    if (form) teDraft.set(task.id, v);
+    const chip = (k, html, onx, ghost) => `<button type="button" class="chip te-chip${onx ? ' on' : ''}${ghost ? ' ghost' : ''}" data-te="${k}"${k === 'pri' ? ` aria-pressed="${onx}"` : ' aria-haspopup="true" aria-expanded="false"'}>${html}</button>`;
+    const subs = S.subjects || [], subj = subs.find(x => x.id === v.subject);
+    const days = v.rdays ? v.rdays.split(',').filter(Boolean).map(Number) : [];
+    const moreShown = form ? !form.querySelector('.te-more').hidden : teOpen.has(task.id) || !!(task.notes || (task.links && task.links.length));
+    return chip('due', esc(v.due ? cap(ML.planDayLabel ? ML.planDayLabel(v.due) : v.due) : t('te_date')), !!v.due, !v.due)
+      + chip('at', esc(v.at !== '' && ML.hm ? ML.hm(+v.at) : t('te_time')), v.at !== '', v.at === '')
+      + chip('mins', esc(fmtMins(v.mins)), false, false)
+      + (subs.length ? chip('subject', subj ? `<i class="te-dot" style="background:${esc(subj.color || 'var(--accent)')}"></i>${esc(subj.name)}` : esc(t('te_subject')), !!subj, !subj) : '')
+      + chip('pri', esc(t('pri_high')), v.pri === 'high', false)
+      + chip('repeat', '↻ ' + esc(v.repeat ? ML.repeatLabel({ repeat: v.repeat, days, wd: task.wd }) : t('repeat')), !!v.repeat, !v.repeat)
+      + chip('project', esc(v.project || t('pl_project')), !!v.project, !v.project)
+      + (moreShown ? '' : chip('more', esc(t('te_more')), false, true));
+  }
+  // A chip of the task form: Important switches; the others open one small menu (plan.js's pickers, the time menu of place.js)
+  $('tasks').addEventListener('click', e => {
+    const c = e.target.closest('[data-te]'); if (!c) return;
+    const form = c.closest('form.te2'), task = form && S.tasks.find(x => x.id === form.dataset.id); if (!task) return;
+    const k = c.dataset.te, inp = n => form.querySelector(`[name=${n}]`), v = teVal(form, task);
+    const redraw = () => { form.querySelector('.te-chips').innerHTML = teChipsHtml(task, form); const nb = form.querySelector(`[data-te="${k}"]`); if (nb && (document.activeElement === document.body || !document.contains(document.activeElement))) nb.focus({ preventScroll: true }); };
+    if (k === 'pri') { inp('pri').value = v.pri === 'high' ? 'med' : 'high'; redraw(); return; }
+    if (k === 'more') { teOpen.add(task.id); form.querySelector('.te-more').hidden = false; redraw(); const ta = inp('notes'); if (ta) ta.focus(); return; }
+    if (k === 'at') {
+      if (!ML.timePop) return;
+      ML.timePop(c, v.due || today(), v.mins, v.at === '' ? null : +v.at, inp('at').dataset.blk || undefined, x => { inp('at').value = x == null ? '' : x; if (x != null && !v.due) inp('due').value = today(); redraw(); });
+      return;
+    }
+    if (k === 'subject') {
+      const it = (val, label, onx, dot) => `<button type="button" class="pp-it ${onx ? 'on' : ''}" data-pv="${esc(JSON.stringify(val))}">${dot ? `<i class="te-dot" style="background:${esc(dot)}"></i>` : ''}<span>${esc(label)}</span></button>`;
+      ML.planPop(c, `<div class="pp-list">${(S.subjects || []).map(s => it(s.id, s.name, s.id === v.subject, s.color || 'var(--accent)')).join('')}${it(null, t('sj_none'), !v.subject)}</div>`, x => { inp('subject').value = x || ''; redraw(); });
+      return;
+    }
+    if (k === 'repeat') {
+      const days = new Set(v.rdays ? v.rdays.split(',').filter(Boolean).map(Number) : []);
+      ML.planPicker('repeat', c, { repeat: v.repeat, days: [...days] }, x => {
+        if (x.day == null) { inp('repeat').value = x.r; inp('rdays').value = ''; redraw(); return; }
+        days.has(x.day) ? days.delete(x.day) : days.add(x.day);
+        inp('rdays').value = [...days].join(','); inp('repeat').value = days.size ? 'days' : '';
+        const pop = document.querySelector('.pl-pop'); // the day buttons stay open and toggle
+        if (pop) {
+          pop.querySelectorAll('.pp-day').forEach(d => { const onx = days.has(JSON.parse(d.dataset.pv).day); d.classList.toggle('on', onx); d.setAttribute('aria-pressed', onx); });
+          pop.querySelectorAll('.pp-it').forEach(d => d.classList.toggle('on', !days.size && JSON.parse(d.dataset.pv).r === ''));
+        }
+        form.querySelector('.te-chips').innerHTML = teChipsHtml(task, form);
+      });
+      return;
+    }
+    ML.planPicker(k, c, k === 'mins' ? v.mins : (v[k] || null), x => { inp(k).value = x == null ? '' : x; redraw(); });
+  });
   // Scattered shows one task as a tarot-sized card (.single-card / .card, styled per theme in app.css). Long titles get a
   // smaller size; when the card's task is completed, the next one turns over into view (a fade with reduced motion).
   // Web Animations, so the reduced-motion CSS rule (animation: none) doesn't cancel the fade.
@@ -273,7 +335,8 @@
     emit('tasks:render');
   }
   ML.renderTasks = renderTasks;
-  ML.editTask = id => { editingId = id; renderTasks(); }; // plan.js: a title tapped in the table opens the edit form in the list
+  const startEdit = id => { if (id !== editingId) { teDraft.clear(); teOpen.clear(); } editingId = id; renderTasks(); };
+  ML.editTask = startEdit; // plan.js: a title tapped in the table opens the edit form in the list
   ML.editingId = () => editingId;
   // Ticking a step earns a little XP once (a tenth of the task's XP, at least 2); the last step finishes the task.
   // Unticking a step of a finished task reopens it (its XP is not given twice).
@@ -329,7 +392,8 @@
       return;
     }
     if (act === 'focus') { lockIn({ taskId: id, mins: task.mins }); return; }
-    if (act === 'edit') { editingId = id; renderTasks(); return; }
+    if (act === 'place') { if (ML.placeSheet) ML.placeSheet(id); return; }
+    if (act === 'edit') { startEdit(id); return; }
     if (act === 'subs') { expanded.has(id) ? expanded.delete(id) : expanded.add(id); renderTasks(); return; }
     if (act === 'nextsub') {
       const sub = (task.subs || []).find(s => s.id === btn.dataset.sid); if (!sub || btn.classList.contains('pop')) return;
@@ -337,7 +401,7 @@
       setTimeout(() => { setSubDone(task, sub, true); renderAll(); }, ML.reducedMotion() ? 0 : 380);
       return;
     }
-    if (act === 'cancel') { editingId = null; renderTasks(); return; }
+    if (act === 'cancel') { teOpen.delete(id); teDraft.delete(id); editingId = null; renderTasks(); return; }
     if (act === 'addsub') { addSubFromForm(btn.closest('form'), task); return; }
     save(); renderAll();
   });
@@ -377,7 +441,7 @@
   }
   $('tasks').addEventListener('keydown', e => {
     if (e.target.name === 'newsub' && e.key === 'Enter') { e.preventDefault(); const f = e.target.closest('form'); addSubFromForm(f, S.tasks.find(x => x.id === f.dataset.id)); }
-    if (e.key === 'Escape' && editingId) { editingId = null; renderTasks(); }
+    if (e.key === 'Escape' && editingId) { teDraft.clear(); teOpen.clear(); editingId = null; renderTasks(); }
   });
   $('tasks').addEventListener('click', e => {
     const del = e.target.closest('[data-esub-del]'); if (!del) return;
@@ -395,7 +459,7 @@
     task.mins = +fd.get('mins'); task.pri = fd.get('pri');
     task.due = fd.get('due') || null;
     task.project = String(fd.get('project') || '').trim() || null;
-    const rep = fd.get('repeat') || '', days = fd.getAll('rday').map(Number);
+    const rep = fd.get('repeat') || '', days = String(fd.get('rdays') || '').split(',').filter(Boolean).map(Number);
     if (rep !== task.repeat || rep === 'days') {
       task.repeat = rep === 'days' && !days.length ? '' : rep;
       if (task.repeat === 'weekly') task.wd = (task.due ? ML.parseDay(task.due) : new Date()).getDay();
@@ -405,7 +469,15 @@
     const ns = String(fd.get('newsub') || '').trim();
     if (ns) (task.subs || (task.subs = [])).push({ id: uid(), text: ns, done: false });
     task.sample = false;
+    // The time chip: a time places (or moves) the task's next block on its day, « Sans heure » takes it off the calendar
+    const atF = f.querySelector('[name=at]');
+    if (atF && ML.taskSetTime) {
+      const was = atF.dataset.was || '', at = atF.value === '' ? null : +atF.value;
+      const k = task.due || (was ? was.split('|')[0] : '') || today();
+      if (at != null || was) ML.taskSetTime(task, at == null ? null : k, at);
+    }
     emit('task:edit-save', { task, form: f });
+    teOpen.delete(task.id); teDraft.delete(task.id);
     editingId = null; save(); renderAll(); toast(t('saved'));
   });
   $('add-form').addEventListener('submit', e => {
@@ -439,6 +511,9 @@
   ML.repeatLabel = task => !task.repeat ? '' : task.repeat === 'days' ? WD_ORDER.filter(d => (task.days || []).includes(d)).map(d => ML.wdName(d)).join(' ')
     : task.repeat === 'weekly' && task.wd != null ? t('repeat_weekly_on', { d: ML.wdName(task.wd, 'long') }) : t('repeat_' + task.repeat);
   // They come back undone on the days they repeat
+  // 3.111 (C3): priority is Important or not; old « Basse » tasks become normal (plan.js groups a synced-back « low » with the normal ones)
+  const twoPri = () => (S.tasks || []).forEach(x => { if (x.pri === 'low') x.pri = 'med'; });
+  on('started', twoPri);
   function resetRepeating() {
     const td = today();
     S.tasks.forEach(task => {
@@ -602,6 +677,7 @@
   const wideNow = () => !document.documentElement.classList.contains('mnav-on') && matchMedia('(min-width: 900px)').matches;
   ML.SPACE = SPACE;
   ML.addStrings({ fr: { nx_then: 'Ensuite', nx_tick: 'Cocher l’étape : {s}' }, en: { nx_then: 'Next', nx_tick: 'Tick the step: {s}' } });
+  ML.addStrings({ fr: { te_date: 'Date', te_time: 'Heure', te_subject: 'Matière', te_more: 'Note, liens' }, en: { te_date: 'Date', te_time: 'Time', te_subject: 'Subject', te_more: 'Note, links' } });
   ML.addStrings({ fr: { sp_study: 'Étude', sp_you: 'Toi', sp_world: 'Monde', tab_cards: 'Cartes' }, en: { sp_study: 'Study', sp_you: 'You', sp_world: 'World', tab_cards: 'Cards' } });
   // The Calendar is two tabs behind one entry: "day" (its Day view, the old Journée) and "cal" (Week and Month)
   const calTab = () => (S.tab === 'day' || S.tab === 'cal' ? S.tab : (S.spaceTab && S.spaceTab.calx) === 'cal' ? 'cal' : 'day');
