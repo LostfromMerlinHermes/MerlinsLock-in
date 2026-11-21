@@ -252,6 +252,9 @@
     el.innerHTML = `<div class="quests ${qOpen ? '' : 'folded'}"><button type="button" class="q-head" data-qfold aria-expanded="${qOpen}"><span class="label">${esc(t('quests'))}</span><span class="q-val">${Q.claimed.length}/${Q.ids.length}<svg class="pg-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></span></button><ul>${qrows}</ul>${boss}</div>`;
   }
 
+  ML.questCount = () => { const Q = ensureQuests(); return [Q.claimed.length, Q.ids.length]; }; // Today's chip (3.114)
+  ML.renderQuestStrip = () => renderStrip();
+
   /* ---------- Achievements: listed on the Progress page (focus.js, 3.66) ---------- */
   ML.achInfo = () => ({
     got: Object.keys(ACH).filter(id => S.game.ach[id]).length, total: Object.keys(ACH).length,

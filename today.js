@@ -19,8 +19,14 @@
     },
   });
   ML.addStrings({
-    fr: { td_day: 'Ma journée', td_planned: '{m} prévues', td_untimed: 'Sans heure', td_more: '{n} de plus dans Plan', td_at: 'À {h}', td_notes: '{n} pense-bêtes', td_notes_one: '1 pense-bête', td_add_s: '+ Tâche' },
-    en: { td_day: 'My day', td_planned: '{m} planned', td_untimed: 'No time', td_more: '{n} more in Plan', td_at: 'At {h}', td_notes: '{n} sticky notes', td_notes_one: '1 sticky note', td_add_s: '+ Task' },
+    fr: { td_day: 'Ma journée', td_planned: '{m} prévues', td_untimed: 'Sans heure', td_more: '{n} de plus dans Plan', td_at: 'À {h}', td_notes: '{n} pense-bêtes', td_notes_one: '1 pense-bête', td_add_s: '+ Tâche',
+      td_st_of: '{a} faites sur {b}', td_st_done: '{a} faites aujourd’hui', td_st_left_one: '1 à faire', td_st_left: '{n} à faire', td_other: 'Autre tâche', td_move: 'Déplacer', td_notes_c: 'Pense-bêtes',
+      td_edit: 'Modifier Aujourd’hui', td_edit_h: 'Ce qu’affiche Aujourd’hui', td_edit_d: 'Masque, montre ou déplace chaque partie.', td_edit_ok: 'Terminé', td_up: 'Monter', td_down: 'Descendre', td_always: 'toujours', td_shown: 'Affiché', td_hidden: 'Masqué', td_extras: 'En dessous', td_size: 'Taille de la prochaine', td_size_big: 'Grande', td_size_normal: 'Normale',
+      tdp_status: 'Ligne d’état', tdp_next: 'Prochaine tâche', tdp_day: 'Ma journée', tdp_untimed: 'Sans heure', tdp_coming: 'À venir', tdp_quests: 'Quêtes du jour', tdp_notes: 'Pense-bêtes', tdp_energy: 'Énergie' },
+    en: { td_day: 'My day', td_planned: '{m} planned', td_untimed: 'No time', td_more: '{n} more in Plan', td_at: 'At {h}', td_notes: '{n} sticky notes', td_notes_one: '1 sticky note', td_add_s: '+ Task',
+      td_st_of: '{a} done of {b}', td_st_done: '{a} done today', td_st_left_one: '1 to do', td_st_left: '{n} to do', td_other: 'Another task', td_move: 'Move', td_notes_c: 'Sticky notes',
+      td_edit: 'Edit Today', td_edit_h: 'What Today shows', td_edit_d: 'Hide, show or move each part.', td_edit_ok: 'Done', td_up: 'Move up', td_down: 'Move down', td_always: 'always', td_shown: 'Shown', td_hidden: 'Hidden', td_extras: 'Below', td_size: 'Next task size', td_size_big: 'Large', td_size_normal: 'Normal',
+      tdp_status: 'Status line', tdp_next: 'Next task', tdp_day: 'My day', tdp_untimed: 'No time', tdp_coming: 'Coming up', tdp_quests: 'Daily quests', tdp_notes: 'Sticky notes', tdp_energy: 'Energy' },
   });
   ML.defaults(() => ({ sessMode: true }));
 
@@ -80,44 +86,156 @@
     return rows.map(([go, a, b, hot]) => `<button type="button" class="td-row ${hot ? 'hot' : ''}" data-go="${go}"><b>${esc(a)}</b><small>${esc(b)}</small></button>`).join('');
   }
   const clock = () => MiniView.fmtClock(Math.max(0, Math.ceil(ML.remainingNow())));
+  // 3.114 (proposals/today-plan, T1 + T3): a status line, the next task in a large card, the day, then the rest. On a
+  // phone the rest (coming up, quests, sticky notes, energy) is one row of chips that unfold; on a computer it sits in
+  // a column on the right. Each part can be hidden or moved (S.tdParts); the next task always stays.
+  const MAIN = ['status', 'next', 'day', 'untimed'], EXTRA = ['coming', 'quests', 'notes', 'energy'];
+  ML.defaults(() => ({ tdParts: { order: MAIN.concat(EXTRA), hide: {}, size: 'big' } }));
+  function parts() {
+    const p = S.tdParts && typeof S.tdParts === 'object' ? S.tdParts : (S.tdParts = {});
+    if (!Array.isArray(p.order)) p.order = [];
+    p.order = p.order.filter(k => MAIN.includes(k) || EXTRA.includes(k));
+    MAIN.concat(EXTRA).forEach(k => { if (!p.order.includes(k)) p.order.push(k); });
+    if (!p.hide || typeof p.hide !== 'object') p.hide = {};
+    if (p.size !== 'normal') p.size = 'big';
+    return p;
+  }
+  const shown = k => k === 'next' || !parts().hide[k];
+  const isPhone = () => root.classList.contains('mnav-on');
+  let editing = false; // computer: edit Today in place
+  const minsToday = () => { const d0 = new Date(); d0.setHours(0, 0, 0, 0); return (S.sessions || []).reduce((a, s) => a + (s.at >= +d0 ? s.mins || 0 : 0), 0); };
+  // « Autre tâche » skips the suggested task for today
+  const skipped = () => (S.tdSkip && S.tdSkip.day === today() ? S.tdSkip.ids : []);
+  function statusHtml(rows, free) {
+    const done = minsToday(), goal = ML.dayGoal ? ML.dayGoal() : 0;
+    const left = rows.filter(r => r.kind === 'bl' && r.check && !r.done && !(r.task && r.task.done)).length + free.length;
+    const date = new Date().toLocaleDateString(ML.locale(), { weekday: 'short', day: 'numeric', month: 'short' });
+    const pct = goal ? Math.min(100, done / goal * 100) : 0;
+    return `<div class="td-status"><div class="td-st-l"><b>${esc(date)}</b><span>${esc(goal ? t('td_st_of', { a: fmtMins(done), b: fmtMins(goal) }) : t('td_st_done', { a: fmtMins(done) }))}</span>${left ? `<span class="td-st-r">${esc(ML.tn('td_st_left', left))}</span>` : ''}</div>${goal ? `<div class="td-st-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${Math.min(done, goal)}" aria-label="${esc(t('td_st_of', { a: fmtMins(done), b: fmtMins(goal) }))}"><i style="width:${pct.toFixed(1)}%"></i></div>` : ''}</div>`;
+  }
+  function chipsHtml() {
+    const P = parts(), out = [];
+    P.order.filter(k => EXTRA.includes(k) && shown(k)).forEach(k => {
+      if (k === 'coming') {
+        const x = nextExam(), due = isPrem() ? cardsDue() : 0, inbox = (S.parked || []).length;
+        if (x) out.push(`<button type="button" class="td-chip${daysTo(x.date) <= 3 ? ' hot' : ''}" data-go="subjects">${esc(x.name)} <b>${esc(daysTo(x.date) ? (S.lang === 'fr' ? 'J-' : 'D-') + daysTo(x.date) : t('td_today'))}</b></button>`);
+        if (due) out.push(`<button type="button" class="td-chip" data-go="review">${esc(t('tab_cards'))} <b>${due}</b></button>`);
+        if (inbox) out.push(`<button type="button" class="td-chip" data-go="inbox">${esc(t('pl_v_inbox'))} <b>${inbox}</b></button>`);
+      } else if (k === 'quests' && ML.modOn('game') && ML.questCount) {
+        const [a, b] = ML.questCount(); out.push(`<button type="button" class="td-chip" data-go="tdquests" aria-expanded="${!!S.tdQuests}">${esc(t('quests'))} <b>${a}/${b}</b></button>`);
+      } else if (k === 'notes') {
+        const n = (Array.isArray(S.postits) ? S.postits : []).filter(y => (y.place || 'today') === 'today').length;
+        out.push(`<button type="button" class="td-chip" data-go="tdnotes" aria-expanded="${!!S.tdNotes}">${esc(t('td_notes_c'))}${n ? ` <b>${n}</b>` : ''}</button>`);
+      } else if (k === 'energy' && !(ML.sober && ML.sober())) {
+        const M = ML.MOODS[S.mood]; out.push(`<button type="button" class="td-chip" data-go="energy"><i class="td-chip-dot" style="background:${M.color}"></i>${esc(t('mood_' + S.mood))}</button>`);
+      }
+    });
+    return out.join('');
+  }
   function renderToday() {
     const el = $('today'); if (!el || S.tab !== 'today') return;
-    const M = ML.MOODS[S.mood], coming = comingHtml(), rows = dayRows(), free = untimed(rows), pk = nowPick(rows), x = pk && pk.x;
-    // A focus session in progress (running or paused) replaces the next task: its time, Open timer, Pause / Resume
-    const live = S.mode === 'focus' && (ML.running() || ML.remainingNow() < S.total);
-    const bits = x ? [x.due && ML.planDayLabel(x.due), x.project].filter(Boolean).map(esc).join(' · ') : '';
-    const card = live ? `<div class="td-next td-live"><small>${esc(t(ML.running() ? 'focusing' : 'td_paused'))}</small><b>${esc(ML.activeTitle() || t('free_focus'))}</b><p class="td-left">${esc(clock())}</p><div class="td-btns"><button type="button" class="primary" data-go="timer">${esc(t('td_open_timer'))}</button><button type="button" class="ghost" data-go="pause">${esc(t(ML.running() ? 'pause' : 'resume'))}</button></div></div>`
-      : x ? `<div class="td-next"><small>${esc(pk.label)}</small><b>${esc(ML.titleOf(x))}</b>${bits ? `<p>${bits}</p>` : ''}<div class="td-btns"><button type="button" class="primary" data-lock="${x.id}">${esc(t('lock_in') + ' ' + fmtMins(x.mins))}</button><button type="button" class="ghost" data-done="${x.id}">${esc(t('td_done'))}</button></div></div>`
+    const P = parts(), phone = isPhone(), rows = dayRows(), free = untimed(rows), skip = skipped();
+    let pk = nowPick(rows);
+    if (pk && skip.includes(pk.x.id)) { const y = ML.orderedOpen().find(z => !z.sample && !skip.includes(z.id)); pk = y ? { x: y, label: t('td_next') } : null; }
+    const x = pk && pk.x;
+    // A focus session in progress replaces the next task on a phone; a computer shows the timer on the left already
+    const live = phone && S.mode === 'focus' && (ML.running() || ML.remainingNow() < S.total);
+    const bits = x ? [x.due && ML.planDayLabel(x.due), x.project, fmtMins(x.mins)].filter(Boolean).map(esc).join(' · ') : '';
+    const big = P.size === 'big';
+    const next = live ? `<div class="td-next td-live"><small>${esc(t(ML.running() ? 'focusing' : 'td_paused'))}</small><b>${esc(ML.activeTitle() || t('free_focus'))}</b><p class="td-left">${esc(clock())}</p><div class="td-btns"><button type="button" class="primary" data-go="timer">${esc(t('td_open_timer'))}</button><button type="button" class="ghost" data-go="pause">${esc(t(ML.running() ? 'pause' : 'resume'))}</button></div></div>`
+      : x ? `<div class="td-next${big ? ' td-big' : ''}"><small>${esc(pk.label)}</small><b>${esc(ML.titleOf(x))}</b>${bits ? `<p>${bits}</p>` : ''}${big
+        ? `<button type="button" class="primary td-go" data-lock="${x.id}">${esc(t('lock_in') + ' · ' + fmtMins(x.mins))}</button><div class="td-sub"><button type="button" class="linkish" data-done="${x.id}">${esc(t('td_done'))}</button><button type="button" class="linkish" data-skip="${x.id}">${esc(t('td_other'))}</button>${!phone && ML.placeSheet ? `<button type="button" class="linkish" data-place="${x.id}">${esc(t('td_move'))}</button>` : ''}</div>`
+        : `<div class="td-btns"><button type="button" class="primary" data-lock="${x.id}">${esc(t('lock_in') + ' ' + fmtMins(x.mins))}</button><button type="button" class="ghost" data-done="${x.id}">${esc(t('td_done'))}</button></div>`}</div>`
       : `<div class="td-next"><b>${esc(t('td_nothing'))}</b><div class="td-btns"><button type="button" class="primary" data-go="add">${esc(t('td_add'))}</button></div></div>`;
     const planned = rows.reduce((a, r) => a + (r.kind === 'bl' && !r.done ? r.end - r.at : 0), 0) + free.reduce((a, y) => a + (y.mins || 0), 0);
-    const day = rows.length || free.length ? `<div class="td-dayh"><h2 class="td-h">${esc(t('td_day'))}${planned ? ` <small>${esc(t('td_planned', { m: fmtMins(planned) }))}</small>` : ''}</h2><button type="button" class="ghost small td-addt" data-go="add">${esc(t('td_add_s'))}</button></div>
-      ${rows.length ? `<div class="td-day">${dayHtml(rows)}</div>` : ''}
-      ${free.length ? `<h3 class="td-h3">${esc(t('td_untimed'))}</h3><div class="td-day">${untimedHtml(free)}</div>` : ''}`
-      : `<button type="button" class="td-empty" data-go="day"><span>${esc(t('td_empty_h'))}</span><b>${esc(t('td_plan'))}</b></button>`;
-    // Plain look (3.105, E2): the energy is three words in one row, a tap sets it (no picker, no icon, no world)
+    const blocks = {
+      status: statusHtml(rows, free),
+      next,
+      day: rows.length || free.length || !shown('untimed') ? (rows.length ? `<div class="td-dayh"><h2 class="td-h">${esc(t('td_day'))}${planned ? ` <small>${esc(t('td_planned', { m: fmtMins(planned) }))}</small>` : ''}</h2><button type="button" class="ghost small td-addt" data-go="add">${esc(t('td_add_s'))}</button></div><div class="td-day">${dayHtml(rows)}</div>`
+        : `<button type="button" class="td-empty" data-go="day"><span>${esc(t('td_empty_h'))}</span><b>${esc(t('td_plan'))}</b></button>`) : '',
+      untimed: free.length ? `<div class="td-dayh"><h3 class="td-h3">${esc(t('td_untimed'))}</h3>${rows.length ? '' : `<button type="button" class="ghost small td-addt" data-go="add">${esc(t('td_add_s'))}</button>`}</div><div class="td-day">${untimedHtml(free)}</div>` : '',
+    };
+    if (!rows.length && free.length && shown('untimed')) blocks.day = '';
+    // Plain look (3.105, E2): the energy is three words in one row, a tap sets it
     const forme = ML.sober && ML.sober() ? `<div class="td-forme"><span class="label">${esc(t('ep_label'))}</span><div class="seg-toggle" role="group" aria-label="${esc(t('ep_label'))}">${['fired', 'steady', 'scattered'].map(k => `<button type="button" data-forme="${k}" aria-pressed="${S.mood === k}">${esc(t('mood_' + k))}</button>`).join('')}</div></div>` : '';
-    // The energy and the sticky notes fold into one line at the bottom (A1); the notes open with a tap
-    const nNotes = (Array.isArray(S.postits) ? S.postits : []).filter(n => (n.place || 'today') === 'today').length, notesOpen = !!S.tdNotes;
-    const html = `<div class="td">
-      ${ML.eveCard ? ML.eveCard() : ''}
-      ${card}
-      ${day}
-      ${coming ? `<h2 class="td-h">${esc(t('td_coming'))}</h2><div class="td-list">${coming}</div>` : ''}
-      <div id="today-quests"></div>
-      <div class="td-foot">
-        ${forme || `<button type="button" class="td-energy td-en-s" data-go="energy"><span class="ep-ico" style="--mood-c:${M.color}">${ML.svgIcon ? ML.svgIcon(M.icon) : ''}</span><span class="td-en-tx"><b>${esc(t('mood_' + S.mood))}</b>${ML.hasWorld() ? `<small>${esc(ML.worldName(S.mood))}</small>` : ''}</span><span class="td-chg">${esc(t('td_change'))}</span></button>`}
-        <button type="button" class="ghost small td-notes-b" data-go="tdnotes" aria-expanded="${notesOpen}">${esc(nNotes ? ML.tn('td_notes', nNotes) : t('pi_add'))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${notesOpen ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'}"/></svg></button>
-      </div>
-      <div id="today-postits"${notesOpen ? '' : ' hidden'}></div>
-    </div>`;
+    const coming = comingHtml();
+    const side = {
+      coming: coming ? `<h2 class="td-h">${esc(t('td_coming'))}</h2><div class="td-list">${coming}</div>` : '',
+      quests: '<div id="today-quests"></div>',
+      notes: `<h2 class="td-h">${esc(t('td_notes_c'))}</h2><div id="today-postits"></div>`,
+      energy: forme,
+    };
+    const wrap = (k, html, all) => {
+      if (!editing) return shown(k) ? html : '';
+      const off = !shown(k), i = all.indexOf(k);
+      return `<div class="td-ed${off ? ' off' : ''}" data-part="${k}"><div class="td-ed-tools"><button type="button" class="td-ed-b" data-pmove="${k}:${all[i - 1] || ''}" ${i ? '' : 'disabled'} aria-label="${esc(t('td_up') + ' : ' + t('tdp_' + k))}">${ARR('M6 15l6-6 6 6')}</button><button type="button" class="td-ed-b" data-pmove="${k}:${all[i + 1] || ''}" ${i < all.length - 1 ? '' : 'disabled'} aria-label="${esc(t('td_down') + ' : ' + t('tdp_' + k))}">${ARR('M6 9l6 6 6-6')}</button>${k === 'next' ? `<span class="td-ed-k">${esc(t('td_always'))}</span>` : `<button type="button" class="td-ed-b td-ed-eye" data-phide="${k}" aria-pressed="${!off}">${esc(t(off ? 'td_hidden' : 'td_shown'))}</button>`}</div>${html || `<p class="td-ed-empty">${esc(t('tdp_' + k))}</p>`}</div>`;
+    };
+    const mains = P.order.filter(k => MAIN.includes(k)), extras = P.order.filter(k => EXTRA.includes(k));
+    let body;
+    if (phone) {
+      const chips = chipsHtml();
+      body = `${mains.map(k => shown(k) ? blocks[k] : '').join('')}
+        ${chips ? `<div class="td-chips">${chips}</div>` : ''}
+        ${shown('quests') ? `<div id="today-quests"${S.tdQuests ? '' : ' hidden'}></div>` : ''}
+        ${shown('notes') ? `<div id="today-postits"${S.tdNotes ? '' : ' hidden'}></div>` : ''}
+        ${shown('energy') && forme ? forme : ''}
+        <button type="button" class="linkish td-edit" data-go="tdedit">${esc(t('td_edit'))}</button>`;
+    } else {
+      const ext = extras.filter(k => k === 'coming' || k === 'notes' || (k === 'energy' && forme)); // quests live in the Plan and the energy in the left zone on a computer
+      const sideHtml = ext.map(k => wrap(k, side[k], ext)).join('');
+      body = `${editing ? `<div class="td-edbar"><b>${esc(t('td_edit_h'))}</b><span>${esc(t('td_edit_d'))}</span><label class="td-ed-size"><span>${esc(t('td_size'))}</span><select data-psize>${['big', 'normal'].map(v => `<option value="${v}" ${P.size === v ? 'selected' : ''}>${esc(t('td_size_' + v))}</option>`).join('')}</select></label><button type="button" class="primary small" data-go="tdedit">${esc(t('td_edit_ok'))}</button></div>` : ''}
+        <div class="td-cols"><div class="td-main">${mains.map(k => wrap(k, blocks[k], mains)).join('')}</div>${sideHtml.trim() ? `<div class="td-side">${sideHtml}</div>` : ''}</div>
+        ${editing ? '' : `<button type="button" class="linkish td-edit" data-go="tdedit">${esc(t('td_edit'))}</button>`}`;
+    }
+    const html = `<div class="td${editing ? ' td-editing' : ''}">${ML.eveCard ? ML.eveCard() : ''}${body}</div>`;
     const q = $('quest-strip');
     if (el.dataset.h !== html) {
       if (q && el.contains(q)) restoreQuests(); // kept out of the redraw
       const pz = ML.postitZone; if (pz && el.contains(pz)) pz.remove(); // the sticky notes too (lists.js)
       el.innerHTML = html; el.dataset.h = html;
     }
-    placeQuests(); if (ML.placePostits) ML.placePostits();
+    placeQuests(); if (ML.placePostits && $('today-postits')) ML.placePostits();
   }
+  const ARR = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+  // Swap a part with the neighbour shown next to it (the computer hides some parts the phone has)
+  function moveP(k, other) {
+    const P = parts(), i = P.order.indexOf(k), j = P.order.indexOf(other);
+    if (i < 0 || j < 0) return;
+    [P.order[i], P.order[j]] = [P.order[j], P.order[i]];
+    save();
+  }
+  // Phone: a sheet lists the parts with a switch and two arrows each
+  let sheet = null;
+  function sheetHtml() {
+    const P = parts(), row = (k, list) => { const i = list.indexOf(k), fixed = k === 'next';
+      return `<div class="td-sr"><span class="td-sr-n">${esc(t('tdp_' + k))}${fixed ? ` <small>${esc(t('td_always'))}</small>` : ''}</span><button type="button" class="td-ed-b" data-pmove="${k}:${list[i - 1] || ''}" ${i ? '' : 'disabled'} aria-label="${esc(t('td_up') + ' : ' + t('tdp_' + k))}">${ARR('M6 15l6-6 6 6')}</button><button type="button" class="td-ed-b" data-pmove="${k}:${list[i + 1] || ''}" ${i < list.length - 1 ? '' : 'disabled'} aria-label="${esc(t('td_down') + ' : ' + t('tdp_' + k))}">${ARR('M6 9l6 6 6-6')}</button><button type="button" class="td-sw" role="switch" aria-checked="${shown(k)}" ${fixed ? 'disabled' : `data-phide="${k}"`} aria-label="${esc(t('tdp_' + k))}"><i></i></button></div>`; };
+    const mains = P.order.filter(k => MAIN.includes(k)), extras = P.order.filter(k => EXTRA.includes(k));
+    return `<div class="td-sheet-in" role="dialog" aria-modal="true" aria-labelledby="td-sh-h"><div class="td-sh-hd"><h2 id="td-sh-h">${esc(t('td_edit_h'))}</h2><button type="button" class="primary small" data-go="tdsheetx">${esc(t('td_edit_ok'))}</button></div>
+      ${mains.map(k => row(k, mains)).join('')}<p class="td-sh-l">${esc(t('td_extras'))}</p>${extras.map(k => row(k, extras)).join('')}
+      <div class="td-sr"><span class="td-sr-n">${esc(t('td_size'))}</span><div class="seg-toggle" role="group" aria-label="${esc(t('td_size'))}">${['big', 'normal'].map(v => `<button type="button" data-psz="${v}" aria-pressed="${P.size === v}">${esc(t('td_size_' + v))}</button>`).join('')}</div></div></div>`;
+  }
+  function openSheet() {
+    if (!sheet) {
+      sheet = document.createElement('div'); sheet.className = 'td-sheet';
+      sheet.addEventListener('click', e => { if (e.target === sheet || e.target.closest('[data-go="tdsheetx"]')) return closeSheet(); partAct(e); });
+      document.body.append(sheet);
+    }
+    sheet.innerHTML = sheetHtml(); sheet.hidden = false;
+    const b = sheet.querySelector('[data-go="tdsheetx"]'); if (b) b.focus({ preventScroll: true });
+  }
+  function closeSheet() { if (sheet) sheet.hidden = true; renderToday(); }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (sheet && !sheet.hidden) closeSheet(); else if (editing) { editing = false; renderToday(); } } });
+  // Clicks shared by the sheet and the in-place editor
+  function partAct(e) {
+    const mv = e.target.closest('[data-pmove]'), hd = e.target.closest('[data-phide]'), sz = e.target.closest('[data-psz]');
+    if (mv) { const [k, o] = mv.dataset.pmove.split(':'); if (o) moveP(k, o); }
+    else if (hd) { const P = parts(), k = hd.dataset.phide; if (P.hide[k]) delete P.hide[k]; else P.hide[k] = true; save(); }
+    else if (sz) { parts().size = sz.dataset.psz; save(); }
+    else return false;
+    if (sheet && !sheet.hidden) sheet.innerHTML = sheetHtml();
+    renderToday(); return true;
+  }
+  $('today').addEventListener('change', e => { if (e.target.matches('[data-psize]')) { parts().size = e.target.value; save(); renderToday(); } });
   // The quests sit on Today on a phone, in the Plan on a computer (same element)
   function restoreQuests() { const q = $('quest-strip'), w = document.querySelector('.qa-wrap'); if (q && w) w.after(q); }
   function placeQuests() {
@@ -207,7 +325,10 @@
 
   function act(e) {
     const lock = e.target.closest('[data-lock]'), done = e.target.closest('[data-done]'), b = e.target.closest('[data-go]');
+    if (e.currentTarget.id === 'today' && editing && partAct(e)) return;
     if (lock) { const x = S.tasks.find(y => y.id === lock.dataset.lock); if (x) ML.lockIn({ taskId: x.id, mins: x.mins }); return; }
+    const sk = e.target.closest('[data-skip]');
+    if (sk) { const ids = skipped().slice(); ids.push(sk.dataset.skip); S.tdSkip = { day: today(), ids }; save(); renderToday(); return; }
     if (done) { const x = S.tasks.find(y => y.id === done.dataset.done); if (x) { ML.completeTask(x); save(); ML.renderAll(); } return; }
     // the day list (A1): tick a block or a task, place a task, open a task's form
     const bck = e.target.closest('[data-bck]'), tck = e.target.closest('[data-tck]'), place = e.target.closest('[data-place]'), ted = e.target.closest('[data-tedit]');
@@ -225,6 +346,8 @@
     if (go === 'energy') return ML.energyPicker.open({ cancellable: true });
     if (go === 'pause') return ML.toggleTimer();
     if (go === 'tdnotes') { S.tdNotes = !S.tdNotes; save(); renderToday(); return; }
+    if (go === 'tdquests') { S.tdQuests = !S.tdQuests; if (S.tdQuests && S.plan) S.plan.qOpen = true; save(); renderToday(); if (ML.renderQuestStrip) ML.renderQuestStrip(); return; }
+    if (go === 'tdedit') { if (isPhone()) return openSheet(); editing = !editing; renderToday(); return; }
     if (go === 'evecheck') return ML.openCheck && ML.openCheck();
     if (go === 'evenot') return ML.eveNot && ML.eveNot();
     if (go === 'timer') { if (document.documentElement.classList.contains('mnav-on') && ML.setMobileView) ML.setMobileView('timer'); else $('start').focus(); return; }

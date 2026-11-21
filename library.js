@@ -19,7 +19,7 @@
       rd_close: 'Fermer', rd_doc: 'Document', rd_notes: 'Notes', rd_cards: 'Cartes', rd_sheet: 'Fiche', rd_prev: 'Page précédente', rd_next: 'Page suivante', rd_of: 'sur {n}', rd_zoom_in: 'Agrandir', rd_zoom_out: 'Réduire', rd_fit: 'Ajuster', rd_flash: 'Flashcard', rd_loading: 'Ouverture…', rd_load_err: 'Ce document ne s’ouvre pas ici.', rd_open_out: 'Ouvrir dans un onglet',
       rd_native: 'Lecteur du navigateur : la sélection, le suivi des pages et la recherche dans le PDF ne sont pas disponibles.',
       rd_notes_ph: 'Tes notes sur ce document. Elles s’enregistrent toutes seules.', rd_mark: 'Marquer la page', rd_to_nb: 'Envoyer au Carnet', rd_sent: 'Notes envoyées au Carnet', rd_sheet_ph: 'Écris ta fiche ici. Elle s’enregistre toute seule.',
-      rd_card_front: 'Question', rd_card_back: 'Réponse', rd_card_add: 'Ajouter la carte', rd_card_none: 'Pas encore de carte. Sélectionne du texte puis touche Flashcard, ou écris-en une ici.', rd_review: 'Réviser', rd_due: '{n} à revoir', rd_card_added: 'Carte ajoutée à « {deck} »', rd_lockin: 'Lock in sur ce document', rd_pause: 'Pause', rd_resume: 'Reprendre', rd_resize: 'Largeur des panneaux',
+      rd_card_front: 'Question', rd_card_back: 'Réponse', rd_card_add: 'Ajouter la carte', rd_card_none: 'Pas encore de carte. Sélectionne du texte puis touche Carte, ou écris-en une ici.', rd_review: 'Réviser', rd_due: '{n} à revoir', rd_card_added: 'Carte ajoutée à « {deck} »', rd_lockin: 'Lock in sur ce document', rd_pause: 'Pause', rd_resume: 'Reprendre', rd_resize: 'Largeur des panneaux',
     },
     en: {
       lb_add: 'Add', lb_photo: 'Photo', lb_sheet: 'Sheet', lb_search: 'Search titles, notes and PDFs…', lb_all: 'All', lb_untagged: 'No tag', lb_any: 'All types', lb_pdf: 'PDF', lb_images: 'Photos', lb_sheets: 'Sheets',
@@ -32,7 +32,7 @@
       rd_close: 'Close', rd_doc: 'Document', rd_notes: 'Notes', rd_cards: 'Cards', rd_sheet: 'Sheet', rd_prev: 'Previous page', rd_next: 'Next page', rd_of: 'of {n}', rd_zoom_in: 'Zoom in', rd_zoom_out: 'Zoom out', rd_fit: 'Fit', rd_flash: 'Flashcard', rd_loading: 'Opening…', rd_load_err: "This document can't open here.", rd_open_out: 'Open in a tab',
       rd_native: "Browser viewer: text selection, page tracking and PDF search aren't available.",
       rd_notes_ph: 'Your notes on this document. They save by themselves.', rd_mark: 'Mark the page', rd_to_nb: 'Send to Notebook', rd_sent: 'Notes sent to the Notebook', rd_sheet_ph: 'Write your sheet here. It saves by itself.',
-      rd_card_front: 'Question', rd_card_back: 'Answer', rd_card_add: 'Add card', rd_card_none: 'No cards yet. Select text then tap Flashcard, or write one here.', rd_review: 'Review', rd_due: '{n} due', rd_card_added: 'Card added to "{deck}"', rd_lockin: 'Lock in on this document', rd_pause: 'Pause', rd_resume: 'Resume', rd_resize: 'Panel width',
+      rd_card_front: 'Question', rd_card_back: 'Answer', rd_card_add: 'Add card', rd_card_none: 'No cards yet. Select text then tap Card, or write one here.', rd_review: 'Review', rd_due: '{n} due', rd_card_added: 'Card added to "{deck}"', rd_lockin: 'Lock in on this document', rd_pause: 'Pause', rd_resume: 'Resume', rd_resize: 'Panel width',
     },
   });
   ML.defaults(() => ({ lib: { sort: 'recent', kind: '', tag: '', split: .62, groups: [] } }));
@@ -216,7 +216,7 @@
   }
 
   /* ---------- The list ---------- */
-  let host = null, query = '', editing = null, armed = null, moveFor = null, gNew = false, gRen = false, gMove = false, gDelArmed = 0;
+  let host = null, query = '', editing = null, armed = null, moveFor = null, gNew = false, gRen = false, gMove = false, gDelArmed = 0, arranging = false;
   const canDrag = () => matchMedia('(pointer: fine)').matches;
   const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const fmtSize = b => { const u = S.lang === 'en' ? ['B', 'KB', 'MB', 'GB'] : ['o', 'Ko', 'Mo', 'Go']; let i = 0; while (b >= 1024 && i < 3) { b /= 1024; i++; } return (i > 1 ? (+b.toFixed(1)).toLocaleString(ML.locale()) : Math.round(b)) + ' ' + u[i]; };
@@ -246,11 +246,12 @@
       if (pages) for (let p = 0; p < pages.length; p++) { const i = norm(pages[p]).indexOf(q); if (i >= 0) { out.push({ d, rank: 2, hit: snippet(pages[p], i, q.length), page: p + 1 }); return; } }
     });
     if (q) return out.sort((a, b) => a.rank - b.rank);
-    const by = { recent: (a, b) => b.d.created - a.d.created, opened: (a, b) => (b.d.opened || 0) - (a.d.opened || 0) || b.d.created - a.d.created, name: (a, b) => a.d.name.localeCompare(b.d.name, ML.locale(), { numeric: true }), size: (a, b) => b.d.size - a.d.size };
+    // B1 (3.115): « My order » — a document dragged into place keeps d.order (per folder); new ones, without one, come first
+    const by = { mine: (a, b) => ((a.d.order ?? -Infinity) - (b.d.order ?? -Infinity)) || b.d.created - a.d.created, recent: (a, b) => b.d.created - a.d.created, opened: (a, b) => (b.d.opened || 0) - (a.d.opened || 0) || b.d.created - a.d.created, name: (a, b) => a.d.name.localeCompare(b.d.name, ML.locale(), { numeric: true }), size: (a, b) => b.d.size - a.d.size };
     return out.sort(by[f.sort] || by.recent);
   }
   const tileHtml = d => (d.thumb ? `<img class="lb-thumb" src="${esc(d.thumb)}" alt="">` : `<span class="lb-thumb lb-${d.kind}" aria-hidden="true">${d.kind === 'pdf' ? 'PDF' : d.kind === 'sheet' ? 'Aa' : ''}</span>`);
-  function rowHtml(m) {
+  function rowHtml(m, i, a) {
     const d = m.d;
     if (editing === d.id) return `<li class="lb-row editing">${tileHtml(d)}<div class="lb-edit">
         <label><span>${esc(t('lb_rename'))}</span><input type="text" data-lb-name="${d.id}" maxlength="120" value="${esc(d.name)}"></label>
@@ -263,15 +264,22 @@
           ${ML.CAN_DOWNLOAD ? `<button type="button" class="small ghost" data-lb-dl="${d.id}">${esc(t('lb_download'))}</button>` : ''}
           <button type="button" class="small primary" data-lb-editdone>${esc(t('lb_done'))}</button></div></div></li>`;
     const g = m.showGroup && groupOf(d);
+    if (arranging && !m.showGroup) return `<li class="lb-row og-arr" data-og-row data-og-id="d:${d.id}">${GRIP}<button type="button" class="lb-open" data-lb-open="${d.id}">${tileHtml(d)}<span class="lb-tx"><b>${esc(d.name)}</b><small>${esc(metaOf(d))}</small></span></button>${arrBtns('d:' + d.id, i, a ? a.length : 0)}</li>`;
     return `<li class="lb-row" data-og-row data-og-id="d:${d.id}"><button type="button" class="lb-open" data-lb-open="${d.id}"${m.page ? ` data-lb-page="${m.page}"` : ''}>${tileHtml(d)}
         <span class="lb-tx"><b>${esc(d.name)}</b><small>${g ? esc(pathName(g)) + ' · ' : ''}${esc(metaOf(d))}</small>${m.hit ? `<em>${m.page ? esc(t('lb_hit', { n: m.page })) + ' · ' : ''}${esc(m.hit)}</em>` : ''}</span></button>
       ${d.tags.length ? `<span class="lb-rowtags">${d.tags.slice(0, 2).map(x => `<i class="lb-tag">${esc(x)}</i>`).join('')}${d.tags.length > 2 ? `<i class="lb-tag">+${d.tags.length - 2}</i>` : ''}</span>` : ''}
       <button type="button" class="icon-btn lb-more" data-lb-edit="${d.id}" aria-label="${esc(t('lb_edit'))} : ${esc(d.name)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></li>`;
   }
+  /* B3 (3.115): the Arrange mode, a grip and up / down arrows on each folder and document row */
+  const GRIP = '<span class="og-grip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></span>';
+  const arrBtns = (key, i, n) => `<span class="og-ud"><button type="button" class="icon-btn" data-lb-mv="${esc(key)}" data-dir="-1" aria-label="${esc(t('lb_up'))}"${i ? '' : ' disabled'}>${ICO('M6 15l6-6 6 6')}</button><button type="button" class="icon-btn" data-lb-mv="${esc(key)}" data-dir="1" aria-label="${esc(t('lb_down'))}"${i < n - 1 ? '' : ' disabled'}>${ICO('M6 9l6 6 6-6')}</button></span>`;
+  const arrBar = () => (arranging ? `<div class="og-arrbar"><span>${esc(t('lb_arr_hint'))}</span><button type="button" class="small primary" data-lb-arrange>${esc(t('lb_arr_done'))}</button></div>` : '');
+  const arrBtn = n => (n > 1 && !arranging ? `<button type="button" class="ghost small lb-arrbtn" data-lb-arrange>${esc(t('lb_arrange'))}</button>` : '');
   const lastOpened = list => list.filter(d => d.opened).sort((a, b) => b.opened - a.opened)[0];
   const gDot = g => { const c = gColor(g); return c ? `<i class="pl-dot" style="--pc:${c}"></i>` : '<i class="pl-dot lb-nodot"></i>'; };
   const gMeta = g => { const ds = docsUnder(g.id), lo = lastOpened(ds), k = kidsOf(g.id).length; return [k ? ML.tn('lb_gsub', k) : '', ds.length ? ML.tn('lb_gn', ds.length) : k ? '' : t('lb_gn_zero'), lo ? t('lb_gopened', { d: fmtDay(lo.opened) }) : ''].filter(Boolean).join(' · '); };
-  const grpRow = g => `<li data-og-row data-og-id="g:${g.id}"><button type="button" class="lb-grp" data-lb-gopen="${g.id}">${gDot(g)}<b>${esc(g.name)}</b><small>${esc(gMeta(g))}</small>${CHEV}</button></li>`;
+  const grpRow = (g, i, a) => (arranging ? `<li class="og-arr lb-garr" data-og-row data-og-id="g:${g.id}">${GRIP}<button type="button" class="lb-grp" data-lb-gopen="${g.id}">${gDot(g)}<b>${esc(g.name)}</b><small>${esc(gMeta(g))}</small></button>${arrBtns('g:' + g.id, i, a ? a.length : 0)}</li>`
+    : `<li data-og-row data-og-id="g:${g.id}"><button type="button" class="lb-grp" data-lb-gopen="${g.id}">${gDot(g)}<b>${esc(g.name)}</b><small>${esc(gMeta(g))}</small>${CHEV}</button></li>`);
   const CHEV = '<svg class="lb-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
   const newGroupHtml = cls => (gNew ? `<form class="lb-gform ${cls}" data-lb-gform="new" autocomplete="off"><input type="text" maxlength="40" placeholder="${esc(t('lb_gname'))}" aria-label="${esc(t('lb_gname'))}"><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>`
     : `<button type="button" class="ghost small lb-gnew ${cls}" data-lb-gnew>+ ${esc(t('lb_gnew'))}</button>`);
@@ -286,10 +294,11 @@
         ${gMove ? `<label class="lb-gform lb-gren"><span>${esc(t('lb_gmove'))}</span><select data-lb-gmove><option value="">${esc(t('lb_gtop'))}</option>${dest.map(x => `<option value="${esc(x.g.id)}" ${up === x.g ? 'selected' : ''}>${esc(optName(x))}</option>`).join('')}</select></label>` : ''}
         ${gRen ?`<form class="lb-gform lb-gren" data-lb-gform="ren" autocomplete="off"><input type="text" maxlength="40" value="${esc(g.name)}" aria-label="${esc(t('lb_gren'))}"><button type="submit" class="small">${esc(t('lb_ok'))}</button></form>`
           : `<h3 class="lb-gtitle">${gDot(g)}<span>${esc(g.name)}</span></h3><small class="lb-gsub">${esc(gMeta(g))}</small>
-          <span class="lb-gacts"><button type="button" class="ghost small" data-lb-gren>${esc(t('lb_gren'))}</button>${gMove || !(groups().length > 1) ? '' : `<button type="button" class="ghost small" data-lb-gmv>${esc(t('lb_move'))}</button>`}<button type="button" class="ghost small" data-lb-gdel title="${esc(t('lb_gdel_hint'))}">${esc(t(gDelArmed ? 'tap_again' : 'lb_gdel'))}</button></span>`}
+          <span class="lb-gacts">${arrBtn(kids.length + ms.length)}<button type="button" class="ghost small" data-lb-gren>${esc(t('lb_gren'))}</button>${gMove || !(groups().length > 1) ? '' : `<button type="button" class="ghost small" data-lb-gmv>${esc(t('lb_move'))}</button>`}<button type="button" class="ghost small" data-lb-gdel title="${esc(t('lb_gdel_hint'))}">${esc(t(gDelArmed ? 'tap_again' : 'lb_gdel'))}</button></span>`}
       </div>
+      ${arrBar()}
       ${kids.length ? `<ul class="lb-groups">${kids.map(grpRow).join('')}</ul>` : ''}
-      ${newGroupHtml('')}
+      ${arranging ? '' : newGroupHtml('')}
       ${ms.length ? `<ul class="lb-list">${ms.map(rowHtml).join('')}</ul>` : kids.length ? '' : `<p class="hint">${esc(query || L().tag || L().kind ? t('lb_none') : t('lb_gn_zero'))}</p>`}`;
   }
   function listHtml() {
@@ -304,7 +313,8 @@
     const last = lastOpened(docs || []), gs = kidsOf(''), loose = matches('-');
     return `${last ? `<button type="button" class="lb-resume" data-lb-open="${last.id}">${tileHtml(last)}<span><small>${esc(t('lb_resume'))}</small><b>${esc(last.name)}</b>${last.kind === 'pdf' && last.page > 1 ? `<small>${esc(t('lb_page', { n: last.page }))}</small>` : ''}</span></button>` : ''}
       ${chips}
-      ${gs.length ? `<section class="lb-gsec"><h3 class="lb-h">${esc(t('lb_groups'))}</h3><p class="og-hint">${esc(t('og_drag_hint'))}</p><ul class="lb-groups">${gs.map(grpRow).join('')}</ul>${newGroupHtml('')}</section>` : ''}
+      ${gs.length || loose.length > 1 ? `<div class="lb-lh"><h3 class="lb-h">${esc(t(gs.length ? 'lb_groups' : 'lb_docs'))}</h3>${arrBtn(gs.length + loose.length)}</div>${arrBar()}${L().arranged || arranging ? '' : `<p class="og-hint">${esc(t('og_drag_hint'))}</p>`}` : ''}
+      ${gs.length ? `<section class="lb-gsec"><ul class="lb-groups">${gs.map(grpRow).join('')}</ul>${arranging ? '' : newGroupHtml('')}</section>` : ''}
       <section class="lb-gsec">${gs.length && (loose.length || canDrag()) ? `<h3 class="lb-h" data-drop-into="">${esc(t('lb_nogroup'))}</h3>` : ''}
       ${gs.length && !loose.length && canDrag() ? `<p class="hint lb-dropnote" data-drop-into="">${esc(t('lb_gdrop'))}</p>` : ''}
       ${loose.length ? `<ul class="lb-list">${loose.map(rowHtml).join('')}</ul>` : gs.length ? '' : `<p class="hint">${esc(t('lb_none'))}</p>`}
@@ -322,7 +332,7 @@
       ${docs.length ? `<input type="search" id="lb-q" maxlength="80" placeholder="${esc(t('lb_search'))}" value="${esc(query)}" autocomplete="off" aria-label="${esc(t('lb_search'))}">
       <div class="lb-filters">
         <select id="lb-kind" aria-label="${esc(t('lb_any'))}">${[['', 'lb_any'], ['pdf', 'lb_pdf'], ['image', 'lb_images'], ['sheet', 'lb_sheets']].map(([v, k]) => `<option value="${v}" ${f.kind === v ? 'selected' : ''}>${esc(t(k))}</option>`).join('')}</select>
-        <select id="lb-sort" aria-label="${esc(t('lb_s_recent'))}">${['recent', 'opened', 'name', 'size'].map(v => `<option value="${v}" ${f.sort === v ? 'selected' : ''}>${esc(t('lb_s_' + v))}</option>`).join('')}</select>
+        <select id="lb-sort" aria-label="${esc(t('lb_s_recent'))}">${['mine', 'recent', 'opened', 'name', 'size'].map(v => `<option value="${v}" ${f.sort === v ? 'selected' : ''}>${esc(t('lb_s_' + v))}</option>`).join('')}</select>
       </div>` : ''}
       ${docs.length || groups().length ? `
       <div id="lb-results">${listHtml()}</div>
@@ -435,6 +445,8 @@
       openG = up; gMove = false; toast(t('lb_gdeleted')); groupsChanged(); return;
     }
     if (b.hasAttribute('data-lb-gmv')) { gMove = true; refresh(); const s = tab.querySelector('[data-lb-gmove]'); if (s) s.focus(); return; }
+    if (b.hasAttribute('data-lb-arrange')) { arranging = !arranging; editing = null; if (arranging) L().sort = 'mine'; else L().arranged = true; save(); host.innerHTML = mainHtml(); usage(); renderSide(); return; }
+    if (b.dataset.lbMv) { moveBy(b.dataset.lbMv, +b.dataset.dir); return; }
     const cur = editing && d(editing); if (!cur) return;
     if (b.dataset.lbUntag) { cur.tags = cur.tags.filter(x => x !== b.dataset.lbUntag); putDoc(cur).catch(() => {}); if (L().tag === b.dataset.lbUntag && !docs.some(x => x.tags.includes(L().tag))) { L().tag = ''; save(); } refresh(); return; }
     if (b.dataset.lbAddtag) { cur.tags.push(b.dataset.lbAddtag); putDoc(cur).catch(() => {}); refresh(); }
@@ -543,7 +555,7 @@
   async function openReader(id, page) {
     const d = (docs || []).find(x => x.id === id); if (!d) return;
     if (cur) closeReader(true);
-    cur = d; pane = 'doc'; side = 'notes'; lastSel = ''; cardDraft = null;
+    cur = d; pane = 'doc'; side = 'notes'; lastSel = ''; cardDraft = null; sel = null; sheetSt = null;
     if (page) d.page = page;
     d.opened = Date.now(); saveDocSoon(d);
     from = document.activeElement;
@@ -580,8 +592,9 @@
 
   function renderReader() {
     const d = cur, W = wide(), sheet = isSheet();
-    const tabs = sheet ? [['doc', 'rd_sheet'], ['cards', 'rd_cards']] : [['doc', 'rd_doc'], ['notes', 'rd_notes'], ['cards', 'rd_cards']];
-    const sides = sheet ? [['cards', 'rd_cards']] : [['notes', 'rd_notes'], ['cards', 'rd_cards']];
+    const pdf = d.kind === 'pdf';
+    const tabs = sheet ? [['doc', 'rd_sheet'], ['cards', 'rd_cards']] : [['doc', 'rd_doc'], ['notes', 'rd_notes'], ...(pdf ? [['marks', 'rd_marks']] : []), ['cards', 'rd_cards']];
+    const sides = sheet ? [['cards', 'rd_cards']] : [['notes', 'rd_notes'], ...(pdf ? [['marks', 'rd_marks']] : []), ['cards', 'rd_cards']];
     if (sheet) side = 'cards';
     rd.classList.toggle('wide', W);
     rd.style.setProperty('--rd-split', (L().split || .62));
@@ -600,7 +613,7 @@
           <div class="rd-sidebody" id="rd-sidebody">${sideHtml(W ? side : pane)}</div>
         </aside>
       </div>
-      <button type="button" class="primary rd-flash" id="rd-flash" data-rd-flash hidden>${esc(t('rd_flash'))}</button>`;
+      <div class="rd-hlbar" id="rd-hlbar" role="toolbar" hidden></div><div class="rd-csheet" id="rd-csheet" role="dialog" hidden></div>`;
   }
   function toolsHtml() {
     const d = cur; if (isSheet()) return '';
@@ -705,6 +718,7 @@
       f.appendChild(layer);
       const { lib } = await pdfLib();
       await lib.renderTextLayer({ textContentSource: page.streamTextContent(), container: layer, viewport: vp, textDivs: [] }).promise;
+      paintMarks(f);
     } catch (e) { /* a cancelled paint, or a damaged page */ }
   }
   function unpaintPage(f) {
@@ -731,6 +745,7 @@
         ${marks.length ? `<div class="rd-marks" id="rd-marks">${marks.map(p => `<button type="button" class="lb-chip" data-rd-jump="${p}">${esc(t('lb_hit', { n: p }))}</button>`).join('')}</div>` : '<div class="rd-marks" id="rd-marks" hidden></div>'}
         <textarea id="rd-notes" class="rd-notes" placeholder="${esc(t('rd_notes_ph'))}">${esc(d.notes || '')}</textarea>`;
     }
+    if (k === 'marks') return marksHtml();
     if (k === 'cards') {
       const info = d.deck ? ML.studyDeckInfo(d.deck) : null, cards = info && info.exists ? info.cards : [], dr = cardDraft || {};
       return `<form class="fc-add rd-cardform" id="rd-cardform" autocomplete="off">
@@ -780,6 +795,158 @@
     const n = rd.querySelector('#rd-cardform [name=front]'); if (n && matchMedia('(pointer: fine)').matches) n.focus();
   }
   on('study:closed', () => { if (cur) refreshSide(); });
+
+  /* ---------- Highlights and the card sheet (3.115, H1 + H2, Premium like the rest of the Library) ----------
+     A passage selected in a PDF shows a small bar: three colours, Card, Copy. A highlight stays on its page: cur.marks
+     [{ id, page, color, text, rects: [[x, y, w, h] in 0..1 of the page], section, card }], kept with the document on this device.
+     The « Passages » tab lists them. Card opens a sheet over the document: Question (the part's title offered as the
+     question, the passage as the answer) or Cloze (tap the words to hide). Sheets (text files) get Card and Copy only. */
+  ML.addStrings({
+    fr: { rd_marks: 'Passages', rd_hl_y: 'Surligner en jaune', rd_hl_g: 'Surligner en vert', rd_hl_b: 'Surligner en bleu', rd_hl_card: 'Carte', rd_hl_copy: 'Copier', rd_copied: 'Passage copié',
+      rd_m_none: 'Pas encore de passage. Sélectionne du texte dans le PDF, puis choisis une couleur.', rd_m_card: 'Faire une carte', rd_m_done: 'Carte faite', rd_m_todo: 'Pas encore de carte', rd_m_del: 'Retirer le surlignage', rd_m_go: 'Aller à la page {n}',
+      rd_c_h: 'Nouvelle carte', rd_c_q: 'Question', rd_c_cloze: 'Texte à trous', rd_c_tap: 'Touche les mots à cacher.', rd_c_front: 'Recto', rd_c_pick: 'Choisis au moins un mot.', rd_c_to: '{doc} · p. {n} → paquet « {deck} »', rd_c_to_s: '{doc} → paquet « {deck} »', rd_c_add: 'Ajouter', rd_c_q_ph: 'Question' },
+    en: { rd_marks: 'Passages', rd_hl_y: 'Highlight in yellow', rd_hl_g: 'Highlight in green', rd_hl_b: 'Highlight in blue', rd_hl_card: 'Card', rd_hl_copy: 'Copy', rd_copied: 'Passage copied',
+      rd_m_none: 'No passages yet. Select text in the PDF, then pick a colour.', rd_m_card: 'Make a card', rd_m_done: 'Card made', rd_m_todo: 'No card yet', rd_m_del: 'Remove the highlight', rd_m_go: 'Go to page {n}',
+      rd_c_h: 'New card', rd_c_q: 'Question', rd_c_cloze: 'Cloze', rd_c_tap: 'Tap the words to hide.', rd_c_front: 'Front', rd_c_pick: 'Pick at least one word.', rd_c_to: '{doc} · p. {n} → deck "{deck}"', rd_c_to_s: '{doc} → deck "{deck}"', rd_c_add: 'Add', rd_c_q_ph: 'Question' },
+  });
+  const HL = { y: 'var(--hl-y)', g: 'var(--hl-g)', b: 'var(--hl-b)' };
+  const marksOf = d => (Array.isArray(d.marks) ? d.marks : (d.marks = []));
+  let sel = null, selT = 0, sheetSt = null; // sel: the passage under the bar { text, page, rects, section, frame? }
+  function paintMarks(f) {
+    if (!cur || !f) return;
+    let layer = f.querySelector('.rd-hl');
+    const list = marksOf(cur).filter(m => m.page === +f.dataset.p);
+    if (!list.length) { if (layer) layer.remove(); return; }
+    if (!layer) { layer = document.createElement('div'); layer.className = 'rd-hl'; layer.setAttribute('aria-hidden', 'true'); f.insertBefore(layer, f.querySelector('.textLayer')); }
+    layer.innerHTML = list.map(m => m.rects.map(([x, y, w, h]) => `<i style="left:${(x * 100).toFixed(3)}%;top:${(y * 100).toFixed(3)}%;width:${(w * 100).toFixed(3)}%;height:${(h * 100).toFixed(3)}%;background:${HL[m.color] || HL.y}"></i>`).join('')).join('');
+  }
+  const repaint = page => { const f = rd.querySelector(`.rd-pg[data-p="${page}"]`); if (f && f.dataset.on) paintMarks(f); };
+  // The title of the part a passage sits in: the nearest line above it that is bigger than the page's text, or numbered (« 4.2 … »)
+  function sectionAbove(frame, top) {
+    const spans = [...frame.querySelectorAll('.textLayer span')]; if (!spans.length) return '';
+    const sz = s => parseFloat(getComputedStyle(s).fontSize) || 0, sizes = spans.map(sz).filter(Boolean).sort((a, b) => a - b), med = sizes[Math.floor(sizes.length / 2)] || 0;
+    let best = null;
+    spans.forEach(s => {
+      const r = s.getBoundingClientRect(), txt = s.textContent.trim();
+      if (r.bottom > top + 2 || !txt || txt.length > 90) return;
+      const big = sz(s) > med * 1.12 || (/^(\d+(\.\d+)*\.?|[IVX]+\.|[A-Z]\.)\s+\S/.test(txt) && txt.length < 70);
+      if (big && (!best || r.top > best.top)) best = { top: r.top, txt };
+    });
+    return best ? best.txt.replace(/\s+/g, ' ') : '';
+  }
+  // The selection, read while it is still there (a tap on a phone may drop it)
+  function readSel() {
+    const s = getSelection(), el = document.activeElement, docEl = rd.querySelector('.rd-doc');
+    if (el && el.id === 'rd-sheet') { const txt = el.value.slice(el.selectionStart, el.selectionEnd).replace(/\s+/g, ' ').trim(); return txt ? { text: txt, sheet: true, box: el.getBoundingClientRect() } : null; }
+    if (!s || s.isCollapsed || !s.rangeCount || !docEl || !docEl.contains(s.anchorNode)) return null;
+    const text = String(s).replace(/\s+/g, ' ').trim(); if (!text) return null;
+    const range = s.getRangeAt(0), an = s.anchorNode.nodeType === 1 ? s.anchorNode : s.anchorNode.parentElement, frame = an && an.closest('.rd-pg');
+    const box = range.getBoundingClientRect();
+    if (!frame || pdfMode !== 'js') return { text, box };
+    const fr = frame.getBoundingClientRect(), rects = [];
+    [...range.getClientRects()].forEach(r => {
+      if (r.width < 2 || r.height < 3) return;
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      if (cx < fr.left || cx > fr.right || cy < fr.top || cy > fr.bottom) return;
+      const k = [(r.left - fr.left) / fr.width, (r.top - fr.top) / fr.height, r.width / fr.width, r.height / fr.height];
+      // one rectangle per line: a span inside another (pdf.js nests some) is dropped
+      if (!rects.some(o => Math.abs(o[1] - k[1]) < .004 && k[0] >= o[0] - .002 && k[0] + k[2] <= o[0] + o[2] + .002)) rects.push(k);
+    });
+    return { text, box, page: +frame.dataset.p, rects: rects.slice(0, 80), section: sectionAbove(frame, box.top) };
+  }
+  function showBar() {
+    const bar = $('rd-hlbar'); if (!bar) return;
+    if (!sel) { bar.hidden = true; return; }
+    const canMark = !!(sel.rects && sel.rects.length);
+    bar.innerHTML = `${canMark ? ['y', 'g', 'b'].map(c => `<button type="button" class="rd-sw" data-rd-hl="${c}" style="--c:${HL[c]}" aria-label="${esc(t('rd_hl_' + c))}" title="${esc(t('rd_hl_' + c))}"></button>`).join('') + '<i class="rd-hlsep"></i>' : ''}
+      <button type="button" class="small" data-rd-hlcard>${esc(t('rd_hl_card'))}</button><button type="button" class="small ghost" data-rd-hlcopy>${esc(t('rd_hl_copy'))}</button>`;
+    bar.hidden = false;
+    const b = sel.box, W = innerWidth, bw = bar.offsetWidth, bh = bar.offsetHeight, coarse = matchMedia('(pointer: coarse)').matches;
+    let y = coarse ? b.bottom + 12 : b.top - bh - 10; if (y < 56) y = b.bottom + 12; if (y + bh > innerHeight - 8) y = Math.max(56, b.top - bh - 10);
+    bar.style.left = Math.max(8, Math.min(W - bw - 8, b.left)) + 'px'; bar.style.top = y + 'px';
+  }
+  document.addEventListener('selectionchange', () => {
+    if (!cur) return;
+    clearTimeout(selT);
+    selT = setTimeout(() => { if (!cur) return; const s = readSel(); if (s) { sel = s; showBar(); } else if (!rd.querySelector("#rd-hlbar:hover, #rd-hlbar:focus-within")) { sel = null; showBar(); } }, 140);
+  });
+  rd.addEventListener("scroll", () => { if (!sel || sel.sheet) return; const s = readSel(); sel = s; showBar(); }, true);
+  function addMark(color) {
+    if (!sel || !sel.rects || !sel.rects.length) return null;
+    const m = { id: uid(), page: sel.page, color, text: sel.text.slice(0, 2000), rects: sel.rects, section: (sel.section || '').slice(0, 120), at: Date.now() };
+    marksOf(cur).push(m); saveDocSoon(cur); repaint(m.page);
+    return m;
+  }
+  const clearSel = () => { sel = null; showBar(); try { getSelection().removeAllRanges(); } catch (e) {} const ta = $('rd-sheet'); if (ta && document.activeElement === ta) ta.selectionEnd = ta.selectionStart; };
+  const refreshMarksTab = () => { if ((wide() ? side : pane) === 'marks') refreshSide(); const n = rd.querySelector('.rd-mcount'); if (n) n.textContent = marksOf(cur).length || ''; };
+  // The card sheet
+  const deckName = () => { const info = cur.deck ? ML.studyDeckInfo(cur.deck) : null; return info && info.exists ? (ML.studyDecks().find(x => x.id === cur.deck) || {}).name || cur.name : cur.name.slice(0, 60); };
+  const words = s => s.split(/\s+/).filter(Boolean);
+  const hideWord = w => w.replace(/^((?:[ldjmnstc]|qu)['’])?[\p{L}\p{N}][\p{L}\p{N}'’-]*/iu, (x, p) => (p || '') + '_____'); // « l'ATP » hides ATP, keeps l'
+  const clozeFront = () => words(sheetSt.text).map((w, i) => (sheetSt.hide.has(i) ? hideWord(w) : w)).join(' ');
+  function openSheet(text, mark, page, section) {
+    sheetSt = { text, markId: mark ? mark.id : null, page: page || 0, mode: 'q', front: section || '', back: text, hide: new Set(), y: sel && sel.box ? sel.box.top : null };
+    renderSheet();
+    const f = rd.querySelector('#rd-csheet [name=front]'); if (f && matchMedia('(pointer: fine)').matches) f.focus();
+  }
+  function renderSheet() {
+    const box = $('rd-csheet'); if (!box) return;
+    if (!sheetSt) { box.hidden = true; box.innerHTML = ''; return; }
+    const st = sheetSt, q = st.mode === 'q';
+    const to = st.page ? t('rd_c_to', { doc: cur.name, n: st.page, deck: deckName() }) : t('rd_c_to_s', { doc: cur.name, deck: deckName() });
+    box.innerHTML = `<div class="rd-chead"><h3>${esc(t('rd_c_h'))}</h3><div class="seg-toggle" role="group"><button type="button" data-rd-cmode="q" aria-pressed="${q}">${esc(t('rd_c_q'))}</button><button type="button" data-rd-cmode="cloze" aria-pressed="${!q}">${esc(t('rd_c_cloze'))}</button></div></div>
+      ${q ? `<form class="rd-cform" id="rd-cform" autocomplete="off"><textarea name="front" rows="2" maxlength="2000" placeholder="${esc(t('rd_c_q_ph'))}">${esc(st.front)}</textarea><textarea name="back" rows="4" maxlength="4000">${esc(st.back)}</textarea></form>`
+        : `<p class="hint">${esc(t('rd_c_tap'))}</p><div class="rd-cwords">${words(st.text).slice(0, 160).map((w, i) => `<button type="button" class="rd-cw" data-rd-cw="${i}" aria-pressed="${st.hide.has(i)}">${esc(w)}</button>`).join(' ')}</div>
+          <p class="rd-cprev"><small>${esc(t('rd_c_front'))} :</small> ${st.hide.size ? esc(clozeFront()) : `<i>${esc(t('rd_c_pick'))}</i>`}</p>`}
+      <div class="rd-cfoot"><small>${esc(to)}</small><button type="button" class="small ghost" data-rd-ccancel>${esc(t('cancel'))}</button><button type="button" class="small primary" data-rd-cadd ${q || st.hide.size ? '' : 'disabled'}>${esc(t('rd_c_add'))}</button></div>`;
+    box.hidden = false;
+    // On a computer the sheet sits over the document's lower corner; on a phone it is a bottom sheet (CSS)
+    const docEl = $('rd-doc');
+    // …or its upper corner when the passage sits in the lower half, so the passage stays in sight
+    const m = st.markId && marksOf(cur).find(x => x.id === st.markId), frame = m && rd.querySelector(`.rd-pg[data-p="${m.page}"]`);
+    const fr = frame && frame.getBoundingClientRect(), y = fr && m.rects[0] ? fr.top + m.rects[0][1] * fr.height : st.y;
+    if (wide() && docEl) {
+      const r = docEl.getBoundingClientRect(), up = y != null && y > r.top + r.height * .45;
+      box.style.left = (r.left + 16) + 'px'; box.style.width = Math.min(460, r.width - 32) + 'px';
+      box.style.bottom = up ? '' : '16px'; box.style.top = up ? (r.top + 16) + 'px' : '';
+    } else { box.style.left = box.style.width = box.style.bottom = box.style.top = ''; }
+  }
+  function sheetAdd() {
+    const st = sheetSt; if (!st) return;
+    const src = st.page ? ` (${t('lb_hit', { n: st.page })})` : '';
+    let front, back;
+    if (st.mode === 'q') { const f = rd.querySelector('#rd-cform'); front = (f ? f.front.value : st.front).trim(); back = (f ? f.back.value : st.back).trim(); if (!front) { const x = f && f.front; if (x) x.focus(); return; } }
+    else { if (!st.hide.size) return; front = clozeFront(); back = st.text; }
+    const exists = cur.deck && ML.studyDeckInfo(cur.deck).exists;
+    const deck = ML.studyAddCard(exists ? cur.deck : cur.name.slice(0, 60), front, back + src);
+    cur.deck = deck.id;
+    const m = st.markId && marksOf(cur).find(x => x.id === st.markId); if (m) m.card = Date.now();
+    saveDocSoon(cur); sheetSt = null; renderSheet();
+    toast(t('rd_card_added', { deck: deck.name }), { key: 'rdcard' });
+    refreshSide();
+  }
+  rd.addEventListener('pointerdown', e => { if (e.target.closest('#rd-hlbar')) e.preventDefault(); }); // keep the selection while a bar button is pressed
+  rd.addEventListener('click', e => {
+    if (!cur) return;
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.rdHl) { const m = addMark(b.dataset.rdHl); clearSel(); if (m) refreshMarksTab(); return; }
+    if (b.hasAttribute('data-rd-hlcard')) { if (!sel) return; const s = sel, m = s.rects && s.rects.length ? addMark('y') : null; clearSel(); if (m) refreshMarksTab(); openSheet(s.text, m, s.page, s.section); return; }
+    if (b.hasAttribute('data-rd-hlcopy')) { if (!sel) return; const txt = sel.text; clearSel(); try { navigator.clipboard.writeText(txt).then(() => toast(t('rd_copied'), { key: 'rdcopy' }), () => {}); } catch (err) {} return; }
+    if (b.dataset.rdMcard) { const m = marksOf(cur).find(x => x.id === b.dataset.rdMcard); if (m) { if (!wide()) showPane('doc'); goPage(m.page, true); openSheet(m.text, m, m.page, m.section); } return; }
+    if (b.dataset.rdMgo) { goPage(+b.dataset.rdMgo); if (!wide()) showPane('doc'); return; }
+    if (b.dataset.rdMdel) { const m = marksOf(cur).find(x => x.id === b.dataset.rdMdel); cur.marks = marksOf(cur).filter(x => x.id !== b.dataset.rdMdel); saveDocSoon(cur); if (m) repaint(m.page); refreshMarksTab(); return; }
+    if (b.dataset.rdCmode && sheetSt) { const f = rd.querySelector('#rd-cform'); if (f) { sheetSt.front = f.front.value; sheetSt.back = f.back.value; } sheetSt.mode = b.dataset.rdCmode; renderSheet(); return; }
+    if (b.dataset.rdCw != null && sheetSt) { const i = +b.dataset.rdCw; if (sheetSt.hide.has(i)) sheetSt.hide.delete(i); else sheetSt.hide.add(i); renderSheet(); const n = rd.querySelector(`[data-rd-cw="${i}"]`); if (n) n.focus({ preventScroll: true }); return; }
+    if (b.hasAttribute('data-rd-ccancel')) { sheetSt = null; renderSheet(); return; }
+    if (b.hasAttribute('data-rd-cadd')) { sheetAdd(); }
+  });
+  rd.addEventListener('keydown', e => { if (e.key === 'Escape' && sheetSt && e.target.closest && e.target.closest('#rd-csheet')) { e.stopPropagation(); sheetSt = null; renderSheet(); } }, true);
+  function marksHtml() {
+    const list = marksOf(cur).slice().sort((a, b) => a.page - b.page || (a.rects[0] || [0, 0])[1] - (b.rects[0] || [0, 0])[1]);
+    if (!list.length) return `<p class="hint">${esc(t('rd_m_none'))}</p>`;
+    return `<ul class="rd-mlist">${list.map(m => `<li style="--hl:${HL[m.color] || HL.y}"><button type="button" class="rd-mgo" data-rd-mgo="${m.page}" aria-label="${esc(t('rd_m_go', { n: m.page }))}"><small>${esc(t('lb_hit', { n: m.page }))}${m.section ? ' · ' + esc(m.section) : ''}</small><span>« ${esc(m.text.length > 260 ? m.text.slice(0, 257) + '…' : m.text)} »</span></button>
+      <div class="rd-mrow"><small>${esc(t(m.card ? 'rd_m_done' : 'rd_m_todo'))}</small><button type="button" class="icon-btn" data-rd-mdel="${m.id}" aria-label="${esc(t('rd_m_del'))}" title="${esc(t('rd_m_del'))}">${ICO('M6 6l12 12M18 6L6 18')}</button><button type="button" class="small" data-rd-mcard="${m.id}">${esc(t('rd_m_card'))}</button></div></li>`).join('')}</ul>`;
+  }
 
   /* ---------- Reader events ---------- */
   rd.addEventListener('click', e => {
@@ -891,14 +1058,40 @@
       { label: t('lb_delete'), danger: true, armed: true, fn: () => removeDoc(id) },
     ];
   }, el => { const [k, id] = ogId(el).split(':'); const x = k === 'g' ? groupById(id) : (docs || []).find(y => y.id === id); return x ? x.name : ''; });
-  // A folder: before / after another folder (same parent as it), or into one. A document: into a folder.
+  ML.addStrings({
+    fr: { lb_s_mine: 'Mon ordre', lb_docs: 'Documents', lb_arrange: 'Ranger', lb_arr_hint: 'Glisse par la poignée ou utilise les flèches.', lb_arr_done: 'Terminé', lb_up: 'Monter', lb_down: 'Descendre' },
+    en: { lb_s_mine: 'My order', lb_docs: 'Documents', lb_arrange: 'Arrange', lb_arr_hint: 'Drag by the handle or use the arrows.', lb_arr_done: 'Done', lb_up: 'Move up', lb_down: 'Move down' },
+  });
+  // B1 (3.115): the documents of one folder ('' = no folder) in the order shown, then numbered again after a move
+  const flatList = () => !!(query || L().tag || L().kind);
+  const setMine = () => { L().sort = 'mine'; const s = $('lb-sort'); if (s) s.value = 'mine'; };
+  const shownIn = gid => matches(gid || '-').map(m => m.d);
+  function placeDocs(ids) { ids.forEach((id, i) => { const x = (docs || []).find(y => y.id === id); if (x && x.order !== i) { x.order = i; putDoc(x).catch(() => {}); } }); }
+  function moveBy(key, dir) {
+    const [k, id] = key.split(':');
+    if (k === 'g') { const g = groupById(id); if (!g) return; const ids = kidsOf(parentId(g)).map(x => x.id), i = ids.indexOf(id), j = i + dir; if (j < 0 || j >= ids.length) return; [ids[i], ids[j]] = [ids[j], ids[i]]; ids.forEach((x, n) => { groupById(x).order = n; }); save(); }
+    else { const x = (docs || []).find(y => y.id === id); if (!x) return; setMine(); const ids = shownIn(groupOf(x) ? x.group : '').map(y => y.id), i = ids.indexOf(id), j = i + dir; if (j < 0 || j >= ids.length) return; [ids[i], ids[j]] = [ids[j], ids[i]]; placeDocs(ids); save(); }
+    refresh(); renderSide();
+    const b = tab.querySelector(`[data-lb-mv="${key}"][data-dir="${dir}"]`); if (b && !b.disabled) b.focus({ preventScroll: true });
+  }
+  // A folder: before / after another folder (same parent as it), or into one. A document: into a folder, or before / after
+  // another document (it then takes that document's folder and the list switches to « My order »).
   const folderOk = (dragId, tid) => { const [k, id] = dragId.split(':'); return k !== 'g' || !underOf(id).has(tid); };
   ML.dragSort({
     root: () => (inLib() && !cur ? host : null), item: '[data-og-id]', id: ogId, anyZone: false,
     into: (dragId, tid) => { const [tk, tv] = tid.includes(':') ? tid.split(':') : ['z', tid]; if (tk === 'd') return false; return folderOk(dragId, tv); },
-    order: (dragId, tid) => dragId[0] === 'g' && tid[0] === 'g',
+    order: (dragId, tid) => (dragId[0] === 'g' && tid[0] === 'g') || (dragId[0] === 'd' && tid[0] === 'd' && !flatList()),
     drop: (dragId, tid, where) => {
       const [k, id] = dragId.split(':'), target = tid.includes(':') ? tid.split(':')[1] : tid;
+      L().arranged = true;
+      if (k === 'd' && where !== 'into') {
+        const x = (docs || []).find(y => y.id === id), tx = (docs || []).find(y => y.id === target); if (!x || !tx || x === tx) return;
+        const gid = groupOf(tx) ? tx.group : '';
+        if ((groupOf(x) ? x.group : '') !== gid) moveDoc(x, gid);
+        setMine();
+        placeDocs(ML.reorder(shownIn(gid).map(y => y.id), id, target, where));
+        save(); refresh(); emit('lib:groups'); return;
+      }
       if (where === 'into') {
         if (target && !groupById(target)) return;
         if (k === 'd') { const x = (docs || []).find(y => y.id === id); if (x && (x.group || '') !== target) { moveDoc(x, target); refresh(); emit('lib:groups'); } return; }

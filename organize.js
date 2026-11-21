@@ -89,6 +89,8 @@
     const f = sortOf(e.target); if (!f) return;
     const [s, el, root] = f, id = s.id(el); if (!id) return;
     g = { s, el, id, root, x: e.clientX, y: e.clientY, touch: e.pointerType !== 'mouse', pid: e.pointerId };
+    // Arrange mode (3.115, B3): a finger on a row's grip drags at once, no long press
+    if (g.touch && e.target.closest('.og-grip')) { g.armed = g.grip = true; e.preventDefault(); return; }
     if (g.touch) g.timer = setTimeout(() => { if (!g) return; g.armed = true; el.classList.add('og-armed'); if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) {} }, LONG);
   }, true);
   document.addEventListener('pointermove', e => {
@@ -106,7 +108,7 @@
   document.addEventListener('pointerup', e => {
     if (!g || e.pointerId !== g.pid) return;
     if (g.dragging) { finish(); return; }
-    if (g.touch && g.armed) { const el = g.el, x = g.x, y = g.y; cancel(); swallowClick(); openFor(el, x, y); return; } // long press, no move: the menu
+    if (g.touch && g.armed && !g.grip) { const el = g.el, x = g.x, y = g.y; cancel(); swallowClick(); openFor(el, x, y); return; } // long press, no move: the menu
     cancel();
   }, true);
   document.addEventListener('pointercancel', () => { if (g && !g.dragging) cancel(); else if (g) { stop(); } }, true);

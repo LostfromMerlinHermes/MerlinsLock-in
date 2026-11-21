@@ -745,17 +745,29 @@
   $('arc').style.strokeDasharray = ARC_C;
 
   const presetLabel = m => fmtMins(m);
+  let durOpen = false;
   function renderPresets() {
     const P = MOOD_PRESETS[S.mood] || MOOD_PRESETS.steady;
     const list = S.mode === 'focus' ? P.focus.slice() : P.brk.slice();
     const cur = S.mode === 'focus' ? S.focusMins : S.breakMins;
     const sug = S.mode === 'focus' ? MOODS[S.mood].focus : MOODS[S.mood].brk;
     if (!list.includes(cur)) { list.push(cur); list.sort((a, b) => a - b); } // a custom time shows as its own chip
-    $('presets').innerHTML = `<span class="preset-rhythm">${esc(t('rhythm_' + S.mood))}</span>` + list.map(m => `<button type="button" data-m="${m}" aria-pressed="${m === cur}" class="${m === sug ? 'suggested' : ''}"
-      title="${m === sug ? esc(t('suggested')) : ''}">${presetLabel(m)}</button>`).join('');
+    // 3.113 (M1): three durations (the suggested one, its neighbours and the current one) + « Other », which opens them all and the custom time
+    let shown = list;
+    if (!durOpen && list.length > 3) {
+      const keep = new Set([sug, cur].filter(m => list.includes(m)));
+      const i = Math.max(0, list.indexOf(list.includes(sug) ? sug : cur));
+      for (let d = 1; keep.size < 3 && d < list.length; d++) { if (list[i + d] != null && keep.size < 3) keep.add(list[i + d]); if (list[i - d] != null && keep.size < 3) keep.add(list[i - d]); }
+      shown = list.filter(m => keep.has(m));
+    }
+    $('presets').closest('.full-only').classList.toggle('dur-open', durOpen);
+    $('presets').innerHTML = (durOpen ? `<span class="preset-rhythm">${esc(t('rhythm_' + S.mood))}</span>` : '') + shown.map(m => `<button type="button" data-m="${m}" aria-pressed="${m === cur}" class="${m === sug ? 'suggested' : ''}"
+      title="${m === sug ? esc(t('suggested')) : ''}">${presetLabel(m)}</button>`).join('')
+      + (list.length > 3 ? `<button type="button" class="dur-other" data-other="1" aria-expanded="${durOpen}">${esc(t('dur_other'))}</button>` : '');
   }
   $('presets').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.other) { durOpen = !durOpen; renderPresets(); if (durOpen) { const c = $('custom-mins'); if (c) c.focus({ preventScroll: true }); } return; }
     if (running()) { toast(t('pause_first')); return; }
     setDuration(+b.dataset.m);
   });
@@ -902,12 +914,24 @@
     if (!running() && spent <= 0) return;
     if (!resetArmed) { b.textContent = t('reset_sure'); b.classList.add('armed'); resetArmed = setTimeout(() => { resetArmed = 0; b.textContent = t('reset'); b.classList.remove('armed'); }, 6000); return; }
     clearTimeout(resetArmed); resetArmed = 0; b.textContent = t('reset'); b.classList.remove('armed');
+    closeTmMenu();
     if (S.mode === 'focus' && spent >= 5) emit('abandon', { mins: spent });
     stop(); S.remaining = S.total; save(); renderTimer();
     emit('timer'); // the session is over only now: session mode (today.js) must let the energies and durations come back
   };
   const finish = () => { if (S.remaining < S.total || running()) complete(true); else toast(t('start_first')); };
-  $('skip').onclick = finish; $('c-skip').onclick = finish;
+  $('skip').onclick = () => { closeTmMenu(); finish(); }; $('c-skip').onclick = finish;
+  // The ⋯ menu next to the main button (3.113, M1). It stays open while Cancel waits for its second tap.
+  function closeTmMenu() { const m = $('tm-menu'); if (!m || m.hidden) return; m.hidden = true; $('tm-more-btn').setAttribute('aria-expanded', 'false'); }
+  $('tm-more-btn').onclick = e => {
+    e.stopPropagation();
+    const m = $('tm-menu'), on = m.hidden;
+    m.hidden = !on; $('tm-more-btn').setAttribute('aria-expanded', String(on));
+    if (on) { const f = m.querySelector('button:not([hidden])'); if (f) f.focus(); }
+  };
+  document.addEventListener('click', e => { if (!e.target.closest('.tm-more')) closeTmMenu(); });
+  $('tm-menu').addEventListener('keydown', e => { if (e.key === 'Escape') { closeTmMenu(); $('tm-more-btn').focus(); } });
+  $('tm-float').onclick = () => { closeTmMenu(); openFloat(); };
   $('compact-btn').onclick = () => { S.compact = !S.compact; autoCompacted = false; litCount = -1; save(); renderTimer(); };
 
   function complete(early = false) {
@@ -968,27 +992,83 @@
   $('rate-skip').onclick = () => { S.pendingRating = null; save(); renderRating(); };
 
   /* ---------- Floating timer ---------- */
-  let pipWin = null;
+  // 3.113: quiet by default (mini-view.js); its settings live in S.mini, set here or from its own ⋯ menu
+  ML.defaults(() => ({ mini: Object.assign({}, MiniView.DEF) }));
+  const miniOpts = () => MiniView.opts(S.mini);
+  let pipWin = null, miniAccent = '';
+  // The world's accent, kept for the extension popup too (it has no access to the app's styles)
+  function readAccent() {
+    const a = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    if (a && a !== miniAccent) { miniAccent = a; try { localStorage.setItem('mli-mini-accent', a); } catch (e) {} }
+  }
+  new MutationObserver(() => { readAccent(); if (pipWin) renderTimer(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-light', 'data-mood', 'data-sober'] });
+  const resizePip = (w, h) => { try { if (pipWin) pipWin.resizeBy(Math.round(w - pipWin.innerWidth), Math.round(h - pipWin.innerHeight)); } catch (e) {} };
+  function setMiniOpt(patch) {
+    S.mini = Object.assign(miniOpts(), patch); save();
+    if (pipWin) { renderTimer(); if ((patch.style || patch.size) && !(pipWin.document.__mini && pipWin.document.__mini.menu)) resizePip(...MiniView.winSize(S.mini)); }
+  }
   async function openFloat() {
     if (pipWin) { pipWin.focus(); return; }
+    readAccent();
+    const [w, h] = MiniView.winSize(S.mini);
     if ('documentPictureInPicture' in window) {
       try {
-        pipWin = await window.documentPictureInPicture.requestWindow({ width: 300, height: 170 });
-        MiniView.mount(pipWin.document, toggleTimer);
+        pipWin = await window.documentPictureInPicture.requestWindow({ width: w, height: h });
+        // the app's fonts, so the time keeps the same face
+        document.querySelectorAll('link[rel="stylesheet"]').forEach(l => { const c = pipWin.document.createElement('link'); c.rel = 'stylesheet'; c.href = l.href; if (/.test(l.href)) pipWin.document.head.appendChild(c); });
+        MiniView.mount(pipWin.document, { toggle: toggleTimer, finish: () => { finish(); return true; }, setOpt: setMiniOpt, resize: resizePip });
         pipWin.addEventListener('pagehide', () => { pipWin = null; });
         renderTimer();
         return;
       } catch (e) { pipWin = null; }
     }
-    if (IS_EXT && chrome.windows) { chrome.windows.create({ url: chrome.runtime.getURL('mini.html'), type: 'popup', width: 320, height: 190 }); return; }
+    if (IS_EXT && chrome.windows) { chrome.windows.create({ url: chrome.runtime.getURL('mini.html'), type: 'popup', width: w + 16, height: h + 40 }); return; }
     toast(t('float_unavailable'));
   }
   function renderFloat(rem) {
     if (!pipWin) return;
-    MiniView.render(pipWin.document, { remaining: rem, total: S.total, running: running(), mode: S.mode, mood: S.mood, task: activeTitle() });
+    MiniView.render(pipWin.document, { remaining: rem, total: S.total, running: running(), mode: S.mode, lang: S.lang,
+      task: S.mode === 'break' ? t(S.breakTip || 'tip_water') : (activeTitle() || t('free_focus')),
+      opts: S.mini, accent: miniAccent, forcePlain: soberOn() });
   }
+  // The extension popup asks the open app to finish (only the app records sessions)
+  if (IS_EXT && chrome.runtime && chrome.runtime.onMessage) chrome.runtime.onMessage.addListener((msg, sender, reply) => {
+    if (!msg || msg.type !== 'mini-finish') return;
+    // the side panel and a tab may both be open: only the first one records the session
+    try { if (localStorage.getItem('mli-mini-finish') === String(msg.at)) { reply({ ok: true }); return; } localStorage.setItem('mli-mini-finish', String(msg.at)); } catch (e) {}
+    finish(); reply({ ok: true });
+  });
   $('float-btn').onclick = openFloat;
   ML.openFloat = openFloat;
+  ML.setMiniOpt = setMiniOpt;
+  ML.addStrings({
+    fr: { mini_h: 'Minuteur flottant', mini_style: 'Style', mini_pill: 'Pastille', mini_bar: 'Barre fine', mini_dial: 'Petit cadran', mini_size: 'Taille', mini_s: 'Petit', mini_m: 'Moyen', mini_l: 'Grand', mini_show: 'Affiché en plus du temps', mini_ring: 'Anneau', mini_task: 'Tâche', mini_btns: 'Boutons', mini_when: 'Tâche et boutons', mini_hover: 'Au survol', mini_always: 'Toujours', mini_bright: 'Luminosité au repos', mini_colors: 'Couleurs', mini_world: 'Du monde', mini_plain: 'Sobres', mini_hint: 'La fenêtre reste opaque : la luminosité éteint son contenu au repos, il revient en entier au survol. Une nouvelle taille s’applique à la prochaine ouverture si la fenêtre refuse de changer.', mini_open: 'Ouvrir le minuteur flottant', tm_more: 'Plus d’actions', dur_other: 'Autre' },
+    en: { mini_h: 'Floating timer', mini_style: 'Style', mini_pill: 'Pill', mini_bar: 'Thin bar', mini_dial: 'Small dial', mini_size: 'Size', mini_s: 'Small', mini_m: 'Medium', mini_l: 'Large', mini_show: 'Shown besides the time', mini_ring: 'Ring', mini_task: 'Task', mini_btns: 'Buttons', mini_when: 'Task and buttons', mini_hover: 'On hover', mini_always: 'Always', mini_bright: 'Brightness at rest', mini_colors: 'Colours', mini_world: 'World', mini_plain: 'Plain', mini_hint: 'The window stays opaque: brightness dims its content at rest, it comes back in full on hover. A new size applies next time if the window refuses to change.', mini_open: 'Open the floating timer', tm_more: 'More actions', dur_other: 'Other' },
+  });
+  queueMicrotask(() => ML.settingsSection({ // ML.settingsSection is defined further down this file
+    order: 24, cat: 'timer',
+    render: () => {
+      const o = miniOpts();
+      const seg = (k, vals, label) => `<div class="field"><span id="mini-${k}-l">${esc(t(label))}</span><div class="seg-toggle" role="group" aria-labelledby="mini-${k}-l">${vals.map(([v, l]) => `<button type="button" data-mini="${k}" data-v="${v}" aria-pressed="${String(o[k]) === String(v)}">${esc(t(l))}</button>`).join('')}</div></div>`;
+      return `<h3>${esc(t('mini_h'))}</h3>
+        ${seg('style', [['pill', 'mini_pill'], ['bar', 'mini_bar'], ['dial', 'mini_dial']], 'mini_style')}
+        ${seg('size', [['s', 'mini_s'], ['m', 'mini_m'], ['l', 'mini_l']], 'mini_size')}
+        <p class="label">${esc(t('mini_show'))}</p>
+        ${chk('mini-ring', t('mini_ring'), o.ring)}${chk('mini-task', t('mini_task'), o.task)}${chk('mini-btns', t('mini_btns'), o.btns)}
+        ${seg('hover', [['true', 'mini_hover'], ['false', 'mini_always']], 'mini_when')}
+        <label class="d-slider"><span>${esc(t('mini_bright'))} · <b id="mini-bv">${o.bright} %</b></span><input type="range" id="mini-bright" min="25" max="100" step="5" value="${o.bright}"></label>
+        ${soberOn() ? '' : seg('colors', [['world', 'mini_world'], ['plain', 'mini_plain']], 'mini_colors')}
+        <p class="hint">${esc(t('mini_hint'))}</p>
+        ${matchMedia('(pointer: coarse)').matches ? '' : `<button type="button" class="small" id="mini-open">${esc(t('mini_open'))}</button>`}`;
+    },
+    bind: root => {
+      root.querySelectorAll('[data-mini]').forEach(b => { b.onclick = () => { const k = b.dataset.mini, v = b.dataset.v; setMiniOpt({ [k]: k === 'hover' ? v === 'true' : v }); renderSettings(); }; });
+      ['ring', 'task', 'btns'].forEach(k => { root.querySelector('#mini-' + k).onchange = e => setMiniOpt({ [k]: e.target.checked }); });
+      const r = root.querySelector('#mini-bright');
+      r.oninput = () => { root.querySelector('#mini-bv').textContent = r.value + ' %'; setMiniOpt({ bright: +r.value }); };
+      const ob = root.querySelector('#mini-open'); if (ob) ob.onclick = openFloat;
+    },
+  }));
 
   /* ---------- Notifications ---------- */
   function bgSchedule() { bgSend({ type: 'schedule', when: S.endAt, mode: S.mode, title: activeTitle() }); }
@@ -1153,7 +1233,11 @@
 
   const sel = (id, opts, cur) => `<select id="${id}">${opts.map(([v, l]) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
   const chk = (id, label, on) => `<label class="opt"><input type="checkbox" id="${id}" ${on ? 'checked' : ''}> ${esc(label)}</label>`;
-  ML.ui = { sel, chk };
+  // 3.114: a switch with an optional one-line hint; still a checkbox underneath (same id, same onchange)
+  const sw = (id, label, on, hint) => `<label class="opt-sw"><span class="opt-sw-t">${esc(label)}${hint ? `<small>${esc(hint)}</small>` : ''}</span><input type="checkbox" role="switch" id="${id}" ${on ? 'checked' : ''}></label>`;
+  // 3.114: a row of buttons for a short list of choices (data-seg="value")
+  const seg = (name, label, opts, cur) => `<div class="field opt-seg"><span id="${name}-l">${esc(label)}</span><div class="seg-toggle" role="group" aria-labelledby="${name}-l" data-segname="${name}">${opts.map(([v, l]) => `<button type="button" data-seg="${v}" aria-pressed="${String(v) === String(cur)}">${esc(l)}</button>`).join('')}</div></div>`;
+  ML.ui = { sel, chk, sw, seg };
 
   ML.addStrings({
     fr: { look_h: 'Apparence', look_worlds: 'Mondes', look_sober: 'Sobre', look_sober_d: 'Sans Monde, sans jeu, sans animations. Tout revient tel quel si tu repasses sur Mondes.', look_pal: 'Couleurs', look_bg: 'Fond', look_acc: 'Accent', pal_black: 'Noir', pal_white: 'Blanc', pal_green: 'Vert', pal_slate: 'Ardoise', acc_green: 'Vert', acc_blue: 'Bleu', acc_amber: 'Ambre', acc_coral: 'Corail', acc_lilac: 'Lilas', acc_grey: 'Gris', mod_sober_off: 'Coupé par l’apparence Sobre.', qt_sober: 'Apparence Sobre', look_logo: 'Logo', logo_figure: 'Personnage', logo_letters: 'Lettres' },

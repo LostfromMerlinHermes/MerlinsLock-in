@@ -10,7 +10,7 @@
       tab_focus: 'Progrès', tab_health: 'Bien-être', tab_screen: 'Temps d’écran', grp_progress: 'Progression', grp_well: 'Bien-être', grp_more: 'Plus',
       pg_since: 'depuis la rentrée, sur {n} semaines', pg_none: 'Ta première session lancera tes progrès.', pg_days: '{n} jours (record {b})', pg_flow_wk: 'Sessions Flow cette semaine', pg_of: '{a} sur {b}',
       pg_span: 'Durée sans décrocher', pg_span_was: '(il y a un mois : {m})', pg_span_none: 'encore quelques sessions', pg_bonus: 'Bonus de Flow en cours', pg_bonus_0: 'pas encore',
-      pg_level: 'Niveau', pg_xp_left: '{n} XP avant {name}.', pg_ach: 'Succès, {a} sur {b}', pg_set_h: 'Objectif et affichage', gp_set: 'Ce que tu cherches', gp_p: 'Ça règle ton objectif du jour et ce que Toi met en avant. Tu peux changer dans Réglages.', gp_skip: 'Passer',
+      pg_level: 'Niveau', pg_xp_left: '{n} XP avant {name}.', pg_ach: 'Succès, {a} sur {b}', pg_set_h: 'Objectif et affichage', pg_set_goal: 'Objectif', gp_set: 'Ce que tu cherches', gp_p: 'Ça règle ton objectif du jour et ce que Toi met en avant. Tu peux changer dans Réglages.', gp_skip: 'Passer',
       fc_style_h: 'Animé : les chiffres montent, le défi de la semaine et l’arbre qui pousse en fin de session.',
       fc_deep: 'Heures profondes', fc_flow: 'Flow, 7 jours', fc_chain: 'Bonus', fc_chain_h: 'Chaîne', fc_chain_n: '{n} de suite', fc_chain_0: 'La prochaine session propre lance la chaîne.',
       fc_rule: 'Une session Flow : 25 min ou plus, finie, sans pause ni décrochage, notée 4 ou 5 si tu la notes.',
@@ -34,7 +34,7 @@
       tab_focus: 'Progress', tab_health: 'Wellbeing', tab_screen: 'Screen time', grp_progress: 'Progress', grp_well: 'Wellbeing', grp_more: 'More',
       pg_since: 'since the school year began, over {n} weeks', pg_none: 'Your first session starts your progress.', pg_days: '{n} days (record {b})', pg_flow_wk: 'Flow sessions this week', pg_of: '{a} of {b}',
       pg_span: 'You hold without a distraction', pg_span_was: '(a month ago: {m})', pg_span_none: 'a few more sessions', pg_bonus: 'Current Flow bonus', pg_bonus_0: 'not yet',
-      pg_level: 'Level', pg_xp_left: '{n} XP to {name}.', pg_ach: 'Achievements, {a} of {b}', pg_set_h: 'Goal and display', gp_set: 'What you are here for', gp_p: 'It sets your daily goal and what You puts first. You can change it in Settings.', gp_skip: 'Skip',
+      pg_level: 'Level', pg_xp_left: '{n} XP to {name}.', pg_ach: 'Achievements, {a} of {b}', pg_set_h: 'Goal and display', pg_set_goal: 'Goal', gp_set: 'What you are here for', gp_p: 'It sets your daily goal and what You puts first. You can change it in Settings.', gp_skip: 'Skip',
       fc_style_h: 'Lively: numbers climb, a weekly challenge and the tree growing at the end of a session.',
       fc_deep: 'Deep hours', fc_flow: 'Flow, 7 days', fc_chain: 'Bonus', fc_chain_h: 'Chain', fc_chain_n: '{n} in a row', fc_chain_0: 'Your next clean session starts the chain.',
       fc_rule: 'A Flow session: 25 min or more, finished, no pause or distraction, rated 4 or 5 if you rate it.',
@@ -343,26 +343,27 @@
     toast(t('rs_toast'), { action: { label: t('rs_open'), fn: openReset }, ms: 12000 });
   }
 
-  // Period, goal and display: settings, not stats (3.66, moved out of the Progress page)
+  // Period, goal and display: settings, not stats (3.66, moved out of the Progress page). 3.114 (S1): the group
+  // « Objectif », period and style as rows of buttons, switches instead of boxes.
   ML.settingsSection({
     order: 32, cat: 'planning',
     render: () => {
       const pd = period(), x = nextExam();
-      return `<h3>${esc(t('pg_set_h'))}</h3>
-      <label class="field"><span>${esc(t('pd_title'))}</span>${ML.ui.sel('set-pd', ML.PERIODS.map(k => [k, t('pd_' + k)]), S.period.key || 'term')}</label>
+      return `<h3>${esc(t('pg_set_goal'))}</h3>
+      ${ML.ui.seg('set-pd', t('pd_title'), ML.PERIODS.map(k => [k, t('pd_' + k)]), S.period.key || 'term')}
       <p class="hint">${esc(t('pd_h_' + pd))}${pd === 'exams' && x ? ' ' + esc(t('pd_exam_line', { name: x.name, n: daysTo(x.date) })) + '.' : ''}</p>
-      ${ML.ui.chk('pd-auto', t('pd_auto'), S.period.auto !== false)}
+      ${ML.ui.sw('pd-auto', t('pd_auto'), S.period.auto !== false)}
       <label class="field"><span>${esc(t('gp_set'))}</span>${ML.ui.sel('set-gp', ['further', 'start', 'phone'].map(k => [k, t('gp_' + k)]), S.goalProfile || 'further')}</label>
-      <label class="field"><span>${esc(t('fc_style'))}</span>${ML.ui.sel('set-style', [['calm', t('fc_calm')], ['lively', t('fc_lively')]], S.youStyle)}</label>
+      ${ML.ui.seg('set-style', t('fc_style'), [['calm', t('fc_calm')], ['lively', t('fc_lively')]], S.youStyle)}
       <p class="hint">${esc(t('fc_style_h'))}</p>
-      ${ML.ui.chk('set-over', t('ov_set'), S.overGuard !== false)}`;
+      ${ML.ui.sw('set-over', t('ov_set'), S.overGuard !== false)}`;
     },
     bind: r => {
       r.querySelector('#set-over').onchange = e => { S.overGuard = e.target.checked; save(); };
-      r.querySelector('#set-pd').onchange = e => { setPeriod(e.target.value); ML.renderSettings(); };
+      r.querySelectorAll('[data-segname="set-pd"] [data-seg]').forEach(b => { b.onclick = () => { setPeriod(b.dataset.seg); ML.renderSettings(); }; });
       r.querySelector('#pd-auto').onchange = e => { S.period.auto = e.target.checked; save(); emit('period', period()); render(); };
       r.querySelector('#set-gp').onchange = e => { S.goalProfile = e.target.value; save(); applyLook(); render(); emit('render'); };
-      r.querySelector('#set-style').onchange = e => { S.youStyle = e.target.value; counted = false; save(); applyLook(); emit('render'); };
+      r.querySelectorAll('[data-segname="set-style"] [data-seg]').forEach(b => { b.onclick = () => { S.youStyle = b.dataset.seg; counted = false; save(); applyLook(); emit('render'); r.querySelectorAll('[data-segname="set-style"] [data-seg]').forEach(y => y.setAttribute('aria-pressed', y === b)); }; });
     },
   });
   on('tab', n => { if (n === 'focus') counted = false; render(); });

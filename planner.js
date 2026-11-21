@@ -153,17 +153,5 @@
   on('tab', name => { if (name === 'day') render(); });
   ML.plannerGoto = k => { S.planner.date = k === today() ? null : k; ML.setTab('day'); };
 
-  ML.settingsSection({
-    order: 27, cat: 'planning',
-    render: () => `<h3>${esc(t('set_planner'))}</h3>
-      ${ML.ui.chk('set-autostart', t('opt_autostart'), S.planner.autoStart)}
-      <label class="field"><span>${esc(t('day_start'))}</span>${ML.ui.sel('set-dstart', [4, 5, 6, 7, 8, 9, 10, 11, 12].map(h => [h, h + ':00']), S.planner.startH)}</label>
-      <label class="field"><span>${esc(t('day_end'))}</span>${ML.ui.sel('set-dend', [20, 21, 22, 23, 24].map(h => [h, (h % 24) + ':00']), S.planner.endH)}</label>
-      <p class="hint">${esc(t('day_hint'))}</p>`,
-    bind: r => {
-      r.querySelector('#set-autostart').onchange = e => { S.planner.autoStart = e.target.checked; save(); };
-      r.querySelector('#set-dstart').onchange = e => { S.planner.startH = +e.target.value; save(); ML.renderAll(); };
-      r.querySelector('#set-dend').onchange = e => { S.planner.endH = +e.target.value; save(); ML.renderAll(); };
-    },
-  });
+  // 3.114: its settings (auto-start, auto-plan hours) moved to the Planning settings of daygrid.js (S1)
 })();

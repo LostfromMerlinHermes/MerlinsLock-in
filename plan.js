@@ -26,7 +26,7 @@
       pl_c_date: 'Date', pl_c_pin: 'Épingler', pl_add_in: '+ Ajouter dans {g}', pl_add_pin: '+ Ajouter une tâche épinglée',
       pl_d_today: 'Aujourd’hui', pl_d_tomorrow: 'Demain', pl_d_weekend: 'Ce week-end', pl_d_nextweek: 'Semaine prochaine', pl_d_none: 'Sans date', pl_d_pick: 'Choisir',
       pl_p_none: 'Aucun projet', pl_p_new: 'Nouveau projet', pl_p_new_ph: 'Nom du projet', pl_m_custom: 'Autre (ex. 50m, 1h20)', pl_ok: 'OK',
-      pl_display: 'Affichage', pl_cols: 'Colonnes', pl_search: 'Chercher', pl_select: 'Sélectionner', pl_prep: 'Préparer ma journée',
+      pl_display: 'Affichage', pl_acts: 'Actions', pl_cols: 'Colonnes', pl_search: 'Chercher', pl_select: 'Sélectionner', pl_prep: 'Préparer ma journée',
       pl_sel_n: '{n} sélectionnée(s)', pl_sel_all: 'Tout', pl_sel_done: 'Terminer', pl_sel_del: 'Supprimer', pl_sel_sure: 'Confirmer ?', pl_cancel: 'Annuler', pl_sel_hint: 'Touche les tâches à sélectionner.',
       pl_rename: 'Renommer', pl_edit_full: 'Tout modifier', pl_empty_today: 'Rien de prévu aujourd’hui.', pl_empty_hint: 'Ajoute une tâche, ou choisis-en dans toutes tes tâches.', pl_see_all: 'Voir toutes',
       pl_nodate_n: '{n} sans date', pl_side_new: '+ Projet', pl_proj_note: 'Note du projet', pl_proj_due: 'Échéance', pl_proj_left: 'dans {n} j', pl_proj_today: 'aujourd’hui', pl_proj_past: 'passée',
@@ -49,7 +49,7 @@
       pl_c_date: 'Date', pl_c_pin: 'Pin', pl_add_in: '+ Add to {g}', pl_add_pin: '+ Add a pinned task',
       pl_d_today: 'Today', pl_d_tomorrow: 'Tomorrow', pl_d_weekend: 'This weekend', pl_d_nextweek: 'Next week', pl_d_none: 'No date', pl_d_pick: 'Pick',
       pl_p_none: 'No project', pl_p_new: 'New project', pl_p_new_ph: 'Project name', pl_m_custom: 'Other (e.g. 50m, 1h20)', pl_ok: 'OK',
-      pl_display: 'Display', pl_cols: 'Columns', pl_search: 'Search', pl_select: 'Select', pl_prep: 'Plan my day',
+      pl_display: 'Display', pl_acts: 'Actions', pl_cols: 'Columns', pl_search: 'Search', pl_select: 'Select', pl_prep: 'Plan my day',
       pl_sel_n: '{n} selected', pl_sel_all: 'All', pl_sel_done: 'Complete', pl_sel_del: 'Delete', pl_sel_sure: 'Confirm?', pl_cancel: 'Cancel', pl_sel_hint: 'Tap the tasks to select.',
       pl_rename: 'Rename', pl_edit_full: 'Edit all', pl_empty_today: 'Nothing planned for today.', pl_empty_hint: 'Add a task, or pick some from all your tasks.', pl_see_all: 'See all',
       pl_nodate_n: '{n} without a date', pl_side_new: '+ Project', pl_proj_note: 'Project note', pl_proj_due: 'Deadline', pl_proj_left: 'in {n} d', pl_proj_today: 'today', pl_proj_past: 'passed',
@@ -435,6 +435,7 @@
   const ICON_DISPLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>';
   const ICON_SEL = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/><path d="M14 7.5l1.8 1.8L19 6"/></svg>';
   const ICON_SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="4"/><path d="M12 4v2M4 13h2M18 13h2M6.3 7.3l1.4 1.4M17.7 7.3l-1.4 1.4M3 20h18"/></svg>';
+  const ICON_MORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>';
   // The views stay on top in every energy and even with no task. Scattered keeps its single card: only Next and Inbox.
   // The Inbox ("À trier") is the first group of the list, shown while something waits in it (3.82)
   const inboxG = document.createElement('div'); inboxG.className = 'pgroup pl-inboxg'; inboxG.hidden = true;
@@ -445,7 +446,7 @@
   inboxHead.onclick = () => { const p = P(); p.fold = Object.assign({}, p.fold, { inbox: !inboxFolded() }); save(); renderViews(); };
   function renderViews() {
     const p = P(), M = ML.MOODS[S.mood], single = M && M.single && !S.showAll, n = (S.parked || []).length, folded = inboxFolded();
-    const html = single ? '' : `<button type="button" class="ghost icon-only pl-tb" data-ptool="display" aria-haspopup="true" aria-expanded="false" aria-label="${esc(t('pl_display'))}" title="${esc(t('pl_display'))}">${ICON_DISPLAY}</button>`;
+    const html = single ? '' : `<button type="button" class="ghost icon-only pl-tb" data-ptool="display" aria-haspopup="true" aria-expanded="false" aria-label="${esc(t('pl_display'))}" title="${esc(t('pl_display'))}">${ICON_DISPLAY}</button><button type="button" class="ghost icon-only pl-tb" data-ptool="more" aria-haspopup="true" aria-expanded="false" aria-label="${esc(t('pl_acts'))}" title="${esc(t('pl_acts'))}">${ICON_MORE}</button>`;
     if (viewsRow.dataset.h !== html) { viewsRow.innerHTML = html; viewsRow.dataset.h = html; }
     inboxG.hidden = single && !n; inboxG.classList.toggle('folded', folded);
     $('tab-park').hidden = folded;
@@ -465,7 +466,7 @@
   viewsRow.addEventListener('click', e => {
     const w = e.target.closest('[data-pv2]'), tool = e.target.closest('[data-ptool]');
     if (w) setPview(w.dataset.pv2);
-    if (tool) openDisplay(tool);
+    if (tool) (tool.dataset.ptool === 'more' ? openActions : openDisplay)(tool);
   });
   $('subtabs').addEventListener('click', e => { const b = e.target.closest('[data-pvw]'); if (b) setPview(b.dataset.pvw); });
   on('tab', renderViews);
@@ -481,12 +482,13 @@
     if (single && !projs.length && !n) return;
     const html = `<div class="pp-list">${n ? item({ pv: 'inbox' }, esc(t('pl_v_inbox')), false, String(n)) : ''}
       ${projs.length ? `${n ? '<hr class="pp-sep">' : ''}${projItems()}` : ''}
-      ${single ? '' : `${n || projs.length ? '<hr class="pp-sep">' : ''}${item({ act: 'display' }, esc(t('pl_display')), false, '', ICON_DISPLAY)}`}</div>`;
+      ${single ? '' : `${n || projs.length ? '<hr class="pp-sep">' : ''}${item({ act: 'display' }, esc(t('pl_display')), false, '', ICON_DISPLAY)}${item({ act: 'more' }, esc(t('pl_acts')), false, '', ICON_MORE)}`}</div>`;
     openPop(anchor, html, r => {
       if (!r) return;
       if (r.pv) setPview(r.pv);
       else if (r.proj !== undefined) { P().proj = r.proj; save(); if (S.tab !== 'plan') ML.setTab('plan'); ML.renderTasks(); }
       else if (r.act === 'display') { if (S.tab !== 'plan') ML.setTab('plan'); openDisplay(anchor); }
+      else if (r.act === 'more') { if (S.tab !== 'plan') ML.setTab('plan'); openActions(anchor); }
     });
   };
   function renderBar(single) {
@@ -514,8 +516,8 @@
     searchOpen = true; renderBar(false);
     const q = $('pl-q'); if (q) { q.focus(); q.select(); }
   };
-  // One menu for everything that isn't a view (P1, 3.56): list or table, grouping, sort, columns, search, select,
-  // Plan my day, and the two clearing actions, away from the thumb
+  // Display (P1, 3.56): list or table, grouping, sort, columns. 3.114 (D1 of proposals/today-plan): the actions (search,
+  // select, Plan my day, the two clearing actions) have their own menu, so « Clear all » no longer sits under Sort
   let clearArmed = 0;
   function openDisplay(anchor) {
     const p = P(), sorts = SORTS.includes(p.sort) ? SORTS : [...SORTS, p.sort];
@@ -525,7 +527,19 @@
       ${p.pview === 'all' ? `<label class="pp-row"><span>${esc(t('pl_group'))}</span><select data-pchg="group">${GROUPS.map(g => `<option value="${g}" ${p.group === g ? 'selected' : ''}>${esc(t('pl_g_' + g))}</option>`).join('')}</select></label>` : ''}
       <label class="pp-row"><span>${esc(t('pl_sort'))}</span><select data-pchg="sort">${sorts.map(s => `<option value="${s}" ${p.sort === s ? 'selected' : ''}>${esc(t('pl_s_' + s))}</option>`).join('')}</select></label>
       ${p.view === 'table' ? `<p class="pp-k">${esc(t('pl_cols'))}</p>${COLKEYS.map(c => `<label class="pp-chk"><input type="checkbox" data-pchg="col" value="${c}" ${p.cols.includes(c) ? 'checked' : ''}><span>${esc(colLabel(c))}</span></label>`).join('')}` : ''}
-      <hr class="pp-sep">
+    </div>`;
+    openPop(anchor, html, r => {
+      if (r && r.act) { if (r.act === 'view') { P().view = r.v; save(); ML.renderTasks(); } return; }
+      if (!r || !r.chg) return;
+      if (r.chg === 'group') P().group = r.value;
+      if (r.chg === 'sort') { P().sort = r.value; P().dir = r.value === 'xp' || r.value === 'spent' ? -1 : 1; }
+      if (r.chg === 'col') { const c = r.key, cols = P().cols.filter(x => x !== c); if (r.value) cols.push(c); P().cols = COLKEYS.filter(x => cols.includes(x)); }
+      save(); ML.renderTasks();
+    });
+  }
+
+  function openActions(anchor) {
+    const html = `<div class="pp-list">
       ${item({ act: 'search' }, esc(t('pl_search')), false, '', ICON_SEARCH)}
       ${item({ act: 'select' }, esc(t('pl_select')), selMode, '', ICON_SEL)}
       ${item({ act: 'prep' }, esc(t('pl_prep')), false, '', ICON_SUN)}
@@ -534,23 +548,15 @@
       <button type="button" class="pp-it pp-danger" data-pv="${pv({ act: 'clearAll' })}" data-keep="1"><span>${esc(t('clear_all'))}</span></button>
     </div>`;
     openPop(anchor, html, (r, b) => {
-      if (r && r.act) {
-        if (r.act === 'view') { P().view = r.v; save(); ML.renderTasks(); }
-        if (r.act === 'search') ML.planFocusSearch();
-        if (r.act === 'select') setSel(!selMode);
-        if (r.act === 'prep' && ML.openDayPrep) ML.openDayPrep();
-        if (r.act === 'clearDone') ML.planClearDone();
-        if (r.act === 'clearAll') {
-          if (Date.now() - clearArmed > 3000) { clearArmed = Date.now(); b.querySelector('span').textContent = t('tap_again'); return; }
-          clearArmed = 0; closePop(); ML.planClearAll();
-        }
-        return;
+      if (!r || !r.act) return;
+      if (r.act === 'search') ML.planFocusSearch();
+      if (r.act === 'select') setSel(!selMode);
+      if (r.act === 'prep' && ML.openDayPrep) ML.openDayPrep();
+      if (r.act === 'clearDone') ML.planClearDone();
+      if (r.act === 'clearAll') {
+        if (Date.now() - clearArmed > 3000) { clearArmed = Date.now(); b.querySelector('span').textContent = t('tap_again'); return; }
+        clearArmed = 0; closePop(); ML.planClearAll();
       }
-      if (!r || !r.chg) return;
-      if (r.chg === 'group') P().group = r.value;
-      if (r.chg === 'sort') { P().sort = r.value; P().dir = r.value === 'xp' || r.value === 'spent' ? -1 : 1; }
-      if (r.chg === 'col') { const c = r.key, cols = P().cols.filter(x => x !== c); if (r.value) cols.push(c); P().cols = COLKEYS.filter(x => cols.includes(x)); }
-      save(); ML.renderTasks();
     });
   }
 

@@ -10,7 +10,7 @@
       dg_add: 'Ajouter', dg_block: 'Bloc', dg_event: 'Événement', dg_title_ph: 'Tâche ou titre', dg_start: 'Début', dg_end: 'Fin', dg_date: 'Date',
       dg_more: 'Plus d’options', dg_autosave: 'Enregistré à chaque changement.', dg_series: 'Événement répété : ces réglages changent toute la série.',
       dg_edit: 'Modifier', dg_dup: 'Dupliquer', dg_tomorrow: 'Déplacer à demain', dg_undone: 'Pas fait', dg_done: 'Fait', dg_del: 'Supprimer', dg_del_series: 'Supprimer la série',
-      dg_view: 'Affichage', dg_density: 'Densité', dg_d_compact: 'Compacte', dg_d_normal: 'Normale', dg_d_large: 'Grande',
+      dg_view: 'Affichage', dg_v_day: 'Jour', dg_v_week: 'Semaine', dg_density: 'Densité', dg_d_compact: 'Compacte', dg_d_normal: 'Normale', dg_d_large: 'Grande',
       dg_hours: 'Heures', dg_h_24: '24 h', dg_h_mine: 'Mes heures', dg_h_auto: 'Auto', dg_layout: 'Disposition', dg_l_grid: 'Grille', dg_l_lines: 'Lignes',
       dg_wide: 'Pleine largeur', dg_wide_off: 'Largeur normale', dg_free: 'Libre {d}', dg_overlaps: 'Chevauche {t}', dg_until: 'jusqu’à {t}',
       dg_fold_none: '{a}–{b}, rien de prévu', dg_fold_n_one: '{a}–{b}, 1 élément', dg_fold_n: '{a}–{b}, {n} éléments',
@@ -19,7 +19,7 @@
       dg_tray_empty: 'Toutes tes tâches ouvertes sont placées.', dg_autoweek: 'Auto-planifier la semaine', dg_week_free: 'libre {d}', dg_feed: 'Événement d’un agenda importé : il se met à jour tout seul, on ne peut pas le déplacer.',
       dg_side_off: 'Masquer le panneau', dg_side_on: 'Afficher le panneau', dg_check: 'Case à cocher', dg_check_hint: 'Pour ce qui se fait ou pas (exos oui, repos non).',
       dg_lock: 'Lock in', dg_pause: 'Pause', dg_close: 'Fermer', dg_saved: 'Ajouté', dg_all_day: 'Toute la journée', dg_due: 'À rendre',
-      dg_set_push: 'Faire de la place : poser un bloc sur un créneau pris décale les blocs suivants', dg_set_from: 'Mes heures : de', dg_set_to: 'Mes heures : à',
+      dg_set_push: 'Faire de la place : poser un bloc sur un créneau pris décale les blocs suivants', dg_set_hours: 'Heures', dg_set_blocks: 'Blocs', dg_hr_mine: 'Mes heures (affichées)', dg_hr_auto: 'Planification auto', dg_hr_hint: 'Tu peux toujours poser un bloc à n’importe quelle heure.', dg_sw_auto: 'Lancer les blocs à l’heure', dg_sw_auto_h: 'Le minuteur démarre seul au début d’un bloc.', dg_sw_push: 'Faire de la place', dg_sw_push_h: 'Poser un bloc sur un créneau pris décale les suivants.', dg_set_from: 'Mes heures : de', dg_set_to: 'Mes heures : à',
       dg_rep: 'Répéter', dg_rep_no: 'Non', dg_rep_daily: 'Chaque jour', dg_rep_days: 'Certains jours', dg_rep_until: 'Jusqu’au', dg_rep_once: 'Changé ce jour seulement', dg_rep_all: 'Tous les suivants', dg_rep_all_done: 'Les suivants sont changés', dg_del_next: 'Supprimer les suivants', dg_rep_stopped: 'Les suivants sont retirés',
       dg_of: 'sur', dg_score: 'Minuteur fait, sur le temps prévu en blocs à cocher',
       dg_miss_n_one: '1 bloc pas fait', dg_miss_n: '{n} blocs pas faits', dg_miss_y: 'hier', dg_miss_t: 'aujourd’hui', dg_place: 'Placer', dg_place_today: 'Tout placer aujourd’hui', dg_place_tmr: 'Tout placer demain', dg_ignore: 'Ignorer', dg_unplan: 'À la liste', dg_unplanned_one: '1 bloc remis dans la liste', dg_unplanned: '{n} blocs remis dans la liste', dg_ignore_all: 'Tout ignorer',
@@ -34,7 +34,7 @@
       dg_add: 'Add', dg_block: 'Block', dg_event: 'Event', dg_title_ph: 'Task or title', dg_start: 'Start', dg_end: 'End', dg_date: 'Date',
       dg_more: 'More options', dg_autosave: 'Saved as you change it.', dg_series: 'Repeating event: these settings change the whole series.',
       dg_edit: 'Edit', dg_dup: 'Duplicate', dg_tomorrow: 'Move to tomorrow', dg_undone: 'Not done', dg_done: 'Done', dg_del: 'Delete', dg_del_series: 'Delete the series',
-      dg_view: 'View', dg_density: 'Density', dg_d_compact: 'Compact', dg_d_normal: 'Normal', dg_d_large: 'Large',
+      dg_view: 'View', dg_v_day: 'Day', dg_v_week: 'Week', dg_density: 'Density', dg_d_compact: 'Compact', dg_d_normal: 'Normal', dg_d_large: 'Large',
       dg_hours: 'Hours', dg_h_24: '24 h', dg_h_mine: 'My hours', dg_h_auto: 'Auto', dg_layout: 'Layout', dg_l_grid: 'Grid', dg_l_lines: 'Lines',
       dg_wide: 'Full width', dg_wide_off: 'Normal width', dg_free: 'Free {d}', dg_overlaps: 'Overlaps {t}', dg_until: 'until {t}',
       dg_fold_none: '{a}–{b}, nothing planned', dg_fold_n_one: '{a}–{b}, 1 item', dg_fold_n: '{a}–{b}, {n} items',
@@ -43,7 +43,7 @@
       dg_tray_empty: 'All your open tasks are placed.', dg_autoweek: 'Auto-plan the week', dg_week_free: 'free {d}', dg_feed: 'Event from an imported calendar: it updates on its own and can’t be moved.',
       dg_side_off: 'Hide the panel', dg_side_on: 'Show the panel', dg_check: 'Tick box', dg_check_hint: 'For things you do or don’t (exercises yes, rest no).',
       dg_lock: 'Lock in', dg_pause: 'Pause', dg_close: 'Close', dg_saved: 'Added', dg_all_day: 'All day', dg_due: 'Due',
-      dg_set_push: 'Make room: dropping a block on a busy slot moves the next blocks later', dg_set_from: 'My hours: from', dg_set_to: 'My hours: to',
+      dg_set_push: 'Make room: dropping a block on a busy slot moves the next blocks later', dg_set_hours: 'Hours', dg_set_blocks: 'Blocks', dg_hr_mine: 'My hours (shown)', dg_hr_auto: 'Auto-plan', dg_hr_hint: 'You can always place a block at any hour.', dg_sw_auto: 'Start blocks on time', dg_sw_auto_h: 'The timer starts by itself when a block begins.', dg_sw_push: 'Make room', dg_sw_push_h: 'Dropping a block on a busy slot moves the next ones later.', dg_set_from: 'My hours: from', dg_set_to: 'My hours: to',
       dg_rep: 'Repeat', dg_rep_no: 'No', dg_rep_daily: 'Every day', dg_rep_days: 'Some days', dg_rep_until: 'Until', dg_rep_once: 'Changed this day only', dg_rep_all: 'All next ones', dg_rep_all_done: 'The next ones are changed', dg_del_next: 'Delete the next ones', dg_rep_stopped: 'The next ones are removed',
       dg_of: 'of', dg_score: 'Timer done, out of the time planned in blocks to tick',
       dg_miss_n_one: '1 block not done', dg_miss_n: '{n} blocks not done', dg_miss_y: 'yesterday', dg_miss_t: 'today', dg_place: 'Place', dg_place_today: 'Place all today', dg_place_tmr: 'Place all tomorrow', dg_ignore: 'Ignore', dg_unplan: 'Back to list', dg_unplanned_one: '1 block back in the list', dg_unplanned: '{n} blocks back in the list', dg_ignore_all: 'Ignore all',
@@ -1047,24 +1047,40 @@
     closeMenu();
     menu = document.createElement('div'); menu.className = 'pl-pop dg-pop'; menu.innerHTML = html;
     document.body.appendChild(menu);
-    const r = menu.getBoundingClientRect();
-    let left = x, top = y;
-    if (anchor) { const a = anchor.getBoundingClientRect(); left = a.right - r.width; top = a.bottom + 6; if (top + r.height > innerHeight - 8) top = a.top - r.height - 6; }
-    menu.style.left = clamp(left, 8, innerWidth - r.width - 8) + 'px';
-    menu.style.top = clamp(top, 8, innerHeight - r.height - 8) + 'px';
+    menuAt = { x, y, a: anchor ? anchor.getBoundingClientRect() : null };
+    placeMenu();
     const first = menu.querySelector('button'); if (first && matchMedia('(pointer: fine)').matches) first.focus({ preventScroll: true });
   }
+  let menuAt = null;
+  // Placed again when its content changes (the View menu grows when a row opens)
+  function placeMenu() {
+    if (!menu || !menuAt) return;
+    const { x, y, a } = menuAt, r = menu.getBoundingClientRect();
+    let left = x, top = y;
+    if (a) { left = a.right - r.width; top = a.bottom + 6; if (top + r.height > innerHeight - 8) top = a.top - r.height - 6; }
+    menu.style.left = clamp(left, 8, innerWidth - r.width - 8) + 'px';
+    menu.style.top = clamp(top, 8, innerHeight - r.height - 8) + 'px';
+  }
+  function setMenu(html) { if (!menu) return; menu.innerHTML = html; placeMenu(); }
+  // 3.114 (V1 of proposals/today-plan): one row per setting, its value on the right; a tap opens its choices under it,
+  // one row at a time. The parts to show are switches; the day templates open in their own row.
+  let vOpen = null;
   function viewMenuHtml(view) {
-    const dp = disp(view);
-    const seg = (key, vals) => `<div class="seg-toggle" role="group">${vals.map(v => `<button type="button" data-dv="${key}:${v}" aria-pressed="${dp[key] === v}">${esc(t(`dg_${key}_${v}`))}</button>`).join('')}</div>`;
-    const show = (view === 'day' ? ['strip', 'miss', 'tray'] : ['tray']).map(w => `<button type="button" data-showp="${w}" aria-pressed="${!hid(w)}">${esc(t('dg_show_' + w))}</button>`).join('');
-    return `<div class="dg-vmenu"><span class="label">${esc(t('dg_show'))}</span><div class="dg-showp">${show}</div>${dp.l === 'lines' ? '' /* 3.99.2: density does nothing in the Lines layout */ : `<span class="label">${esc(t('dg_density'))}</span>${seg('d', ['compact', 'normal', 'large'])}`}
-      <span class="label">${esc(t('dg_hours'))}</span>${seg('h', ['24', 'mine', 'auto'])}
-      ${view === 'day' ? `<span class="label">${esc(t('dg_layout'))}</span>${seg('l', ['grid', 'lines'])}${tplMenuHtml()}` : ''}</div>`;
+    const dp = disp(view), [hf, ht] = myHours();
+    const lab = (key, v) => t(`dg_${key}_${v}`) + (key === 'h' && v === 'mine' ? ` · ${hf}–${ht % 24 || 24}` : '');
+    const seg = (key, vals) => `<div class="seg-toggle dg-vseg" role="group" aria-label="${esc(t({ d: 'dg_density', h: 'dg_hours', l: 'dg_layout' }[key]))}">${vals.map(v => `<button type="button" data-dv="${key}:${v}" aria-pressed="${dp[key] === v}">${esc(lab(key, v))}</button>`).join('')}</div>`;
+    const CAR = d => `<svg class="dg-vcar" viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+    const row = (key, label, value, body) => `<button type="button" class="dg-vrow" data-vopen="${key}" aria-expanded="${vOpen === key}"><span>${esc(label)}</span><small>${esc(value)}</small>${CAR(vOpen === key ? 'M6 9l6 6 6-6' : 'M9 6l6 6-6 6')}</button>${vOpen === key ? body : ''}`;
+    const show = (view === 'day' ? ['strip', 'miss', 'tray'] : ['tray']).map(w => `<button type="button" class="dg-vrow dg-vsw" data-showp="${w}" role="switch" aria-checked="${!hid(w)}"><span>${esc(t('dg_show_' + w))}</span><i class="dg-sw" aria-hidden="true"></i></button>`).join('');
+    const vals = { d: ['compact', 'normal', 'large'], h: ['24', 'mine', 'auto'], l: ['grid', 'lines'] };
+    return `<div class="dg-vmenu"><div class="dg-vhd"><b>${esc(t('dg_view'))}</b><small>${esc(t(view === 'day' ? 'dg_v_day' : 'dg_v_week'))}</small></div>${show}
+      ${dp.l === 'lines' ? '' /* 3.99.2: density does nothing in the Lines layout */ : row('d', t('dg_density'), lab('d', dp.d), seg('d', vals.d))}
+      ${row('h', t('dg_hours'), t(`dg_h_${dp.h}`), seg('h', vals.h))}
+      ${view === 'day' ? row('l', t('dg_layout'), lab('l', dp.l), seg('l', vals.l)) + row('tpl', t('dg_tpls'), String(TPLS().length), tplMenuHtml()) : ''}</div>`;
   }
   function tplMenuHtml() {
     const list = TPLS();
-    return `<div class="dg-tpls"><span class="label">${esc(t('dg_tpls'))}</span>
+    return `<div class="dg-tpls">
       ${list.length ? list.map(tp => `<div class="dg-tpl"><button type="button" class="pp-it" data-tpl="apply:${tp.id}"><span>${esc(tp.name)}</span><small>${esc(tn('dg_tpl_n', tp.blocks.length))}</small></button><button type="button" class="ghost icon-only dg-ib" data-tpl="del:${tp.id}" aria-label="${esc(t('dg_tpl_del'))}" title="${esc(t('dg_tpl_del'))}">${ico('x')}</button></div>`).join('') : `<p class="hint">${esc(t('dg_tpl_none'))}</p>`}
       <div class="dg-tplnew"><input type="text" id="dg-tplname" maxlength="40" placeholder="${esc(t('dg_tpl_name'))}" aria-label="${esc(t('dg_tpl_name'))}"><button type="button" class="small" data-tpl="save">${esc(t('dg_tpl_save'))}</button></div>
     </div>`;
@@ -1108,10 +1124,12 @@
       const host = activeHost(); if (!host) return;
       const [key, val] = dv.dataset.dv.split(':');
       setDisp(host.view, key, val); delete scrollMem[host.name];
-      render(host.name); menu.innerHTML = viewMenuHtml(host.view); return;
+      render(host.name); setMenu(viewMenuHtml(host.view)); return;
     }
+    const vo = tg.closest('[data-vopen]');
+    if (vo && inMenu) { const host = activeHost(); if (!host) return; vOpen = vOpen === vo.dataset.vopen ? null : vo.dataset.vopen; setMenu(viewMenuHtml(host.view)); const f = menu.querySelector(`[data-vopen=""]`); if (f) f.focus({ preventScroll: true }); return; }
     const sp2 = tg.closest('[data-showp]');
-    if (sp2 && inMenu) { const host = activeHost(); if (!host) return; setHid(sp2.dataset.showp, !hid(sp2.dataset.showp)); render(host.name); menu.innerHTML = viewMenuHtml(host.view); return; }
+    if (sp2 && inMenu) { const host = activeHost(); if (!host) return; setHid(sp2.dataset.showp, !hid(sp2.dataset.showp)); render(host.name); setMenu(viewMenuHtml(host.view)); return; }
     const hb = tg.closest('[data-hide]');
     if (hb) { const host = hostFrom(hb) || activeHost(), w = hb.dataset.hide; setHid(w, true); if (host) render(host.name); toast(t('dg_hidden'), { action: { label: t('dg_undo'), fn: () => { setHid(w, false); renderActive(); } } }); return; }
     const tpj = tg.closest('[data-tproj]');
@@ -1138,10 +1156,10 @@
       const host = activeHost(); if (!host) return;
       const [w, id] = tp.dataset.tpl.split(':');
       if (w === 'apply') { closeMenu(); applyTpl(id, host.focus()); }
-      else if (w === 'save') { const inp = menu.querySelector('#dg-tplname'); if (saveTpl(host.focus(), inp ? inp.value.trim() : '')) menu.innerHTML = viewMenuHtml(host.view); }
+      else if (w === 'save') { const inp = menu.querySelector('#dg-tplname'); if (saveTpl(host.focus(), inp ? inp.value.trim() : '')) setMenu(viewMenuHtml(host.view)); }
       else if (w === 'del') {
         const i = TPLS().findIndex(x => x.id === id), gone = TPLS()[i]; if (i < 0) return;
-        TPLS().splice(i, 1); save(); menu.innerHTML = viewMenuHtml(host.view);
+        TPLS().splice(i, 1); save(); setMenu(viewMenuHtml(host.view));
         toast(t('dg_tpl_deleted'), { action: { label: t('dg_undo'), fn: () => { TPLS().splice(i, 0, gone); save(); } } });
       }
       return;
@@ -1194,7 +1212,7 @@
     if (k === 'prev' || k === 'next') { sel = null; host.nav(k === 'next' ? 1 : -1); save(); render(host.name); }
     else if (k === 'today') { sel = null; host.goToday(); save(); render(host.name); }
     else if (k === 'new') openNew({});
-    else if (k === 'view') { if (menu) { closeMenu(); return; } openMenu(viewMenuHtml(host.view), 0, 0, b); }
+    else if (k === 'view') { if (menu) { closeMenu(); return; } vOpen = null; openMenu(viewMenuHtml(host.view), 0, 0, b); }
     else if (k === 'wide') { C().wide = !C().wide; save(); applyWide(); render(host.name); }
     else if (k === 'side') { C().sideOff = !C().sideOff; if (C().sideOff) ed = null; save(); render(host.name); }
     else if (k === 'tray') { C().trayOpen = !trayOpen(); save(); render(host.name); }
@@ -1356,15 +1374,58 @@
   // Background re-renders that would drop the form being typed in go through keepInputs in the hosts
   ML.dgEditing = () => !!ed;
 
+  // 3.114 (S1 of proposals/today-plan): the Planning settings in groups. The four hour menus became one ruler from 0 to
+  // 24 h: the thick band is My hours (what the calendar shows), the thin one the auto-plan hours (Plan my day). Each
+  // handle stops only on the hours the menus offered.
+  const RULE = {
+    mf: { set: [0, 5, 6, 7, 8, 9, 10], get: () => myHours()[0], put: v => { C().hFrom = v; } },
+    mt: { set: [18, 19, 20, 21, 22, 23, 24], get: () => myHours()[1], put: v => { C().hTo = v; } },
+    af: { set: [4, 5, 6, 7, 8, 9, 10, 11, 12], get: () => S.planner.startH, put: v => { S.planner.startH = v; } },
+    at: { set: [20, 21, 22, 23, 24], get: () => S.planner.endH, put: v => { S.planner.endH = v; } },
+  };
+  const snap = (set, v) => set.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a), set[0]);
+  const hh = h => (h % 24) + ':00';
+  const pct = h => (h / 24 * 100).toFixed(3) + '%';
+  const hrRange = (k, label) => { const R = RULE[k], v = snap(R.set, R.get()); return `<input type="range" class="hr-in hr-${k[0]}" data-hr="${k}" min="0" max="24" step="1" value="${v}" aria-label="${esc(label)}" aria-valuetext="${hh(v)}">`; };
+  function rulerHtml() {
+    const [mf, mt, af, at] = ['mf', 'mt', 'af', 'at'].map(k => snap(RULE[k].set, RULE[k].get()));
+    return `<div class="hr" id="hr">
+      <div class="hr-row hr-m"><i class="hr-track"></i><i class="hr-band" style="left:${pct(mf)};width:calc(${pct(mt)} - ${pct(mf)})"></i>${hrRange('mf', t('dg_set_from'))}${hrRange('mt', t('dg_set_to'))}</div>
+      <div class="hr-row hr-a"><i class="hr-track"></i><i class="hr-band" style="left:${pct(af)};width:calc(${pct(at)} - ${pct(af)})"></i>${hrRange('af', t('day_start'))}${hrRange('at', t('day_end'))}</div>
+      <div class="hr-ticks" aria-hidden="true">${[0, 6, 12, 18, 24].map(h => `<span style="left:${pct(h)}">${h}</span>`).join('')}</div>
+      <dl class="hr-leg"><div><dt><i class="hr-k hr-km"></i>${esc(t('dg_hr_mine'))}</dt><dd id="hr-m">${hh(mf)} – ${hh(mt)}</dd></div><div><dt><i class="hr-k hr-ka"></i>${esc(t('dg_hr_auto'))}</dt><dd id="hr-a">${hh(af)} – ${hh(at)}</dd></div></dl>
+      <p class="hint">${esc(t('dg_hr_hint'))}</p></div>`;
+  }
+  function rulerDraw(box) {
+    const v = k => +box.querySelector(`[data-hr="${k}"]`).value;
+    [['m', 'mf', 'mt'], ['a', 'af', 'at']].forEach(([r, f, to]) => {
+      const band = box.querySelector(`.hr-${r} .hr-band`); band.style.left = pct(v(f)); band.style.width = `calc(${pct(v(to))} - ${pct(v(f))})`;
+      box.querySelector('#hr-' + r).textContent = `${hh(v(f))} – ${hh(v(to))}`;
+    });
+  }
   ML.settingsSection({
     order: 28, cat: 'planning',
-    render: () => `${ML.ui.chk('set-dgpush', t('dg_set_push'), C().push !== false)}
-      <label class="field"><span>${esc(t('dg_set_from'))}</span>${ML.ui.sel('set-dgfrom', [0, 5, 6, 7, 8, 9, 10].map(h => [h, h + ':00']), myHours()[0])}</label>
-      <label class="field"><span>${esc(t('dg_set_to'))}</span>${ML.ui.sel('set-dgto', [18, 19, 20, 21, 22, 23, 24].map(h => [h, (h % 24) + ':00']), myHours()[1])}</label>`,
+    render: () => `<h3>${esc(t('dg_set_hours'))}</h3>${rulerHtml()}
+      <h3>${esc(t('dg_set_blocks'))}</h3>
+      ${ML.ui.sw('set-autostart', t('dg_sw_auto'), S.planner.autoStart, t('dg_sw_auto_h'))}
+      ${ML.ui.sw('set-dgpush', t('dg_sw_push'), C().push !== false, t('dg_sw_push_h'))}`,
     bind: r => {
+      r.querySelector('#set-autostart').onchange = e => { S.planner.autoStart = e.target.checked; save(); };
       r.querySelector('#set-dgpush').onchange = e => { C().push = e.target.checked; save(); };
-      r.querySelector('#set-dgfrom').onchange = e => { C().hFrom = +e.target.value; save(); ML.renderAll(); };
-      r.querySelector('#set-dgto').onchange = e => { C().hTo = +e.target.value; save(); ML.renderAll(); };
+      const box = r.querySelector('#hr');
+      box.querySelectorAll('[data-hr]').forEach(inp => {
+        const k = inp.dataset.hr, R = RULE[k];
+        const fix = () => {
+          let val = snap(R.set, +inp.value);
+          // a start stays before its end
+          const pair = { mf: 'mt', mt: 'mf', af: 'at', at: 'af' }[k], other = +box.querySelector(`[data-hr="${pair}"]`).value;
+          if (k[1] === 'f' && val >= other) val = R.set.filter(h => h < other).pop() ?? R.set[0];
+          if (k[1] === 't' && val <= other) val = R.set.find(h => h > other) ?? R.set[R.set.length - 1];
+          inp.value = val; inp.setAttribute('aria-valuetext', hh(val)); rulerDraw(box); return val;
+        };
+        inp.addEventListener('input', fix);
+        inp.addEventListener('change', () => { R.put(fix()); save(); ML.renderAll(); });
+      });
     },
   });
 })();

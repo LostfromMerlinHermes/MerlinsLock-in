@@ -244,6 +244,8 @@
     if (sess && !stageMode()) return view.kind === 'review' ? reviewHtml() : quizHtml();
     if (view.kind === 'import') return importHtml();
     if ((view.kind === 'deck' || sess) && ST().decks.some(d => d.id === view.id)) return deckHtml(view.id);
+    if (view.kind === 'folder' && folderById(view.id)) return folderHtml(view.id);
+    if (sess && String(view.id || '').startsWith('f:') && folderById(view.id.slice(2))) return folderHtml(view.id.slice(2));
     if (!sess && view.kind !== 'decks') view = { kind: 'decks' }; // keep the list's own flags (form open, options open)
     return decksHtml();
   }
@@ -274,9 +276,10 @@
   const examTxt = x => { const n = daysFromToday(x.date); return n <= 0 ? t('fc_exam_today') : n === 1 ? t('fc_exam_tom') : t('fc_exam_in', { n }); };
   // C1: every due card of every deck in one review. Most overdue first; cards due the same day are shuffled, so subjects mix.
   // Each deck keeps its own limit of new cards, and its new cards come last, taken in turn from each deck.
-  function queueAllCards() {
+  function queueAllCards(only) { // only: a Set of deck ids (a folder), else every deck
     const old = [], fresh = [];
     ST().decks.forEach(d => {
+      if (only && !only.has(d.id)) return;
       const cs = deckCards(d.id).filter(isDue), lim = newPerOf(d.id);
       cs.forEach(c => { if (c.reps) old.push(c); });
       fresh.push(cs.filter(c => !c.reps).slice(0, lim || Infinity));
@@ -287,15 +290,48 @@
     return out;
   }
   ML.studyDueAll = () => { const q = queueAllCards(); return { n: q.length, decks: new Set(q.map(c => c.deck)).size }; };
-  function rowHtml(d) {
-    const all = allCards(d.id), due = queueFor(d.id).length, kids = dKids(d.id).length;
-    const line = [all.length ? (due ? tn('fc_due', due) : t('fc_uptodate')) : '', tn('fc_cards_n', all.length), kids ? tn('fc_subs_n', kids) : '', seenTxt(seenOf(d.id))].filter(Boolean).join(' · ');
-    return `<li class="fc-row${d.color ? ' og-c' : ''}" data-og-id="k:${d.id}"${d.color ? ` style="--pc:${ML.colorVar(d.color)}"` : ''}><button type="button" class="fc-deck-name" data-fc-open="${d.id}"><b>${esc(d.name)}</b><small>${esc(line)}</small></button>${due ? `<button type="button" class="small primary" data-fc-review="${d.id}">${esc(t('fc_review'))}</button>` : ''}</li>`;
+  /* X3 (3.115): due and new cards counted apart (« 10 à revoir · 18 nouvelles »); the queue still takes new cards up to the limit */
+  const countsOf = id => { const q = queueFor(id), cs = new Map(allCards(id).map(c => [c.id, c])); let nw = 0; q.forEach(k => { const c = cs.get(k); if (c && !c.reps) nw++; }); return { due: q.length - nw, nw, all: q.length }; };
+  const countTxt = n => [n.due ? tn('fc_due', n.due) : '', n.nw ? tn('fc_new_n', n.nw) : ''].filter(Boolean).join(' · ');
+  // X2: one filled button per screen (Review all); a row's Review is quiet and says how many
+  const quietRev = (id, n) => (n ? `<button type="button" class="small fc-qrev" data-fc-review="${esc(id)}">${esc(t('fc_review'))} <span>${n}</span></button>` : '');
+  // B3: the Arrange mode shows a grip and up / down arrows on each row
+  const ARR_ICON = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+  const GRIP = '<span class="og-grip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></span>';
+  const arrBtns = (key, i, n) => `<span class="og-ud"><button type="button" class="icon-btn" data-fc-mv="${esc(key)}" data-dir="-1" aria-label="${esc(t('fc_up'))}"${i ? '' : ' disabled'}>${ARR_ICON('M6 15l6-6 6 6')}</button><button type="button" class="icon-btn" data-fc-mv="${esc(key)}" data-dir="1" aria-label="${esc(t('fc_down'))}"${i < n - 1 ? '' : ' disabled'}>${ARR_ICON('M6 9l6 6 6-6')}</button></span>`;
+  function rowHtml(d, i, n) {
+    const all = allCards(d.id), cn = countsOf(d.id), kids = dKids(d.id).length, arr = !!view.arrange;
+    const line = [all.length ? (countTxt(cn) || t('fc_uptodate')) : '', tn('fc_cards_n', all.length), kids ? tn('fc_subs_n', kids) : '', seenTxt(seenOf(d.id))].filter(Boolean).join(' · ');
+    return `<li class="fc-row${d.color ? ' og-c' : ''}${arr ? ' og-arr' : ''}" data-og-id="k:${d.id}"${d.color ? ` style="--pc:${ML.colorVar(d.color)}"` : ''}>${arr ? GRIP : ''}<button type="button" class="fc-deck-name" data-fc-open="${d.id}"><b>${esc(d.name)}</b><small>${esc(line)}</small></button>${arr ? arrBtns('k:' + d.id, i, n) : quietRev(d.id, cn.all)}</li>`;
   }
+  /* ---------- Folders (3.115, A2): free folders of decks, like the Library's, with a colour and an order. S.study.folders
+     [{ id, name, color, order }], a top-level deck says where it is with d.folder (sub-decks follow their parent). A folder
+     that is gone reads as « no folder ». ---------- */
+  const folders = () => (Array.isArray(ST().folders) ? ST().folders : (ST().folders = []));
+  const folderById = id => folders().find(f => f.id === id);
+  const fSorted = () => folders().slice().sort((a, b) => (a.order ?? 1e9) - (b.order ?? 1e9) || a.name.localeCompare(b.name, S.lang === 'fr' ? 'fr' : 'en'));
+  const folderOf = d => (d.folder && folderById(d.folder) ? d.folder : '');
+  const fDecks = fid => dKids('').filter(d => folderOf(d) === fid);
+  const fUnder = fid => new Set(fDecks(fid).flatMap(d => [...dUnder(d.id)]));
+  const fCount = fid => { const u = fUnder(fid), q = queueAllCards(u); return q.length; };
+  const FOLDER_ICON = '<svg class="fc-ficon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>';
+  const CHEV = '<svg class="fc-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+  function folderMeta(f) {
+    const ds = fDecks(f.id), subs = ds.reduce((a, d) => a + dTree(d.id).length, 0), ex = examFor(null, fUnder(f.id)) || ds.map(d => d.subject && examFor(d.subject, new Set())).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date))[0];
+    let seen = 0; ds.forEach(d => { const s = seenOf(d.id); if (s > seen) seen = s; });
+    return [ds.length ? tn('fc_fdecks', ds.length) : t('fc_fempty_s'), subs ? tn('fc_subs_n', subs) : '', ex ? examTxt(ex) : seenTxt(seen)].filter(Boolean).join(' · ');
+  }
+  function folderRow(f, i, n) {
+    const c = fCount(f.id), arr = !!view.arrange, col = ML.colorVar(f.color);
+    return `<li class="fc-frow${arr ? ' og-arr' : ''}" data-og-id="f:${f.id}"${col ? ` style="--pc:${col}"` : ''}>${arr ? GRIP : ''}<button type="button" class="fc-fopen" data-fc-fopen="${f.id}">${FOLDER_ICON}<span><b>${esc(f.name)}</b><small>${esc(folderMeta(f))}</small></span>${c && !arr ? `<em>${c}</em>` : ''}${arr ? '' : CHEV}</button>${arr ? arrBtns('f:' + f.id, i, n) : ''}</li>`;
+  }
+  const newFolderHtml = () => (view.fNew ? `<form class="fc-newdeck fc-fform" id="fc-newfolder" autocomplete="off"><input type="text" maxlength="40" placeholder="${esc(t('fc_fname_ph'))}" aria-label="${esc(t('fc_fname_ph'))}" required><button type="submit" class="small primary">${esc(t('fc_create'))}</button></form>`
+    : `<button type="button" class="ghost small fc-fnew" data-fc-fnew>${esc(t('fc_fnew'))}</button>`);
+  const arrHead = () => (view.arrange ? `<div class="og-arrbar"><span>${esc(t('fc_arr_hint'))}</span><button type="button" class="small primary" data-fc-arrange>${esc(t('fc_arr_done'))}</button></div>` : '');
   function decksHtml() {
     const D = ST(), todayN = D.day === today() ? D.reviewed : 0, tops = dKids(''), q = queueAllCards();
     const nDecks = new Set(q.map(c => c.deck)).size, mins = Math.max(1, Math.round(q.length * 20 / 60)); // about 20 s a card
-    const head = `<div class="fc-head"><h3>${esc(t('tab_cards'))}</h3>${todayN ? `<span class="chip">${esc(t('fc_todayn', { n: todayN }))}</span>` : ''}
+    const head = `<div class="fc-head"><h3 class="fc-title">${esc(t('tab_cards'))}</h3>${todayN ? `<span class="chip">${esc(tn('fc_todayn2', todayN))}</span>` : ''}
       <button type="button" class="small" data-fc-new aria-expanded="${!!view.newOpen}">${esc(t('fc_newdeck_btn'))}</button><button type="button" class="small" data-fi-open>${esc(t('fi_btn'))}</button>
       <button type="button" class="small ghost fc-optsbtn" data-fc-opts aria-expanded="${!!view.opts}" aria-label="${esc(t('fc_opts'))}" title="${esc(t('fc_opts'))}">···</button></div>`;
     const opts = view.opts ? `<div class="fc-opts">${narrow() ? '' : `<div class="fc-viewpick"><span>${esc(t('fc_where'))}</span><div class="seg-toggle">${['panel', 'full'].map(m => `<button type="button" data-fc-where="${m}" aria-pressed="${reviewMode() === m}">${esc(t(m === 'full' ? 'fc_in_full' : 'fc_in_panel'))}</button>`).join('')}</div></div>`}
@@ -307,42 +343,77 @@
       : `<p class="hint fc-alldone">${esc(t('fc_alldone'))}</p>`;
     const dueOf = new Map(tops.map(d => [d.id, queueFor(d.id).length]));
     const sorted = arr => arr.slice().sort((a, b) => (a.order ?? 1e9) - (b.order ?? 1e9) || (dueOf.get(b.id) > 0) - (dueOf.get(a.id) > 0) || a.name.localeCompare(b.name, S.lang === 'fr' ? 'fr' : 'en'));
-    const ul = arr => `<ul class="fc-decks">${sorted(arr).map(rowHtml).join('')}</ul>`;
-    const by = new Map();
-    tops.forEach(d => { const s = subjOf(d), k = s ? s.id : ''; if (!by.has(k)) by.set(k, []); by.get(k).push(d); });
-    let list;
-    if (by.size === 1 && by.has('')) list = ul(tops); // no deck has a subject yet: one plain list, no lone « No subject » title
-    else {
-      const groups = subjects().filter(s => by.has(s.id)).map(s => { const ds = by.get(s.id), ids = new Set(ds.flatMap(d => [...dUnder(d.id)])); return { s, ds, ex: examFor(s.id, ids) }; })
-        .sort((a, b) => (a.ex ? 0 : 1) - (b.ex ? 0 : 1) || (a.ex && b.ex ? a.ex.date.localeCompare(b.ex.date) : 0));
-      list = groups.map(g => `<h4 class="fc-grp" style="--pc:${safeCol(g.s.color)}"><i></i><span>${esc(g.s.name)}</span>${g.ex ? `<span class="chip">${esc(examTxt(g.ex))}</span>` : ''}</h4>${ul(g.ds)}`).join('')
-        + (by.has('') ? `<h4 class="fc-grp fc-grp-none"><i></i><span>${esc(t('fc_nosubj'))}</span></h4>${ul(by.get(''))}` : '');
+    const ul = arr => { const s = sorted(arr); return `<ul class="fc-decks">${s.map((d, i) => rowHtml(d, i, s.length)).join('')}</ul>`; };
+    const fs = fSorted(), loose = tops.filter(d => !folderOf(d));
+    const arrBtn = tops.length + fs.length > 1 && !view.arrange ? `<button type="button" class="ghost small fc-arrbtn" data-fc-arrange>${esc(t('fc_arrange'))}</button>` : '';
+    // X5: the drag hint shows until the first arrangement, then lives in the Arrange mode
+    const hint = !D.arranged && !view.arrange && tops.length > 1 ? `<p class="og-hint">${esc(t('og_drag_hint'))}</p>` : '';
+    let list = '';
+    if (fs.length) {
+      list = `<div class="fc-lh"><h4 class="fc-h">${esc(t('fc_folders'))}</h4>${arrBtn}</div>${arrHead()}${hint}<ul class="fc-folders">${fs.map((f, i) => folderRow(f, i, fs.length)).join('')}</ul>${view.arrange ? '' : newFolderHtml()}`
+        + (loose.length ? `<h4 class="fc-h" data-drop-into="f:">${esc(t('fc_nofolder'))}</h4>${ul(loose)}` : view.arrange ? `<p class="hint fc-dropnote" data-drop-into="f:">${esc(t('fc_fdrop'))}</p>` : '');
+    } else {
+      // No folder yet: the decks as before (under their subject when some have one), and a way to start folders
+      const by = new Map();
+      tops.forEach(d => { const s = subjOf(d), k = s ? s.id : ''; if (!by.has(k)) by.set(k, []); by.get(k).push(d); });
+      const lh = `<div class="fc-lh"><h4 class="fc-h">${esc(t('fc_decks_h'))}</h4>${arrBtn}</div>${arrHead()}${hint}`;
+      if (view.arrange || (by.size === 1 && by.has(''))) list = lh + ul(tops);
+      else {
+        const groups = subjects().filter(s => by.has(s.id)).map(s => { const ds = by.get(s.id), ids = new Set(ds.flatMap(d => [...dUnder(d.id)])); return { s, ds, ex: examFor(s.id, ids) }; })
+          .sort((a, b) => (a.ex ? 0 : 1) - (b.ex ? 0 : 1) || (a.ex && b.ex ? a.ex.date.localeCompare(b.ex.date) : 0));
+        list = lh + groups.map(g => `<h4 class="fc-grp" style="--pc:${safeCol(g.s.color)}"><i></i><span>${esc(g.s.name)}</span>${g.ex ? `<span class="chip">${esc(examTxt(g.ex))}</span>` : ''}</h4>${ul(g.ds)}`).join('')
+          + (by.has('') ? `<h4 class="fc-grp fc-grp-none"><i></i><span>${esc(t('fc_nosubj'))}</span></h4>${ul(by.get(''))}` : '');
+      }
+      if (!view.arrange) list += `<div class="fc-fstart">${newFolderHtml()}${by.size > 1 || (by.size === 1 && !by.has('')) ? `<button type="button" class="ghost small" data-fc-ffrom>${esc(t('fc_ffrom'))}</button>` : ''}</div>`;
     }
-    return `${head}${opts}${form}${box}${tops.length > 1 ? `<p class="og-hint">${esc(t('og_drag_hint'))}</p>` : ''}${list}`;
+    return `${head}${opts}${form}${box}${list}`;
+  }
+  // One folder opened: its decks with their sub-decks, Review the folder, + Deck in this folder
+  function folderHtml(fid) {
+    const f = folderById(fid), ds = fDecks(fid), c = fCount(fid), arr = !!view.arrange;
+    const rows = ds.map((d, i) => rowHtml(d, i, ds.length) + (arr ? '' : dTree(d.id).map(x => { const k = x.d, cn = countsOf(k.id);
+      return `<li class="fc-row fc-sub${k.color ? ' og-c' : ''}" data-og-id="k:${k.id}" style="--dep:${x.depth}${k.color ? `;--pc:${ML.colorVar(k.color)}` : ''}"><button type="button" class="fc-deck-name" data-fc-open="${k.id}"><b>${esc(k.name)}</b><small>${esc([countTxt(cn) || t('fc_uptodate'), tn('fc_cards_n', allCards(k.id).length)].join(' · '))}</small></button></li>`; }).join(''))).join('');
+    return `<div class="fc-head fc-fhead"><button type="button" class="ghost small" data-fc-back data-drop-into="f:">‹ ${esc(t('tab_cards'))}</button>
+        ${view.fRen ? `<form id="fc-fren" class="fc-renform" autocomplete="off"><input type="text" maxlength="40" value="${esc(f.name)}" aria-label="${esc(t('fc_c_ren'))}" required><button type="submit" class="small primary">OK</button></form>`
+          : `<h3 class="fc-ftitle"${f.color ? ` style="--pc:${ML.colorVar(f.color)}"` : ''}>${FOLDER_ICON}<span>${esc(f.name)}</span></h3>`}
+        <button type="button" class="small ${c ? 'primary' : ''}" data-fc-review="f:${fid}" ${c ? '' : 'disabled'}>${esc(t('fc_frev'))}${c ? ' · ' + c : ''}</button>
+        <button type="button" class="small ghost fc-optsbtn" data-og-id="f:${fid}" data-fc-menu aria-label="${esc(t('fc_opts'))}" title="${esc(t('fc_opts'))}">···</button></div>
+      <small class="fc-fsub">${esc(folderMeta(f))}</small>
+      ${ds.length > 1 && !arr ? `<div class="fc-lh"><span></span><button type="button" class="ghost small fc-arrbtn" data-fc-arrange>${esc(t('fc_arrange'))}</button></div>` : ''}${arrHead()}
+      ${ds.length ? `<ul class="fc-decks fc-ftree">${rows}</ul>` : `<p class="hint">${esc(t('fc_fempty'))}</p>`}
+      ${arr ? '' : view.newOpen ? `<form class="fc-newdeck" id="fc-newdeck" autocomplete="off"><input type="text" maxlength="60" placeholder="${esc(t('fc_new_deck_ph'))}" aria-label="${esc(t('fc_new_deck_ph'))}" required><button type="submit" class="primary small">${esc(t('fc_create'))}</button></form>`
+        : `<button type="button" class="ghost small fc-fnew" data-fc-new>${esc(t('fc_fadd'))}</button>`}`;
   }
   function deckHtml(id) {
     const d = ST().decks.find(x => x.id === id), cs = deckCards(id), due = queueFor(id).length, up = deckById(dParent(d)), kids = dKids(id), mine = dUnder(id);
-    const dest = dTree().filter(x => !mine.has(x.d.id)), total = allCards(id).length;
-    return `<div class="fc-head"><button type="button" class="ghost small" data-fc-back>${up ? '← ' + esc(up.name) : esc(t('fc_back'))}</button>${view.ren ? `<form id="fc-ren" class="fc-renform" autocomplete="off"><input type="text" maxlength="60" value="${esc(d.name)}" aria-label="${esc(t('fc_c_ren'))}" required><button type="submit" class="small primary">OK</button></form>` : `<h3>${d.color ? `<i class="og-dot" style="--pc:${ML.colorVar(d.color)}"></i> ` : ''}${esc(d.name)}</h3>`}
+    const dest = dTree().filter(x => !mine.has(x.d.id)), total = allCards(id).length, fo = !up && folderById(folderOf(d));
+    const backTo = up ? '← ' + esc(up.name) : fo ? '← ' + esc(fo.name) : esc(t('fc_back'));
+    // X6 (3.115): the actions on top, the forms open on demand, the deck's settings behind ···
+    const set = view.set ? `<div class="fc-setpanel" id="fc-setpanel">
+        ${!up ? `<label class="fc-newper"><span>${esc(t('fc_folder'))}</span><select id="fc-folder"><option value="">${esc(t('fc_folder_none'))}</option>${fSorted().map(f => `<option value="${esc(f.id)}" ${folderOf(d) === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}<option value="__new">${esc(t('fc_fnew_opt'))}</option></select></label>` : ''}
+        ${!up ? `<label class="fc-newper"><span>${esc(t('fc_subject'))}</span><select id="fc-subj"><option value="">${esc(t('fc_subject_none'))}</option>${subjects().map(s => `<option value="${esc(s.id)}" ${d.subject === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}<option value="__new">${esc(t('fc_subject_new'))}</option></select></label>` : ''}
+        ${ST().decks.length > 1 ? `<label class="fc-newper"><span>${esc(t('fc_in'))}</span><select id="fc-move"><option value="">${esc(t('fc_top'))}</option>${dest.map(x => `<option value="${esc(x.d.id)}" ${up === x.d ? 'selected' : ''}>${'   '.repeat(x.depth)}${esc(x.d.name)}</option>`).join('')}</select></label>` : ''}
+        ${allCards(id).some(c => !c.reps) ? `<label class="fc-newper"><span>${esc(t('fc_new_per'))}</span><select id="fc-newper">${NEW_PER_CHOICES.map(n => `<option value="${n}" ${n === newPerOf(id) ? 'selected' : ''}>${n ? n : esc(t('fc_all'))}</option>`).join('')}</select></label>` : ''}
+        <div class="fc-swatches" role="group" aria-label="${esc(t('og_color'))}"><span>${esc(t('og_color'))}</span>${['', ...ML.COLORS].map(c => `<button type="button" class="og-sw${c ? '' : ' og-none'}" data-fc-color="${c}" aria-pressed="${(d.color || '') === c}" aria-label="${esc(c ? t('og_color') + ' ' + c.slice(3) : t('og_nocolor'))}"${c ? ` style="--sw:var(--${c})"` : ''}></button>`).join('')}</div>
+        <div class="fc-setacts"><button type="button" class="small ghost" data-fc-ren>${esc(t('fc_c_ren'))}</button>${ML.Rooms && ML.Rooms.active() ? `<button type="button" class="small ghost" data-room-deck="${id}">${esc(t('rm_share_in'))}</button>` : ''}
+          <button type="button" class="small ghost danger" id="fc-del-deck"${kids.length ? ` title="${esc(t('fc_del_hint'))}"` : ''}>${esc(t('fc_del_deck'))}</button></div></div>` : '';
+    return `<div class="fc-head"><button type="button" class="ghost small" data-fc-back>${backTo}</button>${view.ren ? `<form id="fc-ren" class="fc-renform" autocomplete="off"><input type="text" maxlength="60" value="${esc(d.name)}" aria-label="${esc(t('fc_c_ren'))}" required><button type="submit" class="small primary">OK</button></form>` : `<h3>${d.color ? `<i class="og-dot" style="--pc:${ML.colorVar(d.color)}"></i> ` : ''}${esc(d.name)}</h3>`}
         <button type="button" class="small ${due ? 'primary' : ''}" data-fc-review="${id}" ${due ? '' : 'disabled'}>${esc(t('fc_review'))}${due ? ' · ' + due : ''}</button>
         <button type="button" class="small" data-qzstart="${id}" ${total >= 2 ? '' : 'disabled'}>${esc(t('qz_start'))}</button>
-        <button type="button" class="small" data-fi-open="${id}">${esc(t('fi_btn'))}</button></div>
-      ${cs.some(c => !c.reps) ? `<label class="fc-newper"><span>${esc(t('fc_new_per'))}</span><select id="fc-newper">${NEW_PER_CHOICES.map(n => `<option value="${n}" ${n === newPerOf(id) ? 'selected' : ''}>${n ? n : esc(t('fc_all'))}</option>`).join('')}</select></label>` : ''}
-      ${kids.length ? `<h4 class="fc-h">${esc(t('fc_subs'))}</h4><ul class="fc-decks">${kids.map(k => { const n = allCards(k.id).length, kd = queueFor(k.id).length; return `<li data-og-id="k:${k.id}"${k.color ? ` class="og-c" style="--pc:${ML.colorVar(k.color)}"` : ''}><button type="button" class="fc-deck-name" data-fc-open="${k.id}"><b>${esc(k.name)}</b><small>${esc(tn('fc_cards_n', n))}</small></button>${kd ? `<span class="chip due-chip">${esc(tn('fc_due', kd))}</span>` : ''}</li>`; }).join('')}</ul>` : ''}
-      <form class="fc-newdeck fc-subform" id="fc-subdeck" autocomplete="off"><input type="text" maxlength="60" placeholder="${esc(t('fc_sub_ph'))}" aria-label="${esc(t('fc_sub_ph'))}" required><button type="submit" class="small">+ ${esc(t('fc_sub_add'))}</button></form>
-      ${kids.length ? `<h4 class="fc-h">${esc(d.name)} · ${esc(t('fc_here', { n: cs.length }))}</h4>` : ''}
-      <form class="fc-add" id="fc-add" autocomplete="off">
+        <button type="button" class="small ghost fc-optsbtn" data-fc-set aria-expanded="${!!view.set}" aria-label="${esc(t('fc_settings'))}" title="${esc(t('fc_settings'))}">···</button></div>
+      ${set}
+      <div class="fc-acts-row"><button type="button" class="small" data-fc-addopen aria-expanded="${!!view.addOpen}">${esc(t('fc_add_card'))}</button><button type="button" class="small ghost" data-fc-subopen aria-expanded="${!!view.subOpen}">${esc(t('fc_add_sub'))}</button><button type="button" class="small ghost" data-fi-open="${id}">${esc(t('fi_btn'))}</button></div>
+      ${view.subOpen ? `<form class="fc-newdeck fc-subform" id="fc-subdeck" autocomplete="off"><input type="text" maxlength="60" placeholder="${esc(t('fc_sub_ph'))}" aria-label="${esc(t('fc_sub_ph'))}" required><button type="submit" class="small primary">${esc(t('fc_create'))}</button></form>` : ''}
+      ${view.addOpen ? `<form class="fc-add" id="fc-add" autocomplete="off">
         <textarea name="front" rows="2" maxlength="${FRONT_MAX}" placeholder="${esc(t('fc_front'))}" required></textarea>
         <textarea name="back" rows="2" maxlength="${BACK_MAX}" placeholder="${esc(t('fc_backside'))}" required></textarea>
-        <button type="submit" class="primary small">${esc(t('fc_add'))}</button>
-      </form>
+        <div class="fc-row"><button type="button" class="small ghost" data-fc-addopen>${esc(t('cancel'))}</button><button type="submit" class="primary small">${esc(t('fc_add'))}</button></div>
+      </form>` : ''}
+      ${kids.length ? `<h4 class="fc-h">${esc(t('fc_subs'))}</h4><ul class="fc-decks">${kids.map(k => { const n = allCards(k.id).length, cn = countsOf(k.id); return `<li data-og-id="k:${k.id}"${k.color ? ` class="og-c" style="--pc:${ML.colorVar(k.color)}"` : ''}><button type="button" class="fc-deck-name" data-fc-open="${k.id}"><b>${esc(k.name)}</b><small>${esc([countTxt(cn), tn('fc_cards_n', n)].filter(Boolean).join(' · '))}</small></button>${CHEV}</li>`; }).join('')}</ul>` : ''}
+      ${kids.length && cs.length ? `<h4 class="fc-h">${esc(tn('fc_in_this', cs.length))}</h4>` : ''}
       ${cs.length ? filterHtml(cs) : ''}
       ${cs.length > 12 ? `<input type="search" id="fc-find" maxlength="80" placeholder="${esc(t('fc_find'))}" value="${esc(view.find || '')}" autocomplete="off">` : ''}
-      <div id="fc-list-box">${cardListHtml(id)}</div>
-      ${ML.Rooms && ML.Rooms.active() ? `<button type="button" class="small" data-room-deck="${id}">${esc(t('rm_share_in'))}</button>` : ''}
-      ${!up ? `<label class="fc-newper"><span>${esc(t('fc_subject'))}</span><select id="fc-subj"><option value="">${esc(t('fc_subject_none'))}</option>${subjects().map(s => `<option value="${esc(s.id)}" ${d.subject === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}<option value="__new">${esc(t('fc_subject_new'))}</option></select></label>` : ''}
-      ${ST().decks.length > 1 ? `<label class="fc-newper"><span>${esc(t('fc_in'))}</span><select id="fc-move"><option value="">${esc(t('fc_top'))}</option>${dest.map(x => `<option value="${esc(x.d.id)}" ${up === x.d ? 'selected' : ''}>${'   '.repeat(x.depth)}${esc(x.d.name)}</option>`).join('')}</select></label>` : ''}
-      <button type="button" class="small ghost danger" id="fc-del-deck"${kids.length ? ` title="${esc(t('fc_del_hint'))}"` : ''}>${esc(t('fc_del_deck'))}</button>`;
+      ${cs.length || !kids.length ? `<div id="fc-list-box">${cardListHtml(id)}</div>` : ''}`;
   }
   // A long deck shows in pages, so an import of thousands of cards stays fast
   const LIST_STEP = 60;
@@ -373,10 +444,10 @@
     return `<ul class="fc-list">${all.slice(0, lim).map(c => view.editing === c.id
       ? `<li class="editing"><form class="fc-edit" data-fc-edit="${c.id}"><textarea name="front" rows="2" maxlength="${FRONT_MAX}" required>${esc(c.front)}</textarea><textarea name="back" rows="2" maxlength="${BACK_MAX}" required>${esc(c.back)}</textarea>
           <div class="fc-row"><button type="button" class="small ghost" data-fc-cancel>${esc(t('cancel'))}</button><button type="submit" class="small primary">${esc(t('fc_save'))}</button></div></form></li>`
-      : `<li><div class="fc-q">${multiline(c.front)}</div><div class="fc-a">${multiline(c.back)}</div>
+      // X7 (3.115): a tap on the card edits it; Delete waits behind its ··· (right-click / long press opens the same menu)
+      : `<li class="fc-cardrow" data-fc-card="${c.id}"><button type="button" class="fc-cardtap" data-fc-edit-open="${c.id}" aria-label="${esc(t('fc_edit'))}"><span class="fc-q">${multiline(c.front)}</span><span class="fc-a">${multiline(c.back)}</span></button>
           <div class="fc-meta"><small>${esc(dueTxt(c))}${c.reps ? ' · ' + esc(c.lapses ? tn('fc_missed', c.lapses) : t('fc_never_missed')) : ''}</small>
-          <button type="button" class="link" data-fc-edit-open="${c.id}">${esc(t('fc_edit'))}</button>
-          <button type="button" class="link danger" data-fc-del="${c.id}">${esc(t('fc_delete'))}</button></div></li>`).join('')}</ul>
+          <button type="button" class="icon-btn fc-cmore" data-fc-cmenu aria-label="${esc(t('fc_card_menu'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div></li>`).join('')}</ul>
       ${rest > 0 ? `<button type="button" class="small ghost fc-more" data-fc-more>${esc(t('fc_show_more', { n: Math.min(rest, LIST_STEP) }))}</button>` : ''}`;
   }
   /* ---------- Where a review happens: a half-screen panel on phones and in the side panel; on a computer the right section or full screen, by choice ---------- */
@@ -400,7 +471,8 @@
   function leaveSession() {
     clearTimeout(turning); turning = 0;
     const was = view;
-    view = was.kind === 'review' && was.done === 0 && was.queue.length && ST().decks.some(d => d.id === was.id) ? { kind: 'deck', id: was.id } : { kind: 'decks' };
+    const fid = String(was.id || '').startsWith('f:') && folderById(was.id.slice(2)) ? was.id.slice(2) : '';
+    view = fid ? { kind: 'folder', id: fid } : was.kind === 'review' && was.done === 0 && was.queue.length && ST().decks.some(d => d.id === was.id) ? { kind: 'deck', id: was.id } : { kind: 'decks' };
     renderTool(); emit('study:closed');
   }
   const clockHtml = () => {
@@ -692,7 +764,7 @@
     const i = $('qz-in'); if (i) i.focus();
   }
   // id '*' = every deck (C1); ids = a chosen set of cards (« Review these » on Often missed)
-  function startReview(id, over, ids) { const queue = ids || (id === '*' ? queueAllCards().map(c => c.id) : queueFor(id)); view = { kind: 'review', id, queue, total: queue.length, shown: false, done: 0, xp: 0, over: !!over || (view.over && inSession()) }; renderTool(); }
+  function startReview(id, over, ids) { const queue = ids || (id === '*' ? queueAllCards().map(c => c.id) : String(id).startsWith('f:') ? queueAllCards(fUnder(id.slice(2))).map(c => c.id) : queueFor(id)); view = { kind: 'review', id, queue, total: queue.length, shown: false, done: 0, xp: 0, over: !!over || (view.over && inSession()) }; renderTool(); }
   function undoRate() {
     const L = view.last; if (!L || turning || view.kind !== 'review') return;
     const c = ST().cards.find(x => x.id === L.id); if (c) Object.assign(c, L.snap);
@@ -1294,8 +1366,8 @@
     if (b.hasAttribute('data-qzfix') && view.kind === 'quiz') { view.wrong.forEach(id => { const c = ST().cards.find(x => x.id === id); if (c) { c.due = today(); c.ivl = 0; } }); save(); startReview(view.id); return; }
     if (b.hasAttribute('data-fc-back')) {
       if (inSession()) { leaveSession(); return; }
-      const here = view.kind === 'deck' && deckById(view.id), upId = here ? dParent(here) : '';
-      view = view.kind === 'import' && view.deckId ? { kind: 'deck', id: view.deckId } : upId ? { kind: 'deck', id: upId } : { kind: 'decks' };
+      const here = view.kind === 'deck' && deckById(view.id), upId = here ? dParent(here) : '', fid = here && !upId ? folderOf(here) : '';
+      view = view.kind === 'import' && view.deckId ? { kind: 'deck', id: view.deckId } : upId ? { kind: 'deck', id: upId } : fid ? { kind: 'folder', id: fid } : { kind: 'decks' };
       renderTool(); return;
     }
     if (b.dataset.fcSimple) { ST().simple = b.dataset.fcSimple === '1'; save(); renderTool(); return; }
@@ -1333,7 +1405,7 @@
     e.preventDefault();
     const f = e.target;
     if (f.id === 'qz-type' && view.kind === 'quiz' && !view.answered) { const q = view.qs[view.pos], c = ST().cards.find(x => x.id === q.cardId), given = $('qz-in').value; if (!given.trim()) return; quizAnswer(closeEnough(given, c.back), { given }); return; }
-    if (f.id === 'fc-newdeck') { const v = f.querySelector('input').value.trim(); if (!v) return; const d = { id: uid(), name: v.slice(0, 60), created: Date.now() }; ST().decks.push(d); save(); view = { kind: 'deck', id: d.id }; renderTool(); return; }
+    if (f.id === 'fc-newdeck') { const v = f.querySelector('input').value.trim(); if (!v) return; const d = { id: uid(), name: v.slice(0, 60), created: Date.now() }; if (view.kind === 'folder' && folderById(view.id)) { d.folder = view.id; d.order = 1e6; } ST().decks.push(d); save(); view = { kind: 'deck', id: d.id, addOpen: true }; renderTool(); const n = root.querySelector('#fc-add [name=front]'); if (n && matchMedia('(pointer: fine)').matches) n.focus(); return; }
     if (f.id === 'fc-subdeck' && view.kind === 'deck') { const v = f.querySelector('input').value.trim(); if (!v) return; ST().decks.push({ id: uid(), name: v.slice(0, 60), created: Date.now(), parent: view.id }); save(); renderTool(); const n = root.querySelector('#fc-subdeck input'); if (n) n.focus(); return; }
     if (f.id === 'fc-add') { addCard(view.id, f.front.value, f.back.value); save(); renderTool(); toast(t('fc_added')); const n = root.querySelector('#fc-add [name=front]'); if (n) n.focus(); return; }
     if (f.dataset.fcEdit) { const c = ST().cards.find(x => x.id === f.dataset.fcEdit); if (c) { c.front = f.front.value.trim(); c.back = f.back.value.trim(); c.updated = Date.now(); save(); } view.editing = null; renderTool(); return; }
@@ -1412,7 +1484,111 @@
   }
   const openDeck = (id, extra) => { ST().tool = 'cards'; view = Object.assign({ kind: 'deck', id }, extra || {}); save(); render(); };
   const kId = el => (el.dataset.ogId || '').replace(/^k:/, '');
+  /* ---------- Folders, Arrange mode, deck settings, card menu (3.115) ---------- */
+  ML.addStrings({
+    fr: { fc_todayn2: '{n} revues aujourd’hui', fc_todayn2_one: '{n} revue aujourd’hui', fc_new_n: '{n} nouvelles', fc_new_n_one: '{n} nouvelle',
+      fc_folders: 'Dossiers', fc_nofolder: 'Sans dossier', fc_decks_h: 'Paquets', fc_fnew: '+ Nouveau dossier', fc_fnew_opt: 'Nouveau dossier…', fc_fname_ph: 'Nom du dossier (ex. Biologie)',
+      fc_ffrom: 'Un dossier par matière', fc_ffrom_ok: '{n} dossiers créés depuis tes matières', fc_ffrom_ok_one: '{n} dossier créé depuis tes matières',
+      fc_fdecks: '{n} paquets', fc_fdecks_one: '{n} paquet', fc_fempty_s: 'Vide', fc_fempty: 'Dossier vide. Glisse un paquet ici, ou crée-en un.', fc_fdrop: 'Dépose un paquet ici pour le sortir de son dossier.',
+      fc_frev: 'Réviser le dossier', fc_fadd: '+ Paquet dans ce dossier', fc_fdel: 'Supprimer le dossier', fc_fdeleted: 'Dossier supprimé. Ses paquets sont restés.',
+      fc_folder: 'Dossier', fc_folder_none: 'Aucun', fc_moved_f: 'Rangé dans « {f} »', fc_moved_out: 'Sorti du dossier', fc_c_out: 'Sortir du dossier',
+      fc_arrange: 'Ranger', fc_arr_hint: 'Glisse par la poignée ou utilise les flèches.', fc_arr_done: 'Terminé', fc_up: 'Monter', fc_down: 'Descendre',
+      fc_add_card: '+ Carte', fc_add_sub: '+ Sous-paquet', fc_settings: 'Réglages du paquet', fc_in_this: 'Dans ce paquet · {n} cartes', fc_in_this_one: 'Dans ce paquet · {n} carte', fc_card_menu: 'Plus' },
+    en: { fc_todayn2: '{n} reviews today', fc_todayn2_one: '{n} review today', fc_new_n: '{n} new', fc_new_n_one: '{n} new',
+      fc_folders: 'Folders', fc_nofolder: 'No folder', fc_decks_h: 'Decks', fc_fnew: '+ New folder', fc_fnew_opt: 'New folder…', fc_fname_ph: 'Folder name (e.g. Biology)',
+      fc_ffrom: 'One folder per subject', fc_ffrom_ok: '{n} folders made from your subjects', fc_ffrom_ok_one: '{n} folder made from your subjects',
+      fc_fdecks: '{n} decks', fc_fdecks_one: '{n} deck', fc_fempty_s: 'Empty', fc_fempty: 'Empty folder. Drag a deck here, or make one.', fc_fdrop: 'Drop a deck here to take it out of its folder.',
+      fc_frev: 'Review the folder', fc_fadd: '+ Deck in this folder', fc_fdel: 'Delete the folder', fc_fdeleted: 'Folder deleted. Its decks stayed.',
+      fc_folder: 'Folder', fc_folder_none: 'None', fc_moved_f: 'Moved to "{f}"', fc_moved_out: 'Taken out of the folder', fc_c_out: 'Take out of the folder',
+      fc_arrange: 'Arrange', fc_arr_hint: 'Drag by the handle or use the arrows.', fc_arr_done: 'Done', fc_up: 'Move up', fc_down: 'Move down',
+      fc_add_card: '+ Card', fc_add_sub: '+ Sub-deck', fc_settings: 'Deck settings', fc_in_this: 'In this deck · {n} cards', fc_in_this_one: 'In this deck · {n} card', fc_card_menu: 'More' },
+  });
+  const arranged = () => { if (!ST().arranged) ST().arranged = true; };
+  function addFolder(name) {
+    const v = String(name || '').trim().slice(0, 40); if (!v) return null;
+    let f = folders().find(x => x.name.toLowerCase() === v.toLowerCase());
+    if (!f) { f = { id: uid(), name: v, order: folders().length }; folders().push(f); }
+    return f;
+  }
+  function setFolder(d, fid) { // a deck goes into a folder (or out of it); a sub-deck becomes a top-level deck there
+    if (!d) return;
+    if (fid && folderById(fid)) { if (dParent(d)) delete d.parent; d.folder = fid; d.order = 1e6; } else delete d.folder;
+  }
+  function delFolder(fid) {
+    ST().decks.forEach(d => { if (d.folder === fid) delete d.folder; });
+    ST().folders = folders().filter(f => f.id !== fid);
+    if (view.kind === 'folder' && view.id === fid) view = { kind: 'decks' };
+    save(); renderTool(); toast(t('fc_fdeleted'));
+  }
+  // The rows a deck is arranged among: its parent's sub-decks, or the top-level decks of its folder (all of them when there is no folder)
+  function siblingsOf(d) {
+    const pid = dParent(d); if (pid) return dKids(pid);
+    const tops = dKids(''); return folders().length ? tops.filter(x => folderOf(x) === folderOf(d)) : tops;
+  }
+  function moveBy(key, dir) {
+    const [k, id] = key.split(':');
+    if (k === 'f') { const ids = fSorted().map(f => f.id), i = ids.indexOf(id), j = i + dir; if (i < 0 || j < 0 || j >= ids.length) return; [ids[i], ids[j]] = [ids[j], ids[i]]; ids.forEach((x, n) => { folderById(x).order = n; }); }
+    else { const d = deckById(id); if (!d) return; const ids = siblingsOf(d).map(x => x.id), i = ids.indexOf(id), j = i + dir; if (i < 0 || j < 0 || j >= ids.length) return; [ids[i], ids[j]] = [ids[j], ids[i]]; ids.forEach((x, n) => { deckById(x).order = n; }); }
+    arranged(); save(); renderTool();
+    const b = root.querySelector(`[data-fc-mv="${key}"][data-dir="${dir}"]`); if (b && !b.disabled) b.focus({ preventScroll: true });
+  }
+  listen('click', e => {
+    const b = e.target.closest('button'); if (!b || ST().tool !== 'cards') return;
+    if (b.dataset.fcFopen) { view = { kind: 'folder', id: b.dataset.fcFopen }; renderTool(); return; }
+    if (b.hasAttribute('data-fc-fnew')) { view.fNew = true; renderTool(); const i = root.querySelector('#fc-newfolder input'); if (i) i.focus(); return; }
+    if (b.hasAttribute('data-fc-ffrom')) {
+      let n = 0;
+      dKids('').forEach(d => { const s = subjOf(d); if (!s || folderOf(d)) return; const had = folders().length, f = addFolder(s.name); if (folders().length > had) n++; if (!f.color && s.color) { const i = subjects().indexOf(s) % ML.COLORS.length; f.color = ML.COLORS[i]; } d.folder = f.id; });
+      save(); renderTool(); toast(tn('fc_ffrom_ok', n)); return;
+    }
+    if (b.hasAttribute('data-fc-arrange')) { view.arrange = !view.arrange; if (!view.arrange) arranged(); save(); renderTool(); return; }
+    if (b.dataset.fcMv) { moveBy(b.dataset.fcMv, +b.dataset.dir); return; }
+    if (b.hasAttribute('data-fc-menu') || b.hasAttribute('data-fc-cmenu')) { const r = b.getBoundingClientRect(); ML.ctx.openFor(b, r.right - 8, r.bottom); return; }
+    if (b.hasAttribute('data-fc-set') && view.kind === 'deck') { view.set = !view.set; renderTool(); return; }
+    if (b.hasAttribute('data-fc-addopen') && view.kind === 'deck') { view.addOpen = !view.addOpen; renderTool(); const n = view.addOpen && root.querySelector('#fc-add [name=front]'); if (n) n.focus(); return; }
+    if (b.hasAttribute('data-fc-subopen') && view.kind === 'deck') { view.subOpen = !view.subOpen; renderTool(); const n = view.subOpen && root.querySelector('#fc-subdeck input'); if (n) n.focus(); return; }
+    if (b.hasAttribute('data-fc-ren') && view.kind === 'deck') { view.ren = true; view.set = false; renderTool(); const i = root.querySelector('#fc-ren input'); if (i) { i.focus(); i.select(); } return; }
+    if (b.dataset.fcColor != null && view.kind === 'deck') { const d = deckById(view.id); if (d) { if (b.dataset.fcColor) d.color = b.dataset.fcColor; else delete d.color; save(); renderTool(); } return; }
+  });
+  listen('submit', e => {
+    const f = e.target;
+    if (f.id === 'fc-newfolder') {
+      e.preventDefault(); e.stopImmediatePropagation();
+      const nf = addFolder(f.querySelector('input').value); view.fNew = false;
+      if (nf && view.fFor) { setFolder(deckById(view.fFor), nf.id); view = { kind: 'deck', id: view.fFor }; }
+      save(); renderTool(); return;
+    }
+    if (f.id === 'fc-fren') { e.preventDefault(); e.stopImmediatePropagation(); const fo = folderById(view.id), v = f.querySelector('input').value.trim().slice(0, 40); if (fo && v) fo.name = v; view.fRen = false; save(); renderTool(); }
+  }, true);
+  listen('change', e => {
+    if (e.target.id !== 'fc-folder' || view.kind !== 'deck') return;
+    const d = deckById(view.id), v = e.target.value;
+    if (v === '__new') { view = { kind: 'decks', fNew: true, fFor: view.id }; renderTool(); const i = root.querySelector('#fc-newfolder input'); if (i) i.focus(); return; }
+    setFolder(d, v); save(); renderTool();
+  });
+  listen('keydown', e => { if (e.key === 'Escape' && e.target.closest && e.target.closest('#fc-fren, #fc-newfolder')) { e.stopPropagation(); view.fRen = false; view.fNew = false; renderTool(); } }, true);
+  ML.ctx.add('#study [data-fc-card]', el => {
+    const id = el.dataset.fcCard, c = ST().cards.find(x => x.id === id); if (!c) return [];
+    return [
+      { label: t('fc_edit'), fn: () => { view.editing = id; cardListRefresh(); } },
+      { sep: true },
+      { label: t('fc_delete'), danger: true, armed: true, fn: () => { ST().cards = ST().cards.filter(x => x.id !== id); save(); renderTool(); } },
+    ];
+  }, el => { const c = ST().cards.find(x => x.id === el.dataset.fcCard); return c ? c.front.slice(0, 40) : ''; });
+  function folderItems(fid) {
+    const f = folderById(fid); if (!f) return [];
+    const c = fCount(fid);
+    return [
+      c ? { label: `${t('fc_frev')} · ${c}`, fn: () => { ST().tool = 'cards'; save(); render(); startReview('f:' + fid); } } : null,
+      view.kind === 'folder' && view.id === fid ? null : { label: t('fc_c_open'), fn: () => { ST().tool = 'cards'; view = { kind: 'folder', id: fid }; save(); render(); } },
+      { label: t('fc_c_ren'), fn: () => { ST().tool = 'cards'; view = { kind: 'folder', id: fid, fRen: true }; save(); render(); const i = root.querySelector('#fc-fren input'); if (i) { i.focus(); i.select(); } } },
+      { label: t('og_color'), colors: { value: f.color, pick: v => { if (v) f.color = v; else delete f.color; save(); renderTool(); } } },
+      { sep: true },
+      { label: t('fc_fdel'), danger: true, armed: true, fn: () => delFolder(fid) },
+    ];
+  }
   ML.ctx.add('#study [data-og-id]', el => {
+    if ((el.dataset.ogId || '').startsWith('f:')) return folderItems(el.dataset.ogId.slice(2));
     const id = kId(el), d = deckById(id); if (!d) return [];
     const due = queueFor(id).length;
     return [
@@ -1420,12 +1596,13 @@
       { label: t('fc_c_open'), fn: () => openDeck(id) },
       { label: t('fc_c_ren'), fn: () => { openDeck(id, { ren: true }); const i = document.querySelector('#fc-ren input'); if (i) { i.focus(); i.select(); } } },
       { label: t('og_color'), colors: { value: d.color, pick: c => { if (c) d.color = c; else delete d.color; save(); renderTool(); } } },
-      { label: t('fc_c_sub'), fn: () => { openDeck(id); const i = document.querySelector('#fc-subdeck input'); if (i) i.focus(); } },
+      { label: t('fc_c_sub'), fn: () => { openDeck(id, { subOpen: true }); const i = document.querySelector('#fc-subdeck input'); if (i) i.focus(); } },
       dParent(d) ? { label: t('fc_c_top'), fn: () => { delete d.parent; d.order = 1e6; save(); renderTool(); } } : null,
+      !dParent(d) && folderOf(d) ? { label: t('fc_c_out'), fn: () => { delete d.folder; d.order = 1e6; save(); renderTool(); toast(t('fc_moved_out'), { key: 'fcmove' }); } } : null,
       { sep: true },
       { label: t('fc_del_deck'), danger: true, armed: true, fn: () => delDeck(id) },
     ];
-  }, el => { const d = deckById(kId(el)); return d ? d.name : ''; });
+  }, el => { const k = el.dataset.ogId || ''; const x = k.startsWith('f:') ? folderById(k.slice(2)) : deckById(kId(el)); return x ? x.name : ''; });
   listen('submit', e => {
     if (e.target.id !== 'fc-ren') return;
     e.preventDefault(); e.stopPropagation();
@@ -1434,19 +1611,31 @@
     view.ren = false; save(); renderTool();
   }, true);
   listen('keydown', e => { if (e.key === 'Escape' && e.target.closest && e.target.closest('#fc-ren')) { e.stopPropagation(); view.ren = false; renderTool(); } }, true);
-  // before / after another deck (it takes that deck's level and, at the top, its subject), or into it as a sub-deck
+  /* A deck: before / after another deck (it takes that deck's level, its folder and, without folders, its subject), into a deck
+     (a sub-deck), into a folder row or onto « No folder » / the back button. A folder: before / after another folder. */
+  const kindOf = x => (x || '').slice(0, 2);
   ML.dragSort({
-    root: () => (view.kind === 'deck' || view.kind === 'decks' ? root : null), item: '[data-og-id^="k:"]', id: el => el.dataset.ogId,
-    into: (dragId, tid) => { const a = dragId.slice(2), b = tid.replace(/^k:/, ''); return a !== b && !dUnder(a).has(b) && !!deckById(b); },
-    order: (dragId, tid) => { const a = dragId.slice(2), b = tid.replace(/^k:/, ''); return !dUnder(a).has(b); },
+    root: () => (view.kind === 'deck' || view.kind === 'decks' || view.kind === 'folder' ? root : null), item: '[data-og-id^="k:"], [data-og-id^="f:"]', id: el => el.dataset.ogId,
+    into: (dragId, tid) => {
+      if (kindOf(dragId) !== 'k:') return false;
+      const a = dragId.slice(2);
+      if (kindOf(tid) === 'f:') { const fid = tid.slice(2), d = deckById(a); return !!d && (!fid || !!folderById(fid)) && (fid !== folderOf(d) || !!dParent(d)); }
+      const b = tid.replace(/^k:/, ''); return a !== b && !dUnder(a).has(b) && !!deckById(b);
+    },
+    order: (dragId, tid) => { if (kindOf(dragId) !== kindOf(tid)) return false; if (kindOf(dragId) === 'f:') return true; const a = dragId.slice(2), b = tid.replace(/^k:/, ''); return !dUnder(a).has(b); },
     drop: (dragId, tid, where) => {
-      const id = dragId.slice(2), target = tid.replace(/^k:/, ''), d = deckById(id), td = deckById(target);
-      if (!d || !td || dUnder(id).has(target)) return;
+      arranged();
+      if (kindOf(dragId) === 'f:') { if (kindOf(tid) !== 'f:' || where === 'into') return; ML.reorder(fSorted().map(f => f.id), dragId.slice(2), tid.slice(2), where).forEach((x, i) => { folderById(x).order = i; }); save(); renderTool(); return; }
+      const id = dragId.slice(2), d = deckById(id); if (!d) return;
+      if (kindOf(tid) === 'f:') { const fid = tid.slice(2); setFolder(d, fid); save(); renderTool(); toast(fid ? t('fc_moved_f', { f: folderById(fid).name }) : t('fc_moved_out'), { key: 'fcmove' }); return; }
+      const target = tid.replace(/^k:/, ''), td = deckById(target);
+      if (!td || dUnder(id).has(target)) return;
       if (where === 'into') { d.parent = target; d.order = 1e6; }
       else {
         const pid = dParent(td);
-        if (pid) d.parent = pid; else { delete d.parent; if (td.subject) d.subject = td.subject; else delete d.subject; }
-        ML.reorder(dKids(pid).map(x => x.id), id, target, where).forEach((x, i) => { deckById(x).order = i; });
+        if (pid) d.parent = pid;
+        else { delete d.parent; if (folders().length) { if (folderOf(td)) d.folder = folderOf(td); else delete d.folder; } else if (td.subject) d.subject = td.subject; else delete d.subject; }
+        ML.reorder(siblingsOf(td).map(x => x.id), id, target, where).forEach((x, i) => { deckById(x).order = i; });
       }
       save(); renderTool();
     },

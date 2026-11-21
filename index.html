@@ -146,10 +146,18 @@
           <input type="number" id="custom-mins" min="0" max="600" placeholder="min" inputmode="numeric" aria-label="min">
           <button type="button" id="custom-set" data-i18n="set">OK</button>
         </div>
+        <!-- 3.113 (M1): one main button and a ⋯ menu; Finish, Cancel, the floating timer and « outside the app » live in the menu -->
         <div class="controls">
-          <button type="button" id="reset" data-i18n="reset">Annuler</button>
           <button type="button" class="primary" id="start"></button>
-          <button type="button" id="skip" data-i18n="finish">Terminer</button>
+          <div class="tm-more">
+            <button type="button" class="ghost icon-only" id="tm-more-btn" aria-haspopup="true" aria-expanded="false" aria-controls="tm-menu" data-i18n-title="tm_more"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+            <div class="tm-menu" id="tm-menu" hidden>
+              <button type="button" id="skip" data-i18n="finish">Terminer</button>
+              <button type="button" id="reset" data-i18n="reset">Annuler</button>
+              <button type="button" id="tm-float" data-i18n="float_timer">Minuteur flottant</button>
+              <label class="outside-tog" id="outside-row" hidden><input type="checkbox" id="outside-chk"> <span data-i18n="outside_work"></span></label>
+            </div>
+          </div>
           <button type="button" class="link stuck-btn" id="stuck-btn" data-i18n="st_btn"></button>
         </div>
       </div>
@@ -158,10 +166,9 @@
 
       <form class="park" id="park-form" autocomplete="off">
         <input type="text" id="park-input" maxlength="140" data-i18n-ph="park_ph">
-        <button type="submit" data-i18n="park">Parquer</button>
+        <button type="submit" class="park-go" data-i18n="park">Parquer</button>
         <button type="button" class="distract-btn" id="distract-btn" data-i18n-title="distracted"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/></svg> <span id="distract-n"></span></button>
       </form>
-      <label class="outside-tog" id="outside-row" hidden><input type="checkbox" id="outside-chk"> <span data-i18n="outside_work"></span></label>
 
       <div class="perch" id="perch"></div>
 

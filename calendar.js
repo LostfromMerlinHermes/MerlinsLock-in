@@ -75,8 +75,29 @@
   const loc = () => ML.locale();
   const blocksOn = k => (S.blocks || []).filter(b => b.date === k);
   const sumBlocks = blocks => tn('blocks_planned', blocks.length, { m: fmtMins(blocks.reduce((a, b) => a + b.mins, 0)) });
-  const viewsSeg = () => `<div class="seg-toggle cal-views" role="group" aria-label="${esc(t('tab_cal'))}">${VIEWS.map(k => `<button type="button" data-calv="${k}" aria-pressed="${k === viewNow()}">${esc(t('cal_v_' + k))}</button>`).join('')}</div>`;
+  // 3.114 (D1 of proposals/today-plan): Day / Week / Month is one small menu in the header (« Jour ▾ »), not a row of
+  // three buttons that took a line of its own on a phone
+  const viewsSeg = () => `<button type="button" class="ghost small cal-vbtn" data-calvmenu aria-haspopup="true" aria-expanded="false" aria-label="${esc(t('tab_cal') + ' : ' + t('cal_v_' + viewNow()))}">${esc(t('cal_v_' + viewNow()))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`;
   ML.calViewsSeg = viewsSeg;
+  let vMenu = null;
+  const closeVMenu = () => { if (vMenu) { vMenu.remove(); vMenu = null; } document.querySelectorAll('[data-calvmenu][aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false')); };
+  function openVMenu(btn) {
+    closeVMenu();
+    vMenu = document.createElement('div'); vMenu.className = 'pl-pop dg-pop cal-vmenu'; vMenu.setAttribute('role', 'menu');
+    vMenu.innerHTML = VIEWS.map(k => `<button type="button" class="pp-it" role="menuitemradio" aria-checked="${k === viewNow()}" data-calv="${k}">${esc(t('cal_v_' + k))}</button>`).join('');
+    document.body.append(vMenu); btn.setAttribute('aria-expanded', 'true');
+    const a = btn.getBoundingClientRect(), r = vMenu.getBoundingClientRect();
+    vMenu.style.left = Math.max(8, Math.min(a.left, innerWidth - r.width - 8)) + 'px';
+    vMenu.style.top = (a.bottom + r.height + 6 > innerHeight - 8 ? a.top - r.height - 6 : a.bottom + 6) + 'px';
+    const cur = vMenu.querySelector('[aria-checked="true"]'); if (cur) cur.focus({ preventScroll: true });
+    vMenu.addEventListener('click', e => { const b = e.target.closest('[data-calv]'); if (!b) return; closeVMenu(); setCalView(b.dataset.calv); });
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('[data-calvmenu]');
+    if (b) { if (vMenu) closeVMenu(); else openVMenu(b); return; }
+    if (vMenu && !vMenu.contains(e.target)) closeVMenu();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && vMenu) closeVMenu(); });
   function setCalView(v) {
     if (v === 'day') { if (S.tab !== 'day') ML.plannerGoto(S.cal.sel || today()); return; }
     if (S.tab === 'day') { S.cal.sel = (S.planner && S.planner.date) || today(); S.cal.month = monthOf(S.cal.sel); } // the week or month of the day on screen
