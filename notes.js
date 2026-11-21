@@ -141,7 +141,7 @@
             ${p.mood ? `<span class="chip">${esc(t('mood_' + p.mood))}</span>` : ''}
             <span id="nb-words">${esc(tn('nb_words', words))}</span><span class="nb-state" id="nb-state">${esc(t('nb_saved'))}</span></div>
           <div class="nb-tools" role="toolbar">${TOOLS.filter(x => x[0] !== 'math' || (ML.isPremium && ML.isPremium() && ML.texToMath)).map(x => x[0] === '|' ? '<i class="sep"></i>' : `<button type="button" class="tool" data-fmt="${x[0]}" title="${esc(t('fmt_' + x[0]))}" aria-label="${esc(t('fmt_' + x[0]))}">${x[2]}</button>`).join('')}</div>
-          <button type="button" class="nb-fc-chip" id="nb-fc-chip" hidden>✦ ${esc(t('nb_to_card'))}</button>
+          <div class="nb-sel" id="nb-sel" hidden>${ML.NoteHelp && ML.NoteHelp.rewrite ? `<button type="button" class="nb-fc-chip" data-rw="simple">${esc(t('nh_rw_simple'))}</button><button type="button" class="nb-fc-chip" data-rw="short">${esc(t('nh_rw_short'))}</button>` : ''}<button type="button" class="nb-fc-chip" id="nb-fc-chip">✦ ${esc(t('nb_to_card'))}</button></div>
           <div id="nb-fc-slot"></div>
           <div class="nb-body" id="nb-body" contenteditable="true" spellcheck="true" data-ph="${esc(t('nb_body_ph'))}">${sanitize(p.html)}</div>
           <div class="nb-actions">
@@ -212,8 +212,14 @@
       persist(p);
     };
     // Highlight → flashcard (Premium): selecting text in the page shows a chip; it opens a small card form
-    const chip = $('nb-fc-chip');
-    chip.addEventListener('mousedown', e => e.preventDefault());
+    const chip = $('nb-fc-chip'), selBar = $('nb-sel');
+    selBar.addEventListener('mousedown', e => e.preventDefault());
+    selBar.querySelectorAll('[data-rw]').forEach(b => { b.onclick = () => {
+      if (!lastSel.trim()) return;
+      flush(); selBar.hidden = true;
+      ML.NoteHelp.rewrite(p, body, $('nb-fc-slot'), { text: lastSel, range: lastRange }, b.dataset.rw);
+      $('nb-fc-slot').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }; });
     chip.onclick = () => {
       const sel = lastSel.trim(); if (!sel) return;
       const m = /^([^\n:–—]{1,120}?)\s*[:–—]\s+([\s\S]+)$/.exec(sel); // "term: definition" splits itself
@@ -224,7 +230,7 @@
         <label class="field"><span>${esc(t('nb_fc_deck'))}</span><select name="deck">${decks.map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join('')}<option value="">${esc(t('nb_fc_new'))}</option></select></label>
         <div class="t-edit-btns"><span class="grow"></span><button type="button" class="small ghost" id="nb-fc-x">${esc(t('cancel'))}</button><button type="submit" class="small primary">${esc(t('nb_fc_save'))}</button></div>
       </form>`;
-      chip.hidden = true;
+      selBar.hidden = true;
       const f = $('nb-fc-form');
       (m ? f.a : f.q).focus();
       $('nb-fc-x').onclick = () => { $('nb-fc-slot').innerHTML = ''; };
@@ -290,13 +296,13 @@
   }
 
   // Remember the last text selected inside the page body (taps on the chip can clear the live selection on phones)
-  let lastSel = '';
+  let lastSel = '', lastRange = null;
   document.addEventListener('selectionchange', () => {
-    const chip = $('nb-fc-chip'), body = $('nb-body'); if (!chip || !body) return;
+    const bar = $('nb-sel'), body = $('nb-body'); if (!bar || !body) return;
     const s = getSelection(), inside = s.rangeCount && !s.isCollapsed && body.contains(s.anchorNode) && body.contains(s.focusNode);
     const text = inside ? s.toString() : '';
-    if (text.trim().length >= 2) lastSel = text;
-    chip.hidden = !(text.trim().length >= 2 && ML.isPremium && ML.isPremium() && ML.studyAddCard);
+    if (text.trim().length >= 2) { lastSel = text; lastRange = s.getRangeAt(0).cloneRange(); }
+    bar.hidden = !(text.trim().length >= 2 && ML.isPremium && ML.isPremium() && ML.studyAddCard);
   });
   on('tab', name => { if (name === 'notes') render(); else flush(); });
   on('render', () => { if (S.tab === 'notes' && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('.nb-page'))) render(); });

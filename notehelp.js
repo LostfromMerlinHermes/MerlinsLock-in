@@ -1,4 +1,5 @@
 // Notebook study helpers (Premium), all free and on-device:
+// - Simpler / shorter on a selected passage: Chrome's model or Summarizer when present, plain rules otherwise (3.112).
 // - Summary: Chrome's built-in AI (Summarizer API) when the browser has it, otherwise the key sentences
 //   picked by word frequency (a simple extractive summary, works everywhere, nothing leaves the device).
 // - Fill-in-the-blank quiz: the words you put in bold or highlighted become the blanks; without any,
@@ -13,14 +14,20 @@
       nh_insert: 'Insérer en haut de la page', nh_copy: 'Copier', nh_short: 'Écris un peu plus (quelques phrases) pour pouvoir résumer.', nh_wait: 'Résumé en cours…',
       nh_quiz_h: 'Quiz à trous', nh_quiz_none: 'Pas assez de texte. Mets des mots importants en gras ou surlignés : ils deviendront les trous.', nh_check: 'Valider', nh_next: 'Suivante', nh_score: 'Score : {s}/{n}',
       nh_cards_btn: 'Cartes', nh_q: 'Question', nh_a: 'Réponse', nh_cards_h: 'Cartes proposées', nh_kept: '{n} sur {m} gardées', nh_keep: 'Garder cette carte', nh_cards_add: 'Ajouter {n} carte(s)', nh_cards_wait: 'Lecture de ta page…', nh_cards_none: 'Rien trouvé à mettre en carte. Écris des lignes « terme : définition », ou mets les mots importants en gras.', nh_src_lm: 'Écrites sur cet appareil par le modèle de Chrome. Rien n’est envoyé. Relis-les avant d’ajouter.', nh_src_rules: 'Tirées de ta page sur cet appareil. Décoche ou corrige avant d’ajouter.', nh_dl: 'Chrome peut écrire de vraies questions. Il télécharge son modèle une fois (plusieurs Go, en Wi-Fi).', nh_dl_go: 'Télécharger', nh_dl_wait: 'Téléchargement du modèle : {p} %', nh_dl_fail: 'Le modèle n’a pas pu être utilisé sur cet appareil.',
-      nh_cards: 'Créer {n} flashcard(s)', nh_cards_ok: '{n} flashcard(s) ajoutée(s) au paquet « {deck} »', nh_close: 'Fermer', nh_hint_bold: 'Astuce : les mots en gras ou surlignés deviennent les trous.',
+      nh_cards: 'Créer {n} flashcard(s)', nh_cards_ok: '{n} flashcard(s) ajoutée(s) au paquet « {deck} »', nh_close: 'Fermer',
+      nh_rw_simple: 'Plus simple', nh_rw_short: 'Plus court', nh_rw_out: 'Texte proposé', nh_rw_wait: 'Réécriture sur cet appareil…', nh_rw_replace: 'Remplacer le passage', nh_rw_done: 'Passage remplacé. Ctrl+Z pour revenir.', nh_rw_moved: 'Le passage a changé depuis. Copie le texte à la place.', nh_rw_tiny: 'Sélectionne au moins une phrase.', nh_rw_same: 'Rien de clair à simplifier sans le modèle.',
+      nh_rw_src_ai: 'Fait sur cet appareil par le modèle de Chrome. Rien n’est envoyé. Relis et corrige avant de remplacer.', nh_rw_src_rules: 'Fait sur cet appareil par des règles simples (mots courants, phrases coupées). Rien n’est envoyé. Relis avant de remplacer.',
+      nh_dl_rw: 'Chrome peut réécrire ce passage lui-même, sur cet appareil, sans rien envoyer. Il télécharge son modèle une seule fois (plusieurs Go, en Wi-Fi) ; ensuite tout marche hors ligne.', nh_dl_use: 'Utiliser le modèle de Chrome', nh_hint_bold: 'Astuce : les mots en gras ou surlignés deviennent les trous.',
     },
     en: {
       nh_sum: 'Summarize', nh_quiz: 'Page quiz', nh_sum_h: 'Page summary', nh_src_ai: "Chrome's AI, on your device", nh_src_ks: 'Key sentences from your page',
       nh_insert: 'Insert at the top', nh_copy: 'Copy', nh_short: 'Write a bit more (a few sentences) to summarize.', nh_wait: 'Summarizing…',
       nh_quiz_h: 'Fill-in-the-blank quiz', nh_quiz_none: 'Not enough text. Put important words in bold or highlight them: they become the blanks.', nh_check: 'Check', nh_next: 'Next', nh_score: 'Score: {s}/{n}',
       nh_cards_btn: 'Cards', nh_q: 'Question', nh_a: 'Answer', nh_cards_h: 'Suggested cards', nh_kept: '{n} of {m} kept', nh_keep: 'Keep this card', nh_cards_add: 'Add {n} card(s)', nh_cards_wait: 'Reading your page…', nh_cards_none: 'Nothing to turn into cards. Write lines like "term: definition", or put the important words in bold.', nh_src_lm: "Written on this device by Chrome's model. Nothing is sent. Read them before adding.", nh_src_rules: 'Taken from your page on this device. Untick or correct before adding.', nh_dl: 'Chrome can write real questions. It downloads its model once (several GB, on Wi-Fi).', nh_dl_go: 'Download', nh_dl_wait: 'Downloading the model: {p}%', nh_dl_fail: 'The model could not be used on this device.',
-      nh_cards: 'Create {n} flashcard(s)', nh_cards_ok: '{n} flashcard(s) added to the "{deck}" deck', nh_close: 'Close', nh_hint_bold: 'Tip: words in bold or highlighted become the blanks.',
+      nh_cards: 'Create {n} flashcard(s)', nh_cards_ok: '{n} flashcard(s) added to the "{deck}" deck', nh_close: 'Close',
+      nh_rw_simple: 'Simpler', nh_rw_short: 'Shorter', nh_rw_out: 'Suggested text', nh_rw_wait: 'Rewriting on this device…', nh_rw_replace: 'Replace the passage', nh_rw_done: 'Passage replaced. Ctrl+Z to undo.', nh_rw_moved: 'The passage has changed since. Copy the text instead.', nh_rw_tiny: 'Select at least one sentence.', nh_rw_same: 'Nothing clear to simplify without the model.',
+      nh_rw_src_ai: "Done on this device by Chrome's model. Nothing is sent. Read and correct before replacing.", nh_rw_src_rules: 'Done on this device with simple rules (common words, split sentences). Nothing is sent. Read before replacing.',
+      nh_dl_rw: 'Chrome can rewrite this passage itself, on this device, sending nothing. It downloads its model once (several GB, on Wi-Fi); after that it works offline.', nh_dl_use: "Use Chrome's model", nh_hint_bold: 'Tip: words in bold or highlighted become the blanks.',
     },
   });
 
@@ -28,7 +35,7 @@
     'the a an and or of to in on for with is are was were be been being it its this that these those as at by from not but if then so than which who whom what when where how also into about over such can may will would there their them they he she his her we you i').split(' '));
   const words = s => (s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').match(/[\p{L}\p{N}]+/gu) || []);
   const sentencesOf = text => text.replace(/\s+/g, ' ').split(/(?<=[.!?…])\s+(?=[\p{Lu}0-9«"(])/u).map(s => s.trim()).filter(s => s.length >= 25 && s.length <= 450);
-  function keySentences(text, max = 7) {
+  function keySentences(text, max = 7, ratio = 0.3) {
     const sents = sentencesOf(text); if (sents.length < 2) return sents;
     const freq = {};
     sents.forEach(s => words(s).forEach(w => { if (w.length > 2 && !STOP.has(w)) freq[w] = (freq[w] || 0) + 1; }));
@@ -37,7 +44,7 @@
       const score = ws.reduce((a, w) => a + freq[w], 0) / Math.sqrt(Math.max(4, words(s).length)) + (i === 0 ? 1.5 : 0);
       return { s, i, score };
     });
-    const k = Math.max(1, Math.min(max, Math.round(sents.length * 0.3)));
+    const k = Math.max(1, Math.min(max, Math.round(sents.length * ratio)));
     return scored.sort((a, b) => b.score - a.score).slice(0, k).sort((a, b) => a.i - b.i).map(x => x.s);
   }
   const langOf = text => { const ws = words(text).slice(0, 300), fr = ws.filter(w => /^(le|la|les|des|est|une|et|du|que|qui|dans|pour)$/.test(w)).length, en = ws.filter(w => /^(the|is|and|of|to|that|in|for|are|with)$/.test(w)).length; return fr >= en ? 'fr' : 'en'; };
@@ -171,11 +178,12 @@
     const wait = msg => { slot.innerHTML = `<div class="nb-fc nh-panel"><b>${esc(t('nh_cards_h'))}</b><p class="hint">${esc(msg)}</p><button type="button" class="small ghost" data-nhc="close">${esc(t('nh_close'))}</button></div>`; };
     let list = [], byModel = false, state = 'no';
     const draw = () => {
-      const n = list.filter(x => x.on).length;
+      const n = list.filter(x => x.on).length, first = !S.nhDlSeen;
+      if (state === 'downloadable' && !byModel && first) { S.nhDlSeen = true; ML.save(); }
       slot.innerHTML = `<div class="nb-fc nh-panel"><div class="nh-head"><b>${esc(t('nh_cards_h'))}</b><small class="hint">${esc(t('nh_kept', { n, m: list.length }))}</small></div>
         <p class="hint">${esc(t(byModel ? 'nh_src_lm' : 'nh_src_rules'))}</p>
         ${list.length ? `<ul class="nh-cards">${list.map((c, i) => `<li><input type="checkbox" data-nhc-on="${i}" id="nhc-on-${i}" ${c.on ? 'checked' : ''} aria-label="${esc(t('nh_keep'))}"><div><input type="text" data-nhc-q="${i}" id="nhc-q-${i}" maxlength="200" value="${esc(c.q)}" aria-label="${esc(t('nh_q'))}"><textarea data-nhc-a="${i}" id="nhc-a-${i}" rows="2" maxlength="400" aria-label="${esc(t('nh_a'))}">${esc(c.a)}</textarea></div></li>`).join('')}</ul>` : `<p class="hint">${esc(t('nh_cards_none'))}</p>`}
-        ${state === 'downloadable' && !byModel ? `<p class="hint nh-dl">${esc(t('nh_dl'))} <button type="button" class="link" data-nhc="dl">${esc(t('nh_dl_go'))}</button></p>` : ''}
+        ${state === 'downloadable' && !byModel ? `<p class="hint nh-dl">${first ? esc(t('nh_dl')) + ' ' : ''}<button type="button" class="link" data-nhc="dl">${esc(t(first ? 'nh_dl_go' : 'nh_dl_use'))}</button></p>` : ''}
         <div class="t-edit-btns"><button type="button" class="small ghost" data-nhc="close">${esc(t('nh_close'))}</button><span class="grow"></span><button type="button" class="small primary" data-nhc="add" ${n ? '' : 'disabled'}>${esc(t('nh_cards_add', { n }))}</button></div></div>`;
     };
     const fromModel = async onProgress => {
@@ -205,5 +213,131 @@
     if (!byModel) list = ruleCards(body).map(x => Object.assign(x, { on: true }));
     draw();
   }
-  ML.NoteHelp = { summary, quiz, cards, keySentences };
+  /* ---------- Simpler / shorter on a selected passage (3.112) ----------
+     Chrome's model (Prompt API) or its Summarizer when one is already on the device; otherwise simple rules (plainer words,
+     long sentences split, asides dropped; the key sentences for « shorter »). The result opens in an editable box under the
+     toolbar: nothing replaces the passage until the user presses Replace, and only if the passage is still the same. */
+  ML.defaults(() => ({ nhDlSeen: false }));
+  const PLAIN = {
+    fr: [['afin de', 'pour'], ['afin que', 'pour que'], ['en vue de', 'pour'], ['nonobstant', 'malgré'], ['ainsi que', 'et'], ['lorsque', 'quand'], ['en raison de', 'à cause de'], ['du fait de', 'à cause de'], ['dès lors que', 'si'], ['notamment', 'surtout'], ['entendue comme', 'c’est-à-dire'], ['entendu comme', 'c’est-à-dire'], ['s’agissant de', 'pour'], ['au moyen de', 'avec'], ['préalablement', 'avant'], ['ultérieurement', 'plus tard'], ['à l’instar de', 'comme'], ['eu égard à', 'vu'], ['en outre', 'aussi'], ['de surcroît', 'en plus'], ['afférent à', 'lié à'], ['afférente à', 'liée à'], ['en l’occurrence', 'ici'], ['nécessite', 'demande'], ['nécessitent', 'demandent'], ['constitue', 'est'], ['constituent', 'sont'], ['permet de', 'sert à'], ['permettent de', 'servent à']],
+    en: [['in order to', 'to'], ['due to the fact that', 'because'], ['owing to', 'because of'], ['prior to', 'before'], ['subsequently', 'later'], ['utilize', 'use'], ['utilise', 'use'], ['approximately', 'about'], ['in addition', 'also'], ['furthermore', 'also'], ['moreover', 'also'], ['commence', 'start'], ['terminate', 'end'], ['sufficient', 'enough'], ['numerous', 'many'], ['in the event that', 'if'], ['with regard to', 'about'], ['in accordance with', 'following'], ['constitutes', 'is'], ['requires', 'needs']],
+  };
+  // Linking adverbs: « Néanmoins, … » opening a sentence becomes « Mais … »; inside a sentence they are just dropped
+  const LINKS = { fr: [['néanmoins|toutefois|cependant|pourtant', 'Mais'], ['par conséquent|en conséquence', 'Donc']], en: [['however|nevertheless|nonetheless', 'But'], ['therefore|consequently|hence', 'So']] };
+  function plainLinks(x, lang) {
+    LINKS[lang].forEach(([alt, start]) => {
+      x = x.replace(new RegExp('^(?:' + alt + ')\\s*,?\\s*', 'iu'), start + ' ')
+        .replace(new RegExp('(?:,\\s*)?\\s(?:' + alt + ')(?:\\s*,)?(?=\\s)', 'giu'), '');
+    });
+    return x.replace(/^(Mais|Donc|Et|But|So|And),\s*/u, '$1 ');
+  }
+  const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
+  function plainWords(s, lang) {
+    PLAIN[lang].forEach(([a, b]) => { s = s.replace(new RegExp('(^|[^\\p{L}])' + a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=$|[^\\p{L}])', 'giu'), (m, pre, off) => pre + (/[A-ZÀ-Ý]/.test(m.charAt(pre.length)) ? capFirst(b) : b)); });
+    return s;
+  }
+  function ruleSimple(text, lang) {
+    let s = text.replace(/\s+/g, ' ').trim()
+      .replace(/\s*\([^()]{1,160}\)/g, '').replace(/\s*\[[^\][]{1,160}\]/g, '') // asides in brackets
+      .replace(/\s*[—–]\s[^—–.!?]{1,120}\s[—–](?=\s)/g, '')                     // asides between dashes
+      .replace(/\s*;\s*/g, '. ');
+    s = plainWords(s, lang);
+    if (lang === 'fr') s = s.replace(/\b([Ll])orsqu[’']/g, (m, l) => (l === 'L' ? 'Quand ' : 'quand '));
+    const cut = lang === 'fr' ? /,\s+(mais|car|donc|et|or|puis)\s+/i : /,\s+(but|so|and|because|yet|then)\s+/i;
+    const out = [];
+    (s.match(/[^.!?…]+[.!?…]*/g) || [s]).map(x => x.trim()).filter(Boolean).forEach(x => {
+      let rest = x;
+      while (words(rest).length > 22) { // split a long sentence at its first « , but / , and » past the eighth word
+        const head = rest.slice(0, 40), m = cut.exec(rest.slice(head.length)); if (!m) break;
+        const at = head.length + m.index; out.push(rest.slice(0, at).trim() + '.'); rest = capFirst(m[1].toLowerCase() === 'et' || m[1].toLowerCase() === 'and' ? rest.slice(at + m[0].length) : rest.slice(at + 2));
+      }
+      out.push(capFirst(rest));
+    });
+    for (let i = 0; i < out.length; i++) out[i] = capFirst(plainLinks(out[i], lang));
+    return out.join(' ').replace(/\s+([.,])/g, '$1').replace(/\.{2,}/g, '.').trim();
+  }
+  function ruleShort(text, lang) {
+    const plain = ruleSimple(text, lang), n = sentencesOf(plain).length; // plainer first: long sentences are split, so the key ones are shorter
+    if (n >= 3) return keySentences(plain, 12, 0.5).join(' ');
+    return plain.replace(/,\s+(?:qui|que|dont|which|that)\s[^,.!?]{1,80}(?=,)/giu, ''); // one or two sentences: drop the asides
+  }
+  const sumOpts = lang => ({ type: 'tldr', format: 'plain-text', length: 'short', expectedInputLanguages: [lang], outputLanguage: lang });
+  async function sumState(lang) {
+    try {
+      if (!('Summarizer' in self)) return 'no';
+      const a = await within(self.Summarizer.availability(sumOpts(lang)), 3000, 'no');
+      return a === 'available' ? 'available' : a === 'downloadable' || a === 'downloading' ? 'downloadable' : 'no';
+    } catch (e) { return 'no'; }
+  }
+  const monitorOf = onProgress => ({ monitor(m) { m.addEventListener('downloadprogress', e => { if (onProgress) onProgress(e.loaded); }); } });
+  const ENGINES = {
+    lm: { state: lmState, async run(mode, text, lang, onProgress) {
+      const s = await self.LanguageModel.create(Object.assign(monitorOf(onProgress), lmOpts(lang)));
+      try {
+        const ask = lang === 'fr'
+          ? (mode === 'simple' ? 'Réécris ce passage de cours en français simple, pour un élève qui le découvre : phrases courtes, mots courants, même sens, rien d’ajouté. Donne seulement le texte réécrit.' : 'Réécris ce passage de cours en français, deux fois plus court, en gardant les idées et les termes importants. Rien d’ajouté. Donne seulement le texte réécrit.')
+          : (mode === 'simple' ? 'Rewrite this course passage in plain English for a student seeing it for the first time: short sentences, common words, same meaning, nothing added. Give only the rewritten text.' : 'Rewrite this course passage in English, half as long, keeping the ideas and key terms. Nothing added. Give only the rewritten text.');
+        return String(await s.prompt(ask + '\n\n' + text.slice(0, 4000)) || '').replace(/^["«»\s]+|["«»\s]+$/g, '').trim();
+      } finally { try { s.destroy(); } catch (e) {} }
+    } },
+    sum: { state: sumState, async run(mode, text, lang, onProgress) {
+      const sm = await self.Summarizer.create(Object.assign(monitorOf(onProgress), sumOpts(lang)));
+      try { return String(await sm.summarize(text.slice(0, 8000)) || '').trim(); } finally { try { sm.destroy(); } catch (e) {} }
+    } },
+  };
+  async function rewrite(p, body, slot, sel, mode) {
+    const orig = String(sel.text || '').trim(), range = sel.range;
+    if (words(orig).length < 4) { toast(t('nh_rw_tiny')); return; }
+    const lang = words(orig).length >= 12 ? langOf(orig) : (S.lang === 'en' ? 'en' : 'fr'), token = {}; slot._nhr = token;
+    const alive = () => slot._nhr === token;
+    const order = mode === 'simple' ? ['lm'] : ['lm', 'sum']; // Edge has the Summarizer only: « shorter » can still use it
+    let out = '', src = 'rules', dl = null;
+    const head = `<div class="nh-head"><b>${esc(t(mode === 'simple' ? 'nh_rw_simple' : 'nh_rw_short'))}</b></div>`;
+    const wait = msg => { slot.innerHTML = `<div class="nb-fc nh-panel">${head}<p class="hint">${esc(msg)}</p><button type="button" class="small ghost" data-nhr="close">${esc(t('nh_close'))}</button></div>`; };
+    const draw = () => {
+      const same = out.replace(/\s+/g, ' ') === orig.replace(/\s+/g, ' '), first = !S.nhDlSeen;
+      if (dl && first) { S.nhDlSeen = true; ML.save(); }
+      slot.innerHTML = `<div class="nb-fc nh-panel">${head}
+        <blockquote class="nh-orig">${esc(orig.length > 400 ? orig.slice(0, 400) + '…' : orig)}</blockquote>
+        <textarea class="nh-rw-out" id="nhr-out" rows="${Math.min(12, Math.max(3, Math.ceil(out.length / 36) + 1))}" maxlength="4000" aria-label="${esc(t('nh_rw_out'))}">${esc(out)}</textarea>
+        <p class="hint">${esc(t(src === 'rules' ? 'nh_rw_src_rules' : 'nh_rw_src_ai'))}${same && src === 'rules' ? ' ' + esc(t('nh_rw_same')) : ''}</p>
+        ${dl ? `<p class="hint nh-dl">${first ? esc(t('nh_dl_rw')) + ' ' : ''}<button type="button" class="link" data-nhr="dl">${esc(t(first ? 'nh_dl_go' : 'nh_dl_use'))}</button></p>` : ''}
+        <div class="t-edit-btns"><button type="button" class="small ghost" data-nhr="close">${esc(t('nh_close'))}</button><span class="grow"></span><button type="button" class="small" data-nhr="copy">${esc(t('nh_copy'))}</button><button type="button" class="small primary" data-nhr="replace">${esc(t('nh_rw_replace'))}</button></div></div>`;
+    };
+    const runWith = async (key, onProgress) => {
+      const got = await within(ENGINES[key].run(mode, orig, lang, onProgress), 120000, '');
+      if (got && words(got).length >= 2) { out = got; src = key; dl = null; return true; }
+      return false;
+    };
+    slot.oninput = e => { if (e.target.id === 'nhr-out') out = e.target.value; };
+    slot.onclick = async e => {
+      const b = e.target.closest('[data-nhr]'); if (!b) return;
+      const act = b.dataset.nhr;
+      if (act === 'close') { slot._nhr = null; slot.innerHTML = ''; return; }
+      if (act === 'copy') { try { navigator.clipboard.writeText(out).then(() => toast(t('tr_copied'))); } catch (err) {} return; }
+      if (act === 'dl') { // asked by the user: Chrome fetches its model once, then rewrites
+        const key = dl; wait(t('nh_dl_wait', { p: 0 }));
+        let ok = false; try { ok = await runWith(key, f => { if (alive()) wait(f < 1 ? t('nh_dl_wait', { p: Math.round(f * 100) }) : t('nh_rw_wait')); }); } catch (err) {}
+        if (!alive()) return; if (!ok) { dl = null; toast(t('nh_dl_fail')); } draw(); return;
+      }
+      if (act === 'replace') {
+        const txt = out.trim(); if (!txt) return;
+        if (!range || !body.contains(range.commonAncestorContainer) || range.toString().trim() !== orig) { toast(t('nh_rw_moved')); return; }
+        body.focus(); const s = getSelection(); s.removeAllRanges(); s.addRange(range);
+        if (!document.execCommand('insertText', false, txt)) { range.deleteContents(); range.insertNode(document.createTextNode(txt)); }
+        body.dispatchEvent(new Event('input')); slot._nhr = null; slot.innerHTML = ''; toast(t('nh_rw_done'));
+      }
+    };
+    wait(t('nh_rw_wait'));
+    for (const key of order) {
+      const st = await ENGINES[key].state(lang); if (!alive()) return;
+      if (st === 'available') { try { if (await runWith(key)) break; } catch (err) {} if (!alive()) return; }
+      else if (st === 'downloadable' && !dl) dl = key;
+    }
+    if (src === 'rules') out = mode === 'simple' ? ruleSimple(orig, lang) : ruleShort(orig, lang);
+    draw();
+    const ta = $('nhr-out'); if (ta) ta.focus();
+  }
+
+  ML.NoteHelp = { summary, quiz, cards, rewrite, keySentences };
 })();

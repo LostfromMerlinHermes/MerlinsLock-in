@@ -492,18 +492,28 @@
   // The Plan's project filter also applies here (3.82): the blocks of other projects fade, the tray lists only this project
   const projNow = () => (S.plan && S.plan.proj) || '';
   const offProj = b => { const p = projNow(); if (!p) return false; const x = b.taskId && S.tasks.find(y => y.id === b.taskId); return !x || x.project !== p; };
+  // 3.111.1: the title gets 2 lines or more whenever the block is high enough; the time goes small, above it
+  // (tall blocks) or beside it (low ones, if the column is wide). Sizes follow the text size setting (--t-1).
+  let FS = 12;
+  const textPx = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--t-1')) || 12;
   function itemHtml(it, top, h, colPx, pad = 0) {
-    const short = h < 36, lines = Math.max(1, Math.floor((h - (it.flag ? 38 : 22)) / 15));
     const px = colPx * it.W - it.R - 3 - pad;
+    const LH = Math.round(FS * 1.25), TLH = Math.round((FS - 2) * 1.2) + 1, avail = h - 8;
+    const flagOn = !!it.flag && avail >= TLH + 2 * LH + LH + 2;
+    let mode, lines;
+    if (avail >= TLH + 2 * LH) { mode = 'tall'; lines = Math.max(2, Math.floor((avail - TLH - (flagOn ? LH + 2 : 0)) / LH)); }
+    else if (avail >= 2 * LH) { mode = 'mid'; lines = 2; }
+    else { mode = 'short'; const clh = Math.round((FS - 1) * 1.12); lines = h - 2 >= 2 * clh ? 2 : 1; }
+    const short = mode === 'short';
     const time = hm(it.s) + '–' + hm(it.e === DAY ? DAY - 0.001 : it.e).replace('23:60', '24:00');
     const marksOn = !short && px > 120 && (it.rep || it.rem);
-    const cls = ['dg-it', it.kind, short && 'short', it.done && 'done', it.active && 'active', isSel(it) && 'sel', it.feed && 'feed', marksOn && 'has-mk', it.nock && 'nock', it.miss && 'miss', it.dim && 'dim'].filter(Boolean).join(' ');
-    const tspan = short ? (px < 130 ? '' : `<span>${hm(it.s)}</span>`) : `<span>${time}</span>`;
+    const cls = ['dg-it', it.kind, mode, short && lines === 2 && 'two', it.done && 'done', it.active && 'active', isSel(it) && 'sel', it.feed && 'feed', marksOn && 'has-mk', it.nock && 'nock', it.miss && 'miss', it.dim && 'dim'].filter(Boolean).join(' ');
+    const tspan = mode === 'tall' ? `<span>${time}</span>` : px >= (mode === 'mid' ? 200 : lines === 2 ? 220 : 320) ? `<span>${hm(it.s)}</span>` : '';
     const marks = marksOn ? (it.rep ? ico('rep', 'dg-mk') : '') + (it.rem ? ico('bell', 'dg-mk') : '') : '';
-    const flag = it.flag && !short && h >= 46 ? `<em class="dg-flag">${esc(it.flag)}</em>` : '';
+    const flag = flagOn ? `<em class="dg-flag">${esc(it.flag)}</em>` : '';
     return `<div class="${cls}" role="button" tabindex="0" data-kind="${it.kind}" data-id="${it.id}" data-k="${it.k}" title="${esc(it.title)}, ${time}${it.flag ? ', ' + esc(it.flag) : ''}" style="top:${top}px;height:${h}px;left:calc(${(it.L * 100).toFixed(3)}% + 1px);width:calc(${(it.W * 100).toFixed(3)}% - ${it.R + 3 + pad}px);--c:${it.c};--lines:${lines}">`
       + (it.kind === 'blk' && !it.nock ? `<button type="button" class="dg-ck" data-ck="${it.id}" aria-pressed="${it.done}" aria-label="${esc(t(it.done ? 'dg_undone' : 'dg_done'))}"></button>` : '')
-      + `<b>${esc(it.title)}</b>${tspan}${flag}${marks ? `<em class="dg-mks">${marks}</em>` : ''}</div>`;
+      + (mode === 'tall' ? `${tspan}<b>${esc(it.title)}</b>` : `<b>${esc(it.title)}</b>${tspan}`) + `${flag}${marks ? `<em class="dg-mks">${marks}</em>` : ''}</div>`;
   }
   // Timer sessions of a day as [start, end] minutes (1A)
   function sessOn(k) {
@@ -536,6 +546,7 @@
   function gridHtml(host, days, mainW) {
     const view = host.view, dp = disp(view), hpx = HPX[view][dp.d], [h0, h1] = range(view, days), from = h0 * 60, to = h1 * 60;
     const td = today(), nm = nowMins(), H = (to - from) / 60 * hpx, y = m => (clamp(m, from, to) - from) / 60 * hpx;
+    FS = textPx();
     const colPx = Math.max(40, (mainW - GUT) / days.length);
     const cap = view === 'day' ? (colPx >= 560 ? 3 : 2) : (colPx >= 170 ? 2 : 1);
     const tick = hpx >= 40 ? 15 : hpx >= 26 ? 30 : 60;
@@ -592,10 +603,13 @@
     const ci = days.indexOf(sel.k); if (ci < 0) return '';
     const it = itemsOn(sel.k).find(i => i.kind === sel.kind && i.id === sel.id); if (!it) return '';
     const top = (it.s - from) / 60 * hpx, h = (it.e - it.s) / 60 * hpx;
-    const above = top - 48 >= 0, ty = above ? top - 48 : top + h + 8;
+    // The full title rides on top of the bar, so a tap on a phone shows what the block's clamp cut (3.111.1)
+    const above = top - 76 >= 0, ty = above ? top - 8 : top + h + 8;
     const left = clamp(GUT + ci * colPx, GUT, Math.max(GUT, GUT + days.length * colPx - 260));
     const blk = it.kind === 'blk', canTick = blk && !it.nock;
-    return `<div class="dg-bar" style="top:${ty}px;left:${left}px" role="toolbar">
+    const time = hm(it.s) + '–' + hm(it.e === DAY ? DAY - 0.001 : it.e).replace('23:60', '24:00');
+    return `<div class="dg-bar${above ? ' up' : ''}" style="top:${ty}px;left:${left}px" role="toolbar">
+      <p class="dg-bar-t"><b>${esc(it.title)}</b> <span>${time}</span></p>
       ${blk ? (it.miss ? `<button type="button" class="small" data-act="menu">${esc(t('dg_resched'))}</button>` : `<button type="button" class="small" data-act="go">${ico('play')}${esc(t('dg_lock'))}</button>`) : ''}${canTick ? `<button type="button" class="small" data-act="done">${esc(t(it.done ? 'dg_undone' : 'dg_done'))}</button>` : ''}
       <button type="button" class="small" data-act="edit">${ico('edit')}${esc(t('dg_edit'))}</button>
       ${it.feed ? '' : `<button type="button" class="small ghost danger icon-only" data-act="del" aria-label="${esc(t('dg_del'))}" title="${esc(t('dg_del'))}">${ico('trash')}</button>`}
