@@ -1015,7 +1015,7 @@
       try {
         pipWin = await window.documentPictureInPicture.requestWindow({ width: w, height: h });
         // the app's fonts, so the time keeps the same face
-        document.querySelectorAll('link[rel="stylesheet"]').forEach(l => { const c = pipWin.document.createElement('link'); c.rel = 'stylesheet'; c.href = l.href; if (/.test(l.href)) pipWin.document.head.appendChild(c); });
+        document.querySelectorAll('link[rel="stylesheet"]').forEach(l => { const c = pipWin.document.createElement('link'); c.rel = 'stylesheet'; c.href = l.href; if (/fonts/.test(l.href)) pipWin.document.head.appendChild(c); });
         MiniView.mount(pipWin.document, { toggle: toggleTimer, finish: () => { finish(); return true; }, setOpt: setMiniOpt, resize: resizePip });
         pipWin.addEventListener('pagehide', () => { pipWin = null; });
         renderTimer();
