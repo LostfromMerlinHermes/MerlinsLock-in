@@ -12,7 +12,7 @@
       dg_edit: 'Modifier', dg_dup: 'Dupliquer', dg_tomorrow: 'Déplacer à demain', dg_undone: 'Pas fait', dg_done: 'Fait', dg_del: 'Supprimer', dg_del_series: 'Supprimer la série',
       dg_view: 'Affichage', dg_v_day: 'Jour', dg_v_week: 'Semaine', dg_density: 'Densité', dg_d_compact: 'Compacte', dg_d_normal: 'Normale', dg_d_large: 'Grande',
       dg_hours: 'Heures', dg_h_24: '24 h', dg_h_mine: 'Mes heures', dg_h_auto: 'Auto', dg_layout: 'Disposition', dg_l_grid: 'Grille', dg_l_lines: 'Lignes',
-      dg_wide: 'Pleine largeur', dg_wide_off: 'Largeur normale', dg_free: 'Libre {d}', dg_overlaps: 'Chevauche {t}', dg_until: 'jusqu’à {t}',
+      dg_wide: 'Pleine largeur', dg_wide_off: 'Largeur normale', dg_free: 'Libre {d}', dg_overlaps: 'Chevauche {t}', dg_until: 'jusqu’à {t}', dg_lmoved: 'Placé à {t}',
       dg_fold_none: '{a}–{b}, rien de prévu', dg_fold_n_one: '{a}–{b}, 1 élément', dg_fold_n: '{a}–{b}, {n} éléments',
       dg_pushed_one: '1 bloc décalé', dg_pushed: '{n} blocs décalés', dg_undo: 'Annuler', dg_removed: 'Retiré', dg_once_removed: 'Retiré cette fois',
       dg_to_place: 'À placer', dg_to_place_n_one: '1 tâche, {m}', dg_to_place_n: '{n} tâches, {m}', dg_tray_hint: 'Glisse une tâche sur la grille, ou touche-la pour la mettre au prochain créneau libre.',
@@ -36,7 +36,7 @@
       dg_edit: 'Edit', dg_dup: 'Duplicate', dg_tomorrow: 'Move to tomorrow', dg_undone: 'Not done', dg_done: 'Done', dg_del: 'Delete', dg_del_series: 'Delete the series',
       dg_view: 'View', dg_v_day: 'Day', dg_v_week: 'Week', dg_density: 'Density', dg_d_compact: 'Compact', dg_d_normal: 'Normal', dg_d_large: 'Large',
       dg_hours: 'Hours', dg_h_24: '24 h', dg_h_mine: 'My hours', dg_h_auto: 'Auto', dg_layout: 'Layout', dg_l_grid: 'Grid', dg_l_lines: 'Lines',
-      dg_wide: 'Full width', dg_wide_off: 'Normal width', dg_free: 'Free {d}', dg_overlaps: 'Overlaps {t}', dg_until: 'until {t}',
+      dg_wide: 'Full width', dg_wide_off: 'Normal width', dg_free: 'Free {d}', dg_overlaps: 'Overlaps {t}', dg_until: 'until {t}', dg_lmoved: 'Moved to {t}',
       dg_fold_none: '{a}–{b}, nothing planned', dg_fold_n_one: '{a}–{b}, 1 item', dg_fold_n: '{a}–{b}, {n} items',
       dg_pushed_one: '1 block moved', dg_pushed: '{n} blocks moved', dg_undo: 'Undo', dg_removed: 'Removed', dg_once_removed: 'Removed this time',
       dg_to_place: 'To place', dg_to_place_n_one: '1 task, {m}', dg_to_place_n: '{n} tasks, {m}', dg_tray_hint: 'Drag a task onto the grid, or tap it to put it in the next free slot.',
@@ -182,8 +182,8 @@
   }
   // Make room (E4): blocks of that day starting at or after the moved one slide later; events and done blocks stay put,
   // a block that would land on one jumps after it, and nothing goes past midnight
-  function ripple(k, moved) {
-    if (C().push === false) return 0;
+  function ripple(k, moved, force) {
+    if (C().push === false && !force) return 0;
     const fixed = busyFixed(k, moved);
     const movable = S.blocks.filter(b => b.date === k && b !== moved && !blockDone(b) && b.start >= moved.start).sort((a, b) => a.start - b.start);
     let cur = moved.start + moved.mins, n = 0;
@@ -234,6 +234,7 @@
       b.date = ch.date; b.start = clamp(ch.start, 0, DAY - SNAP); b.mins = clamp(ch.mins, SNAP, DAY - b.start);
       const n = ripple(b.date, b);
       sel = { kind, id, k: b.date };
+      if (ed && ed.mode === 'edit' && ed.id === id) { ed.k = b.date; edVer++; } // the open form shows the new time
       changed(n ? tn('dg_pushed', n) : null, snap);
       askRule(b);
     } else {
@@ -241,6 +242,7 @@
       if (ev.src) { toast(t('dg_feed')); renderActive(); return; }
       const out = applyEvent(ev, k, ch);
       if (out) sel = { kind, id: out.id, k: ch.date };
+      if (out && ed && ed.mode === 'edit' && ed.id === id) { ed.id = out.id; ed.k = ch.date; edVer++; }
       changed();
     }
   }
@@ -760,7 +762,8 @@
     const s = ev.start ? toMins(ev.start) : null;
     return { kind: 'ev', ev, title: ev.title, s: s != null ? s : 9 * 60, e: (s != null ? s : 9 * 60) + (ev.mins || 60), date: ev.date, allday: !ev.start, color: ev.color || null, cat: ev.cat, repeat: ev.repeat || 'none', remind: ev.remind || 0, notes: ev.notes || '', rep: isRep(ev), feed: !!ev.src };
   }
-  function editorHtml() {
+  // compact (3.116, the bubble beside the block): title, times, lengths and colour on top; date, tick box and repeat in More options
+  function editorHtml(compact) {
     const d = edData(); if (!d) { ed = null; return ''; }
     const isNew = ed.mode === 'new', blk = d.kind === 'blk';
     const opt = (vals, cur, pre) => vals.map(v => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${esc(t(pre + v))}</option>`).join('');
@@ -787,15 +790,17 @@
         <label class="dg-tb"><span class="sr">${esc(t('dg_end'))}</span><button type="button" data-step="e:-15" aria-label="−15 min">−</button><input type="time" name="end" step="300" value="${hm(d.e)}"><button type="button" data-step="e:15" aria-label="+15 min">+</button></label>
       </div>
       <div class="dg-durs" ${d.allday ? 'hidden' : ''}>${durs.map(m => `<button type="button" data-dur="${m}" aria-pressed="${d.e - d.s === m}">${fmtMins(m)}</button>`).join('')}</div>
+      ${compact ? sw : ''}
+      ${compact ? `<details class="dg-ed-more" ${C().edMore ? 'open' : ''}><summary>${esc(t('dg_more'))}</summary>` : ''}
       <label class="dg-ed-date"><span>${esc(t('dg_date'))}</span><input type="date" name="date" value="${esc(d.date)}" required></label>
-      ${sw}
+      ${compact ? '' : sw}
       ${blk ? `<label class="opt dg-check"><input type="checkbox" name="check" ${d.check ? 'checked' : ''}> <span>${esc(t('dg_check'))}</span><small class="hint">${esc(t('dg_check_hint'))}</small></label>
       <fieldset class="dg-rep"><legend class="label">${esc(t('dg_rep'))}</legend>
         <div class="dg-seg">${['no', 'daily', 'days'].map(v => `<label><input type="radio" name="rep" value="${v}" ${d.rep === v ? 'checked' : ''}><span>${esc(t('dg_rep_' + v))}</span></label>`).join('')}</div>
         ${d.rep === 'days' ? `<div class="dg-days">${[1, 2, 3, 4, 5, 6, 0].map(n => `<label><input type="checkbox" name="rday" value="${n}" ${d.days.includes(n) ? 'checked' : ''}><span>${esc(new Date(2024, 0, n || 7).toLocaleDateString(loc(), { weekday: 'narrow' }))}</span></label>`).join('')}</div>` : ''}
         ${d.rep !== 'no' ? `<label class="dg-ed-date"><span>${esc(t('dg_rep_until'))}</span><input type="date" name="until" value="${esc(d.until)}" min="${esc(d.date)}"></label>` : ''}
       </fieldset>` : ''}
-      <details class="dg-ed-more" ${C().edMore ? 'open' : ''}><summary>${esc(t('dg_more'))}</summary>
+      ${compact ? '' : `<details class="dg-ed-more" ${C().edMore ? 'open' : ''}><summary>${esc(t('dg_more'))}</summary>`}
         ${blk ? '' : `<div class="t-edit-row">
           <label><span>${esc(t('ev_cat'))}</span><select name="cat">${opt(Object.keys(ML.CATS), d.cat, 'cat_')}</select></label>
           <label><span>${esc(t('repeat'))}</span><select name="repeat">${opt(['none', 'daily', 'weekdays', 'weekly', 'monthly'], d.repeat, 'rep_')}</select></label>
@@ -826,15 +831,54 @@
     const host = activeHost(), inSide = host && host.sideNow;
     const s = sheetEl();
     if (!ed || inSide) { if (!s.hidden) { s.hidden = true; s.dataset.sig = ''; s.querySelector('.dg-sheet-card').innerHTML = ''; } return; }
-    const sig = ed.mode + '|' + ed.kind + '|' + (ed.id || 'new') + '|' + edVer;
-    if (!s.hidden && s.dataset.sig === sig) return; // a save while typing must not redraw the form
-    const html = editorHtml();
+    const pop = !isPhone(); // 3.116: on a computer the form is a bubble beside the block, the grid stays usable
+    const sig = ed.mode + '|' + ed.kind + '|' + (ed.id || 'new') + '|' + edVer + '|' + pop;
+    if (!s.hidden && s.dataset.sig === sig) { placePop(); return; } // a save while typing must not redraw the form
+    const html = editorHtml(pop);
     if (!ed) { s.hidden = true; return; }
+    s.classList.toggle('pop', pop);
     s.querySelector('.dg-sheet-card').innerHTML = html;
     if (s.hidden) sheetAt = Date.now();
     s.hidden = false; s.dataset.sig = sig;
+    placePop();
   }
   let sheetAt = 0;
+  // What the bubble sits beside: the item on screen, else the new item's slot in its column, else where it was asked for
+  function popAnchor() {
+    const host = activeHost(), root = host && host.el(); if (!ed) return null;
+    if (root && ed.mode === 'edit') {
+      const el = [...root.querySelectorAll('.dg-it[data-id], [data-open][data-id]')].find(x => x.dataset.id === ed.id);
+      if (el) return el.getBoundingClientRect();
+    }
+    const sc = root && root.querySelector('.dg-scroll'), col = sc && [...sc.querySelectorAll('.dg-col')].find(c => c.dataset.k === ed.k);
+    if (col && ed.mode === 'new' && !ed.allday) {
+      const r = col.getBoundingClientRect(), top = sc.querySelector('.dg-body').getBoundingClientRect().top, hpx = +sc.dataset.hpx, from = +sc.dataset.from;
+      return { left: r.left, right: r.right, top: top + (ed.s - from) / 60 * hpx, bottom: top + ((ed.e || ed.s + 60) - from) / 60 * hpx };
+    }
+    return ed.at || null;
+  }
+  function placePop() {
+    const s = sheet; if (!s || s.hidden || !s.classList.contains('pop')) return;
+    const card = s.querySelector('.dg-sheet-card'), r = popAnchor();
+    const W = document.documentElement.clientWidth, H = innerHeight, m = 8, cw = card.offsetWidth, ch = card.offsetHeight;
+    let x, y;
+    if (!r) { x = (W - cw) / 2; y = 70; }
+    else if (r.right + m + cw <= W - m) { x = r.right + m; y = r.top; }
+    else if (r.left - m - cw >= m) { x = r.left - m - cw; y = r.top; }
+    else { x = r.left; y = r.bottom + m + ch <= H - m ? r.bottom + m : r.top - m - ch; }
+    card.style.left = Math.round(clamp(x, m, Math.max(m, W - m - cw))) + 'px';
+    card.style.top = Math.round(clamp(y, m, Math.max(m, H - m - ch))) + 'px';
+  }
+  addEventListener('scroll', () => placePop(), { capture: true, passive: true });
+  addEventListener('resize', () => placePop());
+  // A press outside the bubble closes it (the grid and the Lines list handle their own presses); a new item with a title stays
+  document.addEventListener('pointerdown', e => {
+    const s = sheet; if (!s || s.hidden || !s.classList.contains('pop') || !ed) return;
+    const tg = e.target; if (!tg.closest) return;
+    if (tg.closest('.dg-sheet-card, .dg-scroll, .dg-lines, [data-open]') || (menu && menu.contains(tg))) return;
+    if (ed.mode === 'new') { const f = document.querySelector('#dg-ed [name=title]'); if (f && f.value.trim()) return; }
+    closeEditor();
+  }, true);
   function focusTitle() {
     const f = document.querySelector('#dg-ed [name=title]');
     if (f && !f.value) f.focus({ preventScroll: true });
@@ -924,7 +968,7 @@
     if (s == null) { const nm = nowMins(); s = k === td ? Math.min(DAY - 60, Math.ceil((nm + 1) / 30) * 30) : 9 * 60; }
     const kind = o.kind || C().kind || (host && host.defaultKind) || 'blk';
     sel = null;
-    setEd({ mode: 'new', kind, k, s, e: o.e != null ? Math.max(o.e, s + SNAP) : Math.min(DAY, s + 60), title: '' });
+    setEd({ mode: 'new', kind, k, s, e: o.e != null ? Math.max(o.e, s + SNAP) : Math.min(DAY, s + 60), title: '', at: o.at || null });
     renderActive();
     setTimeout(focusTitle, 30);
   }
@@ -1006,7 +1050,7 @@
     const f = e.target.closest && e.target.closest('#dg-ed'); if (!f || !ed) return;
     applyForm(f, e.target.name);
   });
-  document.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('dg-ed-more')) { C().edMore = e.target.open; save(); } }, true);
+  document.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('dg-ed-more')) { C().edMore = e.target.open; save(); placePop(); } }, true);
   document.addEventListener('submit', e => {
     const f = e.target.closest && e.target.closest('#dg-ed'); if (!f) return;
     e.preventDefault();
@@ -1118,6 +1162,7 @@
     const tg = e.target;
     if (menu && !menu.contains(tg) && !tg.closest('[data-dg="view"]')) closeMenu();
     if (!tg.closest) return;
+    if (Date.now() - ldragEnd < 400 && tg.closest('.dg-lines')) return; // the click that ends a Lines drag
     const inMenu = menu && menu.contains(tg);
     const dv = tg.closest('[data-dv]');
     if (dv && inMenu) {
@@ -1186,7 +1231,7 @@
     const ck = tg.closest('[data-ck]');
     if (ck) { e.stopPropagation(); toggleDone(ck.dataset.ck); renderActive(); return; }
     const free = tg.closest('[data-free]');
-    if (free) { const [k, a2, b2] = free.dataset.free.split('|'); openNew({ k, s: +a2, e: Math.min(+b2, +a2 + 60), kind: 'blk' }); return; }
+    if (free) { const [k, a2, b2] = free.dataset.free.split('|'); openNew({ k, s: +a2, e: Math.min(+b2, +a2 + 60), kind: 'blk', at: free.getBoundingClientRect() }); return; }
     const op = tg.closest('[data-open]');
     if (op && !tg.closest('.dg-scroll')) { ML.dgOpen(op.dataset.kind, op.dataset.id, op.dataset.k); return; }
     const more = tg.closest('[data-more]');
@@ -1211,7 +1256,7 @@
     const k = b.dataset.dg;
     if (k === 'prev' || k === 'next') { sel = null; host.nav(k === 'next' ? 1 : -1); save(); render(host.name); }
     else if (k === 'today') { sel = null; host.goToday(); save(); render(host.name); }
-    else if (k === 'new') openNew({});
+    else if (k === 'new') openNew({ at: b.getBoundingClientRect() });
     else if (k === 'view') { if (menu) { closeMenu(); return; } vOpen = null; openMenu(viewMenuHtml(host.view), 0, 0, b); }
     else if (k === 'wide') { C().wide = !C().wide; save(); applyWide(); render(host.name); }
     else if (k === 'side') { C().sideOff = !C().sideOff; if (C().sideOff) ed = null; save(); render(host.name); }
@@ -1292,7 +1337,7 @@
       const it = d.it, wasSel = isSel(it), host = hostFrom(d.sc);
       sel = { kind: it.kind, id: it.id, k: it.k };
       if (host && host.sideNow && !C().sideOff) setEd({ mode: 'edit', kind: it.kind, id: it.id, k: it.k });
-      else if (wasSel || (ed && ed.mode === 'edit')) setEd({ mode: 'edit', kind: it.kind, id: it.id, k: it.k }); // a second tap opens the form
+      else if (wasSel || (ed && ed.mode === 'edit') || (d.mouse && !isPhone())) setEd({ mode: 'edit', kind: it.kind, id: it.id, k: it.k }); // a second tap opens the form (a click at once on a computer, 3.116)
       else ed = null;
       closeMenu(); renderActive(); return;
     }
@@ -1308,6 +1353,92 @@
     moveItem(d.it.kind, d.it.id, d.k, { date: nk, start: d.ns, mins: d.ne - d.ns });
   });
   document.addEventListener('pointercancel', () => { if (drag) { if (drag.ghost) drag.ghost.remove(); drag = null; renderActive(); } });
+
+  /* ---------- Lines (3.116, 2A): drag a block up or down the list; the mouse drags at once, a finger after a short hold ---------- */
+  let ldrag = null, ldragEnd = 0;
+  // Where a dropped block goes: a free gap = its start; before an item = that item's place (moving up: the others slide
+  // later; moving down: it sits just before it, pulling up the chain it leaves if needed); after the last = its end
+  function lineDrop(id, k, tg) {
+    const a = getB(id); if (!a || a.date !== k) { renderActive(); return; }
+    const dur = a.mins, its = itemsOn(k).filter(i => i.id !== id).sort((x, y) => x.s - y.s || x.e - y.e);
+    const isFree = (p, q) => p >= 0 && !busy(k, id).some(([u, v]) => u < q && v > p);
+    const snap = snapshot();
+    let s;
+    if (tg.gap != null) s = tg.gap;
+    else {
+      const x = tg.before && its.find(i => i.id === tg.before), last = its[its.length - 1];
+      const T = x ? x.s : last ? last.e : a.start;
+      if (T <= a.start) s = x && x.kind === 'ev' ? T - dur : T; // events never move: sit just before one
+      else if (isFree(T - dur, T)) s = T - dur;
+      else {
+        const chain = []; let cur = a.start + dur, ok = true;
+        for (const i of its) {
+          if (i.s < a.start + dur || i.s >= T) continue;
+          if (i.kind !== 'blk' || i.done || i.s !== cur) { ok = false; break; }
+          chain.push(i.b); cur = i.e;
+        }
+        if (ok && chain.length && cur === T) { chain.forEach(b => { b.start -= dur; }); s = T - dur; } else s = T;
+      }
+    }
+    s = clamp(s, 0, DAY - dur);
+    if (s === a.start) { renderActive(); return; }
+    a.start = s;
+    const n = ripple(k, a, true);
+    sel = { kind: 'blk', id, k };
+    if (ed && ed.mode === 'edit' && ed.id === id) edVer++;
+    changed(n ? tn('dg_pushed', n) : t('dg_lmoved', { t: hm(s) }), snap);
+    askRule(a);
+  }
+  function lStart() {
+    ldrag.on = true; ldrag.row.classList.add('dragging'); ldrag.box.classList.add('dg-ldrag');
+    try { ldrag.row.setPointerCapture(ldrag.pid); } catch (err) {}
+    if (!ldrag.mouse && navigator.vibrate) try { navigator.vibrate(8); } catch (err) {}
+  }
+  function lMark(y) {
+    const box = ldrag.box, rows = [...box.children].filter(r => r !== ldrag.row && !r.classList.contains('now'));
+    rows.forEach(r => r.classList.remove('drop-before', 'drop-after', 'drop-gap'));
+    let tg = null;
+    for (const r of rows) {
+      const rc = r.getBoundingClientRect(), fr = r.querySelector('[data-free]'), it = r.querySelector('.dg-it[data-id]');
+      if (fr && y >= rc.top && y <= rc.bottom) { tg = { gap: +fr.dataset.free.split('|')[1], el: r, cls: 'drop-gap' }; break; }
+      if (it && y < rc.top + rc.height / 2) { tg = { before: it.dataset.id, el: r, cls: 'drop-before' }; break; }
+    }
+    if (!tg) { const lastIt = rows.filter(r => r.querySelector('.dg-it[data-id]')).pop(); if (lastIt) tg = { after: true, el: lastIt, cls: 'drop-after' }; }
+    if (tg) tg.el.classList.add(tg.cls);
+    ldrag.tg = tg;
+  }
+  document.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || !e.target.closest) return;
+    const it = e.target.closest('.dg-lines .dg-it.blk[data-id]'); if (!it || e.target.closest('.dg-ck')) return;
+    if (!getB(it.dataset.id)) return;
+    const row = it.closest('.dg-lr');
+    ldrag = { id: it.dataset.id, k: it.dataset.k, row, box: row.parentElement, y0: e.clientY, x0: e.clientX, pid: e.pointerId, mouse: e.pointerType === 'mouse', on: false };
+    if (!ldrag.mouse) { const me = ldrag; me.timer = setTimeout(() => { if (ldrag === me && !me.on) lStart(); }, 350); }
+  });
+  document.addEventListener('pointermove', e => {
+    if (!ldrag) return;
+    const dy = e.clientY - ldrag.y0, far = Math.hypot(e.clientX - ldrag.x0, dy);
+    if (!ldrag.on) {
+      if (ldrag.mouse && far > 5) lStart();
+      else { if (far > 8) { clearTimeout(ldrag.timer); ldrag = null; } return; }
+    }
+    ldrag.row.style.transform = `translateY(${dy}px)`;
+    lMark(e.clientY);
+    e.preventDefault();
+  }, { passive: false });
+  // A finger that held a block: the page must not scroll under it
+  document.addEventListener('touchmove', e => { if (ldrag && ldrag.on) e.preventDefault(); }, { passive: false });
+  document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.dg-lines .dg-it.blk')) e.preventDefault(); });
+  function lEnd(drop) {
+    const d = ldrag; ldrag = null; if (!d) return;
+    clearTimeout(d.timer);
+    if (!d.on) return;
+    ldragEnd = Date.now();
+    d.box.classList.remove('dg-ldrag');
+    if (drop && d.tg) lineDrop(d.id, d.k, d.tg); else renderActive();
+  }
+  document.addEventListener('pointerup', () => lEnd(true));
+  document.addEventListener('pointercancel', () => lEnd(false));
   // Keyboard on an item: Enter opens it
   document.addEventListener('keydown', e => {
     const it = e.target.closest && e.target.closest('.dg-it[data-id]');
